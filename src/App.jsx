@@ -1,33 +1,50 @@
+import { useMemo } from "react";
 import { BrowserRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { ThemeProvider } from "styled-components";
-import GlobalStyles from "./styles/GlobalStyles";
-import { theme } from "./styles/theme";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import GlobalStyles from "./shared/styles/GlobalStyles";
 import SellerRoutes from "./routes/SellerRoutes";
 function App() {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        refetchOnWindowFocus: false,
-        retry: 1,
-      },
-    },
-  });
+  // Use useMemo to prevent creating new QueryClient on every render
+  const queryClient = useMemo(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            refetchOnWindowFocus: false,
+            retry: 1,
+            gcTime: 1000 * 60 * 5, // 5 minutes garbage collection time
+          },
+        },
+      }),
+    []
+  );
   return (
     <QueryClientProvider client={queryClient}>
       <GlobalStyles />
-      <ThemeProvider theme={theme}>
-        <BrowserRouter
-          future={{
-            v7_startTransition: true,
-            v7_relativeSplatPath: true,
-          }}
-        >
-          <SellerRoutes />
-        </BrowserRouter>
-      </ThemeProvider>
+      <BrowserRouter
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true,
+        }}
+      >
+        <SellerRoutes />
+      </BrowserRouter>
       <ReactQueryDevtools initialIsOpen={false} />
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </QueryClientProvider>
   );
 }

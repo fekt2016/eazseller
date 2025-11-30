@@ -1,0 +1,47 @@
+import api from './api';
+
+const addressApi = {
+  getUserAddresses: async () => {
+    try {
+      const response = await api.get(`/address`);
+      return response;
+    } catch (error) {
+      console.error("Error fetching user addresses:", error);
+      throw error;
+    }
+  },
+
+  createUserAddress: async (addressData) => {
+    console.log("api address data", addressData);
+    try {
+      const response = await api.post(`/address`, addressData);
+      return response;
+    } catch (error) {
+      console.error("Error creating user address:", error);
+      throw error;
+    }
+  },
+  updateUserAddress: async (userId, addressId, addressData) => {
+    try {
+      const response = await api.put(
+        `/address/${userId}/${addressId}`,
+        addressData
+      );
+      return response;
+    } catch (error) {
+      console.error("Error updating user address:", error);
+      throw error;
+    }
+  },
+  deleteUserAddress: async (userId, addressId) => {
+    try {
+      const response = await api.delete(`/address/${userId}/${addressId}`);
+      return response;
+    } catch (error) {
+      console.error("Error deleting user address:", error);
+      throw error;
+    }
+  },
+};
+
+export default addressApi;
