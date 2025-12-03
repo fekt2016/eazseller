@@ -5,65 +5,92 @@
 
 // ---------- SELLER ROUTES ----------
 export const PATHS = {
-  // Dashboard
-  DASHBOARD: "/",
+  // Landing & Dashboard
+  LANDING: "/",
+  DASHBOARD: "/dashboard",
   HOME: "/dashboard",
 
   // Products
-  PRODUCTS: "/products",
-  ADD_PRODUCT: "/products/add",
-  ADDPRODUCT: "/products/add", // Alias for backward compatibility
-  EDIT_PRODUCT: "/products/:id/edit",
-  EDITPRODUCT: "/products/:id/edit", // Alias for backward compatibility
-  PRODUCT_DETAIL: "/products/:id",
-  DISCOUNT_PRODUCTS: "/products/discount",
-  DISCOUNTPRODUCT: "/products/discount", // Alias for backward compatibility
+  PRODUCTS: "/dashboard/products",
+  ADD_PRODUCT: "/dashboard/products/add",
+  ADDPRODUCT: "/dashboard/products/add", // Alias for backward compatibility
+  EDIT_PRODUCT: "/dashboard/products/:id/edit",
+  EDITPRODUCT: "/dashboard/products/:id/edit", // Alias for backward compatibility
+  PRODUCT_DETAIL: "/dashboard/products/:id",
+  DISCOUNT_PRODUCTS: "/dashboard/products/discount",
+  DISCOUNTPRODUCT: "/dashboard/products/discount", // Alias for backward compatibility
 
   // Orders
-  ORDERS: "/orders",
-  ORDER: "/orders", // Alias for backward compatibility
-  ORDER_DETAIL: "/orders/:id",
-  ORDERDETAILS: "/orders/:id", // Alias for backward compatibility
+  ORDERS: "/dashboard/orders",
+  ORDER: "/dashboard/orders", // Alias for backward compatibility
+  ORDER_DETAIL: "/dashboard/orders/:id",
+  ORDERDETAILS: "/dashboard/orders/:id", // Alias for backward compatibility
 
   // Analytics
-  ANALYTICS: "/analytics",
-  SALES: "/analytics/sales",
-  PRODUCTS_ANALYTICS: "/analytics/products",
-  CUSTOMERS_ANALYTICS: "/analytics/customers",
+  ANALYTICS: "/dashboard/analytics",
+  SALES: "/dashboard/analytics/sales",
+  PRODUCTS_ANALYTICS: "/dashboard/analytics/products",
+  CUSTOMERS_ANALYTICS: "/dashboard/analytics/customers",
 
   // Messages
-  MESSAGES: "/messages",
-  MESSAGE_DETAIL: "/messages/:id",
+  MESSAGES: "/dashboard/messages",
+  MESSAGE_DETAIL: "/dashboard/messages/:id",
 
   // Finance
-  FINANCE: "/finance",
-  EARNINGS: "/finance/earnings",
-  PAYOUTS: "/finance/payouts",
-  TRANSACTIONS: "/finance/transactions",
-  PAYMENT_REQUESTS: "/finance/payment-requests",
-  PAYMENTS: "/finance/payment-requests", // Alias for backward compatibility
-  PAYMENT_METHODS: "/finance/payment-methods",
+  FINANCE: "/dashboard/finance",
+  EARNINGS: "/dashboard/finance/earnings",
+  PAYOUTS: "/dashboard/finance/payouts",
+  TRANSACTIONS: "/dashboard/finance/transactions",
+  PAYMENT_REQUESTS: "/dashboard/finance/payment-requests",
+  PAYMENTS: "/dashboard/finance/payment-requests", // Alias for backward compatibility
+  PAYMENT_METHODS: "/dashboard/finance/payment-methods",
 
   // Store
-  STORE_SETTINGS: "/store/settings",
-  STORE_PROFILE: "/store/profile",
-  SHIPPING_SETTINGS: "/store/shipping",
-  RETURN_POLICY: "/store/return-policy",
+  STORE_SETTINGS: "/dashboard/store/settings",
+  STORE_PROFILE: "/dashboard/store/profile",
+  SHIPPING_SETTINGS: "/dashboard/store/shipping",
+  RETURN_POLICY: "/dashboard/store/return-policy",
 
   // Account
-  PROFILE: "/profile",
-  SETTINGS: "/settings",
-  SECURITY: "/settings/security",
-  NOTIFICATIONS: "/notifications",
+  PROFILE: "/dashboard/profile",
+  SETTINGS: "/dashboard/settings",
+  SECURITY: "/dashboard/settings/security",
+  NOTIFICATIONS: "/dashboard/notifications",
   
   // Settings (for seller settings page)
-  SELLER_SETTINGS: "/settings",
+  SELLER_SETTINGS: "/dashboard/settings",
 
   // Support
-  SUPPORT: "/support",
-  HELP: "/help",
-  FAQ: "/faq",
-  CHAT_SUPPORT: "/support/chat", // Chat support route
+  SUPPORT: "/dashboard/support",
+  SUPPORT_TICKETS: "/dashboard/support/tickets",
+  SUPPORT_TICKET_DETAIL: "/dashboard/support/tickets/:id",
+  HELP: "/dashboard/help",
+  FAQ: "/dashboard/faq",
+  CHAT_SUPPORT: "/dashboard/support/chat", // Chat support route
+  
+  // Press
+  PRESS: "/dashboard/press",
+  
+  // About
+  ABOUT: "/dashboard/about",
+  
+  // Contact
+  CONTACT: "/dashboard/contact",
+  
+  // Return & Refund Policy
+  RETURN_REFUND: "/dashboard/return-refund",
+  TERMS: "/dashboard/terms",
+  
+  // Privacy Policy (Public)
+  PRIVACY: "/privacy",
+  PRIVACY_DASHBOARD: "/dashboard/privacy", // Alias for backward compatibility
+  
+  // Education (Public)
+  EDUCATION: "/education",
+  EDUCATION_DASHBOARD: "/dashboard/education",
+  
+  // Sitemap
+  SITEMAP: "/dashboard/sitemap",
 
   // Auth
   LOGIN: "/login",
@@ -72,18 +99,18 @@ export const PATHS = {
   RESET_PASSWORD: "/reset-password/:token",
 
   // Onboarding & Setup
-  SETUP: "/setup",
-  ONBOARDING: "/onboarding",
+  SETUP: "/dashboard/setup",
+  ONBOARDING: "/dashboard/onboarding",
 
   // Reviews
-  REVIEWS: "/reviews",
+  REVIEWS: "/dashboard/reviews",
   
   // Tracking
-  TRACKING: "/tracking/:trackingNumber",
+  TRACKING: "/dashboard/tracking/:trackingNumber",
   
   // Withdrawals
-  WITHDRAWALS: "/finance/withdrawals",
-  WITHDRAWAL_VERIFY_OTP: "/finance/withdrawals/:withdrawalId/verify-otp",
+  WITHDRAWALS: "/dashboard/finance/withdrawals",
+  WITHDRAWAL_VERIFY_OTP: "/dashboard/finance/withdrawals/:withdrawalId/verify-otp",
 };
 
 // ---------- ROUTE CONFIG (SEO META) ----------

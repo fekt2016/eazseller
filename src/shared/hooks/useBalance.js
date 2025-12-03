@@ -50,6 +50,23 @@ export const useGetSellerEarnings = (params = {}) => {
   });
 };
 
+/**
+ * Get seller balance/revenue history
+ * Tracks all balance changes with balanceBefore and balanceAfter
+ */
+export const useGetSellerBalanceHistory = (params = {}) => {
+  return useQuery({
+    queryKey: ["sellerBalanceHistory", params],
+    queryFn: async () => {
+      const response = await balanceApi.getBalanceHistory(params);
+      return response?.data?.data || response?.data || response;
+    },
+    staleTime: 1000 * 60 * 1, // 1 minute - balance history should update frequently
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+  });
+};
+
 export const useGetEarningsByOrder = (orderId) => {
   return useQuery({
     queryKey: ["sellerEarnings", orderId],

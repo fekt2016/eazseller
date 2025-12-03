@@ -82,7 +82,11 @@ export default function Products() {
             src={product.imageCover} 
             alt={product.name}
             onError={(e) => {
-              e.target.src = 'https://via.placeholder.com/50';
+              // Prevent infinite loop
+              if (e.target.dataset.fallbackAttempted !== 'true') {
+                e.target.dataset.fallbackAttempted = 'true';
+                e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="50" height="50"%3E%3Crect width="50" height="50" fill="%23f0f0f0"/%3E%3Ctext x="50%25" y="50%25" font-family="Arial" font-size="10" fill="%23999" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E';
+              }
             }}
           />
           <ProductName>{product.name}</ProductName>

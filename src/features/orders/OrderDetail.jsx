@@ -25,6 +25,7 @@ import {
 } from "react-icons/fa";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGetSellerOrder } from '../../shared/hooks/useOrder';
+import useDynamicPageTitle from '../../shared/hooks/useDynamicPageTitle';
 // const order = [];
 // Admin Order Details Component
 function OrderDetails() {
@@ -43,6 +44,14 @@ function OrderDetails() {
   const order = useMemo(() => {
     return orderData?.data.data.order || [];
   }, [orderData]);
+
+  // SEO - Update page title and meta tags based on order data
+  useDynamicPageTitle({
+    title: "Seller Order",
+    dynamicTitle: order?.order && `Seller Order #${order.order.orderNumber || order.order._id?.slice(-8) || order.order._id}`,
+    description: "View customer order details.",
+    defaultTitle: "EazSeller Orders",
+  });
 
   if (isLoading) {
     return <div>Loading order details...</div>;

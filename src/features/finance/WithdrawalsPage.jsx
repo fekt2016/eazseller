@@ -58,63 +58,25 @@ export default function WithdrawalsPage() {
   console.log('[WithdrawalsPage] Balance loading:', isBalanceLoading);
   console.log('[WithdrawalsPage] Orders:', orders);
 
-  // Calculate total revenue from ALL delivered orders (same logic as Dashboard)
-  const totalRevenueFromAllDelivered = useMemo(() => {
-    const allDeliveredOrders = orders.filter(
-      (order) => order.status?.toLowerCase() === "delivered"
-    );
-    return allDeliveredOrders.reduce(
-      (sum, order) => sum + (order.subtotal || order.total || 0),
-      0
-    );
-  }, [orders]);
+  // Total revenue from balance API (balance + totalWithdrawn)
+  // This represents all earnings from delivered orders
+  const totalRevenue = useMemo(() => {
+    return balanceData?.totalRevenue || ((balanceData?.balance || 0) + (balanceData?.totalWithdrawn || 0)) || 0;
+  }, [balanceData]);
 
   const lockedBalance = balanceData?.lockedBalance || 0;
   const pendingBalance = balanceData?.pendingBalance || 0;
   const totalWithdrawn = balanceData?.totalWithdrawn || 0;
 
-  // Balance calculation with fallback (same as Dashboard)
-  // If API balance is 0 but total revenue exists, calculate from revenue
-  // Formula: balance = totalRevenue (all delivered orders)
+  // Balance from API (current balance = withdrawableBalance + lockedBalance + pendingBalance)
   const balance = useMemo(() => {
-    const apiBalance = balanceData?.balance || 0;
-    
-    // If API balance is 0 but we have revenue, calculate from revenue
-    if (apiBalance === 0 && totalRevenueFromAllDelivered > 0) {
-      console.log('[WithdrawalsPage] Using calculated balance from revenue:', {
-        totalRevenueFromAllDelivered,
-        apiBalance,
-      });
-      return totalRevenueFromAllDelivered;
-    }
-    
-    // Otherwise, use the API value
-    return apiBalance;
-  }, [balanceData, totalRevenueFromAllDelivered]);
+    return balanceData?.balance || 0;
+  }, [balanceData]);
 
-  // Available balance calculation with fallback (same as Dashboard)
-  // Formula: availableBalance = totalRevenue (all delivered orders) - lockedBalance
+  // Available balance (withdrawableBalance) from API
   const withdrawableBalance = useMemo(() => {
-    // First, try to use the balance from the API
-    const apiAvailableBalance = balanceData?.withdrawableBalance || balanceData?.availableBalance || 0;
-    const apiBalance = balanceData?.balance || 0;
-    
-    // If API balance is 0 but we have revenue, calculate from revenue
-    if (apiBalance === 0 && totalRevenueFromAllDelivered > 0) {
-      const calculatedAvailable = Math.max(0, totalRevenueFromAllDelivered - lockedBalance);
-      console.log('[WithdrawalsPage] Using calculated available balance:', {
-        totalRevenueFromAllDelivered,
-        lockedBalance,
-        calculatedAvailable,
-        apiAvailableBalance,
-        apiBalance,
-      });
-      return calculatedAvailable;
-    }
-    
-    // Otherwise, use the API value
-    return apiAvailableBalance;
-  }, [balanceData, totalRevenueFromAllDelivered, lockedBalance]);
+    return balanceData?.withdrawableBalance || balanceData?.availableBalance || 0;
+  }, [balanceData]);
 
   // Get payment requests (all for history tab)
   const {
@@ -370,7 +332,7 @@ export default function WithdrawalsPage() {
       <BalanceCards>
         <BalanceCard>
           <BalanceLabel>Total Revenue Balance</BalanceLabel>
-          <BalanceAmount>GH₵{balance.toFixed(2)}</BalanceAmount>
+          <BalanceAmount>GH₵{totalRevenue.toFixed(2)}</BalanceAmount>
         </BalanceCard>
         <BalanceCard>
           <BalanceLabel>Available Balance</BalanceLabel>

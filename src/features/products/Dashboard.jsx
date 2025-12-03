@@ -242,39 +242,19 @@ const Dashboard = () => {
     };
   }, [orders, products, timeFilter, totalViews]);
   
+  // Total revenue from balance API (balance + totalWithdrawn)
+  // This represents all earnings from delivered orders
+  const totalRevenue = useMemo(() => {
+    return balanceData?.totalRevenue || ((balanceData?.balance || 0) + (balanceData?.totalWithdrawn || 0)) || 0;
+  }, [balanceData]);
+
   // Available balance calculation
-  // If balance from API is 0 but total revenue exists, calculate from revenue
-  // Formula: availableBalance = totalRevenue (all delivered orders) - lockedBalance
+  // Formula: availableBalance = withdrawableBalance (from API)
   const availableBalance = useMemo(() => {
-    // First, try to use the balance from the API
+    // Use the balance from the API
     const apiAvailableBalance = balanceData?.availableBalance || balanceData?.withdrawableBalance || 0;
-    const apiBalance = balanceData?.balance || 0;
-    
-    // Calculate total revenue from ALL delivered orders (not just current period)
-    const allDeliveredOrders = orders.filter(
-      (order) => order.status?.toLowerCase() === "delivered"
-    );
-    const totalRevenueFromAllDelivered = allDeliveredOrders.reduce(
-      (sum, order) => sum + (order.subtotal || order.total || 0),
-      0
-    );
-    
-    // If API balance is 0 but we have revenue, calculate from revenue
-    if (apiBalance === 0 && totalRevenueFromAllDelivered > 0) {
-      const calculatedAvailable = Math.max(0, totalRevenueFromAllDelivered - lockedBalance);
-      console.log('[Dashboard] Using calculated available balance:', {
-        totalRevenueFromAllDelivered,
-        lockedBalance,
-        calculatedAvailable,
-        apiAvailableBalance,
-        apiBalance,
-      });
-      return calculatedAvailable;
-    }
-    
-    // Otherwise, use the API value
     return apiAvailableBalance;
-  }, [balanceData, orders, lockedBalance]);
+  }, [balanceData]);
 
   const isLoading = isOrdersLoading || isProductLoading || isSellerLoading;
   const anyDataAvailable = orders.length > 0 || products.length > 0;
@@ -409,7 +389,7 @@ const Dashboard = () => {
         />
         <StatCard
           title="Total Revenue"
-          value={`Gh₵${(stats.totalRevenue || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+          value={`Gh₵${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
           change={`${stats.revenueChange >= 0 ? '+' : ''}${stats.revenueChange}%`}
           variant="primary"
           icon={<FaDollarSign />}
@@ -472,7 +452,11 @@ const Dashboard = () => {
                 src={product.imageCover} 
                 alt={product.name}
                 onError={(e) => {
-                  e.target.src = 'https://via.placeholder.com/200';
+                  // Prevent infinite loop and use local fallback
+                  if (e.target.dataset.fallbackAttempted !== 'true') {
+                    e.target.dataset.fallbackAttempted = 'true';
+                    e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect width="200" height="200" fill="%23f0f0f0"/%3E%3Ctext x="50%25" y="50%25" font-family="Arial" font-size="16" fill="%23999" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E';
+                  }
                 }}
               />
               <ProductInfo $padding="md">

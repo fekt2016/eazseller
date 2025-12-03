@@ -15,10 +15,20 @@ const payoutApi = {
     }
   },
 
-  // Create withdrawal request
+  // Create withdrawal request (now uses payment-requests endpoint)
   createWithdrawalRequest: async (data) => {
     try {
-      const response = await api.post('/seller/payout/request', data);
+      // Transform payoutMethod to paymentMethod for the new endpoint
+      const requestData = {
+        ...data,
+        paymentMethod: data.payoutMethod || data.paymentMethod,
+      };
+      // Remove payoutMethod if it exists (use paymentMethod instead)
+      if (requestData.payoutMethod && !requestData.paymentMethod) {
+        requestData.paymentMethod = requestData.payoutMethod;
+        delete requestData.payoutMethod;
+      }
+      const response = await api.post('/paymentrequest', requestData);
       return response.data;
     } catch (error) {
       console.error('[payoutApi] Error creating withdrawal request:', error);

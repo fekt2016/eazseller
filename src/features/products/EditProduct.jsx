@@ -4,6 +4,7 @@ import ProductForm from '../../shared/components/forms/ProductForm';
 import { compressImage } from '../../shared/utils/imageCompressor';
 import { useMemo } from "react";
 import { LoadingContainer } from '../../shared/components/LoadingSpinner';
+import useDynamicPageTitle from '../../shared/hooks/useDynamicPageTitle';
 
 const EditProduct = () => {
   const { id: productId } = useParams();
@@ -18,6 +19,14 @@ const EditProduct = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const product = productResponse?.data?.product || {};
   console.log("prod", product);
+
+  // SEO - Update page title and meta tags based on product data
+  useDynamicPageTitle({
+    title: "Product Details",
+    dynamicTitle: product?.name && `${product.name} — Manage Product`,
+    description: "View and update your product.",
+    defaultTitle: "EazSeller Dashboard",
+  });
 
   const initialFormData = useMemo(() => {
     if (!product || Object.keys(product).length === 0) return {};

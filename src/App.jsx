@@ -6,6 +6,7 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import GlobalStyles from "./shared/styles/GlobalStyles";
 import SellerRoutes from "./routes/SellerRoutes";
+import ScrollToTop from "./shared/ScrollToTop";
 function App() {
   // Use useMemo to prevent creating new QueryClient on every render
   const queryClient = useMemo(
@@ -30,6 +31,7 @@ function App() {
           v7_relativeSplatPath: true,
         }}
       >
+        <ScrollToTop />
         <SellerRoutes />
       </BrowserRouter>
       <ReactQueryDevtools initialIsOpen={false} />

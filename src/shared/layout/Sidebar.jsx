@@ -9,6 +9,7 @@ import {
   FaCog,
   FaStar,
   FaMoneyBillWave,
+  FaHeadset,
 } from "react-icons/fa";
 import useAuth from '../hooks/useAuth';
 import { PATHS } from '../../routes/routePaths';
@@ -51,6 +52,11 @@ export default function Sidebar({ role, isOpen, onClose }) {
       path: PATHS.WITHDRAWALS,
       label: "Withdrawals",
       icon: <FaMoneyBillWave />,
+    },
+    {
+      path: PATHS.SUPPORT,
+      label: "Support",
+      icon: <FaHeadset />,
     },
     {
       path: PATHS.CHAT_SUPPORT,

@@ -41,6 +41,16 @@ const balanceApi = {
       throw error;
     }
   },
+
+  getBalanceHistory: async (params = {}) => {
+    try {
+      const response = await api.get('/seller/me/balance-history', { params });
+      return response;
+    } catch (error) {
+      console.error('[balanceApi] Error fetching balance history:', error);
+      throw error;
+    }
+  },
 };
 
 export default balanceApi;
