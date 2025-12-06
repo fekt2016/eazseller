@@ -12,7 +12,7 @@ import {
 import useProduct from '../../shared/hooks/useProduct';
 import useAuth from '../../shared/hooks/useAuth';
 import { useGetSellerOrders } from '../../shared/hooks/useOrder';
-import { useGetSellerBalance } from '../../shared/hooks/useBalance';
+import { useSellerBalance } from '../../shared/hooks/finance/useSellerBalance';
 import { formatDate } from '../../shared/utils/helpers';
 import useAnalytics from '../../shared/hooks/useAnalytics';
 import { PATHS } from '../../routes/routePaths';
@@ -40,16 +40,16 @@ const Dashboard = () => {
   const { seller, isLoading: isSellerLoading, error: sellerError } = useAuth();
   const sellerId = useMemo(() => seller?.id || null, [seller]);
   
-  // Get seller balance
-  const { 
-    data: balanceData, 
+  // Get seller balance using unified hook
+  const {
+    availableBalance,
+    pendingBalance,
+    totalEarnings,
+    withdrawnAmount,
+    lockedBalance,
     isLoading: isBalanceLoading,
-    error: balanceError 
-  } = useGetSellerBalance();
-  
-  console.log('[Dashboard] Balance data:', balanceData);
-  console.log('[Dashboard] Balance error:', balanceError);
-  console.log('[Dashboard] Balance loading:', isBalanceLoading);
+    error: balanceError
+  } = useSellerBalance();
 
   const {
     data: ordersData,
@@ -87,15 +87,6 @@ const Dashboard = () => {
   const totalViewsCount = useMemo(() => {
     return totalViews.length;
   }, [totalViews]);
-  
-  // Balance calculations
-  const balance = useMemo(() => {
-    return balanceData?.balance || 0;
-  }, [balanceData]);
-  
-  const lockedBalance = useMemo(() => {
-    return balanceData?.lockedBalance || 0;
-  }, [balanceData]);
   
   // Calculate stats first to get totalRevenue
   const stats = useMemo(() => {
@@ -242,19 +233,8 @@ const Dashboard = () => {
     };
   }, [orders, products, timeFilter, totalViews]);
   
-  // Total revenue from balance API (balance + totalWithdrawn)
-  // This represents all earnings from delivered orders
-  const totalRevenue = useMemo(() => {
-    return balanceData?.totalRevenue || ((balanceData?.balance || 0) + (balanceData?.totalWithdrawn || 0)) || 0;
-  }, [balanceData]);
-
-  // Available balance calculation
-  // Formula: availableBalance = withdrawableBalance (from API)
-  const availableBalance = useMemo(() => {
-    // Use the balance from the API
-    const apiAvailableBalance = balanceData?.availableBalance || balanceData?.withdrawableBalance || 0;
-    return apiAvailableBalance;
-  }, [balanceData]);
+  // Total revenue from unified hook (already calculated)
+  const totalRevenue = totalEarnings;
 
   const isLoading = isOrdersLoading || isProductLoading || isSellerLoading;
   const anyDataAvailable = orders.length > 0 || products.length > 0;

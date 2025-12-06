@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import styled, { keyframes } from "styled-components";
 import {
   FaSearch,
-  FaQrcode,
+  FaEnvelope,
   FaPlus,
   FaCopy,
   FaSpinner,
@@ -10,23 +10,29 @@ import {
   FaChevronUp,
   FaEdit,
   FaTrash,
+  FaCheckCircle,
 } from "react-icons/fa";
 import { formatDate } from '../utils/helpers';
 import { useGetSellerCoupon, useDeleteCoupon } from '../hooks/useCoupon';
 import CouponBatchModal from "./modal/CouponBatchModal";
+import SendCouponModal from "./modal/SendCouponModal";
 
 const CouponTab = ({
   couponSearchTerm,
   setCouponSearchTerm,
-  handleShareCoupon,
   isActiveTab = true,
 }) => {
+  // Open SendCouponModal
+  const openSendCouponModal = (couponCode, batchId) => {
+    setSendCouponModal({ couponCode, batchId });
+  };
   const [expandedBatch, setExpandedBatch] = useState(null);
   const [copiedCode, setCopiedCode] = useState(null);
   const [copiedBatchId, setCopiedBatchId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBatch, setSelectedBatch] = useState(null);
   const [activeStatus, setActiveStatus] = useState("all");
+  const [sendCouponModal, setSendCouponModal] = useState(null);
 
   // Reset modal state when tab becomes inactive
   useEffect(() => {
@@ -210,7 +216,7 @@ const CouponTab = ({
                   <BatchDiscount>
                     {batch.discountType === "percentage"
                       ? `${batch.discountValue}% Off`
-                      : `$${batch.discountValue} Off`}
+                      : `GH₵${batch.discountValue} Off`}
                   </BatchDiscount>
 
                   <ActionButton
@@ -269,9 +275,20 @@ const CouponTab = ({
 
                   <CouponsGrid>
                     {batch.coupons.map((coupon) => (
-                      <CouponCard key={coupon._id} used={coupon.used}>
+                      <CouponCard key={coupon._id} used={coupon.used} sent={!!coupon.recipient}>
                         <CouponHeader>
-                          <CouponCode>{coupon.code}</CouponCode>
+                          <CouponCode>
+                            {coupon.code}
+                            {coupon.used && coupon.recipient ? (
+                              <UsedBadge title="Coupon has been used by a buyer">
+                                <FaCheckCircle /> Used
+                              </UsedBadge>
+                            ) : coupon.recipient ? (
+                              <SentBadge title="Coupon has been sent to a buyer">
+                                <FaCheckCircle /> Sent
+                              </SentBadge>
+                            ) : null}
+                          </CouponCode>
                           <CouponStatus used={coupon.used}>
                             {coupon.used ? "Used" : "Active"}
                           </CouponStatus>
@@ -295,14 +312,18 @@ const CouponTab = ({
                               : "Copy"}
                           </ActionButton>
 
-                          <ActionButton
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleShareCoupon(coupon.code, batch._id);
-                            }}
-                          >
-                            <FaQrcode /> Share
-                          </ActionButton>
+                          {/* Hide share button if coupon is used (single-use) or has reached maxUsage */}
+                          {!(coupon.used && batch.maxUsage === 1) && 
+                           !(coupon.usageCount >= batch.maxUsage) && (
+                            <ActionButton
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openSendCouponModal(coupon.code, batch._id);
+                              }}
+                            >
+                              <FaEnvelope /> Share
+                            </ActionButton>
+                          )}
                         </CouponActions>
                       </CouponCard>
                     ))}
@@ -319,6 +340,14 @@ const CouponTab = ({
           isOpen={isModalOpen}
           onClose={closeModal}
           batch={selectedBatch}
+        />
+      )}
+
+      {sendCouponModal && (
+        <SendCouponModal
+          couponCode={sendCouponModal.couponCode}
+          batchId={sendCouponModal.batchId}
+          onClose={() => setSendCouponModal(null)}
         />
       )}
     </Container>
@@ -692,8 +721,10 @@ const CouponsGrid = styled.div`
 `;
 
 const CouponCard = styled.div`
-  border: 1px solid ${({ used }) => (used ? "#e5e7eb" : "#bfdbfe")};
-  background: ${({ used }) => (used ? "#f9fafb" : "#f0f9ff")};
+  border: 1px solid ${({ used, sent }) => 
+    used ? "#fecaca" : sent ? "#a7f3d0" : "#bfdbfe"};
+  background: ${({ used, sent }) => 
+    used ? "#fef2f2" : sent ? "#f0fdf4" : "#f0f9ff"};
   border-radius: 10px;
   padding: 20px;
   display: flex;
@@ -721,6 +752,46 @@ const CouponCode = styled.div`
   color: #1e40af;
   word-break: break-all;
   flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+`;
+
+const SentBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #059669;
+  background: #d1fae5;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  white-space: nowrap;
+  
+  svg {
+    font-size: 12px;
+  }
+`;
+
+const UsedBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #b91c1c;
+  background: #fee2e2;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  white-space: nowrap;
+  
+  svg {
+    font-size: 12px;
+  }
 `;
 
 const CouponStatus = styled.div`

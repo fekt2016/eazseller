@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import { Link } from 'react-router-dom';
 import useDynamicPageTitle from '../../shared/hooks/useDynamicPageTitle';
 import Container from '../../components/ui/Container';
 import Grid from '../../components/ui/Grid';
@@ -9,9 +10,24 @@ import Button from '../../components/ui/Button';
 import IconWrapper from '../../components/ui/IconWrapper';
 import { FaChartLine, FaBox, FaDollarSign, FaUsers } from 'react-icons/fa';
 import { useSellerStats } from '../../shared/hooks/useSellerStats'; // Assume existing hook
+import Logo from '../../shared/components/Logo';
+import { PATHS } from '../../routes/routePaths';
 
 const DashboardWrapper = styled.div`
   background: var(--color-grey-50);
+`;
+
+const LogoSection = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: var(--space-2xl);
+  padding: var(--space-lg) 0;
+  
+  @media (max-width: 768px) {
+    margin-bottom: var(--space-xl);
+    padding: var(--space-md) 0;
+  }
 `;
 
 const StatsGrid = styled(Grid)`
@@ -73,6 +89,9 @@ const Dashboard = () => {
   return (
     <DashboardWrapper>
       <Container>
+        <LogoSection>
+          <Logo to={PATHS.DASHBOARD} variant="default" />
+        </LogoSection>
         <SectionTitle title="Dashboard Overview" subtitle="Your seller stats at a glance" />
         
         <StatsGrid responsiveColumns columns={4}>

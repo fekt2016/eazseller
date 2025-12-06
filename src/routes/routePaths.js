@@ -19,6 +19,9 @@ export const PATHS = {
   PRODUCT_DETAIL: "/dashboard/products/:id",
   DISCOUNT_PRODUCTS: "/dashboard/products/discount",
   DISCOUNTPRODUCT: "/dashboard/products/discount", // Alias for backward compatibility
+  PRODUCT_VARIANTS: "/dashboard/products/:productId/variants",
+  PRODUCT_VARIANT_CREATE: "/dashboard/products/:productId/variants/create",
+  PRODUCT_VARIANT_EDIT: "/dashboard/products/:productId/variants/:variantId/edit",
 
   // Orders
   ORDERS: "/dashboard/orders",
@@ -49,6 +52,7 @@ export const PATHS = {
   STORE_SETTINGS: "/dashboard/store/settings",
   STORE_PROFILE: "/dashboard/store/profile",
   SHIPPING_SETTINGS: "/dashboard/store/shipping",
+  SHIPPING_INFO: "/dashboard/store/shipping",
   RETURN_POLICY: "/dashboard/store/return-policy",
 
   // Account
@@ -111,6 +115,15 @@ export const PATHS = {
   // Withdrawals
   WITHDRAWALS: "/dashboard/finance/withdrawals",
   WITHDRAWAL_VERIFY_OTP: "/dashboard/finance/withdrawals/:withdrawalId/verify-otp",
+
+  // Pickup Locations
+  PICKUP_LOCATIONS: "/dashboard/store/pickup-locations",
+  PICKUP_LOCATION_CREATE: "/dashboard/store/pickup-locations/create",
+  PICKUP_LOCATION_EDIT: "/dashboard/store/pickup-locations/:id/edit",
+
+  // Returns & Funds
+  RETURNS: "/dashboard/returns",
+  FUNDS: "/dashboard/funds",
 };
 
 // ---------- ROUTE CONFIG (SEO META) ----------

@@ -32,6 +32,7 @@ const useAuth = () => {
           // For network errors, don't clear auth - might be temporary
           console.warn("[useAuth] Network error (not 401) - keeping auth state");
         }
+        // Return null instead of throwing - allows public pages to work
         return null;
       }
     },
@@ -46,10 +47,27 @@ const useAuth = () => {
     },
     // Reduce refetch frequency to prevent unnecessary auth checks
     refetchOnWindowFocus: false, // Was true - caused frequent refetches
+    // Don't throw errors - return null instead (allows public pages)
+    throwOnError: false,
   });
 
   // Extract seller from sellerData (handle nested structures)
   const seller = sellerData?.data?.data || sellerData?.data || sellerData || null;
+
+  // CRITICAL: Verify the user is actually a seller, not a buyer
+  // If the backend returns a user with role !== 'seller', reject it
+  let validSeller = seller;
+  if (seller && seller.role && seller.role !== 'seller') {
+    console.error("[useAuth] SECURITY: Non-seller user detected in seller app", {
+      role: seller.role,
+      email: seller.email,
+      phone: seller.phone,
+    });
+    // Clear the invalid auth data
+    queryClient.setQueryData(["sellerAuth"], null);
+    // Set seller to null to trigger ProtectedRoute redirect
+    validSeller = null;
+  }
 
   // Common auth success handler
   // Note: Token is now stored in HTTP-only cookie, not localStorage
@@ -103,6 +121,14 @@ const useAuth = () => {
         };
         queryClient.setQueryData(["sellerAuth"], sellerData);
         console.log("[useAuth] OTP verified - seller cached, cookie set by backend");
+        
+        // FALLBACK: Store token in localStorage as backup (if provided in response)
+        // This helps if cookies fail due to CORS or domain issues
+        if (responseData?.token && typeof window !== 'undefined') {
+          localStorage.setItem('seller_token', responseData.token);
+          localStorage.setItem('sellerAccessToken', responseData.token);
+          console.log("[useAuth] Token stored in localStorage as fallback");
+        }
       } else {
         console.warn("[useAuth] No seller data in OTP verification response");
       }
@@ -122,6 +148,13 @@ const useAuth = () => {
     onSuccess: (response) => {
       const responseData = response?.data || response;
       const seller = responseData?.data?.seller || responseData?.data?.data || responseData?.seller || null;
+      
+      // FALLBACK: Store token in localStorage as backup (if provided in response)
+      if (responseData?.token && typeof window !== 'undefined') {
+        localStorage.setItem('seller_token', responseData.token);
+        localStorage.setItem('sellerAccessToken', responseData.token);
+        console.log("[useAuth] Token stored in localStorage as fallback (login)");
+      }
 
       if (seller) {
         queryClient.setQueryData(["sellerAuth"], seller);
@@ -212,8 +245,8 @@ const useAuth = () => {
 
   return {
     // Auth state
-    seller,
-    sellerData,
+    seller: validSeller,
+    sellerData: validSeller ? sellerData : null,
 
     // Auth operations
     sendOtp,
@@ -248,9 +281,9 @@ const useAuth = () => {
     imageUpdateError: imageUpdate.error,
 
     // Auth status
-    isAuthenticated: !!seller,
-    isSeller: seller?.role === "seller",
-    status: seller?.status || "pending",
+    isAuthenticated: !!validSeller,
+    isSeller: validSeller?.role === "seller",
+    status: validSeller?.status || "pending",
   };
 };
 

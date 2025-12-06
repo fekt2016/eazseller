@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaTimes, FaPaperclip, FaSpinner } from 'react-icons/fa';
 import styled from 'styled-components';
 import { useCreateTicket } from '../../shared/hooks/useSupport';
 import useAuth from '../../shared/hooks/useAuth';
+import { useGetSellerOrders } from '../../shared/hooks/useOrder';
 
 /**
  * Contact Form Modal Component
@@ -17,9 +18,24 @@ const ContactFormModal = ({
   departments = [],
   showPriority = false,
   primaryColor = 'var(--color-primary-500)',
+  relatedOrderId = null, // Order ID if ticket is related to an order
 }) => {
   const { mutateAsync: submitTicket, isPending: isSubmitting } = useCreateTicket();
   const { seller } = useAuth();
+
+  // Fetch seller orders for dropdown (only if seller is authenticated and modal is open)
+  const {
+    data: ordersData,
+    isLoading: isLoadingOrders,
+    error: ordersError,
+  } = useGetSellerOrders({
+    enabled: isOpen && !!seller, // Only fetch when modal is open and seller is authenticated
+  });
+
+  // Extract orders from response
+  const orders = useMemo(() => {
+    return ordersData?.data?.data?.orders || [];
+  }, [ordersData]);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -30,6 +46,7 @@ const ContactFormModal = ({
     message: '',
     screenshot: null,
     priority: showPriority ? 'Medium' : undefined,
+    relatedOrderId: relatedOrderId || '',
   });
 
   const [errors, setErrors] = useState({});
@@ -57,11 +74,22 @@ const ContactFormModal = ({
         message: '',
         screenshot: null,
         priority: showPriority ? 'Medium' : undefined,
+        relatedOrderId: relatedOrderId || '',
       });
       setErrors({});
       setScreenshotPreview(null);
     }
-  }, [isOpen, preselectedDepartment, showPriority]);
+  }, [isOpen, preselectedDepartment, showPriority, relatedOrderId]);
+
+  // Update relatedOrderId when prop changes
+  useEffect(() => {
+    if (relatedOrderId && isOpen) {
+      setFormData((prev) => ({
+        ...prev,
+        relatedOrderId: relatedOrderId,
+      }));
+    }
+  }, [relatedOrderId, isOpen]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -138,19 +166,27 @@ const ContactFormModal = ({
     }
 
     try {
-      await submitTicket({
+      const ticketData = {
         department: formData.department,
         subject: formData.subject,
         title: formData.subject,
         message: formData.message,
         screenshot: formData.screenshot,
         priority: formData.priority || 'medium',
-      });
+      };
+
+      // Add order reference if provided
+      if (formData.relatedOrderId && formData.relatedOrderId.trim()) {
+        ticketData.relatedOrderId = formData.relatedOrderId.trim();
+      }
+
+      await submitTicket(ticketData);
 
       // Close modal after successful submission
+      // Note: Navigation is handled by the hook's onSuccess callback
       setTimeout(() => {
         onClose();
-      }, 1500);
+      }, 500); // Close modal quickly, navigation happens in hook
     } catch (error) {
       // Error is handled by the hook's onError callback
       console.error('Failed to submit ticket:', error);
@@ -226,7 +262,7 @@ const ContactFormModal = ({
                   name="department"
                   value={formData.department}
                   onChange={handleChange}
-                  disabled={isSubmitting || !!preselectedDepartment}
+                  disabled={isSubmitting}
                   $hasError={!!errors.department}
                 >
                   <option value="">Select a department</option>
@@ -240,6 +276,108 @@ const ContactFormModal = ({
                   <ErrorMessage>{errors.department}</ErrorMessage>
                 )}
               </FormGroup>
+
+              {/* Order Reference Field - Show if relatedOrderId is provided or if user wants to add one */}
+              {(relatedOrderId || role === 'seller') && (
+                <FormGroup>
+                  <Label htmlFor="relatedOrderId">
+                    Related Order {relatedOrderId && <Required>*</Required>}
+                  </Label>
+                  {relatedOrderId ? (
+                    // If order ID is pre-selected, show as read-only
+                    <>
+                      <Input
+                        type="text"
+                        id="relatedOrderId"
+                        name="relatedOrderId"
+                        value={relatedOrderId}
+                        disabled
+                        $hasError={!!errors.relatedOrderId}
+                      />
+                      <p style={{ 
+                        fontSize: 'var(--font-size-xs)', 
+                        color: 'var(--color-grey-600)', 
+                        marginTop: 'var(--spacing-xs)' 
+                      }}>
+                        This ticket is linked to order: {relatedOrderId}
+                      </p>
+                    </>
+                  ) : (
+                    // Show dropdown for selecting orders
+                    <>
+                      <Select
+                        id="relatedOrderId"
+                        name="relatedOrderId"
+                        value={formData.relatedOrderId}
+                        onChange={handleChange}
+                        disabled={isSubmitting || isLoadingOrders}
+                        $hasError={!!errors.relatedOrderId}
+                      >
+                        <option value="">Select an order (optional)</option>
+                        {isLoadingOrders ? (
+                          <option value="" disabled>Loading orders...</option>
+                        ) : ordersError ? (
+                          <option value="" disabled>Error loading orders</option>
+                        ) : orders.length === 0 ? (
+                          <option value="" disabled>No orders found</option>
+                        ) : (
+                          orders.map((order) => {
+                            const orderId = order._id || order.id;
+                            const orderNumber = order.orderNumber || order.order?.orderNumber || `#${orderId?.slice(-8)}`;
+                            const orderDate = order.createdAt || order.order?.createdAt;
+                            const formattedDate = orderDate 
+                              ? new Date(orderDate).toLocaleDateString('en-US', { 
+                                  month: 'short', 
+                                  day: 'numeric', 
+                                  year: 'numeric' 
+                                })
+                              : '';
+                            const status = order.status || order.order?.status || order.currentStatus || 'Unknown';
+                            const totalPrice = order.totalPrice || order.order?.totalPrice || 0;
+                            const displayText = `${orderNumber} - ${formattedDate} - ${status} - ₦${totalPrice?.toLocaleString() || '0'}`;
+                            
+                            return (
+                              <option key={orderId} value={orderId}>
+                                {displayText}
+                              </option>
+                            );
+                          })
+                        )}
+                      </Select>
+                      {isLoadingOrders && (
+                        <p style={{ 
+                          fontSize: 'var(--font-size-xs)', 
+                          color: 'var(--color-grey-600)', 
+                          marginTop: 'var(--spacing-xs)' 
+                        }}>
+                          Loading your orders...
+                        </p>
+                      )}
+                      {ordersError && (
+                        <p style={{ 
+                          fontSize: 'var(--font-size-xs)', 
+                          color: 'var(--color-red-600)', 
+                          marginTop: 'var(--spacing-xs)' 
+                        }}>
+                          Unable to load orders. You can still create a ticket without selecting an order.
+                        </p>
+                      )}
+                      {!isLoadingOrders && !ordersError && orders.length > 0 && (
+                        <p style={{ 
+                          fontSize: 'var(--font-size-xs)', 
+                          color: 'var(--color-grey-600)', 
+                          marginTop: 'var(--spacing-xs)' 
+                        }}>
+                          Select an order if this ticket is related to a specific order
+                        </p>
+                      )}
+                    </>
+                  )}
+                  {errors.relatedOrderId && (
+                    <ErrorMessage>{errors.relatedOrderId}</ErrorMessage>
+                  )}
+                </FormGroup>
+              )}
 
               {showPriority && (
                 <FormGroup>

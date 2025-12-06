@@ -24,7 +24,6 @@ import {
 import { formatDate, generateDisplayId } from '../../shared/utils/helpers';
 import DiscountModal from '../../shared/components/modal/DiscountModal';
 import CouponBatchModal from '../../shared/components/modal/CouponBatchModal';
-import ShareCouponModal from '../../shared/components/modal/ShareCouponModal';
 import CouponTab from '../../shared/components/CouponTab';
 import { ConfirmationModal } from '../../shared/components/modal/ConfirmationModal';
 
@@ -65,7 +64,6 @@ export const SellerDiscountPage = () => {
     batch: initialCouponBatch,
   });
 
-  const [shareModal, setShareModal] = useState(null);
   const [confirmationModal, setConfirmationModal] = useState({
     isOpen: false,
     title: "",
@@ -93,9 +91,6 @@ export const SellerDiscountPage = () => {
     () => productData?.data?.data || [],
     [productData]
   );
-  const handleShareCoupon = (couponCode, batchId) => {
-    setShareModal({ couponCode, batchId });
-  };
   const sellerCategories = useMemo(() => {
     const categoryMap = {};
     sellerProducts.forEach((product) => {
@@ -384,7 +379,6 @@ export const SellerDiscountPage = () => {
           <CouponTab
             couponSearchTerm={couponSearchTerm}
             setCouponSearchTerm={setCouponSearchTerm}
-            handleShareCoupon={handleShareCoupon}
             openCouponModal={openCouponModal}
             statusOptions={statusOptions}
           />
@@ -415,12 +409,6 @@ export const SellerDiscountPage = () => {
           />
         )}
 
-        {shareModal && (
-          <ShareCouponModal
-            couponCode={shareModal.couponCode}
-            onClose={() => setShareModal(null)}
-          />
-        )}
         <ConfirmationModal
           isOpen={confirmationModal.isOpen}
           onClose={() =>

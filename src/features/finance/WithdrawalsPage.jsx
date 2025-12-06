@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { PATHS } from "../../routes/routePaths";
 import {
   FaMoneyBillWave,
   FaPlus,
@@ -11,13 +12,14 @@ import {
   FaSpinner,
   FaLock,
   FaCheckCircle,
+  FaUndo,
 } from "react-icons/fa";
 import styled from "styled-components";
-import { useGetPayoutBalance } from "../../shared/hooks/usePayout";
-import { useGetPaymentRequests, useCreatePaymentRequest, useDeletePaymentRequest } from "../../shared/hooks/usePaymentRequest";
+import { useSellerBalance } from "../../shared/hooks/finance/useSellerBalance";
+import { useGetPaymentRequests, useCreatePaymentRequest, useDeletePaymentRequest, useRequestReversal } from "../../shared/hooks/usePaymentRequest";
 import { useSubmitPinForWithdrawal } from "../../shared/hooks/usePayout";
+import ReversalModal from "./ReversalModal";
 import { useGetPaymentMethods } from "../../shared/hooks/usePaymentMethod";
-import { useGetSellerOrders } from "../../shared/hooks/useOrder";
 import useAuth from "../../shared/hooks/useAuth";
 import { LoadingSpinner } from "../../shared/components/LoadingSpinner";
 import { PageContainer, PageHeader, TitleSection } from "../../shared/components/ui/SpacingSystem";
@@ -36,47 +38,16 @@ export default function WithdrawalsPage() {
   });
   const [error, setError] = useState("");
 
-  // Get balance
+  // Get balance using unified hook
   const {
-    data: balanceData,
+    availableBalance: withdrawableBalance,
+    pendingBalance,
+    totalEarnings: totalRevenue,
+    withdrawnAmount: totalWithdrawn,
+    lockedBalance,
     isLoading: isBalanceLoading,
     error: balanceError,
-  } = useGetPayoutBalance();
-
-  // Get orders for fallback calculation (same as Dashboard)
-  const {
-    data: ordersData,
-    isLoading: isOrdersLoading,
-  } = useGetSellerOrders();
-
-  const orders = useMemo(() => {
-    return ordersData?.data?.data?.orders || [];
-  }, [ordersData]);
-
-  console.log('[WithdrawalsPage] Balance data:', balanceData);
-  console.log('[WithdrawalsPage] Balance error:', balanceError);
-  console.log('[WithdrawalsPage] Balance loading:', isBalanceLoading);
-  console.log('[WithdrawalsPage] Orders:', orders);
-
-  // Total revenue from balance API (balance + totalWithdrawn)
-  // This represents all earnings from delivered orders
-  const totalRevenue = useMemo(() => {
-    return balanceData?.totalRevenue || ((balanceData?.balance || 0) + (balanceData?.totalWithdrawn || 0)) || 0;
-  }, [balanceData]);
-
-  const lockedBalance = balanceData?.lockedBalance || 0;
-  const pendingBalance = balanceData?.pendingBalance || 0;
-  const totalWithdrawn = balanceData?.totalWithdrawn || 0;
-
-  // Balance from API (current balance = withdrawableBalance + lockedBalance + pendingBalance)
-  const balance = useMemo(() => {
-    return balanceData?.balance || 0;
-  }, [balanceData]);
-
-  // Available balance (withdrawableBalance) from API
-  const withdrawableBalance = useMemo(() => {
-    return balanceData?.withdrawableBalance || balanceData?.availableBalance || 0;
-  }, [balanceData]);
+  } = useSellerBalance();
 
   // Get payment requests (all for history tab)
   const {
@@ -98,6 +69,7 @@ export default function WithdrawalsPage() {
   // Create payment request mutation
   const createPaymentRequest = useCreatePaymentRequest();
   const deletePaymentRequest = useDeletePaymentRequest();
+  const requestReversal = useRequestReversal();
   const submitPin = useSubmitPinForWithdrawal();
   
   // State for PIN submission
@@ -105,6 +77,12 @@ export default function WithdrawalsPage() {
   
   // Track which request is being deleted (for individual loading state)
   const [deletingRequestId, setDeletingRequestId] = useState(null);
+  
+  // State for reversal modal
+  const [reversalModal, setReversalModal] = useState({
+    isOpen: false,
+    request: null,
+  });
 
   // Load seller's saved payment methods
   useEffect(() => {
@@ -308,6 +286,8 @@ export default function WithdrawalsPage() {
         return <FaClock />;
       case "awaiting_paystack_otp":
         return <FaCheckCircle />;
+      case "reversed":
+        return <FaUndo />;
       default:
         return <FaClock />;
     }
@@ -317,7 +297,42 @@ export default function WithdrawalsPage() {
     if (status === 'awaiting_paystack_otp') {
       return 'Awaiting OTP';
     }
+    if (status === 'reversed') {
+      return 'Reversed';
+    }
     return status.charAt(0).toUpperCase() + status.slice(1).replace(/_/g, ' ');
+  };
+
+  const canReverse = (request) => {
+    // Can reverse if status is pending, processing, or awaiting_paystack_otp
+    // Cannot reverse if already reversed or if it's completed/paid (admin only)
+    const reversibleStatuses = ['pending', 'processing', 'awaiting_paystack_otp'];
+    const canReverseResult = reversibleStatuses.includes(request.status) && !request.reversed;
+    
+    // Debug logging
+    console.log('[WithdrawalsPage] canReverse check:', {
+      requestId: request._id || request.id,
+      status: request.status,
+      reversed: request.reversed,
+      isReversibleStatus: reversibleStatuses.includes(request.status),
+      canReverse: canReverseResult
+    });
+    
+    return canReverseResult;
+  };
+
+  const handleReversalConfirm = (reason) => {
+    const requestId = reversalModal.request?._id || reversalModal.request?.id;
+    if (!requestId) return;
+
+    requestReversal.mutate(
+      { requestId, reason },
+      {
+        onSuccess: () => {
+          setReversalModal({ isOpen: false, request: null });
+        },
+      }
+    );
   };
 
   return (
@@ -631,12 +646,36 @@ export default function WithdrawalsPage() {
                           <VerifyOTPButton
                             onClick={() => {
                               const requestId = request._id || request.id;
-                              navigate(`/finance/withdrawals/${requestId}/verify-otp`);
+                              // Use PATHS constant to ensure correct route path
+                              const verifyOtpPath = PATHS.WITHDRAWAL_VERIFY_OTP.replace(':withdrawalId', requestId);
+                              console.log('[WithdrawalsPage] Navigating to OTP verification:', verifyOtpPath);
+                              navigate(verifyOtpPath);
                             }}
                           >
                             <FaCheckCircle /> Verify OTP
                           </VerifyOTPButton>
                         </RequestActions>
+                      )}
+                      {/* Show reversal button for processing, awaiting_paystack_otp, or pending statuses (if not already reversed) */}
+                      {((request.status === "processing" || request.status === "awaiting_paystack_otp" || request.status === "pending") && !request.reversed) && (
+                        <RequestActions>
+                          <ReversalButton
+                            onClick={() => {
+                              console.log('[WithdrawalsPage] Reversal button clicked for request:', request._id || request.id, 'Status:', request.status);
+                              setReversalModal({ isOpen: true, request });
+                            }}
+                          >
+                            <FaUndo /> Request Reversal
+                          </ReversalButton>
+                        </RequestActions>
+                      )}
+                      {request.reversed && (
+                        <ReversalInfo>
+                          <FaUndo /> This withdrawal has been reversed
+                          {request.reverseReason && (
+                            <ReversalReason>Reason: {request.reverseReason}</ReversalReason>
+                          )}
+                        </ReversalInfo>
                       )}
                     </RequestCard>
                   ))}
@@ -771,8 +810,10 @@ export default function WithdrawalsPage() {
                         <VerifyOTPButton
                           onClick={() => {
                             const requestId = request._id || request.id;
-                            console.log('[WithdrawalsPage] Navigating to OTP verification for request:', requestId);
-                            navigate(`/finance/withdrawals/${requestId}/verify-otp`);
+                            // Use PATHS constant to ensure correct route path
+                            const verifyOtpPath = PATHS.WITHDRAWAL_VERIFY_OTP.replace(':withdrawalId', requestId);
+                            console.log('[WithdrawalsPage] Navigating to OTP verification:', verifyOtpPath);
+                            navigate(verifyOtpPath);
                           }}
                         >
                           <FaCheckCircle /> Verify OTP
@@ -780,6 +821,7 @@ export default function WithdrawalsPage() {
                       </RequestActions>
                     )}
                     
+                    {/* Show cancel button for pending requests */}
                     {request.status === "pending" && (
                       <RequestActions>
                         <DeleteButton
@@ -808,6 +850,27 @@ export default function WithdrawalsPage() {
                         </DeleteButton>
                       </RequestActions>
                     )}
+                    {/* Show reversal button for processing, awaiting_paystack_otp, or pending statuses (if not already reversed) */}
+                    {((request.status === "processing" || request.status === "awaiting_paystack_otp" || request.status === "pending") && !request.reversed) && (
+                      <RequestActions>
+                        <ReversalButton
+                          onClick={() => {
+                            console.log('[WithdrawalsPage] Reversal button clicked for request:', request._id || request.id, 'Status:', request.status);
+                            setReversalModal({ isOpen: true, request });
+                          }}
+                        >
+                          <FaUndo /> Request Reversal
+                        </ReversalButton>
+                      </RequestActions>
+                    )}
+                    {request.reversed && (
+                      <ReversalInfo>
+                        <FaUndo /> This withdrawal has been reversed
+                        {request.reverseReason && (
+                          <ReversalReason>Reason: {request.reverseReason}</ReversalReason>
+                        )}
+                      </ReversalInfo>
+                    )}
                   </RequestCard>
                 ))}
               </RequestsList>
@@ -815,6 +878,15 @@ export default function WithdrawalsPage() {
           </HistoryContainer>
         )}
       </TabContent>
+
+      {/* Reversal Modal */}
+      <ReversalModal
+        isOpen={reversalModal.isOpen}
+        onClose={() => setReversalModal({ isOpen: false, request: null })}
+        onConfirm={handleReversalConfirm}
+        request={reversalModal.request}
+        isLoading={requestReversal.isPending}
+      />
     </PageContainer>
   );
 }
@@ -1140,6 +1212,11 @@ const RequestStatus = styled.div`
           background: var(--color-orange-50);
           color: var(--color-orange-700);
         `;
+      case "reversed":
+        return `
+          background: var(--color-purple-50);
+          color: var(--color-purple-700);
+        `;
       default:
         return `
           background: var(--color-grey-50);
@@ -1179,7 +1256,7 @@ const RequestActions = styled.div`
   flex-wrap: wrap;
 `;
 
-const VerifyOTPButton = styled.button`
+const  VerifyOTPButton = styled.button`
   padding: var(--spacing-sm) var(--spacing-md);
   background: var(--color-primary-600);
   color: white;
@@ -1239,6 +1316,55 @@ const DeleteButton = styled.button`
       transform: rotate(360deg);
     }
   }
+`;
+
+const ReversalButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-orange-500);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: var(--color-orange-600);
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+`;
+
+const ReversalInfo = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-md);
+  background: var(--color-purple-50);
+  border: 1px solid var(--color-purple-200);
+  border-radius: var(--border-radius-md);
+  margin-top: var(--spacing-md);
+  color: var(--color-purple-900);
+  font-size: var(--font-size-sm);
+
+  svg {
+    margin-right: var(--spacing-xs);
+  }
+`;
+
+const ReversalReason = styled.div`
+  font-size: var(--font-size-xs);
+  color: var(--color-purple-700);
+  margin-top: var(--spacing-xs);
+  font-style: italic;
 `;
 
 const PinSubmissionSection = styled.div`

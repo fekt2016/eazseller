@@ -43,6 +43,19 @@ const paymentRequestApi = {
       throw error;
     }
   },
+
+  // Request reversal of a withdrawal
+  requestReversal: async (requestId, reason) => {
+    try {
+      const response = await api.post(`/seller/payout/request/${requestId}/request-reversal`, {
+        reason: reason
+      });
+      return response.data;
+    } catch (error) {
+      console.error('[paymentRequestApi] Error requesting reversal:', error);
+      throw error;
+    }
+  },
 };
 
 export default paymentRequestApi;

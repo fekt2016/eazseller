@@ -36,6 +36,7 @@ import {
 } from './support.styles';
 import ContactFormModal from './ContactFormModal';
 
+
 /**
  * Seller Support Center Page
  * Comprehensive support page for sellers with categories, contact form, and quick links
@@ -92,9 +93,10 @@ const SellerSupportPage = () => {
   // Quick help links
   const quickLinks = [
     {
-      title: 'Seller Help Center',
-      path: '/seller/help',
+      title: 'Help Center',
+      path: PATHS.HELP,
       icon: <FaBook />,
+      external: false,
     },
     {
       title: 'Seller Policies',
@@ -103,7 +105,7 @@ const SellerSupportPage = () => {
     },
     {
       title: 'View Tutorials',
-      path: '/seller/tutorials',
+      path: PATHS.EDUCATION,
       icon: <FaGraduationCap />,
     },
   ];
@@ -216,9 +218,17 @@ const SellerSupportPage = () => {
           {quickLinks.map((link, index) => (
             <QuickLink
               key={index}
-              as={Link}
-              to={link.path}
+              href={link.external ? link.path : '#'}
+              target={link.external ? '_blank' : undefined}
+              rel={link.external ? 'noopener noreferrer' : undefined}
+              onClick={(e) => {
+                if (!link.external) {
+                  e.preventDefault();
+                  navigate(link.path);
+                }
+              }}
               $accentColor="#00C896"
+              aria-label={link.title}
             >
               {link.icon}
               <span>{link.title}</span>

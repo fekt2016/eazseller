@@ -107,3 +107,35 @@ export const useDeletePaymentRequest = () => {
   });
 };
 
+/**
+ * Request withdrawal reversal mutation
+ */
+export const useRequestReversal = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ requestId, reason }) => {
+      return await paymentRequestApi.requestReversal(requestId, reason);
+    },
+    onSuccess: (data) => {
+      toast.success('Withdrawal reversal requested successfully. Amount refunded to your balance.');
+      // Invalidate and refetch to update UI immediately
+      queryClient.invalidateQueries({ queryKey: ['paymentRequests'] });
+      queryClient.refetchQueries({ 
+        queryKey: ['paymentRequests'],
+        type: 'active'
+      });
+      // Also invalidate balance to update available balance
+      queryClient.invalidateQueries({ queryKey: ['payoutBalance'] });
+      queryClient.refetchQueries({ 
+        queryKey: ['payoutBalance'],
+        type: 'active'
+      });
+    },
+    onError: (error) => {
+      const message = error.response?.data?.message || 'Failed to request reversal';
+      toast.error(message);
+    },
+  });
+};
+

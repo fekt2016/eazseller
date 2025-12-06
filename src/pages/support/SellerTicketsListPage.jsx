@@ -286,11 +286,39 @@ const SellerTicketsListPage = () => {
   }
 
   if (error) {
+    // Handle 403 - Wrong role (user logged in as buyer instead of seller)
+    if (error?.response?.status === 403) {
+      const errorMessage = error?.response?.data?.message || '';
+      if (errorMessage.includes('Required role: seller')) {
+        return (
+          <Container>
+            <EmptyState>
+              <EmptyTitle>Access Denied</EmptyTitle>
+              <EmptyText>
+                You are logged in as a buyer. Please log out and log in as a seller to access support tickets.
+              </EmptyText>
+              <CreateButton
+                onClick={() => navigate('/login')}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Go to Login
+              </CreateButton>
+            </EmptyState>
+          </Container>
+        );
+      }
+    }
+    
     return (
       <Container>
         <EmptyState>
           <EmptyTitle>Error loading tickets</EmptyTitle>
-          <EmptyText>Please try again later.</EmptyText>
+          <EmptyText>
+            {error?.response?.status === 403
+              ? 'You are not authorized to access support tickets. Please ensure you are logged in as a seller.'
+              : 'Please try again later.'}
+          </EmptyText>
         </EmptyState>
       </Container>
     );

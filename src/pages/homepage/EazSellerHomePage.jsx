@@ -17,14 +17,7 @@ import usePageTitle from '../../shared/hooks/usePageTitle';
 import { PATHS } from '../../routes/routePaths';
 import {
   LandingContainer,
-  NavHeader,
-  NavContainer,
-  NavLogo,
-  NavLinks,
-  NavLink,
-  NavButtons,
   NavButton,
-  MobileMenuButton,
   MobileMenu,
   MobileNavLink,
   MobileNavButtons,
@@ -73,6 +66,7 @@ import {
   FooterLink,
   FooterCopyright,
 } from './homepage.styles';
+
 
 /**
  * EazSeller Home Page
@@ -178,42 +172,8 @@ const EazSellerHomePage = () => {
 
   return (
     <LandingContainer>
-      {/* Navigation Header */}
-      <NavHeader
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <NavContainer>
-          <NavLogo onClick={() => navigate(PATHS.LANDING)}>
-            <FaStore />
-            <span>EazSeller</span>
-          </NavLogo>
-          
-          <NavLinks>
-            <NavLink onClick={() => scrollToSection('benefits')}>Features</NavLink>
-            <NavLink onClick={() => scrollToSection('steps')}>How It Works</NavLink>
-            <NavLink onClick={() => scrollToSection('trust')}>Why Choose Us</NavLink>
-            <NavLink onClick={() => navigate(PATHS.EDUCATION)}>Education</NavLink>
-          </NavLinks>
-          
-          <NavButtons>
-            <NavButton
-              $variant="outline"
-              onClick={() => navigate(PATHS.LOGIN)}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              Login
-            </NavButton>
-            <MobileMenuButton onClick={toggleMobileMenu}>
-              {isMobileMenuOpen ? <FaTimes /> : <FaBars />}
-            </MobileMenuButton>
-          </NavButtons>
-        </NavContainer>
-      </NavHeader>
-
-      {/* Mobile Menu */}
+      {/* Header is now provided by DashboardLayout */}
+      {/* Mobile Menu - Keep for mobile navigation if needed */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <MobileMenu
@@ -237,6 +197,15 @@ const EazSellerHomePage = () => {
             }}>
               Education
             </MobileNavLink>
+            <MobileNavLink 
+              onClick={() => {
+                navigate(PATHS.HELP);
+                setIsMobileMenuOpen(false);
+              }}
+              aria-label="Help Center"
+            >
+              Help Center
+            </MobileNavLink>
             <MobileNavButtons>
               <NavButton
                 $variant="outline"
@@ -255,7 +224,6 @@ const EazSellerHomePage = () => {
 
       {/* Hero Section */}
       <HeroSection
-        style={{ marginTop: '80px' }}
         initial="hidden"
         animate="visible"
         variants={fadeUp}
@@ -420,6 +388,20 @@ const EazSellerHomePage = () => {
             </FooterLink>
             <FooterLink as={Link} to={PATHS.EDUCATION}>
               Education
+            </FooterLink>
+            <FooterLink 
+              as={Link}
+              to={PATHS.HELP}
+              aria-label="Help Center"
+            >
+              Help Center
+            </FooterLink>
+            <FooterLink 
+              as={Link}
+              to={PATHS.SHIPPING_INFO}
+              aria-label="Shipping Information"
+            >
+              Shipping Info
             </FooterLink>
           </FooterLinks>
           <FooterCopyright>

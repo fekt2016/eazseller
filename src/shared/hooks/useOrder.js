@@ -39,7 +39,7 @@ export const useGetSellerOrder = (orderId) => {
   });
 };
 
-export const useGetSellerOrders = () => {
+export const useGetSellerOrders = (options = {}) => {
   const queryClient = useQueryClient();
 
   return useQuery({
@@ -74,11 +74,19 @@ export const useGetSellerOrders = () => {
       console.log(data);
       queryClient.invalidateQueries({ queryKey: ["seller-orders"] });
     },
-    retry: 2, // Add retry mechanism
+    retry: (failureCount, error) => {
+      // Don't retry on 401 (unauthorized) - seller not logged in
+      if (error?.response?.status === 401) {
+        return false;
+      }
+      return failureCount < 2;
+    },
     staleTime: 1000 * 60 * 5, // 5 minutes cache
     onError: (error) => {
       console.error("Order fetch failed:", error.message);
     },
+    enabled: options.enabled !== false, // Allow disabling the query
+    ...options, // Allow other options to be passed
   });
 };
 export const useCreateOrder = () => {

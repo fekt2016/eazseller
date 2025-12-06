@@ -17,6 +17,9 @@ const Products = lazy(() => import("../features/products/Products"));
 const DiscountProducts = lazy(() => import("../features/products/DiscountProducts"));
 const ChatSupport = lazy(() => import("../features/profile/ChatSupport"));
 const EditProduct = lazy(() => import("../features/products/EditProduct"));
+const VariantsListPage = lazy(() => import("../pages/products/variants/VariantsListPage"));
+const VariantCreatePage = lazy(() => import("../pages/products/variants/VariantCreatePage"));
+const VariantEditPage = lazy(() => import("../pages/products/variants/VariantEditPage"));
 const SetupPage = lazy(() => import("../features/onboarding/SetupPage"));
 const BusinessProfilePage = lazy(() => import("../features/profile/BusinessProfilePage"));
 const PaymentMethodPage = lazy(() => import("../features/profile/PaymentMethodPage"));
@@ -25,9 +28,14 @@ const ProductReviewsPage = lazy(() => import("../features/reviews/ProductReviews
 const TrackingPage = lazy(() => import("../features/orders/TrackingPage"));
 const WithdrawalsPage = lazy(() => import("../features/finance/WithdrawalsPage"));
 const SellerWithdrawalVerifyOTP = lazy(() => import("../features/finance/SellerWithdrawalVerifyOTP"));
+const WalletOverviewPage = lazy(() => import("../pages/finance/WalletOverviewPage"));
+const TransactionHistoryPage = lazy(() => import("../pages/finance/TransactionHistoryPage"));
+const TransactionDetailPage = lazy(() => import("../pages/finance/TransactionDetailPage"));
+const ShippingInfoPage = lazy(() => import("../pages/store/ShippingInfoPage"));
 const SellerAnalyticsDashboard = lazy(() => import("../features/analytics/SellerAnalyticsDashboard"));
 const SellerSupportPage = lazy(() => import("../pages/support/SellerSupportPage"));
 const SellerTicketsListPage = lazy(() => import("../pages/support/SellerTicketsListPage"));
+const SellerTicketDetailPage = lazy(() => import("../pages/support/SellerTicketDetailPage"));
 const SitemapPage = lazy(() => import("../pages/sitemap/SitemapPage"));
 const Press = lazy(() => import("../features/Press"));
 const EazSellerHomePage = lazy(() => import("../pages/homepage/EazSellerHomePage"));
@@ -37,6 +45,13 @@ const ReturnRefundPolicyPage = lazy(() => import("../pages/policies/ReturnRefund
 const TermsPage = lazy(() => import("../pages/policies/TermsPage"));
 const SellerPrivacyPolicyPage = lazy(() => import("../pages/policies/SellerPrivacyPolicyPage"));
 const SellerEducationCenterPage = lazy(() => import("../pages/education/SellerEducationCenterPage"));
+const HelpCenterPage = lazy(() => import("../pages/help/HelpCenterPage"));
+const PickupLocationsListPage = lazy(() => import("../pages/store/pickup/PickupLocationsListPage"));
+const PickupLocationCreatePage = lazy(() => import("../pages/store/pickup/PickupLocationCreatePage"));
+const PickupLocationEditPage = lazy(() => import("../pages/store/pickup/PickupLocationEditPage"));
+const SellerReturnAndFundsPage = lazy(() => import("../features/sellerReturns/pages/SellerReturnAndFundsPage"));
+const SellerFundsPage = lazy(() => import("../features/sellerFunds/pages/SellerFundsPage"));
+const SellerNotificationsPage = lazy(() => import("../pages/notifications/SellerNotificationsPage"));
 
 // Redirect component for /dashboard/tracking/* to /tracking/*
 const TrackingRedirect = () => {
@@ -47,38 +62,157 @@ const TrackingRedirect = () => {
 export default function SellerRoutes() {
   return (
     <Routes>
-      {/* Home Page - Root Route */}
+      {/* Home Page - Root Route - Public with Header, No Sidebar */}
       <Route 
         path={PATHS.LANDING}
         element={
           <Suspense fallback={<LoadingSpinner />}>
-            <EazSellerHomePage />
+            <DashboardLayout showSidebar={false} />
           </Suspense>
-        } 
-      />
-      {/* Auth Routes */}
-      <Route path={PATHS.LOGIN} element={<AuthPage />} />
-      <Route path={PATHS.SIGNUP} element={<AuthPage />} />
+        }
+      >
+        <Route
+          index
+          element={
+            <Suspense fallback={<LoadingSpinner fullScreen />}>
+              <EazSellerHomePage />
+            </Suspense>
+          }
+        />
+      </Route>
       
-      {/* Public Education Page */}
+      {/* Auth Routes - Public with Header, No Sidebar */}
+      <Route 
+        path={PATHS.LOGIN}
+        element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <DashboardLayout showSidebar={false} />
+          </Suspense>
+        }
+      >
+        <Route
+          index
+          element={
+            <Suspense fallback={<LoadingSpinner fullScreen />}>
+              <AuthPage />
+            </Suspense>
+          }
+        />
+      </Route>
+      
+      <Route 
+        path={PATHS.SIGNUP}
+        element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <DashboardLayout showSidebar={false} />
+          </Suspense>
+        }
+      >
+        <Route
+          index
+          element={
+            <Suspense fallback={<LoadingSpinner fullScreen />}>
+              <AuthPage />
+            </Suspense>
+          }
+        />
+      </Route>
+      
+      {/* Public Education Page - Public with Header, No Sidebar */}
       <Route 
         path={PATHS.EDUCATION}
         element={
           <Suspense fallback={<LoadingSpinner />}>
-            <SellerEducationCenterPage />
+            <DashboardLayout showSidebar={false} />
           </Suspense>
-        } 
-      />
+        }
+      >
+        <Route
+          index
+          element={
+            <Suspense fallback={<LoadingSpinner fullScreen />}>
+              <SellerEducationCenterPage />
+            </Suspense>
+          }
+        />
+      </Route>
       
-      {/* Public Privacy Policy Page */}
+      {/* Public Privacy Policy Page - Public with Header, No Sidebar */}
       <Route 
         path={PATHS.PRIVACY}
         element={
           <Suspense fallback={<LoadingSpinner />}>
-            <SellerPrivacyPolicyPage />
+            <DashboardLayout showSidebar={false} />
           </Suspense>
-        } 
-      />
+        }
+      >
+        <Route
+          index
+          element={
+            <Suspense fallback={<LoadingSpinner fullScreen />}>
+              <SellerPrivacyPolicyPage />
+            </Suspense>
+          }
+        />
+      </Route>
+      
+      {/* Public Shipping Info Page - Public with Header, No Sidebar */}
+      <Route
+        path={PATHS.SHIPPING_INFO}
+        element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <DashboardLayout showSidebar={false} />
+          </Suspense>
+        }
+      >
+        <Route
+          index
+          element={
+            <Suspense fallback={<LoadingSpinner fullScreen />}>
+              <ShippingInfoPage />
+            </Suspense>
+          }
+        />
+      </Route>
+      
+      {/* Public Terms Page - Public with Header, No Sidebar */}
+      <Route
+        path={PATHS.TERMS}
+        element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <DashboardLayout showSidebar={false} />
+          </Suspense>
+        }
+      >
+        <Route
+          index
+          element={
+            <Suspense fallback={<LoadingSpinner fullScreen />}>
+              <TermsPage />
+            </Suspense>
+          }
+        />
+      </Route>
+      
+      {/* Public Help Center Page - Public with Header, No Sidebar */}
+      <Route
+        path={PATHS.HELP}
+        element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <DashboardLayout showSidebar={false} />
+          </Suspense>
+        }
+      >
+        <Route
+          index
+          element={
+            <Suspense fallback={<LoadingSpinner fullScreen />}>
+              <HelpCenterPage />
+            </Suspense>
+          }
+        />
+      </Route>
+      
       {/* Redirect /auth/login to /login for backward compatibility */}
       <Route path="/auth/login" element={<Navigate to={PATHS.LOGIN} replace />} />
       {/* Dashboard Routes - All under /dashboard */}
@@ -146,6 +280,37 @@ export default function SellerRoutes() {
             </ProtectedRoute>
           }
         />
+        {/* Variants Routes */}
+        <Route
+          path="products/:productId/variants"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<LoadingSpinner fullScreen />}>
+                <VariantsListPage />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="products/:productId/variants/create"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<LoadingSpinner fullScreen />}>
+                <VariantCreatePage />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="products/:productId/variants/:variantId/edit"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<LoadingSpinner fullScreen />}>
+                <VariantEditPage />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
         {/* Orders Routes */}
         <Route
           path="orders"
@@ -171,6 +336,18 @@ export default function SellerRoutes() {
         />
         {/* Finance Routes */}
         <Route
+          path="finance"
+          element={
+            <ProtectedRoute>
+              <SellerProtectedRoute allowedStage="verified">
+                <Suspense fallback={<LoadingSpinner fullScreen />}>
+                  <WalletOverviewPage />
+                </Suspense>
+              </SellerProtectedRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="finance/withdrawals"
           element={
             <ProtectedRoute>
@@ -189,6 +366,30 @@ export default function SellerRoutes() {
               <SellerProtectedRoute allowedStage="verified">
                 <Suspense fallback={<LoadingSpinner fullScreen />}>
                   <SellerWithdrawalVerifyOTP />
+                </Suspense>
+              </SellerProtectedRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="finance/transactions"
+          element={
+            <ProtectedRoute>
+              <SellerProtectedRoute allowedStage="verified">
+                <Suspense fallback={<LoadingSpinner fullScreen />}>
+                  <TransactionHistoryPage />
+                </Suspense>
+              </SellerProtectedRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="finance/transactions/:id"
+          element={
+            <ProtectedRoute>
+              <SellerProtectedRoute allowedStage="verified">
+                <Suspense fallback={<LoadingSpinner fullScreen />}>
+                  <TransactionDetailPage />
                 </Suspense>
               </SellerProtectedRoute>
             </ProtectedRoute>
@@ -222,8 +423,7 @@ export default function SellerRoutes() {
           element={
             <ProtectedRoute>
               <Suspense fallback={<LoadingSpinner fullScreen />}>
-                {/* TODO: Add SellerTicketDetailPage */}
-                <SellerTicketsListPage />
+                <SellerTicketDetailPage />
               </Suspense>
             </ProtectedRoute>
           }
@@ -234,6 +434,17 @@ export default function SellerRoutes() {
             <ProtectedRoute>
               <Suspense fallback={<LoadingSpinner fullScreen />}>
                 <SellerSupportPage />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        {/* Notifications Route */}
+        <Route
+          path="notifications"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<LoadingSpinner fullScreen />}>
+                <SellerNotificationsPage />
               </Suspense>
             </ProtectedRoute>
           }
@@ -256,6 +467,69 @@ export default function SellerRoutes() {
               <Suspense fallback={<LoadingSpinner fullScreen />}>
                 <BusinessProfilePage />
               </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        {/* Pickup Locations Routes */}
+        <Route
+          path="store/pickup-locations"
+          element={
+            <ProtectedRoute>
+              <SellerProtectedRoute allowedStage="verified">
+                <Suspense fallback={<LoadingSpinner fullScreen />}>
+                  <PickupLocationsListPage />
+                </Suspense>
+              </SellerProtectedRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="store/pickup-locations/create"
+          element={
+            <ProtectedRoute>
+              <SellerProtectedRoute allowedStage="verified">
+                <Suspense fallback={<LoadingSpinner fullScreen />}>
+                  <PickupLocationCreatePage />
+                </Suspense>
+              </SellerProtectedRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="store/pickup-locations/:id/edit"
+          element={
+            <ProtectedRoute>
+              <SellerProtectedRoute allowedStage="verified">
+                <Suspense fallback={<LoadingSpinner fullScreen />}>
+                  <PickupLocationEditPage />
+                </Suspense>
+              </SellerProtectedRoute>
+            </ProtectedRoute>
+          }
+        />
+        {/* Returns Management Route */}
+        <Route
+          path="returns"
+          element={
+            <ProtectedRoute>
+              <SellerProtectedRoute allowedStage="verified">
+                <Suspense fallback={<LoadingSpinner fullScreen />}>
+                  <SellerReturnAndFundsPage />
+                </Suspense>
+              </SellerProtectedRoute>
+            </ProtectedRoute>
+          }
+        />
+        {/* Funds Management Route */}
+        <Route
+          path="funds"
+          element={
+            <ProtectedRoute>
+              <SellerProtectedRoute allowedStage="verified">
+                <Suspense fallback={<LoadingSpinner fullScreen />}>
+                  <SellerFundsPage />
+                </Suspense>
+              </SellerProtectedRoute>
             </ProtectedRoute>
           }
         />
@@ -362,16 +636,6 @@ export default function SellerRoutes() {
             <ProtectedRoute>
               <Suspense fallback={<LoadingSpinner fullScreen />}>
                 <ReturnRefundPolicyPage />
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="terms"
-          element={
-            <ProtectedRoute>
-              <Suspense fallback={<LoadingSpinner fullScreen />}>
-                <TermsPage />
               </Suspense>
             </ProtectedRoute>
           }

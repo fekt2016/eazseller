@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import styled, { createGlobalStyle } from "styled-components";
 import Header from "./Header";
+import PublicHeader from "./PublicHeader";
 import Sidebar from "./Sidebar";
 import useAuth from '../hooks/useAuth';
 import { LoadingSpinner, LoadingContainer } from '../components/LoadingSpinner';
@@ -40,6 +41,11 @@ const DashboardGlobalStyle = createGlobalStyle`
       margin-left: 0;
       width: 100%;
     }
+    
+    &.no-sidebar {
+      margin-left: 0;
+      width: 100%;
+    }
   }
   
   .dashboard-main {
@@ -56,7 +62,7 @@ const DashboardGlobalStyle = createGlobalStyle`
   }
 `;
 
-export default function DashboardLayout() {
+export default function DashboardLayout({ showSidebar = true }) {
   const { seller, isLoading: isSellerLoading, error: sellerError } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -68,30 +74,37 @@ export default function DashboardLayout() {
     setIsSidebarOpen(false);
   };
 
-  if (isSellerLoading) {
-    return (
-      <LoadingContainer>
-        <LoadingSpinner />
-      </LoadingContainer>
-    );
-  }
+  // Determine if sidebar should be shown
+  // Hide sidebar if:
+  // 1. showSidebar prop is false (for public pages)
+  // 2. User is not authenticated (public pages)
+  const shouldShowSidebar = showSidebar && !!seller;
 
-  if (sellerError) {
-    return (
-      <ErrorContainer>
-        Error loading user data: {sellerError.message}
-      </ErrorContainer>
-    );
-  }
+  // Allow layout to render even if auth is loading or has errors (for public pages)
+  // ProtectedRoute will handle authentication requirements for protected routes
+  // Public pages can use this layout without authentication
+  // Errors from useAuth are handled gracefully - seller will be null for unauthenticated users
 
   return (
     <>
       <DashboardGlobalStyle />
       <div className="dashboard-layout">
-        <Sidebar role={seller?.role} isOpen={isSidebarOpen} onClose={closeSidebar} />
-        <Overlay $isOpen={isSidebarOpen} onClick={closeSidebar} />
-        <div className="dashboard-content">
-          <Header user={seller} onToggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
+        {shouldShowSidebar && (
+          <>
+            <Sidebar role={seller?.role} isOpen={isSidebarOpen} onClose={closeSidebar} />
+            <Overlay $isOpen={isSidebarOpen} onClick={closeSidebar} />
+          </>
+        )}
+        <div className={`dashboard-content ${!shouldShowSidebar ? 'no-sidebar' : ''}`}>
+          {shouldShowSidebar ? (
+            <Header 
+              user={seller} 
+              onToggleSidebar={toggleSidebar} 
+              isSidebarOpen={isSidebarOpen} 
+            />
+          ) : (
+            <PublicHeader />
+          )}
           <main className="dashboard-main">
             <Outlet />
           </main>

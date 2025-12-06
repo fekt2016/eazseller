@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import { FaNewspaper, FaEnvelope, FaPhone, FaMapMarkerAlt, FaDownload } from "react-icons/fa";
+import { toast } from "react-toastify";
 
 const PressContainer = styled.div`
   min-height: 100vh;
@@ -228,11 +229,9 @@ export default function Press() {
               <strong>Product Images:</strong> High-quality product and platform screenshots
             </ListItem>
           </List>
-          <Button href="#download" onClick={(e) => {
-            e.preventDefault();
-            // TODO: Add download functionality
-            alert("Media resources download coming soon!");
-          }}>
+          <Button 
+            onClick={handleDownloadMediaKit}
+          >
             <FaDownload />
             Download Media Kit
           </Button>

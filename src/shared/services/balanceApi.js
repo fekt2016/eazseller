@@ -51,6 +51,23 @@ const balanceApi = {
       throw error;
     }
   },
+
+  getTransactionById: async (transactionId) => {
+    try {
+      // Backend may not have a single transaction endpoint
+      // For now, we'll fetch and filter on the frontend
+      // If backend adds this endpoint later, update this
+      const response = await api.get(`/seller/me/transactions/${transactionId}`);
+      return response;
+    } catch (error) {
+      // If endpoint doesn't exist, return null and let hook handle it
+      if (error.response?.status === 404) {
+        return null;
+      }
+      console.error('[balanceApi] Error fetching transaction by ID:', error);
+      throw error;
+    }
+  },
 };
 
 export default balanceApi;

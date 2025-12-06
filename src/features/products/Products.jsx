@@ -3,7 +3,7 @@ import styled from "styled-components";
 import useAuth from '../../shared/hooks/useAuth';
 import { useMemo, useState } from "react";
 import useProduct from '../../shared/hooks/useProduct';
-import { FaEdit, FaTrash, FaPlus, FaBoxOpen } from "react-icons/fa";
+import { FaEdit, FaTrash, FaPlus, FaBoxOpen, FaLayerGroup } from "react-icons/fa";
 import { PATHS } from '../../routes/routePaths';
 import { 
   PageContainer, 
@@ -130,11 +130,23 @@ export default function Products() {
         <ActionButtons>
           <Button
             as={Link}
+            to={PATHS.PRODUCT_VARIANTS.replace(':productId', product._id)}
+            variant="ghost"
+            size="sm"
+            iconOnly
+            round
+            title="Manage Variants"
+          >
+            <FaLayerGroup />
+          </Button>
+          <Button
+            as={Link}
             to={PATHS.EDIT_PRODUCT.replace(':id', product._id)}
             variant="ghost"
             size="sm"
             iconOnly
             round
+            title="Edit Product"
           >
             <FaEdit />
           </Button>
@@ -145,6 +157,7 @@ export default function Products() {
             round
             onClick={() => handleDelete(product._id)}
             disabled={deletingId === product._id?.toString()}
+            title="Delete Product"
           >
             {deletingId === product._id?.toString() ? (
               <ButtonSpinner size="14px" />

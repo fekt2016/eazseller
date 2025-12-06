@@ -3,7 +3,7 @@ import couponApi from '../services/couponApi';
 
 export const useCreateCoupon = () => {
   const queryClient = useQueryClient();
-  const { mutate: createMutation } = useMutation({
+  const { mutate: createMutation, isLoading, isError } = useMutation({
     mutationFn: async (data) => {
       const response = await couponApi.createCoupon(data);
       return response;
@@ -13,7 +13,7 @@ export const useCreateCoupon = () => {
       queryClient.invalidateQueries("coupon");
     },
   });
-  return { createMutation };
+  return { createMutation, isLoading, isError };
 };
 
 export const useDeleteCoupon = () => {
@@ -33,7 +33,7 @@ export const useDeleteCoupon = () => {
 
 export const useUpdateCoupon = () => {
   const queryClient = useQueryClient();
-  const { mutate: updateMutation } = useMutation({
+  const { mutate: updateMutation, isLoading, isError } = useMutation({
     mutationFn: async (data) => {
       const response = await couponApi.updateCoupon(data);
       return response;
@@ -43,7 +43,7 @@ export const useUpdateCoupon = () => {
       queryClient.invalidateQueries("coupon");
     },
   });
-  return { updateMutation };
+  return { updateMutation, isLoading, isError };
 };
 
 export const useGetCouponBatch = () => {

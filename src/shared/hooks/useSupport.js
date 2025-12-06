@@ -22,12 +22,24 @@ export const useCreateTicket = () => {
       );
       // Invalidate tickets list
       queryClient.invalidateQueries({ queryKey: ['support-tickets'] });
-      // Redirect to ticket list or detail
-      if (data?.data?.ticket?._id) {
-        navigate(`/support/tickets/${data.data.ticket._id}`);
-      } else {
-        navigate('/support/tickets');
-      }
+      
+      // Redirect to ticket list or detail after a short delay
+      // This ensures the success toast is visible and auth state is stable
+      // Also ensures ProtectedRoute has time to verify auth before navigation
+      setTimeout(() => {
+        try {
+          // Use dashboard path to match the route structure
+          if (data?.data?.ticket?._id) {
+            navigate(`/dashboard/support/tickets/${data.data.ticket._id}`, { replace: false });
+          } else {
+            navigate('/dashboard/support/tickets', { replace: false });
+          }
+        } catch (navError) {
+          console.error('[useCreateTicket] Navigation error:', navError);
+          // Fallback: just show success message, user can navigate manually
+          toast.info('Ticket created! You can view it in your tickets list.');
+        }
+      }, 1500); // 1.5 second delay to ensure auth state is ready
     },
     onError: (error) => {
       const errorMessage =
@@ -35,6 +47,8 @@ export const useCreateTicket = () => {
         error?.message ||
         'Failed to create support ticket. Please try again.';
       toast.error(errorMessage);
+      
+      // Don't redirect on error - let user stay on form to retry
     },
   });
 };
@@ -43,21 +57,39 @@ export const useCreateTicket = () => {
  * Get current user's tickets (seller-specific - only tickets related to their orders/products)
  */
 export const useMyTickets = (params = {}) => {
+  const navigate = useNavigate();
+  
   return useQuery({
     queryKey: ['support-tickets', 'my', params],
     queryFn: () => supportService.getMyTickets(params),
     staleTime: 30000, // 30 seconds
     retry: (failureCount, error) => {
-      // Don't retry on 403 (unauthorized)
-      if (error?.response?.status === 403) {
+      // Don't retry on 403 (unauthorized) or 401 (unauthenticated)
+      if (error?.response?.status === 403 || error?.response?.status === 401) {
         return false;
       }
       return failureCount < 2;
     },
     onError: (error) => {
-      // Handle 403 - Not authorized
+      // Handle 403 - Wrong role (user logged in as buyer instead of seller)
       if (error?.response?.status === 403) {
-        toast.error('You are not authorized to access support tickets');
+        const errorMessage = error?.response?.data?.message || 'You are not authorized to access support tickets';
+        if (errorMessage.includes('Required role: seller')) {
+          toast.error('Please log in as a seller to access support tickets');
+          // Redirect to login after a short delay
+          setTimeout(() => {
+            navigate('/login');
+          }, 2000);
+        } else {
+          toast.error(errorMessage);
+        }
+      }
+      // Handle 401 - Not authenticated
+      if (error?.response?.status === 401) {
+        toast.error('Please log in to access support tickets');
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
       }
     },
   });
@@ -93,13 +125,21 @@ export const useTicketDetail = (ticketId) => {
       return failureCount < 2;
     },
     onError: (error) => {
-      // Handle 403 - Not authorized to view this ticket
+      // Handle 403 - Wrong role or not authorized
       if (error?.response?.status === 403) {
-        toast.error('You are not authorized to view this ticket');
-        navigate('/support/tickets');
+        const errorMessage = error?.response?.data?.message || 'You are not authorized to view this ticket';
+        if (errorMessage.includes('Required role: seller')) {
+          toast.error('Please log in as a seller to view this ticket');
+          setTimeout(() => {
+            navigate('/login');
+          }, 2000);
+        } else {
+          toast.error(errorMessage);
+          navigate('/dashboard/support/tickets');
+        }
       } else if (error?.response?.status === 404) {
         toast.error('Ticket not found');
-        navigate('/support/tickets');
+        navigate('/dashboard/support/tickets');
       }
     },
   });

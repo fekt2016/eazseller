@@ -3,8 +3,23 @@ import api from './api';
 const authApi = {
   // OTP-based authentication
   sendOtp: async (loginId) => {
-    const response = await api.post("/seller/send-otp", { loginId });
-    return response;
+    try {
+      console.log('[Seller AuthAPI] Sending OTP request:', { loginId, endpoint: '/seller/send-otp' });
+      const response = await api.post("/seller/send-otp", { loginId });
+      console.log('[Seller AuthAPI] OTP send success:', response.data);
+      return response;
+    } catch (error) {
+      console.error('[Seller AuthAPI] OTP send error:', {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        url: error.config?.url,
+        baseURL: error.config?.baseURL,
+        fullURL: `${error.config?.baseURL}${error.config?.url}`,
+      });
+      throw error;
+    }
   },
 
   verifyOtp: async (loginId, otp, password, redirectTo = '/') => {

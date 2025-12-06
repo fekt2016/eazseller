@@ -240,8 +240,33 @@ const SellerEducationCenterPage = () => {
   // Handle search
   const handleSearch = (e) => {
     e.preventDefault();
-    // TODO: Implement search functionality
-    console.log('Searching for:', searchQuery);
+    if (!searchQuery.trim()) {
+      return; // Don't search if query is empty
+    }
+    
+    // Filter articles and categories based on search query
+    const query = searchQuery.toLowerCase().trim();
+    const filteredArticles = articles.filter(article => 
+      article.title.toLowerCase().includes(query) ||
+      article.description?.toLowerCase().includes(query) ||
+      article.category?.toLowerCase().includes(query)
+    );
+    
+    const filteredCategories = categories.filter(category =>
+      category.title.toLowerCase().includes(query) ||
+      category.description.toLowerCase().includes(query)
+    );
+    
+    // For now, just log results. In a full implementation, you'd update state to show filtered results
+    console.log('Search results:', {
+      query,
+      articlesFound: filteredArticles.length,
+      categoriesFound: filteredCategories.length,
+    });
+    
+    // TODO: Update UI to show filtered results
+    // You could add state like: const [filteredArticles, setFilteredArticles] = useState(articles);
+    // and update it here, then render filteredArticles instead of articles
   };
 
   return (

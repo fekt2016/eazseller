@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import { FaCreditCard, FaMobileAlt, FaSave, FaArrowLeft, FaBuilding, FaPhone, FaCheckCircle, FaTimesCircle, FaEdit, FaTrash, FaStar } from 'react-icons/fa';
 import useAuth from '../../shared/hooks/useAuth';
 import useSellerStatus from '../../shared/hooks/useSellerStatus';
-import { useGetPaymentMethods, useDeletePaymentMethod, useSetDefaultPaymentMethod, useCreatePaymentMethod } from '../../shared/hooks/usePaymentMethod';
+import { useGetPaymentMethods, useDeletePaymentMethod, useSetDefaultPaymentMethod, useCreatePaymentMethod, useUpdatePaymentMethod } from '../../shared/hooks/usePaymentMethod';
 import { PATHS } from '../../routes/routePaths';
 import Button from '../../shared/components/ui/Button';
 import { LoadingState } from '../../shared/components/ui/LoadingComponents';
@@ -27,6 +27,10 @@ const PaymentMethodPage = ({ embedded = false }) => {
   const deletePaymentMethod = useDeletePaymentMethod();
   const setDefaultPaymentMethod = useSetDefaultPaymentMethod();
   const createPaymentMethod = useCreatePaymentMethod();
+  const updatePaymentMethod = useUpdatePaymentMethod();
+  
+  // State for editing mode
+  const [editingMethodId, setEditingMethodId] = useState(null);
 
   // Check if there's a default payment method
   const hasDefaultPaymentMethod = paymentMethods.some(method => method.isDefault);
@@ -204,6 +208,32 @@ const PaymentMethodPage = ({ embedded = false }) => {
     };
   };
 
+  // Handle edit payment method
+  const handleEditPaymentMethod = (method) => {
+    setEditingMethodId(method._id || method.id);
+    
+    // Populate form based on payment method type
+    if (method.type === 'bank_transfer') {
+      setActiveTab('bank');
+      setBankDetails({
+        accountName: method.accountName || method.name || '',
+        accountNumber: method.accountNumber || '',
+        bankName: method.bankName || '',
+        branch: method.branch || '',
+      });
+    } else if (method.type === 'mobile_money') {
+      setActiveTab('mobile');
+      setMobileMoneyDetails({
+        accountName: method.accountName || method.name || '',
+        phone: method.mobileNumber || '',
+        network: method.provider || '',
+      });
+    }
+    
+    // Scroll to form
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -258,20 +288,28 @@ const PaymentMethodPage = ({ embedded = false }) => {
         };
       }
 
-      // If this is the first payment method, set it as default
-      const isFirstPaymentMethod = paymentMethods.length === 0;
-      if (isFirstPaymentMethod) {
-        paymentMethodData.isDefault = true;
-      }
+      // If editing, update existing payment method
+      if (editingMethodId) {
+        await updatePaymentMethod.mutateAsync({
+          id: editingMethodId,
+          data: paymentMethodData,
+        });
+        toast.success('Payment method updated successfully!');
+        setEditingMethodId(null); // Exit edit mode
+      } else {
+        // If this is the first payment method, set it as default
+        const isFirstPaymentMethod = paymentMethods.length === 0;
+        if (isFirstPaymentMethod) {
+          paymentMethodData.isDefault = true;
+        }
 
-      // Create payment method in PaymentMethod model
-      await createPaymentMethod.mutateAsync(paymentMethodData);
+        // Create payment method in PaymentMethod model
+        await createPaymentMethod.mutateAsync(paymentMethodData);
+        toast.success('Payment method saved successfully!');
+      }
       
       // Refetch payment methods to show updated list
       await refetchPaymentMethods();
-
-      // Show success toast
-      toast.success('Payment method saved successfully!');
       
       // Reset form
       if (activeTab === 'bank') {
@@ -450,10 +488,7 @@ const PaymentMethodPage = ({ embedded = false }) => {
                             type="button"
                             variant="ghost"
                             size="sm"
-                            onClick={() => {
-                              // TODO: Implement edit functionality
-                              toast.info('Edit functionality coming soon');
-                            }}
+                            onClick={() => handleEditPaymentMethod(method)}
                           >
                             <FaEdit /> Edit
                           </ActionButton>

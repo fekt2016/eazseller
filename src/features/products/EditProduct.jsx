@@ -1,10 +1,17 @@
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
+import { useMemo } from "react";
+import styled from "styled-components";
 import useProduct from '../../shared/hooks/useProduct';
+import useVariants from '../../shared/hooks/variants/useVariants';
 import ProductForm from '../../shared/components/forms/ProductForm';
 import { compressImage } from '../../shared/utils/imageCompressor';
-import { useMemo } from "react";
 import { LoadingContainer } from '../../shared/components/LoadingSpinner';
 import useDynamicPageTitle from '../../shared/hooks/useDynamicPageTitle';
+import { PageContainer, PageHeader, TitleSection, ActionSection, Section, SectionHeader } from '../../shared/components/ui/SpacingSystem';
+import Button from '../../shared/components/ui/Button';
+// Card component will be created inline if needed
+import { PATHS } from '../../routes/routePaths';
+import { FaLayerGroup, FaBox, FaInfoCircle, FaArrowRight } from "react-icons/fa";
 
 const EditProduct = () => {
   const { id: productId } = useParams();
@@ -19,6 +26,20 @@ const EditProduct = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const product = productResponse?.data?.product || {};
   console.log("prod", product);
+
+  // Fetch variants from API
+  const { getVariants } = useVariants();
+  const { data: variantsData, isLoading: variantsLoading } = getVariants(productId);
+  
+  const variants = useMemo(() => {
+    return variantsData?.data || variantsData || [];
+  }, [variantsData]);
+
+  const hasVariants = variants && variants.length > 0;
+  const variantCount = variants?.length || 0;
+  const totalVariantStock = useMemo(() => {
+    return variants?.reduce((sum, v) => sum + (parseInt(v.stock) || 0), 0) || 0;
+  }, [variants]);
 
   // SEO - Update page title and meta tags based on product data
   useDynamicPageTitle({
@@ -196,8 +217,125 @@ const EditProduct = () => {
   if (isLoading) return <LoadingContainer />;
   if (error) return <div>{error.message}</div>;
   return (
-    <div>
-      <h1>Edit Product</h1>
+    <PageContainer>
+      <PageHeader $padding="lg" $marginBottom="lg">
+        <TitleSection>
+          <h1>Edit Product</h1>
+          <p>{product?.name || "Update product information"}</p>
+        </TitleSection>
+        <ActionSection>
+          <Button
+            as={Link}
+            to={PATHS.PRODUCT_VARIANTS.replace(':productId', productId)}
+            variant="outline"
+            size="md"
+          >
+            <FaLayerGroup /> Manage Variants
+          </Button>
+        </ActionSection>
+      </PageHeader>
+
+      {/* Variants Summary Card */}
+      {!variantsLoading && (
+        <Section $padding="lg" $marginBottom="lg">
+          <VariantsCard>
+            <VariantsSummaryHeader>
+              <VariantsTitle>
+                <FaLayerGroup />
+                <div>
+                  <h3>Product Variants</h3>
+                  <VariantsSubtitle>
+                    {hasVariants 
+                      ? `${variantCount} variant${variantCount !== 1 ? 's' : ''} configured`
+                      : 'No variants configured'}
+                  </VariantsSubtitle>
+                </div>
+              </VariantsTitle>
+              <Button
+                as={Link}
+                to={PATHS.PRODUCT_VARIANTS.replace(':productId', productId)}
+                variant={hasVariants ? "primary" : "outline"}
+                size="md"
+              >
+                {hasVariants ? (
+                  <>
+                    <FaLayerGroup /> View All Variants
+                  </>
+                ) : (
+                  <>
+                    <FaBox /> Add Variants
+                  </>
+                )}
+                <FaArrowRight />
+              </Button>
+            </VariantsSummaryHeader>
+
+            {hasVariants && (
+              <VariantsInfo>
+                <InfoItem>
+                  <InfoLabel>Total Variants:</InfoLabel>
+                  <InfoValue>{variantCount}</InfoValue>
+                </InfoItem>
+                <InfoItem>
+                  <InfoLabel>Total Stock:</InfoLabel>
+                  <InfoValue>{totalVariantStock} units</InfoValue>
+                </InfoItem>
+                <InfoItem>
+                  <InfoLabel>Active Variants:</InfoLabel>
+                  <InfoValue>
+                    {variants.filter(v => v.status === 'active').length}
+                  </InfoValue>
+                </InfoItem>
+              </VariantsInfo>
+            )}
+
+            {hasVariants && (
+              <VariantsPreview>
+                <PreviewTitle>Quick Preview:</PreviewTitle>
+                <VariantsList>
+                  {variants.slice(0, 3).map((variant, idx) => (
+                    <VariantPreviewItem key={variant._id || idx}>
+                      <VariantAttributes>
+                        {variant.attributes?.map((attr, ai) => (
+                          <AttributeBadge key={ai}>
+                            {attr.key}: {attr.value}
+                          </AttributeBadge>
+                        )) || <span>No attributes</span>}
+                      </VariantAttributes>
+                      <VariantDetails>
+                        <span>Price: GH₵{parseFloat(variant.price || 0).toFixed(2)}</span>
+                        <span>Stock: {variant.stock || 0}</span>
+                        <StatusBadge $status={variant.status || 'active'}>
+                          {variant.status || 'active'}
+                        </StatusBadge>
+                      </VariantDetails>
+                    </VariantPreviewItem>
+                  ))}
+                </VariantsList>
+                {variantCount > 3 && (
+                  <ViewMoreLink
+                    as={Link}
+                    to={PATHS.PRODUCT_VARIANTS.replace(':productId', productId)}
+                  >
+                    View all {variantCount} variants <FaArrowRight />
+                  </ViewMoreLink>
+                )}
+              </VariantsPreview>
+            )}
+
+            {!hasVariants && (
+              <NoVariantsMessage>
+                <FaInfoCircle />
+                <div>
+                  <p>This product doesn't have any variants yet.</p>
+                  <p>Add variants to offer different options (size, color, etc.) to your customers.</p>
+                </div>
+              </NoVariantsMessage>
+            )}
+          </VariantsCard>
+        </Section>
+      )}
+
       {product && (
         <ProductForm
           initialData={initialFormData}
@@ -206,8 +344,201 @@ const EditProduct = () => {
           mode="edit"
         />
       )}
-    </div>
+    </PageContainer>
   );
 };
 
 export default EditProduct;
+
+// Styled Components
+const VariantsCard = styled.div`
+  background: var(--color-white-0);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-grey-200);
+`;
+
+const VariantsSummaryHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+`;
+
+const VariantsTitle = styled.div`
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  
+  svg {
+    font-size: var(--font-size-2xl);
+    color: var(--color-primary-500);
+  }
+  
+  h3 {
+    margin: 0;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-bold);
+    color: var(--color-grey-900);
+    font-family: var(--font-heading);
+  }
+`;
+
+const VariantsSubtitle = styled.p`
+  margin: var(--spacing-xs) 0 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-grey-600);
+  font-family: var(--font-body);
+`;
+
+const VariantsInfo = styled.div`
+  display: flex;
+  gap: var(--spacing-xl);
+  padding: var(--spacing-md);
+  background: var(--color-grey-50);
+  border-radius: var(--border-radius-md);
+  margin-bottom: var(--spacing-lg);
+  flex-wrap: wrap;
+`;
+
+const InfoItem = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+`;
+
+const InfoLabel = styled.span`
+  font-size: var(--font-size-xs);
+  color: var(--color-grey-600);
+  font-weight: var(--font-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+`;
+
+const InfoValue = styled.span`
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-bold);
+  color: var(--color-grey-900);
+  font-family: var(--font-heading);
+`;
+
+const VariantsPreview = styled.div`
+  margin-top: var(--spacing-lg);
+`;
+
+const PreviewTitle = styled.h4`
+  font-size: var(--font-size-md);
+  font-weight: var(--font-semibold);
+  color: var(--color-grey-800);
+  margin-bottom: var(--spacing-md);
+  font-family: var(--font-heading);
+`;
+
+const VariantsList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+`;
+
+const VariantPreviewItem = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  background: var(--color-white-0);
+  border: 1px solid var(--color-grey-200);
+  border-radius: var(--border-radius-md);
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+`;
+
+const VariantAttributes = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  flex: 1;
+`;
+
+const AttributeBadge = styled.span`
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-primary-100);
+  color: var(--color-primary-700);
+  border-radius: var(--border-radius-cir);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-medium);
+`;
+
+const VariantDetails = styled.div`
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-grey-700);
+  flex-wrap: wrap;
+`;
+
+const StatusBadge = styled.span`
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-cir);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-semibold);
+  text-transform: capitalize;
+  
+  background-color: ${({ $status }) => 
+    $status === 'active' 
+      ? 'var(--color-green-100)' 
+      : 'var(--color-grey-100)'};
+  color: ${({ $status }) => 
+    $status === 'active' 
+      ? 'var(--color-green-700)' 
+      : 'var(--color-grey-700)'};
+`;
+
+const ViewMoreLink = styled(Link)`
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  color: var(--color-primary-500);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-semibold);
+  text-decoration: none;
+  margin-top: var(--spacing-sm);
+  transition: var(--transition-base);
+  
+  &:hover {
+    color: var(--color-primary-600);
+    text-decoration: underline;
+  }
+`;
+
+const NoVariantsMessage = styled.div`
+  display: flex;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  background: var(--color-blue-50);
+  border: 1px solid var(--color-blue-200);
+  border-radius: var(--border-radius-md);
+  
+  svg {
+    font-size: var(--font-size-xl);
+    color: var(--color-blue-600);
+    flex-shrink: 0;
+    margin-top: var(--spacing-xs);
+  }
+  
+  p {
+    margin: 0 0 var(--spacing-xs) 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-grey-700);
+    font-family: var(--font-body);
+    line-height: 1.6;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+`;

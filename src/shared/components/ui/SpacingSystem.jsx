@@ -28,6 +28,7 @@ export const PageContainer = styled.div`
   max-width: 1400px;
   margin: 0 auto;
   padding: var(--spacing-lg);
+
   
   @media ${devicesMax.sm} {
     padding: var(--spacing-md);

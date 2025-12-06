@@ -9,7 +9,7 @@ const cardBaseStyles = css`
   position: relative;
 `;
 
-const Card = styled.div`
+const StyledCard = styled.div`
   ${cardBaseStyles}
 
   ${({ variant }) => {
@@ -90,7 +90,7 @@ const Card = ({
   footerActions 
 }) => {
   return (
-    <Card variant={variant} noPadding={noPadding} clickable={clickable}>
+    <StyledCard variant={variant} noPadding={noPadding} clickable={clickable}>
       {(title || headerActions) && (
         <CardHeader>
           {title && <CardTitle>{title}</CardTitle>}
@@ -99,7 +99,7 @@ const Card = ({
       )}
       <CardContent>{children}</CardContent>
       {footerActions && <CardFooter>{footerActions}</CardFooter>}
-    </Card>
+    </StyledCard>
   );
 };
 
