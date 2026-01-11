@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import styled, { keyframes } from "styled-components";
 import { PropagateLoader } from "react-spinners";
 import useAuth from '../../shared/hooks/useAuth';
@@ -8,6 +8,24 @@ import { PATHS } from '../../routes/routePaths';
 import { ButtonSpinner } from '../../shared/components/ButtonSpinner';
 import { ErrorState } from '../../shared/components/ui/LoadingComponents';
 
+// Accra neighborhoods list
+const ACCRA_NEIGHBORHOODS = [
+  'Nima', 'Maamobi', 'Pig Farm', 'Kanda', 'Kawukudi', 'Alajo', 'Kotobabi',
+  'New Town', 'Kokomlemle', 'Roman Ridge', 'Dzorwulu', 'Airport Residential',
+  'Ridge', 'Asylum Down', 'Adabraka', 'Tudu', 'Osu', 'Labone', 'Cantonments',
+  'Accra Central', 'Arena', 'Okaishie', 'Agbogbloshie', 'Fadama', 'Dansoman',
+  'Mamprobi', 'Chorkor', 'Korle Gonno', 'Kaneshie', 'North Kaneshie',
+  'Abbosey Okai', 'Odorkor', 'Laterbiokoshie', 'La', 'Labadi', 'Trade Fair',
+  'Tse Addo', 'Burma Camp', 'Achimota', 'Circle', 'Taifa', 'Spintex',
+  'Airport Hills', 'East Legon', 'Adjiringanor', 'Trasacco Area', 'Westlands',
+  'Dome', 'Lapaz', 'Sowutuom', 'Ablekuma North', 'Abeka', 'Caprice',
+  'East Legon Hills', 'Ashaley Botwe', 'Lakeside Estate', 'Haatso', 'Kwabenya',
+  'Pokuase', 'Amasaman', 'Amrahia', 'Adenta', 'West Trassacco', 'Oyarifa',
+  'Oyibi', 'Dodowa Road', 'Spintex East', 'Teshie-Nungua Estates', 'Kokrobite',
+  'Weija', 'Kasoa', 'Kasoa Central', 'McCarthy Hill', 'Amansaman Outskirts',
+  'Shai Hills', 'Dodowa Township'
+].sort();
+
 // Auth Form Component
 const AuthPage = () => {
   const [phoneNetwork, setPhoneNetwork] = useState("");
@@ -15,11 +33,13 @@ const AuthPage = () => {
   
   // Login state
   const [loginState, setLoginState] = useState({
-    loginId: "",
+    email: "",
     password: "",
   });
-  const [loginMethod, setLoginMethod] = useState("email");
-  const [loginStep, setLoginStep] = useState("credentials");
+  const [loginMethod, setLoginMethod] = useState("email"); // 'email' for email+password, 'otp' for OTP-based
+  const [loginStep, setLoginStep] = useState("credentials"); // 'credentials', '2fa', 'otp'
+  const [twoFactorCode, setTwoFactorCode] = useState("");
+  const [loginSessionId, setLoginSessionId] = useState(null);
   const [otp, setOtp] = useState("");
   const [otpCountdown, setOtpCountdown] = useState(0);
   
@@ -30,15 +50,18 @@ const AuthPage = () => {
     password: "",
     passwordConfirm: "",
     shopName: "",
+    location: "Nima", // Auto-select Nima as default
     network: phoneNetwork,
     contactNumber: "",
   });
   const [passwordError, setPasswordError] = useState("");
 
-  const { sendOtp, verifyOtp, register } = useAuth();
+  const { login, verify2FALogin, sendOtp, verifyOtp, register, verifyAccount, resendOtp } = useAuth();
+  const { mutate: loginMutation, isPending: isLoggingIn, error: loginError } = login;
+  const { mutate: verify2FALoginMutation, isPending: isVerifying2FA, error: verify2FAError } = verify2FALogin;
   const { mutate: sendOtpMutation, isPending: isSendingOtp, error: sendOtpError } = sendOtp;
   const { mutate: verifyOtpMutation, isPending: isVerifyingOtp, error: verifyOtpError } = verifyOtp;
-  const { mutate: registerMutation, isPending: isRegistering, error: registerError } = register;
+  const { mutateAsync: registerMutation, isPending: isRegistering, error: registerError } = register;
   
   const navigate = useNavigate();
 
@@ -77,21 +100,160 @@ const AuthPage = () => {
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
+    e.stopPropagation(); // Prevent any form submission bubbling
+    
+    // SECURITY: Ensure form doesn't submit normally
+    if (e.defaultPrevented === false) {
+      e.preventDefault();
+    }
 
     if (loginStep === "credentials") {
-      sendOtpMutation(loginState.loginId, {
-        onSuccess: () => {
-          setLoginStep("otp");
-          setOtpCountdown(120); // 2 minutes countdown
-        },
-        onError: (err) => {
-          console.error("[AuthPage] OTP send failed:", err.message);
-        },
-      });
+      if (loginMethod === "email") {
+        // New email+password login flow (matches EazMain)
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const trimmedEmail = loginState.email.trim().toLowerCase();
+        
+        if (!trimmedEmail || !emailRegex.test(trimmedEmail)) {
+          // Show error - you might want to add toast or error state
+          console.error("[AuthPage] Invalid email address");
+          return false; // Explicitly return false to prevent form submission
+        }
+        
+        if (!loginState.password) {
+          console.error("[AuthPage] Password is required");
+          return false; // Explicitly return false to prevent form submission
+        }
+
+        // SECURITY: Ensure we're sending a proper object, not a string
+        const loginData = { 
+          email: trimmedEmail, 
+          password: loginState.password 
+        };
+        
+        if (import.meta.env.DEV) {
+          console.log('[AuthPage] Sending login request with data:', {
+            email: loginData.email,
+            hasPassword: !!loginData.password,
+            dataType: typeof loginData,
+            isObject: typeof loginData === 'object' && !Array.isArray(loginData),
+          });
+        }
+
+        loginMutation(
+          loginData,
+          {
+            onSuccess: (result) => {
+              // Result from mutationFn is { success: true, seller: sellerData } or { requires2FA: true, ... }
+              if (result?.requires2FA) {
+                console.log("[AuthPage] 2FA required");
+                setLoginSessionId(result.loginSessionId);
+                setLoginStep("2fa");
+              } else if (result?.success) {
+                // Login successful
+                const seller = result.seller;
+                
+                if (!seller || (!seller.id && !seller._id)) {
+                  console.error("❌ [AuthPage] Login successful but no seller data received:", result);
+                  return;
+                }
+                
+                console.log('👤 [AuthPage] Seller logged in:', {
+                  id: seller.id || seller._id,
+                  email: seller.email,
+                  name: seller.name || seller.shopName,
+                  role: seller.role,
+                });
+                
+                // Navigate to dashboard
+                navigate(PATHS.DASHBOARD);
+                
+                // Reset form
+                setLoginState({ email: "", password: "" });
+              }
+            },
+            onError: (err) => {
+              console.error("[AuthPage] Login failed:", {
+                message: err.message,
+                response: err.response?.data,
+                status: err.response?.status,
+              });
+              
+              // Handle unverified account
+              if (err.response?.status === 403) {
+                const errorMessage = err.response?.data?.message || err.message;
+                if (errorMessage.includes('not verified') || errorMessage.includes('verify')) {
+                  // Navigate to verification page or show message
+                  console.log("[AuthPage] Account not verified - redirect to verification");
+                }
+              }
+            },
+          }
+        );
+      } else {
+        // OTP-based login (backward compatibility)
+        sendOtpMutation(loginState.email, {
+          onSuccess: () => {
+            setLoginStep("otp");
+            setOtpCountdown(120); // 2 minutes countdown
+          },
+          onError: (err) => {
+            console.error("[AuthPage] OTP send failed:", err.message);
+          },
+        });
+      }
+    } else if (loginStep === "2fa") {
+      // Verify 2FA code
+      if (!twoFactorCode || twoFactorCode.length !== 6) {
+        console.error("[AuthPage] Please enter a valid 6-digit 2FA code");
+        return;
+      }
+
+      if (!loginSessionId) {
+        console.error("[AuthPage] Login session expired. Please login again.");
+        setLoginStep("credentials");
+        return;
+      }
+
+      verify2FALoginMutation(
+        { loginSessionId, twoFactorCode },
+        {
+          onSuccess: (result) => {
+            // Result from mutationFn is { success: true, seller: sellerData }
+            if (result?.success) {
+              const seller = result.seller;
+              
+              if (!seller || (!seller.id && !seller._id)) {
+                console.error("❌ [AuthPage] 2FA verified but no seller data received:", result);
+                return;
+              }
+              
+              console.log('👤 [AuthPage] Seller logged in via 2FA:', {
+                id: seller.id || seller._id,
+                email: seller.email,
+                name: seller.name || seller.shopName,
+                role: seller.role,
+              });
+              
+              navigate(PATHS.DASHBOARD);
+              setLoginState({ email: "", password: "" });
+              setTwoFactorCode("");
+              setLoginSessionId(null);
+            }
+          },
+          onError: (err) => {
+            console.error("[AuthPage] 2FA verification failed:", {
+              message: err.message,
+              response: err.response?.data,
+              status: err.response?.status,
+            });
+          },
+        }
+      );
     } else {
+      // OTP verification (backward compatibility)
       verifyOtpMutation(
         {
-          loginId: loginState.loginId,
+          loginId: loginState.email,
           otp,
           password: loginState.password,
           redirectTo: PATHS.DASHBOARD,
@@ -106,7 +268,7 @@ const AuthPage = () => {
             navigate(finalRedirect);
             
             // Reset form
-            setLoginState({ loginId: "", password: "" });
+            setLoginState({ email: "", password: "" });
             setOtp("");
             setLoginStep("credentials");
           },
@@ -119,7 +281,10 @@ const AuthPage = () => {
   };
 
   const handleRegisterSubmit = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
 
     if (formData.password !== formData.passwordConfirm) {
       setPasswordError("Passwords do not match");
@@ -127,29 +292,67 @@ const AuthPage = () => {
     }
 
     try {
-      formData.network = phoneNetwork;
-      await registerMutation(formData);
-      console.log("[AuthPage] Registration successful - cookie set by backend");
-      navigate(PATHS.DASHBOARD);
+      // Build shopLocation object - using location as town/neighborhood
+      const shopLocation = {
+        town: formData.location,
+        city: 'Accra',
+        region: 'Greater Accra',
+        country: 'Ghana',
+      };
+
+      const registrationData = {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.contactNumber,
+        password: formData.password,
+        passwordConfirm: formData.passwordConfirm,
+        shopName: formData.shopName,
+        shopLocation: shopLocation,
+        network: phoneNetwork,
+      };
+
+      const response = await registerMutation(registrationData);
+      
+      // Check if email verification is required
+      const apiResponse = response?.data || response;
+      const requiresVerification = apiResponse?.requiresVerification || apiResponse?.data?.requiresVerification;
+      
+      if (requiresVerification) {
+        // Navigate to OTP verification screen or show verification message
+        console.log("[AuthPage] Registration successful - email verification required");
+        // You might want to navigate to a verification page or show a modal
+        // For now, we'll show a message and keep them on the page
+        alert('Registration successful! Please check your email for the verification code.');
+        setActiveTab("login");
+      } else {
+        console.log("[AuthPage] Registration successful - cookie set by backend");
+        navigate(PATHS.DASHBOARD);
+      }
     } catch (error) {
       console.error("[AuthPage] Registration error:", error);
     }
   };
 
   const handleResendOtp = () => {
-    sendOtpMutation(loginState.loginId, {
-      onSuccess: () => {
-        setOtpCountdown(120);
-      },
-      onError: (err) => {
-        console.error("[AuthPage] Resend OTP failed:", err.message);
-      },
-    });
+    if (loginMethod === "otp") {
+      sendOtpMutation(loginState.email, {
+        onSuccess: () => {
+          setOtpCountdown(120);
+        },
+        onError: (err) => {
+          console.error("[AuthPage] Resend OTP failed:", err.message);
+        },
+      });
+    }
   };
 
   const toggleLoginMethod = () => {
-    setLoginMethod(loginMethod === "email" ? "phone" : "email");
-    setLoginState({ ...loginState, loginId: "" });
+    setLoginMethod(loginMethod === "email" ? "otp" : "email");
+    setLoginState({ ...loginState, email: "" });
+    setLoginStep("credentials");
+    setOtp("");
+    setTwoFactorCode("");
+    setLoginSessionId(null);
   };
 
   return (
@@ -192,6 +395,9 @@ const AuthPage = () => {
                 setActiveTab("login");
                 setLoginStep("credentials");
                 setOtp("");
+                setTwoFactorCode("");
+                setLoginSessionId(null);
+                setLoginState({ email: "", password: "" });
               }}
             >
               Login
@@ -206,25 +412,29 @@ const AuthPage = () => {
 
           <Title>
             {activeTab === "login"
-              ? loginStep === "otp"
+              ? loginStep === "2fa"
+                ? "Two-Factor Authentication"
+                : loginStep === "otp"
                 ? "Verify Identity"
                 : "Welcome Back"
               : "Create Your Seller Account"}
           </Title>
 
           <Subtitle>
-            {activeTab === "login" && loginStep === "otp"
-              ? `Enter verification code sent to your ${loginMethod}`
+            {activeTab === "login" && loginStep === "2fa"
+              ? "Enter the 6-digit code from your authenticator app (Google Authenticator, Authy, etc.)"
+              : activeTab === "login" && loginStep === "otp"
+              ? `Enter verification code sent to your ${loginMethod === "otp" ? "email/phone" : "email"}`
               : activeTab === "login"
-              ? "Enter your credentials to access your account"
+              ? "Enter your email and password to access your account"
               : "Fill in your details to get started"}
           </Subtitle>
 
           {/* Error Messages */}
-          {(sendOtpError || verifyOtpError) && activeTab === "login" && (
+          {(loginError || verify2FAError || sendOtpError || verifyOtpError) && activeTab === "login" && (
             <ErrorState
               title="Authentication Failed"
-              message={(sendOtpError || verifyOtpError)?.response?.data?.message || (sendOtpError || verifyOtpError)?.message || "Authentication failed. Please try again."}
+              message={(loginError || verify2FAError || sendOtpError || verifyOtpError)?.response?.data?.message || (loginError || verify2FAError || sendOtpError || verifyOtpError)?.message || "Authentication failed. Please try again."}
             />
           )}
           {registerError && activeTab === "register" && (
@@ -235,46 +445,99 @@ const AuthPage = () => {
           )}
 
           {activeTab === "login" ? (
-            <Form onSubmit={handleLoginSubmit}>
+            <Form onSubmit={handleLoginSubmit} noValidate>
               {loginStep === "credentials" ? (
                 <>
                   <InputGroup>
                     <Label>
-                      {loginMethod === "email" ? "Email Address" : "Phone Number"}
+                      {loginMethod === "email" ? "Email Address" : "Email/Phone"}
                     </Label>
                     <Input
-                      type={loginMethod === "email" ? "email" : "tel"}
-                      name="loginId"
-                      value={loginState.loginId}
+                      type={loginMethod === "email" ? "email" : "text"}
+                      name="email"
+                      value={loginState.email}
                       onChange={(e) =>
-                        setLoginState({ ...loginState, loginId: e.target.value })
+                        setLoginState({ ...loginState, email: e.target.value })
                       }
                       placeholder={
                         loginMethod === "email"
                           ? "your.email@example.com"
-                          : "+233XXXXXXXXX"
+                          : "email or phone number"
                       }
                       required
+                      autoComplete="email"
                     />
                     <MethodToggle type="button" onClick={toggleLoginMethod}>
-                      Use {loginMethod === "email" ? "phone number" : "email"} instead
+                      Use {loginMethod === "email" ? "OTP login" : "email + password"} instead
                     </MethodToggle>
                   </InputGroup>
 
-                  <InputGroup>
-                    <Label>Password</Label>
-                    <Input
-                      type="password"
-                      name="password"
-                      value={loginState.password}
-                      onChange={(e) =>
-                        setLoginState({ ...loginState, password: e.target.value })
-                      }
-                      placeholder="Enter your password"
-                      required
-                    />
-                  </InputGroup>
+                  {loginMethod === "email" && (
+                    <InputGroup>
+                      <Label>Password</Label>
+                      <Input
+                        type="password"
+                        name="password"
+                        value={loginState.password}
+                        onChange={(e) =>
+                          setLoginState({ ...loginState, password: e.target.value })
+                        }
+                        placeholder="Enter your password"
+                        required
+                        autoComplete="current-password"
+                      />
+                      <ForgotPasswordLink to={PATHS.FORGOT_PASSWORD}>
+                        Forgot password?
+                      </ForgotPasswordLink>
+                    </InputGroup>
+                  )}
                 </>
+              ) : loginStep === "2fa" ? (
+                <OtpContainer>
+                  <OtpInputs>
+                    {[...Array(6)].map((_, index) => {
+                      const codeArray = twoFactorCode.split('').slice(0, 6);
+                      return (
+                        <OtpInput
+                          key={index}
+                          type="text"
+                          maxLength={1}
+                          value={codeArray[index] || ""}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/[^0-9]/g, '');
+                            if (value.length > 1) return;
+                            
+                            const newCodeArray = [...codeArray];
+                            newCodeArray[index] = value;
+                            const newCode = newCodeArray.join('');
+                            setTwoFactorCode(newCode);
+                            
+                            if (value && index < 5) {
+                              const nextInput = document.getElementById(`2fa-${index + 1}`);
+                              if (nextInput) nextInput.focus();
+                            }
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Backspace' && !codeArray[index] && index > 0) {
+                              const prevInput = document.getElementById(`2fa-${index - 1}`);
+                              if (prevInput) prevInput.focus();
+                            }
+                          }}
+                          id={`2fa-${index}`}
+                          autoFocus={index === 0}
+                        />
+                      );
+                    })}
+                  </OtpInputs>
+                  
+                  <BackButton type="button" onClick={() => {
+                    setLoginStep("credentials");
+                    setTwoFactorCode("");
+                    setLoginSessionId(null);
+                  }}>
+                    ← Back to Login
+                  </BackButton>
+                </OtpContainer>
               ) : (
                 <OtpContainer>
                   <OtpInputs>
@@ -327,17 +590,26 @@ const AuthPage = () => {
               )}
 
               <SubmitButton
-                type="submit"
+                type="button"
+                onClick={handleLoginSubmit}
                 disabled={
                   loginStep === "credentials"
-                    ? isSendingOtp || !loginState.loginId || !loginState.password
+                    ? loginMethod === "email"
+                      ? isLoggingIn || !loginState.email || !loginState.password
+                      : isSendingOtp || !loginState.email || !loginState.password
+                    : loginStep === "2fa"
+                    ? isVerifying2FA || twoFactorCode.length < 6
                     : isVerifyingOtp || otp.length < 6
                 }
               >
-                {isSendingOtp || isVerifyingOtp ? (
+                {isLoggingIn || isVerifying2FA || isSendingOtp || isVerifyingOtp ? (
                   <PropagateLoader color="#ffffff" size={10} />
+                ) : loginStep === "2fa" ? (
+                  "Verify 2FA & Login"
                 ) : loginStep === "otp" ? (
                   "Verify"
+                ) : loginMethod === "email" ? (
+                  "Sign In"
                 ) : (
                   "Send OTP"
                 )}
@@ -422,6 +694,24 @@ const AuthPage = () => {
               </InputGroup>
 
               <InputGroup>
+                <Label>
+                  Location (Neighborhood) <span>*</span>
+                </Label>
+                <LocationSelect
+                  name="location"
+                  value={formData.location}
+                  onChange={handleChange}
+                  required
+                >
+                  {ACCRA_NEIGHBORHOODS.map((neighborhood) => (
+                    <option key={neighborhood} value={neighborhood}>
+                      {neighborhood}
+                    </option>
+                  ))}
+                </LocationSelect>
+              </InputGroup>
+
+              <InputGroup>
                 <Label>Email Address</Label>
                 <Input
                   type="email"
@@ -458,7 +748,7 @@ const AuthPage = () => {
                 {passwordError && <ErrorText>{passwordError}</ErrorText>}
               </InputGroup>
 
-              <SubmitButton type="submit" disabled={isRegistering}>
+              <SubmitButton type="button" onClick={handleRegisterSubmit} disabled={isRegistering}>
                 {isRegistering ? (
                   <PropagateLoader color="#ffffff" size={10} />
                 ) : (
@@ -670,6 +960,27 @@ const MethodToggle = styled.button`
 
   &:hover {
     color: #2e59d9;
+  }
+`;
+
+const ForgotPasswordLink = styled(Link)`
+  align-self: flex-end;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #4b6cb7;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: #2e59d9;
+    text-decoration: underline;
+  }
+
+  &:focus {
+    outline: 2px solid #4b6cb7;
+    outline-offset: 2px;
+    border-radius: 4px;
   }
 `;
 
@@ -923,5 +1234,26 @@ const PhoneInput = styled.input`
 
   &::placeholder {
     color: #a0aec0;
+  }
+`;
+
+const LocationSelect = styled.select`
+  padding: 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background-color: white;
+  color: #2c3e50;
+  cursor: pointer;
+
+  &:focus {
+    border-color: #4b6cb7;
+    box-shadow: 0 0 0 3px rgba(75, 108, 183, 0.2);
+    outline: none;
+  }
+
+  option {
+    padding: 0.5rem;
   }
 `;

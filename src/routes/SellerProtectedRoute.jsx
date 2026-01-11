@@ -8,12 +8,22 @@ import useSellerStatus from '../shared/hooks/useSellerStatus';
 
 
 
+/**
+ * ✅ REFACTORED: Simplified route guard using backend-driven boolean flags
+ * 
+ * Rules:
+ * - ✅ Read isSetupComplete from backend (no frontend computation)
+ * - ✅ Read isVerified from onboardingStage
+ * - ❌ No nested checks, no document parsing, no complex logic
+ * - ✅ Guards read booleans only
+ */
 const SellerProtectedRoute = ({ allowedStage = 'verified', children }) => {
   const {
     onboardingStage,
     isLoading,
     error,
     isVerified,
+    isSetupComplete, // ✅ Backend-driven boolean
   } = useSellerStatus();
 
   // Show loading state while fetching status
@@ -28,34 +38,42 @@ const SellerProtectedRoute = ({ allowedStage = 'verified', children }) => {
     return <Navigate to={PATHS.SETUP} replace />;
   }
 
-  // Define stage hierarchy
-  const stageHierarchy = {
-    profile_incomplete: 0,
-    pending_verification: 1,
-    verified: 2,
-  };
-
-  const currentStageLevel = stageHierarchy[onboardingStage] || 0;
-  const requiredStageLevel = stageHierarchy[allowedStage] || 2;
-
-  // Check if seller has required stage
-  // If seller is verified (onboardingStage === 'verified'), they have access to all pages
-  if (currentStageLevel < requiredStageLevel && !isVerified) {
-    // Redirect to setup page if not verified
-    if (allowedStage === 'verified') {
-      return <Navigate to={PATHS.SETUP} replace />;
-    }
-    // For other stages, redirect to setup
-    return <Navigate to={PATHS.SETUP} replace />;
+  // Debug logging in development
+  if (process.env.NODE_ENV === 'development') {
+    console.debug('[SellerProtectedRoute] Access check (simplified):', {
+      allowedStage,
+      onboardingStage,
+      isVerified,
+      isSetupComplete, // ✅ Backend boolean
+    });
   }
-  
-  // Verified sellers have access to all pages regardless of required stage
+
+  // ✅ SIMPLIFIED: Check boolean flags only
+  // 1. If fully verified, always allow access
   if (isVerified) {
+    if (process.env.NODE_ENV === 'development') {
+      console.debug('[SellerProtectedRoute] ✅ Access granted - seller is verified');
+    }
     return <Suspense fallback={<LoadingState message="Loading..." />}>{children}</Suspense>;
   }
 
-  // Access granted - render children
-  return <Suspense fallback={<LoadingState message="Loading..." />}>{children}</Suspense>;
+  // 2. If setup is complete (but pending admin verification), allow access
+  if (isSetupComplete) {
+    if (process.env.NODE_ENV === 'development') {
+      console.debug('[SellerProtectedRoute] ✅ Access granted - setup is complete (pending verification)');
+    }
+    return <Suspense fallback={<LoadingState message="Loading..." />}>{children}</Suspense>;
+  }
+
+  // 3. Setup incomplete - redirect to Setup page
+  if (process.env.NODE_ENV === 'development') {
+    console.debug('[SellerProtectedRoute] ❌ Redirecting to Setup - setup incomplete', {
+      isSetupComplete, // ✅ Backend boolean
+      isVerified,
+      onboardingStage,
+    });
+  }
+  return <Navigate to={PATHS.SETUP} replace />;
 };
 
 export default SellerProtectedRoute;

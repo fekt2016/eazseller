@@ -1,20 +1,20 @@
 /**
- * SEO Configuration for EazSeller (Seller Dashboard)
+ * SEO Configuration for Saysay (Seller Dashboard)
  * Minimal SEO metadata - all pages set to noIndex by default
  */
 
-const BASE_URL = (typeof process !== 'undefined' && process.env?.REACT_APP_SELLER_URL) || window.location.origin || 'https://seller.eazshop.com';
-const DEFAULT_IMAGE = `${BASE_URL}/images/eazshop-seller-og.jpg`;
-const DEFAULT_DESCRIPTION = 'EazShop Seller Dashboard - Manage your online store';
+const BASE_URL = (typeof process !== 'undefined' && process.env?.REACT_APP_SELLER_URL) || window.location.origin || 'https://seller.saysay.com';
+const DEFAULT_IMAGE = `${BASE_URL}/images/saysay-seller-og.jpg`;
+const DEFAULT_DESCRIPTION = 'Saysay Seller Dashboard - Manage your online store';
 
 const seoConfig = {
   // ────────────────────────────────────────────────
   // Dashboard
   // ────────────────────────────────────────────────
   dashboard: {
-    title: 'Seller Dashboard - EazShop',
-    description: 'Manage your products, orders, and store on EazShop',
-    keywords: 'seller dashboard, EazShop seller',
+    title: 'Seller Dashboard - Saysay',
+    description: 'Manage your products, orders, and store on Saysay',
+    keywords: 'seller dashboard, Saysay seller',
     image: DEFAULT_IMAGE,
     type: 'website',
     canonical: `${BASE_URL}/dashboard`,
@@ -26,9 +26,9 @@ const seoConfig = {
   // Orders
   // ────────────────────────────────────────────────
   orders: {
-    title: 'Orders - Seller Dashboard | EazShop',
+    title: 'Orders - Seller Dashboard | Saysay',
     description: 'View and manage your orders',
-    keywords: 'orders, seller, EazShop',
+    keywords: 'orders, seller, Saysay',
     image: DEFAULT_IMAGE,
     type: 'website',
     canonical: `${BASE_URL}/orders`,
@@ -40,9 +40,9 @@ const seoConfig = {
   // Products
   // ────────────────────────────────────────────────
   products: {
-    title: 'Products - Seller Dashboard | EazShop',
+    title: 'Products - Seller Dashboard | Saysay',
     description: 'Manage your product listings',
-    keywords: 'products, seller, EazShop',
+    keywords: 'products, seller, Saysay',
     image: DEFAULT_IMAGE,
     type: 'website',
     canonical: `${BASE_URL}/products`,
@@ -54,9 +54,9 @@ const seoConfig = {
   // Add Product
   // ────────────────────────────────────────────────
   addProduct: {
-    title: 'Add Product - Seller Dashboard | EazShop',
+    title: 'Add Product - Seller Dashboard | Saysay',
     description: 'Add a new product to your store',
-    keywords: 'add product, seller, EazShop',
+    keywords: 'add product, seller, Saysay',
     image: DEFAULT_IMAGE,
     type: 'website',
     canonical: `${BASE_URL}/products/add`,
@@ -68,9 +68,9 @@ const seoConfig = {
   // Update Product
   // ────────────────────────────────────────────────
   updateProduct: {
-    title: 'Update Product - Seller Dashboard | EazShop',
+    title: 'Update Product - Seller Dashboard | Saysay',
     description: 'Update your product information',
-    keywords: 'update product, seller, EazShop',
+    keywords: 'update product, seller, Saysay',
     image: DEFAULT_IMAGE,
     type: 'website',
     canonical: `${BASE_URL}/products/edit`,
@@ -82,9 +82,9 @@ const seoConfig = {
   // Messages
   // ────────────────────────────────────────────────
   messages: {
-    title: 'Messages - Seller Dashboard | EazShop',
+    title: 'Messages - Seller Dashboard | Saysay',
     description: 'Manage customer messages and inquiries',
-    keywords: 'messages, seller, EazShop',
+    keywords: 'messages, seller, Saysay',
     image: DEFAULT_IMAGE,
     type: 'website',
     canonical: `${BASE_URL}/messages`,
@@ -96,9 +96,9 @@ const seoConfig = {
   // Finance
   // ────────────────────────────────────────────────
   finance: {
-    title: 'Finance - Seller Dashboard | EazShop',
+    title: 'Finance - Seller Dashboard | Saysay',
     description: 'View your earnings and financial reports',
-    keywords: 'finance, earnings, seller, EazShop',
+    keywords: 'finance, earnings, seller, Saysay',
     image: DEFAULT_IMAGE,
     type: 'website',
     canonical: `${BASE_URL}/finance`,
@@ -110,9 +110,9 @@ const seoConfig = {
   // Settings
   // ────────────────────────────────────────────────
   settings: {
-    title: 'Settings - Seller Dashboard | EazShop',
+    title: 'Settings - Seller Dashboard | Saysay',
     description: 'Manage your seller account settings',
-    keywords: 'settings, seller, EazShop',
+    keywords: 'settings, seller, Saysay',
     image: DEFAULT_IMAGE,
     type: 'website',
     canonical: `${BASE_URL}/settings`,

@@ -246,38 +246,14 @@ const getWithdrawalRequest = async (withdrawalId) => {
 const verifyOTP = async (withdrawalId, otp) => {
   console.log('[VERIFY OTP] Request sent:', { withdrawalId, otp: '***' + otp.slice(-2) });
   
-  // Ensure token is in request headers
-  const token = typeof window !== 'undefined' ? (
-    localStorage.getItem('seller_token') || 
-    localStorage.getItem('sellerAccessToken') ||
-    localStorage.getItem('seller_jwt') ||
-    null
-  ) : null;
-  
-  // Prepare request config with explicit Authorization header
-  const config = {
-    headers: {},
-    withCredentials: true
-  };
-  
-  // Add Authorization header if token exists
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-    console.log('[VERIFY OTP] Authorization header added from localStorage');
-  } else {
-    console.warn('[VERIFY OTP] ⚠️ No token found in localStorage - relying on cookie');
-  }
-  
-  console.log('[VERIFY OTP] Axios headers:', {
-    hasAuthorization: !!config.headers.Authorization,
-    withCredentials: config.withCredentials
-  });
+  // SECURITY: Cookie-only authentication - no token storage
+  // Cookies are automatically sent via withCredentials: true in api.js
+  // Backend reads from req.cookies.seller_jwt
   
   try {
     const response = await api.post(
       `/seller/payout/request/${withdrawalId}/verify-otp`,
-      { otp },
-      config
+      { otp }
     );
     
     console.log('[VERIFY OTP] RESPONSE:', JSON.stringify(response.data, null, 2));
@@ -290,14 +266,11 @@ const verifyOTP = async (withdrawalId, otp) => {
       data: error.response?.data,
       paystackError: error.response?.data?.paystack,
       headers: error.response?.headers,
-      config: {
-        url: error.config?.url,
-        method: error.config?.method,
-        headers: {
-          ...error.config?.headers,
-          Authorization: error.config?.headers?.Authorization ? 'Bearer ***' : 'missing'
+        config: {
+          url: error.config?.url,
+          method: error.config?.method,
+          withCredentials: error.config?.withCredentials
         }
-      }
     })));
     
     // Log Paystack error from backend if available

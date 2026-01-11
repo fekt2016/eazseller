@@ -30,44 +30,53 @@ const SetupPage = () => {
     isLoading,
     updateOnboarding,
     isUpdating,
-    isSetupComplete,
+    isSetupComplete, // ✅ Backend-driven boolean
+    isVerified,
+    businessDocumentsStatus, // For display only
+    paymentMethodStatus, // For display only
   } = useSellerStatus();
   const navigate = useNavigate();
   const [showSuccessBanner, setShowSuccessBanner] = useState(false);
   const [animatedProgress, setAnimatedProgress] = useState(0);
 
-  // Define setup steps - must be before useEffect hooks that use it
+  // ✅ BACKEND-DRIVEN: Use backend status data for display (not for logic)
+  // Setup steps use backend status fields for completion display
   const setupSteps = [
     {
-      id: 'business-info',
-      label: 'Complete Business Profile',
-      description: 'Set up your store information and branding',
-      completed: requiredSetup.hasAddedBusinessInfo,
-      icon: <FaStore />,
-      action: 'Complete your shop profile',
-      link: PATHS.STORE_SETTINGS || PATHS.DASHBOARD,
+      id: 'business-documents',
+      label: 'Upload & Verify Business Documents',
+      description: 'Upload and verify your business documents (Business Certificate, ID Proof, Address Proof)',
+      completed: requiredSetup.hasBusinessDocumentsVerified || businessDocumentsStatus?.isVerified, // ✅ From backend
+      icon: <FaBuilding />,
+      action: (requiredSetup.hasBusinessDocumentsVerified || businessDocumentsStatus?.isVerified)
+        ? 'Documents verified' 
+        : 'Upload documents',
+      link: `${PATHS.SETTINGS}#verification`,
       color: 'var(--color-primary-500)',
     },
     {
       id: 'bank-details',
-      label: 'Setup Payment Methods',
-      description: 'Add your bank account for receiving payments',
-      completed: requiredSetup.hasAddedBankDetails,
+      label: 'Setup & Verify Payment Methods',
+      description: 'Add and verify your payment method for receiving payments',
+      completed: requiredSetup.hasPaymentMethodVerified || paymentMethodStatus?.isVerified, // ✅ From backend
       icon: <FaCreditCard />,
-      action: 'Add payment information',
+      action: (requiredSetup.hasPaymentMethodVerified || paymentMethodStatus?.isVerified)
+        ? 'Payment method verified' 
+        : 'Add payment method',
       link: PATHS.PAYMENT_REQUESTS || PATHS.DASHBOARD,
       color: 'var(--color-green-700)',
     },
     {
       id: 'contact-verification',
-      label: 'Verify Email',
-      description: 'Verify your email address',
-      completed: verification.emailVerified,
+      label: 'Verify Contact Information',
+      description: 'Verify your email address or phone number',
+      completed: verification.contactVerified || verification.emailVerified, // ✅ From backend
       emailVerified: verification.emailVerified,
+      phoneVerified: verification.phoneVerified,
       icon: <FaShieldAlt />,
-      action: verification.emailVerified 
-        ? 'Email verified' 
-        : 'Verify email',
+      action: (verification.contactVerified || verification.emailVerified)
+        ? 'Contact verified' 
+        : 'Verify email or phone',
       link: `${PATHS.SETTINGS}#verification`,
       color: 'var(--color-blue-700)',
     },
@@ -86,6 +95,22 @@ const SetupPage = () => {
       setShowSuccessBanner(true);
     }
   }, [isSetupComplete, onboardingStage]);
+
+  // Auto-redirect to dashboard if setup is complete and verified
+  useEffect(() => {
+    if (!isLoading && isSetupComplete && isVerified) {
+      console.log('[SetupPage] Setup complete and verified - redirecting to dashboard', {
+        isSetupComplete, // ✅ Backend boolean
+        isVerified,
+        onboardingStage,
+      });
+      // Redirect to dashboard after a short delay to show success message
+      const timer = setTimeout(() => {
+        navigate(PATHS.DASHBOARD);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading, isSetupComplete, isVerified, onboardingStage, navigate]);
 
   // Animate progress bar (3 steps total)
   useEffect(() => {
@@ -242,6 +267,12 @@ const SetupPage = () => {
                       <FaEnvelope />
                       <span>Email {step.emailVerified ? 'Verified' : 'Not Verified'}</span>
                     </VerificationItem>
+                    {step.phoneVerified && (
+                      <VerificationItem $verified={step.phoneVerified}>
+                        <FaPhone />
+                        <span>Phone Verified</span>
+                      </VerificationItem>
+                    )}
                   </VerificationStatus>
                 )}
                 

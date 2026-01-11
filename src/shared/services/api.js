@@ -94,11 +94,15 @@ const isPublicRoute = (normalizedPath, method) => {
 // Ensure baseURL doesn't have trailing slash
 const normalizedBaseURL = baseURL.endsWith('/') ? baseURL.slice(0, -1) : baseURL;
 
-// Create axios instance with cookie-based authentication
+// SECURITY: Cookie-only authentication - tokens are in HTTP-only cookies
+// withCredentials: true ensures cookies are sent with all requests
 const api = axios.create({
   baseURL: normalizedBaseURL,
-  withCredentials: true, // Enable cookie-based authentication
+  withCredentials: true, // CRITICAL: Required for cookie-based authentication
   timeout: 15000,
+  headers: {
+    'Content-Type': 'application/json', // Explicitly set JSON content type
+  },
 });
 
 // Request interceptor
@@ -107,19 +111,85 @@ api.interceptors.request.use((config) => {
   const normalizedPath = normalizePath(relativePath);
   const method = config.method ? config.method.toLowerCase() : "get";
   
-  // Log full URL for debugging
-  const fullURL = `${config.baseURL}${config.url}`;
-  console.debug(`[API] ${method.toUpperCase()} ${normalizedPath} (Full URL: ${fullURL})`);
+  // SECURITY: Ensure Content-Type is set correctly
+  // For FormData, let browser set Content-Type with boundary
+  // For all other requests, explicitly set application/json
+  if (!(config.data instanceof FormData)) {
+    config.headers = config.headers || {};
+    // Always set Content-Type to application/json for non-FormData requests
+    config.headers['Content-Type'] = 'application/json';
+    
+    // SECURITY: Ensure data is a proper object/array, not a string
+    // If data is a string, it might be double-encoded - try to parse it
+    if (typeof config.data === 'string' && config.data.trim().length > 0) {
+      // Check if it's a simple string value (not JSON) - this is an error
+      if (!config.data.trim().startsWith('{') && !config.data.trim().startsWith('[')) {
+        console.error('[API] ❌ Request data is a plain string, not JSON:', config.data.substring(0, 100));
+        console.error('[API] Expected an object like: {"email":"...","password":"..."}');
+        throw new Error('Invalid request format: data must be a JSON object, not a plain string. Please check your request payload.');
+      }
+      
+      // Try to parse if it looks like JSON
+      try {
+        const parsed = JSON.parse(config.data);
+        config.data = parsed;
+        if (import.meta.env.DEV) {
+          console.warn('[API] ⚠️ Data was stringified - parsed back to object');
+        }
+      } catch (e) {
+        console.error('[API] ❌ Failed to parse JSON string:', config.data.substring(0, 100));
+        throw new Error('Invalid JSON format in request data. Please ensure your request body is valid JSON.');
+      }
+    }
+    
+    // Log data type for debugging
+    if (import.meta.env.DEV && config.data !== undefined && config.data !== null) {
+      console.debug('[API] Request data type:', typeof config.data, Array.isArray(config.data) ? '(array)' : '');
+      if (typeof config.data === 'object' && !Array.isArray(config.data) && !(config.data instanceof FormData)) {
+        console.debug('[API] Request data keys:', Object.keys(config.data));
+      }
+    }
+  }
   
-  // Special logging for send-otp requests
-  if (normalizedPath.includes('send-otp')) {
-    console.log('[API] 🔍 Send OTP Request Details:', {
-      baseURL: config.baseURL,
-      url: config.url,
-      fullURL: fullURL,
-      method: method,
-      normalizedPath: normalizedPath,
-    });
+  // SECURITY: Warn if seller is trying to access admin-only routes
+  const adminOnlyRoutes = [
+    '/order', // GET /order is admin-only, sellers should use /order/get-seller-orders
+    '/users/', // GET /users/:id is admin-only (unless /me or /profile)
+    '/admin',
+    '/logs',
+    '/eazshop',
+  ];
+  
+  const isAdminRoute = adminOnlyRoutes.some(route => {
+    if (route.endsWith('/')) {
+      return normalizedPath.startsWith(route) && !normalizedPath.includes('/me') && !normalizedPath.includes('/profile');
+    }
+    return normalizedPath === route || normalizedPath.startsWith(route);
+  });
+  
+  if (isAdminRoute && method === 'get') {
+    console.error(`[API] ⚠️ SECURITY WARNING: Seller attempting to access admin-only route: ${method.toUpperCase()} ${normalizedPath}`);
+    console.error(`[API] ⚠️ This will likely result in a 403 permission error.`);
+    console.error(`[API] ⚠️ Sellers should use seller-specific endpoints instead.`);
+  }
+
+  // Log full URL for debugging
+  if (import.meta.env.DEV) {
+    const fullURL = `${config.baseURL}${config.url}`;
+    console.debug(`[API] ${method.toUpperCase()} ${normalizedPath} (Full URL: ${fullURL})`);
+    console.debug(`[API] Content-Type: ${config.headers['Content-Type'] || 'not set'}`);
+    console.debug(`[API] Request data:`, config.data);
+    
+    // Special logging for send-otp requests
+    if (normalizedPath.includes('send-otp')) {
+      console.log('[API] 🔍 Send OTP Request Details:', {
+        baseURL: config.baseURL,
+        url: config.url,
+        fullURL: fullURL,
+        method: method,
+        normalizedPath: normalizedPath,
+      });
+    }
   }
 
   // Skip authentication for public routes
@@ -127,44 +197,19 @@ api.interceptors.request.use((config) => {
     return config;
   }
 
-  // Cookie-based authentication: JWT is automatically sent via withCredentials: true
-  // Backend will read from req.cookies.jwt (or req.cookies.seller_jwt for seller routes)
-  // FALLBACK: Also check localStorage for token and send as Authorization header
-  // This provides redundancy in case cookies fail (CORS, domain issues, etc.)
+  // SECURITY: Cookie-only authentication - JWT is automatically sent via withCredentials: true
+  // Backend will read from req.cookies.seller_jwt (or req.cookies.main_jwt for buyer routes)
+  // NO localStorage fallback - cookies are the only authentication method
   
-  // Check if this is a seller route
-  const isSellerRoute = normalizedPath.startsWith('/seller');
-  
-  // Try to get token from localStorage as fallback
-  let token = null;
-  if (typeof window !== 'undefined') {
-    // Check for seller token
-    if (isSellerRoute) {
-      token = localStorage.getItem('seller_token') || 
-              localStorage.getItem('sellerAccessToken') ||
-              localStorage.getItem('seller_jwt') ||
-              null;
-    }
-    
-    // If token found in localStorage, add as Authorization header (fallback)
-    if (token && !config.headers.Authorization) {
-      config.headers.Authorization = `Bearer ${token}`;
-      console.log(`[API] 🔑 Using localStorage token as Authorization header fallback for ${method.toUpperCase()} ${normalizedPath}`);
-    }
-  }
-  
-  console.debug(`[API] Cookie will be sent automatically for ${method.toUpperCase()} ${normalizedPath}`);
-  if (token) {
-    console.debug(`[API] Authorization header also attached (fallback from localStorage)`);
+  if (import.meta.env.DEV) {
+    console.debug(`[API] Cookie will be sent automatically for ${method.toUpperCase()} ${normalizedPath}`);
   }
   
   // Enhanced logging for verify-otp requests
-  if (normalizedPath.includes('verify-otp')) {
+  if (import.meta.env.DEV && normalizedPath.includes('verify-otp')) {
     console.log(`[API] 🔍 Verify OTP request details:`, {
       withCredentials: config.withCredentials,
       baseURL: config.baseURL,
-      hasAuthorizationHeader: !!config.headers.Authorization,
-      hasTokenInLocalStorage: !!token,
       url: config.url,
       method: config.method
     });
@@ -180,7 +225,7 @@ api.interceptors.response.use(
     // Enhanced logging for verify-otp errors
     const isVerifyOtpError = error.config?.url?.includes('verify-otp');
     
-    if (isVerifyOtpError) {
+    if (isVerifyOtpError && import.meta.env.DEV) {
       console.error('═══════════════════════════════════════════════════════════');
       console.error('[API Interceptor] ❌ FULL ERROR DETAILS FOR verify-otp');
       console.error('═══════════════════════════════════════════════════════════');
@@ -194,10 +239,6 @@ api.interceptors.response.use(
         url: error.config?.url,
         method: error.config?.method,
         baseURL: error.config?.baseURL,
-        headers: {
-          ...error.config?.headers,
-          Authorization: error.config?.headers?.Authorization ? 'Bearer ***' : 'missing'
-        },
         withCredentials: error.config?.withCredentials
       });
       console.error('[API Interceptor] Full Error Object:', error);
@@ -205,24 +246,34 @@ api.interceptors.response.use(
     }
     
     // Handle session expiration
-    // if (error.response?.status === 401) {
-    //   console.warn("[API] Session expired or unauthorized - cookie may be missing or invalid");
-    //   console.warn("[API] ⚠️ 401 Error detected - DO NOT AUTO-LOGOUT (disabled for debugging)");
+    if (error.response?.status === 401) {
+      const url = error.config?.url || '';
+      const isAuthEndpoint = url.includes('/seller/me') || url.includes('/auth/me');
       
-    //   // TEMPORARILY DISABLED - Don't clear auth data automatically
-    //   // Clear any stale auth data from React Query
-    //   // Note: We don't clear localStorage tokens here since we're using cookies
-    //   // The cookie is cleared by the backend on logout
+      if (isAuthEndpoint) {
+        // 401 on auth endpoint = user not authenticated (normal state, not an error)
+        if (import.meta.env.DEV) {
+          console.debug("[API] Seller unauthenticated (401) on auth endpoint - cookie may be expired or missing");
+        }
+      } else {
+        // Other endpoint 401 = might be temporary or session issue
+        if (import.meta.env.DEV) {
+          console.debug("[API] 401 on non-auth endpoint - seller may need to re-authenticate");
+        }
+      }
       
-    //   // OLD CODE - COMMENTED OUT
-    //   // queryClient.setQueryData(["sellerAuth"], null);
-    // }
+      // SECURITY: No token storage - cookies are managed by backend
+      // Just clear React Query cache - backend cookie is cleared by logout endpoint
+      if (import.meta.env.DEV) {
+        console.debug("[API] 401 response - cookie-based auth, no local storage to clear");
+      }
+    }
 
     // Handle other errors
     const errorMessage =
       error.response?.data?.message || error.message || "Request failed";
 
-    if (isVerifyOtpError) {
+    if (isVerifyOtpError && import.meta.env.DEV) {
       console.error(`[API Interceptor] Error Message: ${errorMessage}`);
     } else {
       console.error(`[API] Error: ${errorMessage}`, {

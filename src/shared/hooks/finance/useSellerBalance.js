@@ -67,6 +67,9 @@ export const useSellerBalance = () => {
       lockedBalance,
       balance,
       lastUpdated: dataUpdatedAt ? new Date(dataUpdatedAt) : null,
+      // Payout verification status
+      payoutStatus: balanceData?.payoutStatus || 'pending',
+      payoutRejectionReason: balanceData?.payoutRejectionReason || null,
     };
   }, [balanceData, dataUpdatedAt]);
 

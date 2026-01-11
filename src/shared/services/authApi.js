@@ -32,11 +32,57 @@ const authApi = {
     return response;
   },
 
-  // Legacy login (keeping for backward compatibility if needed)
-  login: async(credentials) => await api.post("/seller/login", credentials),
+  // Login with email + password (new flow - matches buyer/saysayseller)
+  login: async (email, password) => {
+    // Normalize email to lowercase to match database storage
+    const normalizedEmail = email?.toLowerCase().trim();
+    console.log('🔐 [Seller Login] Attempting login with email:', normalizedEmail);
+    const response = await api.post('/seller/login', { email: normalizedEmail, password });
+    console.log('🔐 [Seller Login] Response status:', response.data?.status);
+    return response.data;
+  },
+
+  // Verify 2FA code for login (matches buyer/saysayseller)
+  verify2FALogin: async (loginSessionId, twoFactorCode) => {
+    console.log('🔐 [Seller 2FA Login] Verifying 2FA code');
+    const response = await api.post('/seller/verify-2fa-login', {
+      loginSessionId,
+      twoFactorCode,
+    });
+    console.log('🔐 [Seller 2FA Login] Response status:', response.data?.status);
+    return response.data;
+  },
   
-  register: async(userData) => await api.post("/seller/register", userData),
-  logout: () => api.post("/seller/logout"),
+  // Verify account with email and OTP (for new signups)
+  verifyAccount: async (email, otp) => {
+    // Normalize email to lowercase to match database storage
+    const normalizedEmail = email?.toLowerCase().trim();
+    const response = await api.post('/seller/verify-account', {
+      email: normalizedEmail,
+      otp,
+    });
+    return response;
+  },
+  
+  // Resend OTP for account verification
+  resendOtp: async (email) => {
+    // Normalize email to lowercase to match database storage
+    const normalizedEmail = email?.toLowerCase().trim();
+    const response = await api.post('/seller/resend-otp', { email: normalizedEmail });
+    return response;
+  },
+
+  register: async (userData) => {
+    // Normalize email to lowercase to match database storage
+    const normalizedData = {
+      ...userData,
+      email: userData.email?.toLowerCase().trim(),
+    };
+    const response = await api.post('/seller/signup', normalizedData);
+    return response; // Return full axios response
+  },
+  
+  logout: () => api.post('/seller/logout'),
   
   getCurrentUser: async () => {
     const response = await api.get("/seller/me");

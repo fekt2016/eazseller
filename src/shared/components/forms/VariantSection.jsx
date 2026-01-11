@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 import { useFormContext, useFieldArray, useWatch } from "react-hook-form";
 import { generateSKU } from '../../utils/helpers';
+import { FiUploadCloud, FiX, FiImage } from "react-icons/fi";
 
 export default function VariantSection({ variantAttributes = [], seller }) {
   const { control, register, setValue, getValues } = useFormContext();
@@ -168,6 +169,7 @@ export default function VariantSection({ variantAttributes = [], seller }) {
             <TableHeader>SKU</TableHeader>
             <TableHeader>Price</TableHeader>
             <TableHeader>Stock</TableHeader>
+            <TableHeader>Images</TableHeader>
             <TableHeader>Status</TableHeader>
             <TableHeader>Actions</TableHeader>
           </tr>
@@ -192,7 +194,7 @@ export default function VariantSection({ variantAttributes = [], seller }) {
           <tr>
             <TotalStockLabel colSpan="3">Total Stock:</TotalStockLabel>
             <TotalStockValue>{totalStock}</TotalStockValue>
-            <td colSpan="2"></td>
+            <td colSpan="3"></td>
           </tr>
         </tfoot>
       </VariantTable>
@@ -317,6 +319,14 @@ function VariantRow({
           type="number"
           {...register(`variants.${variantIndex}.stock`)}
           placeholder="Stock"
+        />
+      </TableCell>
+      <TableCell>
+        <VariantImageUpload
+          variantIndex={variantIndex}
+          control={control}
+          setValue={setValue}
+          register={register}
         />
       </TableCell>
       <TableCell>
@@ -514,4 +524,172 @@ const TotalStockValue = styled.td`
   background: #f7fafc;
   border-top: 2px solid #e2e8f0;
   padding: 1rem;
+`;
+
+// Variant Image Upload Component
+function VariantImageUpload({ variantIndex, control, setValue, register }) {
+  const [imagePreviews, setImagePreviews] = useState([]);
+  const watchedImages = useWatch({
+    control,
+    name: `variants.${variantIndex}.images`,
+    defaultValue: [],
+  });
+
+  // Sync image previews
+  useEffect(() => {
+    const previews = (watchedImages || []).map((img) => {
+      if (typeof img === "string") return img;
+      if (img instanceof File) return URL.createObjectURL(img);
+      return "";
+    });
+    setImagePreviews(previews);
+
+    // Cleanup object URLs
+    return () => {
+      previews.forEach((preview) => {
+        if (preview && preview.startsWith("blob:")) {
+          URL.revokeObjectURL(preview);
+        }
+      });
+    };
+  }, [watchedImages]);
+
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+
+    const currentImages = watchedImages || [];
+    setValue(`variants.${variantIndex}.images`, [...currentImages, ...files], {
+      shouldDirty: true,
+    });
+  };
+
+  const handleRemoveImage = (index) => {
+    const newImages = [...(watchedImages || [])];
+    newImages.splice(index, 1);
+    setValue(`variants.${variantIndex}.images`, newImages, {
+      shouldDirty: true,
+    });
+  };
+
+  return (
+    <VariantImageContainer>
+      <VariantImageUploadArea>
+        <VariantImageUploadIcon>
+          <FiImage size={16} />
+        </VariantImageUploadIcon>
+        <VariantImageUploadText>Add Images</VariantImageUploadText>
+        <VariantImageFileInput
+          type="file"
+          multiple
+          accept="image/*"
+          onChange={handleImageUpload}
+        />
+      </VariantImageUploadArea>
+
+      {imagePreviews.length > 0 && (
+        <VariantImagePreviewGrid>
+          {imagePreviews.map((preview, index) => (
+            <VariantImagePreview key={index}>
+              <VariantPreviewImage src={preview} alt={`Variant ${index + 1}`} />
+              <VariantImageRemoveButton
+                type="button"
+                onClick={() => handleRemoveImage(index)}
+              >
+                <FiX size={12} />
+              </VariantImageRemoveButton>
+            </VariantImagePreview>
+          ))}
+        </VariantImagePreviewGrid>
+      )}
+    </VariantImageContainer>
+  );
+}
+
+const VariantImageContainer = styled.div`
+  min-width: 200px;
+  max-width: 300px;
+`;
+
+const VariantImageUploadArea = styled.div`
+  border: 1.5px dashed #cbd5e0;
+  border-radius: 6px;
+  padding: 0.75rem;
+  text-align: center;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #f8fafc;
+
+  &:hover {
+    border-color: #3182ce;
+    background: #edf2f7;
+  }
+`;
+
+const VariantImageUploadIcon = styled.div`
+  color: #a0aec0;
+  margin-bottom: 0.25rem;
+  display: flex;
+  justify-content: center;
+`;
+
+const VariantImageUploadText = styled.span`
+  font-size: 0.75rem;
+  color: #718096;
+  display: block;
+`;
+
+const VariantImageFileInput = styled.input`
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  cursor: pointer;
+`;
+
+const VariantImagePreviewGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+`;
+
+const VariantImagePreview = styled.div`
+  position: relative;
+  border-radius: 4px;
+  overflow: hidden;
+  aspect-ratio: 1/1;
+  border: 1px solid #e2e8f0;
+`;
+
+const VariantPreviewImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+`;
+
+const VariantImageRemoveButton = styled.button`
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 20px;
+  height: 20px;
+  background: rgba(229, 62, 62, 0.9);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 0;
+
+  &:hover {
+    background: #c53030;
+    transform: scale(1.1);
+  }
 `;

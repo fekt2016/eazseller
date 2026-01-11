@@ -44,8 +44,9 @@ const VerificationPage = ({ embedded = false }) => {
       return response;
     },
     onSuccess: async () => {
-      await refetch();
-      await refetchAuth();
+      // ✅ CRITICAL: Invalidate sellerStatus after email verification
+      await refetch(); // This invalidates sellerStatus
+      await refetchAuth(); // This invalidates sellerAuth
       setEmailStep('ready');
       setEmailOtp('');
       setEmailError('');

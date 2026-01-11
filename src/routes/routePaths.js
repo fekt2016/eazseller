@@ -70,7 +70,6 @@ export const PATHS = {
   SUPPORT_TICKET_DETAIL: "/dashboard/support/tickets/:id",
   HELP: "/dashboard/help",
   FAQ: "/dashboard/faq",
-  CHAT_SUPPORT: "/dashboard/support/chat", // Chat support route
   
   // Press
   PRESS: "/dashboard/press",

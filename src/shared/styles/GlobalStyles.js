@@ -1,85 +1,110 @@
 import { createGlobalStyle } from "styled-components";
-import { devicesMax } from "./breakpoint";
+import { devicesMax, devicesMin, devices } from "./breakpoint";
 
-const breakpoints = {
-  xs: "320px",
-  sm: "640px",
-  md: "768px",
-  lg: "1024px",
-  xl: "1280px",
-  "2xl": "1536px",
-};
-
-export const devices = {
-  xs: `(min-width: ${breakpoints.xs})`,
-  sm: `(min-width: ${breakpoints.sm})`,
-  md: `(min-width: ${breakpoints.md})`,
-  lg: `(min-width: ${breakpoints.lg})`,
-  xl: `(min-width: ${breakpoints.xl})`,
-  "2xl": `(min-width: ${breakpoints["2xl"]})`,
-};
+// Re-export breakpoints for convenience
+export { devicesMax, devicesMin, devices } from "./breakpoint";
 
 const GlobalStyles = createGlobalStyle`
 :root {
-
- 
+//css styled component
   /* Indigo */
-  --color-brand-50: #eef2ff;
-  --color-brand-100: #e0e7ff;
-  --color-brand-200: #c7d2fe;
-  --color-brand-500: #6366f1;
-  --color-brand-600: #4f46e5;
-  --color-brand-700: #4338ca;
-  --color-brand-800: #3730a3;
-  --color-brand-900: #312e81;
+  --color-brand-50:  #f0f8ff;
+  --color-brand-100: #dff0ff;
+  --color-brand-200: #b8e1ff;
+  --color-brand-300: #98d7ff;
+  --color-brand-400: #33b2fd;
+  --color-brand-500: #0078cc;
+  --color-brand-600: #005fa5;
+  --color-brand-700: #045188;
+  --color-brand-800: #0a4470;
+  --color-brand-900: #062a4b;
 
   --color-facebook: #4267B2;
   --color-twitter-900: #1DA1F2;
-  --color-instagram: #FFDC80:
+  --color-instagram: #FFDC80;
 
 
-  --color-primary-100: #d4efff;
-  --color-primary-200: #bbceff;
-  --color-primary-300: #83c9ff;
-  --color-primary-400: #52a2ff;
-  --color-primary-500: #2b7aff;
-  --color-primary-600: #084dff;
-  --color-primary-700: #0046ff;
-  --color-primary-800: #033ed3;
-  //used
-  --color-primary-900: #0d3aa2;
-  --color-primary-950: #08205e;
+   --color-primary-50: #ffffea; 
+  --color-primary-100: #fffcc5;
+  --color-primary-200: #fffa85;
+  --color-primary-300: #fff146;
+  --color-primary-400: #ffe31b;
+  --color-primary-500: #ffc400;
+  --color-primary-600: #e29800;
+  --color-primary-700: #bb6c02; 
+  --color-primary-800: #985308;
+  --color-primary-900: #7c440b;
+  
 
 
+  --color-secondary-50: #0F1A2A;
+  --color-secondary-100: #1E2A3B;
+  --color-secondary-200: #2E3A4B;
+  --color-secondary-300: #3E4A5B;
+  --color-secondary-400: #4E5A6B;
+  --color-secondary-500: #5E6A7B;
+  --color-secondary-600: #6E7A8B;
+  --color-secondary-700: #7E8A9B;
+  --color-secondary-800: #8E9AAB;
+  --color-secondary-900: #9EAABC;
+
+  --color-accent-50: #FF5733;
+  --color-accent-100: #FF6744;
+  --color-accent-200: #FF7755;
+  --color-accent-300: #FF8766;
+  --color-accent-400: #FF9777;
+  --color-accent-500: #FFA788;
+  --color-accent-600: #FFB799;
+  --color-accent-700: #FFC7AA;
+  --color-accent-800: #FFD7BB;
+  --color-accent-900: #FFE7CC;
+  
+
+  --color-orange-0: orange;
   /* Grey */
   //used
+
+
+    
+   
+
   --color-white-0: #fff;
   --color-grey-50: #f9fafb;
   --color-grey-100: #f3f4f6;
   --color-grey-200: #e5e7eb;
   --color-grey-300: #d1d5db;
-  //used
+  
   --color-grey-400: #9ca3af;
   --color-grey-500: #6b7280;
   --color-grey-600: #4b5563;
-  --color-grey-700: #374151;
+  --color-grey-700: #374151; 
   --color-grey-800: #1f2937;
-  //used
+  
   --color-grey-900: #111827;
 
   --color-blue-100: #e0f2fe;
   --color-blue-700: #0369a1;
   --color-green-100: #dcfce7;
-  //used
+  --color-green-500: #38a169;
   --color-green-700: #15803d;
+  --color-yellow-50: #fefce8;
+  --color-yellow-100: #fef9c3;
+  --color-yellow-200: #fef08a;
+  --color-yellow-700: #a16207;
+  --color-yellow-800: #854d0e;
+  --color-indigo-100: #e0e7ff;
+  --color-indigo-600: #4f46e5;
+  --color-indigo-700: #4338ca;
+  --color-red-50: #fef2f2;
+  --color-red-100: #fee2e2;
+  --color-red-200: #fecaca;
+  --color-red-500: #fcc;
+  --color-red-600: #f87171;
+  --color-red-700: #b91c1c;
+  --color-red-800: #991b1b;
 
-  //used
-  --color-sec-800:#b08f3a;
-  --color-sec-500:#d0b56f;
-  --color-sec-700: #ffc337;
 
 
-  //used
 
 
   --color-bitcoin-300: #fff6e1;
@@ -98,24 +123,17 @@ const GlobalStyles = createGlobalStyle`
   --color-gold-700: #eada9c;
  
 
-
-  
-  
  /* Add these layout variables */
     --sidebar-width: 240px;
     --header-height: 64px;
     
     /* Existing variables */
-    --color-grey-50: #f9fafb;
-    --color-grey-100: #f3f4f6;
-    --color-grey-200: #e5e7eb;
-    --color-white-0: #fff;
+
+  
+  
 
 
-  --color--blue-100: #e0f2fe;
-  --color-blue-700: #0369a1;
-  --color-green-100: #dcfce7;
-  --color-green-700: #15803d;
+  --color-green-500: #38a169;
   --color-yellow-100: #fef9c3;
   --color-yellow-700: #a16207;
   --color-silver-100: #e5e7eb;
@@ -141,17 +159,18 @@ const GlobalStyles = createGlobalStyle`
 
   --color-red-100: #fee2e2;
   //used
-  --color-red-500:#fcc;
+  --color-red-500: #fcc;
+  --color-red-600: #f87171;
   --color-red-700: #b91c1c;
   --color-red-800: #991b1b;
-  --color-green-700:#00b26b;
+  
+  /* keep green-700 consistent with earlier token */
   --color-red-900:	#FF0000;
-  --ColorPurple700:"#6d28d9";
 
   --backdrop-color: rgba(255, 255, 255, 0.1);
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0px 0.6rem 2.4rem rgba(0, 0, 0, 0.06);
+  --shadow-sm: 0 0.2rem 1rem rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 0.6rem 2.4rem rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 2.4rem 3.2rem rgba(0, 0, 0, 0.12);
 
   --border-radius-tiny: 3px;
@@ -159,7 +178,7 @@ const GlobalStyles = createGlobalStyle`
   --border-radius-md: 7px;
   --border-radius-lg: 9px;
   --border-radius-xl: 12px;
-  --Border-radius-cir: 100px;
+  --border-radius-cir: 100px;
 
   /* Spacing Scale */
   --spacing-xs: 0.4rem;
@@ -188,17 +207,15 @@ const GlobalStyles = createGlobalStyle`
 
   /* Gradients */
   --gradient-primary: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-primary-600) 100%);
+  --gradient-accent: linear-gradient(135deg, var(--color-brand-500) 0%, var(--color-brand-600) 100%);
 
-  /* Additional color aliases for components */
+  /* Additional color aliases for buttons */
   --primary: var(--color-primary-500);
   --primary-light: var(--color-primary-400);
-  --primary-dark: var(--color-primary-600);
   --secondary: var(--color-grey-700);
   --white: var(--color-white-0);
   --text-secondary: var(--color-grey-600);
-  --text-muted: var(--color-grey-500);
   --gray-50: var(--color-grey-50);
-  --gray-100: var(--color-grey-100);
   --gray-200: var(--color-grey-200);
   --gray-300: var(--color-grey-300);
   --gray-400: var(--color-grey-400);
@@ -207,12 +224,14 @@ const GlobalStyles = createGlobalStyle`
   --success: var(--color-green-700);
   --warning: var(--color-yellow-700);
 
+  /* Additional shadows */
+  --shadow-gold: 0 4px 20px rgba(255, 196, 0, 0.3);
+
   /* Font aliases */
-  --font-body: 'Inter', sans-serif;
-  --font-heading: 'Poppins', sans-serif;
+  --font-body: 'Open Sans', sans-serif;
+  --font-heading: 'Montserrat', sans-serif;
   --font-semibold: 600;
   --font-bold: 700;
-  --font-medium: 500;
 
   /* Text size aliases */
   --text-xs: var(--font-size-xs);
@@ -233,6 +252,12 @@ const GlobalStyles = createGlobalStyle`
   --radius-lg: var(--border-radius-lg);
   --radius-xl: var(--border-radius-xl);
   --radius-full: 50%;
+
+  /* Text color aliases */
+  --text-muted: var(--color-grey-500);
+
+  /* Font weight aliases */
+  --font-medium: 500;
 
   /* Transition aliases */
   --transition-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
@@ -267,20 +292,51 @@ html {
 
 body {
   font-family: var(--font-body);
+  font-weight: 400;
   color: var(--color-grey-700);
   transition: color 0.3s, background-color 0.3s;
   min-height: 100vh;
   line-height: 1.5;
   font-size: 1.6rem;
   width: 100vw;
-   overflow-x: hidden;
+  overflow-x: hidden;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.2;
   color: var(--color-grey-900);
+}
+
+h1 {
+  font-weight: 600;
+  font-size: 3.2rem;
+}
+
+h2 {
+  font-weight: 600;
+  font-size: 2.4rem;
+}
+
+h3 {
+  font-weight: 500;
+  font-size: 2rem;
+}
+
+h4 {
+  font-weight: 500;
+  font-size: 1.8rem;
+}
+
+h5 {
+  font-weight: 500;
+  font-size: 1.6rem;
+}
+
+h6 {
+  font-weight: 500;
+  font-size: 1.4rem;
 }
 
 input,
@@ -309,7 +365,7 @@ input:focus,
 button:focus,
 textarea:focus,
 select:focus {
-  outline: 2px solid var(--color-black-950);
+  /* outline: 2px solid var(--color-black-950); */
   outline-offset: -1px;
 }
 

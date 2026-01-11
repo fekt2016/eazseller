@@ -2,12 +2,16 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import authApi from '../services/authApi';
 import { useNavigate } from "react-router-dom";
 
+// SECURITY: Cookie-only authentication - no token storage
+// Tokens are in HTTP-only cookies set by backend
+// No localStorage, sessionStorage, or any client-side token storage
+
 const useAuth = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  // Cookie-based authentication: No need to check localStorage
-  // Browser automatically sends cookie via withCredentials: true
+  // SECURITY: Cookie-only authentication - no token check needed
+  // Backend reads from HTTP-only cookie automatically
   const {
     data: sellerData,
     isLoading: isSellerLoading,
@@ -21,18 +25,36 @@ const useAuth = () => {
         // No need to read from localStorage
         const response = await authApi.getCurrentUser();
         // Handle nested response structures
-        return response?.data?.data?.data || response?.data?.data || response?.data || response;
-      } catch (error) {
-        // Only clear auth data after server confirms 401 (not on network errors)
-        if (error.response?.status === 401) {
-          console.warn("[useAuth] Server confirmed 401 - clearing auth data");
-          // Clear any stale auth data
-          queryClient.setQueryData(["sellerAuth"], null);
-        } else {
-          // For network errors, don't clear auth - might be temporary
-          console.warn("[useAuth] Network error (not 401) - keeping auth state");
+        const seller = response?.data?.data?.data || response?.data?.data || response?.data || response;
+
+        if (seller && (seller._id || seller.id)) {
+          return seller;
         }
-        // Return null instead of throwing - allows public pages to work
+
+        // No seller data - cookie may be expired or missing
+        return null;
+      } catch (error) {
+        const isTimeout = error?.code === 'ECONNABORTED' || error?.message?.includes('timeout');
+        const isNetworkError = error?.code === 'ERR_NETWORK' || !error?.response;
+        const isUnauthorized = error?.response?.status === 401;
+
+        if (isUnauthorized) {
+          // 401 is expected when cookie is expired/missing - not an error, just unauthenticated state
+          if (import.meta.env.DEV) {
+            console.debug("[useAuth] Seller unauthenticated (401) - cookie may be expired or missing");
+          }
+          queryClient.setQueryData(["sellerAuth"], null);
+          return null;
+        }
+
+        if (isTimeout || isNetworkError) {
+          if (import.meta.env.DEV) {
+            console.warn("[useAuth] Network/timeout error - cannot verify authentication");
+          }
+          // Return null on network errors - don't assume user is authenticated
+          return null;
+        }
+
         return null;
       }
     },
@@ -46,7 +68,8 @@ const useAuth = () => {
       return failureCount < 2; // Retry network errors up to 2 times
     },
     // Reduce refetch frequency to prevent unnecessary auth checks
-    refetchOnWindowFocus: false, // Was true - caused frequent refetches
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
     // Don't throw errors - return null instead (allows public pages)
     throwOnError: false,
   });
@@ -69,8 +92,10 @@ const useAuth = () => {
     validSeller = null;
   }
 
+  const isAuthenticated = !!validSeller && !sellerError;
+
   // Common auth success handler
-  // Note: Token is now stored in HTTP-only cookie, not localStorage
+  // SECURITY: Token is in HTTP-only cookie, NOT in response
   const handleAuthSuccess = (response) => {
     // Extract seller from response (token is in cookie, not in response)
     const responseData = response?.data || response;
@@ -79,7 +104,9 @@ const useAuth = () => {
     if (seller) {
       // Update React Query cache with seller data
       queryClient.setQueryData(["sellerAuth"], seller);
-      console.log("[useAuth] Seller authenticated - cookie set by backend");
+      if (import.meta.env.DEV) {
+        console.debug("[useAuth] Seller authenticated - cookie set by backend");
+      }
     }
 
     return seller;
@@ -97,22 +124,27 @@ const useAuth = () => {
     onSuccess: (response) => {
       // Extract seller and redirectTo from response
       const responseData = response?.data || response;
-      console.log("[useAuth] OTP verify response structure:", {
-        responseData,
-        hasData: !!responseData?.data,
-        hasSeller: !!responseData?.data?.seller,
-        sellerKeys: responseData?.data?.seller ? Object.keys(responseData.data.seller) : [],
-      });
+      
+      if (import.meta.env.DEV) {
+        console.debug("[useAuth] OTP verify response structure:", {
+          responseData,
+          hasData: !!responseData?.data,
+          hasSeller: !!responseData?.data?.seller,
+          sellerKeys: responseData?.data?.seller ? Object.keys(responseData.data.seller) : [],
+        });
+      }
       
       const seller = responseData?.data?.seller || responseData?.data?.data || responseData?.seller || null;
       const redirectTo = responseData?.redirectTo || '/';
 
-      console.log("[useAuth] Extracted seller:", {
-        hasSeller: !!seller,
-        sellerRole: seller?.role,
-        sellerStatus: seller?.status,
-        sellerId: seller?.id || seller?._id,
-      });
+      if (import.meta.env.DEV) {
+        console.debug("[useAuth] Extracted seller:", {
+          hasSeller: !!seller,
+          sellerRole: seller?.role,
+          sellerStatus: seller?.status,
+          sellerId: seller?.id || seller?._id,
+        });
+      }
 
       if (seller) {
         // Ensure seller has the correct structure for React Query cache
@@ -120,17 +152,16 @@ const useAuth = () => {
           data: seller, // Wrap in data to match getCurrentUser structure
         };
         queryClient.setQueryData(["sellerAuth"], sellerData);
-        console.log("[useAuth] OTP verified - seller cached, cookie set by backend");
-        
-        // FALLBACK: Store token in localStorage as backup (if provided in response)
-        // This helps if cookies fail due to CORS or domain issues
-        if (responseData?.token && typeof window !== 'undefined') {
-          localStorage.setItem('seller_token', responseData.token);
-          localStorage.setItem('sellerAccessToken', responseData.token);
-          console.log("[useAuth] Token stored in localStorage as fallback");
+        if (import.meta.env.DEV) {
+          console.debug("[useAuth] OTP verified - seller cached, cookie set by backend");
         }
+        
+        // Refetch notifications after successful OTP login
+        queryClient.invalidateQueries({ queryKey: ['notifications'] });
       } else {
-        console.warn("[useAuth] No seller data in OTP verification response");
+        if (import.meta.env.DEV) {
+          console.warn("[useAuth] No seller data in OTP verification response");
+        }
       }
 
       // Return redirectTo for navigation
@@ -142,40 +173,158 @@ const useAuth = () => {
     },
   });
 
-  // Legacy login (keeping for backward compatibility)
+  // Login mutation - matches saysayseller pattern exactly
   const login = useMutation({
-    mutationFn: authApi.login,
-    onSuccess: (response) => {
-      const responseData = response?.data || response;
-      const seller = responseData?.data?.seller || responseData?.data?.data || responseData?.seller || null;
-      
-      // FALLBACK: Store token in localStorage as backup (if provided in response)
-      if (responseData?.token && typeof window !== 'undefined') {
-        localStorage.setItem('seller_token', responseData.token);
-        localStorage.setItem('sellerAccessToken', responseData.token);
-        console.log("[useAuth] Token stored in localStorage as fallback (login)");
+    mutationFn: async ({ email, password }) => {
+      if (import.meta.env.DEV) {
+        console.debug('🔐 [Seller Login] Starting login flow for email:', email);
+      }
+      const response = await authApi.login(email, password);
+
+      if (response?.requires2FA || response?.status === '2fa_required') {
+        if (import.meta.env.DEV) {
+          console.debug('🔐 [Seller Login] 2FA required');
+        }
+        return {
+          requires2FA: true,
+          loginSessionId: response.loginSessionId,
+          email: response.data?.email,
+          userId: response.data?.userId,
+        };
       }
 
-      if (seller) {
-        queryClient.setQueryData(["sellerAuth"], seller);
-        console.log("[useAuth] Login successful - cookie set by backend");
+      // SECURITY: Token is in HTTP-only cookie, NOT in response
+      // Backend sets cookie automatically - no token storage needed
+      const sellerData = response?.user || response?.data?.user;
+
+      if (!sellerData || (!sellerData.id && !sellerData._id)) {
+        throw new Error('Login failed: No seller data received');
+      }
+
+      if (import.meta.env.DEV) {
+        console.debug('✅ [Seller Login] Login successful, cookie set by backend');
+        console.debug('👤 [Seller Login] Seller logged in:', {
+          id: sellerData.id || sellerData._id,
+          email: sellerData.email,
+          name: sellerData.name || sellerData.shopName,
+          role: sellerData.role,
+        });
+      }
+
+      return { success: true, seller: sellerData };
+    },
+    onSuccess: (data) => {
+      if (data?.success) {
+        queryClient.setQueryData(["sellerAuth"], data.seller);
+        queryClient.invalidateQueries({ queryKey: ['notifications'] });
+        // Refetch auth to ensure ProtectedRoute sees the updated state
+        queryClient.invalidateQueries({ queryKey: ['sellerAuth'] });
+        if (import.meta.env.DEV) {
+          console.debug('✅ [Seller Login] Auth state updated and queries invalidated');
+        }
       }
     },
     onError: (error) => {
-      console.error("[useAuth] Login error:", error);
-      queryClient.setQueryData(["sellerAuth"], null);
+      const errorMessage = error?.response?.data?.message || 
+                          error?.message || 
+                          error?.toString() || 
+                          'Unknown login error';
+      const statusCode = error?.response?.status;
+      const errorData = error?.response?.data;
+      
+      if (import.meta.env.DEV) {
+        console.error('❌ [Seller Login] Login error:', {
+          message: errorMessage,
+          status: statusCode,
+          error: errorData,
+          code: error?.code,
+        });
+      }
+    },
+  });
+
+  // Verify 2FA login - matches saysayseller pattern exactly
+  const verify2FALogin = useMutation({
+    mutationFn: async ({ loginSessionId, twoFactorCode }) => {
+      if (import.meta.env.DEV) {
+        console.debug('🔐 [Seller 2FA Login] Verifying 2FA code');
+      }
+      const response = await authApi.verify2FALogin(loginSessionId, twoFactorCode);
+
+      // SECURITY: Token is in HTTP-only cookie, NOT in response
+      const sellerData = response?.user || response?.data?.user;
+
+      if (!sellerData || (!sellerData.id && !sellerData._id)) {
+        throw new Error('2FA verification failed: No seller data received');
+      }
+
+      if (import.meta.env.DEV) {
+        console.debug('✅ [Seller 2FA Login] 2FA verified, cookie set by backend');
+        console.debug('👤 [Seller 2FA Login] Seller logged in:', {
+          id: sellerData.id || sellerData._id,
+          email: sellerData.email,
+          name: sellerData.name || sellerData.shopName,
+          role: sellerData.role,
+        });
+      }
+
+      return { success: true, seller: sellerData };
+    },
+    onSuccess: (data) => {
+      if (data?.success) {
+        queryClient.setQueryData(["sellerAuth"], data.seller);
+        queryClient.invalidateQueries({ queryKey: ['notifications'] });
+        if (import.meta.env.DEV) {
+          console.debug('✅ [Seller 2FA Login] Auth state updated and queries invalidated');
+        }
+      }
+    },
+  });
+
+  // Verify account with OTP (for new signups)
+  const verifyAccount = useMutation({
+    mutationFn: ({ email, otp }) => authApi.verifyAccount(email, otp),
+    onSuccess: () => {
+      // Invalidate auth query to refetch user data
+      queryClient.invalidateQueries({ queryKey: ["sellerAuth"] });
+    },
+  });
+
+  // Resend OTP
+  const resendOtp = useMutation({
+    mutationFn: ({ email }) => authApi.resendOtp(email),
+    onError: (error) => {
+      console.error("[useAuth] Error resending OTP:", error);
     },
   });
 
   const register = useMutation({
-    mutationFn: authApi.register,
+    mutationFn: async (registerData) => {
+      const response = await authApi.register(registerData);
+      return response; // Return full axios response
+    },
     onSuccess: (response) => {
-      const responseData = response?.data || response;
-      const seller = responseData?.data?.seller || responseData?.data?.data || responseData?.seller || responseData?.data || null;
-
-      if (seller) {
-        queryClient.setQueryData(["sellerAuth"], seller);
-        console.log("[useAuth] Registration successful - cookie set by backend");
+      // Axios response structure: response.data contains the API response
+      const apiResponse = response?.data || response;
+      const requiresVerification = apiResponse?.requiresVerification || apiResponse?.data?.requiresVerification;
+      
+      if (import.meta.env.DEV) {
+        console.debug('[Seller Register] Registration response:', {
+          requiresVerification,
+          status: apiResponse?.status,
+          message: apiResponse?.message,
+        });
+      }
+      
+      // If verification is required, don't set auth data yet
+      if (!requiresVerification) {
+        const seller = apiResponse?.data?.seller || apiResponse?.data?.data || apiResponse?.seller || apiResponse?.data || null;
+        if (seller) {
+          queryClient.setQueryData(["sellerAuth"], seller);
+          if (import.meta.env.DEV) {
+            console.debug("[useAuth] Registration successful - cookie set by backend");
+          }
+        }
       }
     },
     onError: (error) => {
@@ -189,14 +338,21 @@ const useAuth = () => {
     onSuccess: () => {
       // Backend clears the cookie, we just clear local state
       queryClient.removeQueries(["sellerAuth"]);
-      // No need to remove token from localStorage - we're using cookies now
-      console.log("[useAuth] Logged out - cookie cleared by backend");
+      // SECURITY: Clear notification cache and cancel active queries on logout
+      queryClient.removeQueries(["notifications"]);
+      queryClient.cancelQueries({ queryKey: ["notifications"] });
+      // SECURITY: No token storage to clear - cookies are managed by backend
+      if (import.meta.env.DEV) {
+        console.debug("[useAuth] Logged out - cookie cleared by backend, notification cache cleared");
+      }
       navigate("/login");
     },
     onError: (error) => {
       console.error("[useAuth] Logout error:", error);
       // Force clear local state even on error
       queryClient.removeQueries(["sellerAuth"]);
+      queryClient.removeQueries(["notifications"]);
+      queryClient.cancelQueries({ queryKey: ["notifications"] });
       navigate("/login");
     },
   });
@@ -204,7 +360,9 @@ const useAuth = () => {
   const update = useMutation({
     mutationFn: async (data) => await authApi.update(data),
     onSuccess: (response) => {
-      console.log("[useAuth] Update success:", response);
+      if (import.meta.env.DEV) {
+        console.debug("[useAuth] Update success:", response);
+      }
       const updatedSeller = response?.data?.seller || response?.data?.data || response?.data || null;
       
       if (updatedSeller) {
@@ -212,6 +370,12 @@ const useAuth = () => {
           ...oldData,
           ...updatedSeller,
         }));
+      }
+      
+      // ✅ CRITICAL: Invalidate sellerStatus after update (documents/payment methods may have changed)
+      queryClient.invalidateQueries({ queryKey: ['sellerStatus'] });
+      if (import.meta.env.DEV) {
+        console.debug("[useAuth] Invalidated sellerStatus after update");
       }
     },
     onError: (error) => {
@@ -228,7 +392,9 @@ const useAuth = () => {
       });
     },
     onSuccess: (response) => {
-      console.log("[useAuth] Image update success:", response);
+      if (import.meta.env.DEV) {
+        console.debug("[useAuth] Image update success:", response);
+      }
       const updatedSeller = response?.data?.data || response?.data || response || null;
       
       if (updatedSeller) {
@@ -243,20 +409,141 @@ const useAuth = () => {
     },
   });
 
+  // ==================================================
+  // UNIFIED EMAIL-ONLY PASSWORD RESET FLOW
+  // ==================================================
+  
+  /**
+   * Request Password Reset (Email Only)
+   * Sends reset link to seller's email
+   */
+  const requestPasswordReset = useMutation({
+    mutationFn: async (email) => {
+      const response = await authApi.requestPasswordReset(email);
+      return response;
+    },
+    onSuccess: (data) => {
+      if (import.meta.env.DEV) {
+        console.debug("[useAuth] Password reset request sent:", data);
+      }
+    },
+    onError: (error) => {
+      console.error("[useAuth] Error requesting password reset:", error);
+    },
+  });
+
+  /**
+   * Reset Password with Token
+   * Resets password using token from email link
+   */
+  const resetPasswordWithToken = useMutation({
+    mutationFn: async ({ token, newPassword, confirmPassword }) => {
+      const response = await authApi.resetPasswordWithToken(
+        token,
+        newPassword,
+        confirmPassword
+      );
+      return response;
+    },
+    onSuccess: (data) => {
+      if (import.meta.env.DEV) {
+        console.debug("[useAuth] Password reset successful:", data);
+      }
+      // Navigate to login page with success message
+      navigate("/login", {
+        state: {
+          message:
+            "Password reset successfully. Please login with your new password.",
+        },
+      });
+    },
+    onError: (error) => {
+      console.error("[useAuth] Error resetting password:", error);
+    },
+  });
+
+  // Legacy OTP-based password reset mutations (deprecated)
+  const sendPasswordResetOtp = useMutation({
+    mutationFn: async (loginId) => {
+      const response = await authApi.sendPasswordResetOtp(loginId);
+      return response;
+    },
+    onSuccess: (data) => {
+      if (import.meta.env.DEV) {
+        console.debug("[useAuth] Password reset OTP sent:", data);
+      }
+    },
+    onError: (error) => {
+      console.error("[useAuth] Error sending password reset OTP:", error);
+    },
+  });
+
+  const verifyPasswordResetOtp = useMutation({
+    mutationFn: async ({ loginId, otp }) => {
+      const response = await authApi.verifyPasswordResetOtp(loginId, otp);
+      return response;
+    },
+    onSuccess: (data) => {
+      if (import.meta.env.DEV) {
+        console.debug("[useAuth] Password reset OTP verified:", data);
+      }
+    },
+    onError: (error) => {
+      console.error("[useAuth] Error verifying password reset OTP:", error);
+    },
+  });
+
+  const resetPassword = useMutation({
+    mutationFn: async ({ loginId, newPassword, resetToken }) => {
+      const response = await authApi.resetPasswordWithOtp(
+        loginId,
+        newPassword,
+        resetToken
+      );
+      return response;
+    },
+    onSuccess: (data) => {
+      if (import.meta.env.DEV) {
+        console.debug("[useAuth] Password reset successful:", data);
+      }
+    },
+    onError: (error) => {
+      console.error("[useAuth] Error resetting password:", error);
+    },
+  });
+
   return {
     // Auth state
     seller: validSeller,
     sellerData: validSeller ? sellerData : null,
 
-    // Auth operations
+    // Auth operations (mutation objects for components that need mutate/isPending/error)
     sendOtp,
     verifyOtp,
-    login, // Legacy - prefer sendOtp/verifyOtp
+    login, // Mutation object with mutate, mutateAsync, isPending, error, etc.
+    verify2FALogin, // Mutation object with mutate, mutateAsync, isPending, error, etc.
+    verifyAccount,
+    resendOtp,
     register,
     logout,
     update,
     imageUpdate,
+    // Unified email-only password reset
+    requestPasswordReset,
+    resetPasswordWithToken,
+    // Legacy OTP-based (deprecated)
+    sendPasswordResetOtp,
+    verifyPasswordResetOtp,
+    resetPassword,
     refetchAuth,
+    
+    // Convenience functions for direct async calls
+    loginAsync: async (email, password) => {
+      return login.mutateAsync({ email, password });
+    },
+    verify2FALoginAsync: async (loginSessionId, twoFactorCode) => {
+      return verify2FALogin.mutateAsync({ loginSessionId, twoFactorCode });
+    },
 
     // Loading states
     isLoading: isSellerLoading,
@@ -268,6 +555,11 @@ const useAuth = () => {
     isLogoutLoading: logout.isPending,
     isUpdateLoading: update.isPending,
     isImageUpdateLoading: imageUpdate.isPending,
+    isSendingPasswordResetOtp: sendPasswordResetOtp.isPending,
+    isVerifyingPasswordResetOtp: verifyPasswordResetOtp.isPending,
+    isResettingPassword: resetPassword.isPending,
+    isRequestingPasswordReset: requestPasswordReset.isPending,
+    isResettingPasswordWithToken: resetPasswordWithToken.isPending,
 
     // Error states
     error: sellerError,
@@ -279,11 +571,15 @@ const useAuth = () => {
     logoutError: logout.error,
     updateError: update.error,
     imageUpdateError: imageUpdate.error,
+    sendPasswordResetOtpError: sendPasswordResetOtp.error,
+    verifyPasswordResetOtpError: verifyPasswordResetOtp.error,
+    resetPasswordError: resetPassword.error,
+    authError: sendPasswordResetOtp.error || verifyPasswordResetOtp.error || resetPassword.error,
 
     // Auth status
-    isAuthenticated: !!validSeller,
-    isSeller: validSeller?.role === "seller",
-    status: validSeller?.status || "pending",
+    isAuthenticated,
+    isSeller: validSeller?.role === 'seller',
+    status: validSeller?.status || 'pending',
   };
 };
 

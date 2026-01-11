@@ -78,27 +78,17 @@ const ProtectedRoutes = ({ children }) => {
 
   // CRITICAL: Verify user is a seller, not a buyer
   if (!seller) {
-    console.warn("[ProtectedRoute] No seller found - redirecting to login");
-    console.warn("REDIRECT TRIGGERED FROM: ProtectedRoute.jsx - No seller (line ~62)");
-    console.warn("REDIRECT REASON: No seller found");
-    console.warn("REDIRECT DETAILS:", {
-      hasSeller: !!seller,
-      isLoading,
-      sellerData: sellerData,
-      error: error
-    });
+    if (import.meta.env.DEV) {
+      console.warn("[ProtectedRoute] No seller found - redirecting to login");
+      console.warn("REDIRECT DETAILS:", {
+        hasSeller: !!seller,
+        isLoading,
+        sellerData: sellerData,
+        error: error
+      });
+    }
     
-    // COMMENTED OUT - Redirect to login disabled for debugging
-    // return <Navigate to={PATHS.LOGIN} replace />;
-    
-    // Instead, show message but don't redirect
-    console.error("[ProtectedRoute] 🛑 REDIRECT DISABLED FOR DEBUGGING - No seller");
-    return <div style={{ padding: '2rem', color: 'orange' }}>
-      <h2>DEBUG: ProtectedRoute - No Seller</h2>
-      <p>No seller found. Check console for details. Redirect disabled for debugging.</p>
-      <p>isLoading: {isLoading ? 'true' : 'false'}</p>
-      <p>hasSeller: {seller ? 'true' : 'false'}</p>
-    </div>;
+    return <Navigate to={PATHS.LOGIN} replace />;
   }
 
   // Double-check role - reject buyers trying to access seller routes

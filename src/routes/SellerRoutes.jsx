@@ -15,7 +15,6 @@ const OrderDetail = lazy(() => import("../features/orders/OrderDetail"));
 const Products = lazy(() => import("../features/products/Products"));
 // PaymentRequest removed - using withdrawal system instead
 const DiscountProducts = lazy(() => import("../features/products/DiscountProducts"));
-const ChatSupport = lazy(() => import("../features/profile/ChatSupport"));
 const EditProduct = lazy(() => import("../features/products/EditProduct"));
 const VariantsListPage = lazy(() => import("../pages/products/variants/VariantsListPage"));
 const VariantCreatePage = lazy(() => import("../pages/products/variants/VariantCreatePage"));
@@ -26,9 +25,8 @@ const PaymentMethodPage = lazy(() => import("../features/profile/PaymentMethodPa
 const SettingsPage = lazy(() => import("../features/settings/SettingsPage"));
 const ProductReviewsPage = lazy(() => import("../features/reviews/ProductReviewsPage"));
 const TrackingPage = lazy(() => import("../features/orders/TrackingPage"));
-const WithdrawalsPage = lazy(() => import("../features/finance/WithdrawalsPage"));
+const UnifiedWalletPage = lazy(() => import("../features/finance/UnifiedWalletPage"));
 const SellerWithdrawalVerifyOTP = lazy(() => import("../features/finance/SellerWithdrawalVerifyOTP"));
-const WalletOverviewPage = lazy(() => import("../pages/finance/WalletOverviewPage"));
 const TransactionHistoryPage = lazy(() => import("../pages/finance/TransactionHistoryPage"));
 const TransactionDetailPage = lazy(() => import("../pages/finance/TransactionDetailPage"));
 const ShippingInfoPage = lazy(() => import("../pages/store/ShippingInfoPage"));
@@ -52,6 +50,8 @@ const PickupLocationEditPage = lazy(() => import("../pages/store/pickup/PickupLo
 const SellerReturnAndFundsPage = lazy(() => import("../features/sellerReturns/pages/SellerReturnAndFundsPage"));
 const SellerFundsPage = lazy(() => import("../features/sellerFunds/pages/SellerFundsPage"));
 const SellerNotificationsPage = lazy(() => import("../pages/notifications/SellerNotificationsPage"));
+const ForgotPasswordPage = lazy(() => import("../features/auth/ForgotPasswordPage"));
+const ResetPasswordPage = lazy(() => import("../features/auth/ResetPasswordPage"));
 
 // Redirect component for /dashboard/tracking/* to /tracking/*
 const TrackingRedirect = () => {
@@ -113,6 +113,42 @@ export default function SellerRoutes() {
           element={
             <Suspense fallback={<LoadingSpinner fullScreen />}>
               <AuthPage />
+            </Suspense>
+          }
+        />
+      </Route>
+      
+      <Route 
+        path={PATHS.FORGOT_PASSWORD}
+        element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <DashboardLayout showSidebar={false} />
+          </Suspense>
+        }
+      >
+        <Route
+          index
+          element={
+            <Suspense fallback={<LoadingSpinner fullScreen />}>
+              <ForgotPasswordPage />
+            </Suspense>
+          }
+        />
+      </Route>
+      
+      <Route 
+        path="/reset-password"
+        element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <DashboardLayout showSidebar={false} />
+          </Suspense>
+        }
+      >
+        <Route
+          index
+          element={
+            <Suspense fallback={<LoadingSpinner fullScreen />}>
+              <ResetPasswordPage />
             </Suspense>
           }
         />
@@ -341,7 +377,7 @@ export default function SellerRoutes() {
             <ProtectedRoute>
               <SellerProtectedRoute allowedStage="verified">
                 <Suspense fallback={<LoadingSpinner fullScreen />}>
-                  <WalletOverviewPage />
+                  <UnifiedWalletPage />
                 </Suspense>
               </SellerProtectedRoute>
             </ProtectedRoute>
@@ -353,7 +389,19 @@ export default function SellerRoutes() {
             <ProtectedRoute>
               <SellerProtectedRoute allowedStage="verified">
                 <Suspense fallback={<LoadingSpinner fullScreen />}>
-                  <WithdrawalsPage />
+                  <UnifiedWalletPage />
+                </Suspense>
+              </SellerProtectedRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="finance/wallet"
+          element={
+            <ProtectedRoute>
+              <SellerProtectedRoute allowedStage="verified">
+                <Suspense fallback={<LoadingSpinner fullScreen />}>
+                  <UnifiedWalletPage />
                 </Suspense>
               </SellerProtectedRoute>
             </ProtectedRoute>
@@ -396,18 +444,6 @@ export default function SellerRoutes() {
           }
         />
         {/* Support Routes */}
-        <Route
-          path="support/chat"
-          element={
-            <ProtectedRoute>
-              <SellerProtectedRoute allowedStage="verified">
-                <Suspense fallback={<LoadingSpinner fullScreen />}>
-                  <ChatSupport />
-                </Suspense>
-              </SellerProtectedRoute>
-            </ProtectedRoute>
-          }
-        />
         <Route
           path="support/tickets"
           element={

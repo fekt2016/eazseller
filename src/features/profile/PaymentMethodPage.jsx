@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { FaCreditCard, FaMobileAlt, FaSave, FaArrowLeft, FaBuilding, FaPhone, FaCheckCircle, FaTimesCircle, FaEdit, FaTrash, FaStar } from 'react-icons/fa';
+import { FaCreditCard, FaMobileAlt, FaSave, FaArrowLeft, FaBuilding, FaPhone, FaCheckCircle, FaTimesCircle, FaEdit, FaTrash, FaStar, FaClock } from 'react-icons/fa';
 import useAuth from '../../shared/hooks/useAuth';
 import useSellerStatus from '../../shared/hooks/useSellerStatus';
 import { useGetPaymentMethods, useDeletePaymentMethod, useSetDefaultPaymentMethod, useCreatePaymentMethod, useUpdatePaymentMethod } from '../../shared/hooks/usePaymentMethod';
@@ -31,6 +31,21 @@ const PaymentMethodPage = ({ embedded = false }) => {
   
   // State for editing mode
   const [editingMethodId, setEditingMethodId] = useState(null);
+  
+  // State for reactivation
+  const [requestReactivation, setRequestReactivation] = useState(false);
+  
+  // Get payout status from seller
+  const payoutStatus = seller?.payoutStatus || 'pending';
+  const payoutRejectionReason = seller?.payoutRejectionReason || null;
+  const isPayoutRejected = payoutStatus === 'rejected';
+  const isPayoutPending = payoutStatus === 'pending';
+  
+  // Check if any payment method needs activation/reactivation
+  const hasPaymentMethodNeedingActivation = paymentMethods.some(method => {
+    const methodStatus = method.verificationStatus || 'pending';
+    return methodStatus === 'rejected' || (methodStatus === 'pending' && isPayoutPending);
+  });
 
   // Check if there's a default payment method
   const hasDefaultPaymentMethod = paymentMethods.some(method => method.isDefault);
@@ -210,28 +225,57 @@ const PaymentMethodPage = ({ embedded = false }) => {
 
   // Handle edit payment method
   const handleEditPaymentMethod = (method) => {
-    setEditingMethodId(method._id || method.id);
+    console.log('Edit button clicked for method:', method);
+    const methodId = method._id || method.id;
+    console.log('Setting editingMethodId to:', methodId);
+    setEditingMethodId(methodId);
+    
+    // Check if payout is rejected and enable reactivation by default
+    if (isPayoutRejected) {
+      setRequestReactivation(true);
+    }
     
     // Populate form based on payment method type
     if (method.type === 'bank_transfer') {
       setActiveTab('bank');
-      setBankDetails({
+      const bankData = {
         accountName: method.accountName || method.name || '',
         accountNumber: method.accountNumber || '',
         bankName: method.bankName || '',
         branch: method.branch || '',
-      });
+      };
+      console.log('Setting bank details:', bankData);
+      setBankDetails(bankData);
     } else if (method.type === 'mobile_money') {
       setActiveTab('mobile');
-      setMobileMoneyDetails({
+      // Map provider to network format (MTN, Vodafone, AirtelTigo)
+      let network = method.provider || method.network || '';
+      // Normalize network names
+      if (network.toLowerCase() === 'vodafone') {
+        network = 'Vodafone';
+      } else if (network.toLowerCase() === 'airteltigo' || network.toLowerCase() === 'airtel_tigo') {
+        network = 'AirtelTigo';
+      } else if (network.toLowerCase() === 'mtn') {
+        network = 'MTN';
+      }
+      
+      const mobileData = {
         accountName: method.accountName || method.name || '',
-        phone: method.mobileNumber || '',
-        network: method.provider || '',
-      });
+        phone: method.mobileNumber || method.phone || '',
+        network: network,
+      };
+      console.log('Setting mobile money details:', mobileData);
+      setMobileMoneyDetails(mobileData);
     }
     
-    // Scroll to form
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Clear any previous error/success messages
+    setError(null);
+    setSuccess(false);
+    
+    // Scroll to form after a small delay to ensure state is updated
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 100);
   };
 
   const handleSubmit = async (e) => {
@@ -294,8 +338,45 @@ const PaymentMethodPage = ({ embedded = false }) => {
           id: editingMethodId,
           data: paymentMethodData,
         });
-        toast.success('Payment method updated successfully!');
+        
+        // If reactivation is requested and payout is rejected, update seller payment methods
+        // This will trigger backend to reset payoutStatus from 'rejected' to 'pending'
+        if (requestReactivation && isPayoutRejected) {
+          try {
+            // Update seller payment methods to trigger reactivation
+            const paymentMethodsUpdate = activeTab === 'bank' 
+              ? {
+                  paymentMethods: {
+                    bankAccount: {
+                      accountName: bankDetails.accountName.trim(),
+                      accountNumber: bankDetails.accountNumber.trim(),
+                      bankName: bankDetails.bankName,
+                      branch: bankDetails.branch.trim() || '',
+                    }
+                  }
+                }
+              : {
+                  paymentMethods: {
+                    mobileMoney: {
+                      accountName: mobileMoneyDetails.accountName.trim(),
+                      phone: mobileMoneyDetails.phone.replace(/\D/g, ''),
+                      network: mobileMoneyDetails.network,
+                    }
+                  }
+                };
+            
+            await update(paymentMethodsUpdate);
+            toast.success('Payment method updated and reactivation requested! Your payment status will be reviewed by admin.');
+          } catch (reactivationError) {
+            console.error('Error requesting reactivation:', reactivationError);
+            toast.warning('Payment method updated, but reactivation request failed. Please contact support.');
+          }
+        } else {
+          toast.success('Payment method updated successfully!');
+        }
+        
         setEditingMethodId(null); // Exit edit mode
+        setRequestReactivation(false); // Reset reactivation flag
       } else {
         // If this is the first payment method, set it as default
         const isFirstPaymentMethod = paymentMethods.length === 0;
@@ -406,7 +487,8 @@ const PaymentMethodPage = ({ embedded = false }) => {
                   <th>Type</th>
                   <th>Account Name</th>
                   <th>Account Details</th>
-                  <th>Status</th>
+                  <th>Verification Status</th>
+                  <th>Default</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -463,6 +545,28 @@ const PaymentMethodPage = ({ embedded = false }) => {
                         </AccountDetails>
                       </td>
                       <td>
+                        <VerificationStatusBadge $status={method.verificationStatus || 'pending'}>
+                          {method.verificationStatus === 'verified' ? (
+                            <>
+                              <FaCheckCircle /> Verified
+                            </>
+                          ) : method.verificationStatus === 'rejected' ? (
+                            <>
+                              <FaTimesCircle /> Rejected
+                              {method.rejectionReason && (
+                                <RejectionTooltip>
+                                  {method.rejectionReason}
+                                </RejectionTooltip>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              <FaClock /> Pending
+                            </>
+                          )}
+                        </VerificationStatusBadge>
+                      </td>
+                      <td>
                         <DefaultSelector>
                           <RadioButton
                             type="radio"
@@ -484,11 +588,66 @@ const PaymentMethodPage = ({ embedded = false }) => {
                       </td>
                       <td>
                         <ActionButtons>
+                          {/* Show Activate/Reactivate button for payment methods that need activation */}
+                          {(method.verificationStatus === 'rejected' || 
+                            method.verificationStatus === 'pending' || 
+                            !method.verificationStatus) && (
+                            <ActionButton
+                              type="button"
+                              variant="primary"
+                              size="sm"
+                              onClick={async () => {
+                                // Request activation by updating seller payment methods
+                                // This will trigger backend to reset payoutStatus to 'pending' if needed
+                                try {
+                                  const paymentMethodsUpdate = method.type === 'bank_transfer'
+                                    ? {
+                                        paymentMethods: {
+                                          bankAccount: {
+                                            accountName: method.accountName || method.name || '',
+                                            accountNumber: method.accountNumber || '',
+                                            bankName: method.bankName || '',
+                                            branch: method.branch || '',
+                                          }
+                                        }
+                                      }
+                                    : {
+                                        paymentMethods: {
+                                          mobileMoney: {
+                                            accountName: method.accountName || method.name || '',
+                                            phone: method.mobileNumber || method.phone || '',
+                                            network: method.provider || method.network || '',
+                                          }
+                                        }
+                                      };
+                                  
+                                  await update(paymentMethodsUpdate);
+                                  const actionText = method.verificationStatus === 'rejected' ? 'reactivation' : 'activation';
+                                  toast.success(`${actionText.charAt(0).toUpperCase() + actionText.slice(1)} requested! Your payment method will be reviewed by admin.`);
+                                  // Refetch payment methods to update status
+                                  await refetchPaymentMethods();
+                                } catch (activationError) {
+                                  console.error('Error requesting activation:', activationError);
+                                  toast.error(activationError.response?.data?.message || 'Failed to request activation. Please try again.');
+                                }
+                              }}
+                              title={method.verificationStatus === 'rejected' 
+                                ? 'Request reactivation for this rejected payment method' 
+                                : 'Request activation/verification for this payment method'}
+                            >
+                              <FaCheckCircle /> {method.verificationStatus === 'rejected' ? 'Reactivate' : 'Activate'}
+                            </ActionButton>
+                          )}
                           <ActionButton
                             type="button"
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleEditPaymentMethod(method)}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleEditPaymentMethod(method);
+                            }}
+                            title="Edit this payment method"
                           >
                             <FaEdit /> Edit
                           </ActionButton>
@@ -536,7 +695,12 @@ const PaymentMethodPage = ({ embedded = false }) => {
         {activeTab === 'bank' && (
           <Section $marginBottom="lg">
             <SectionHeader $padding="md">
-              <h3>Bank Account Details</h3>
+              <h3>{editingMethodId ? 'Edit Bank Account Details' : 'Bank Account Details'}</h3>
+              {editingMethodId && (
+                <InfoBanner style={{ marginTop: 'var(--spacing-sm)' }}>
+                  <FaEdit /> You are editing an existing payment method. Make your changes and click "Update Payment Method" to save.
+                </InfoBanner>
+              )}
             </SectionHeader>
             <FormContent>
               {hasBankDetails && (
@@ -606,6 +770,44 @@ const PaymentMethodPage = ({ embedded = false }) => {
                   placeholder="Enter branch name"
                 />
               </FormGroup>
+
+              {/* Reactivation Field - Show when editing and (payout is rejected OR payment method is rejected) */}
+              {editingMethodId && (() => {
+                const currentMethod = paymentMethods.find(m => (m._id || m.id) === editingMethodId);
+                const isMethodRejected = currentMethod?.verificationStatus === 'rejected';
+                const shouldShowReactivation = isPayoutRejected || isMethodRejected;
+                
+                return shouldShowReactivation ? (
+                  <FormGroup>
+                    <ReactivationCheckboxContainer>
+                      <Checkbox
+                        id="requestReactivation"
+                        type="checkbox"
+                        checked={requestReactivation}
+                        onChange={(e) => setRequestReactivation(e.target.checked)}
+                      />
+                      <CheckboxLabel htmlFor="requestReactivation">
+                        <ReactivationTitle>
+                          <FaCheckCircle /> Request Payment Status Reactivation
+                        </ReactivationTitle>
+                        <ReactivationDescription>
+                          {isPayoutRejected && isMethodRejected 
+                            ? 'Both your seller payout status and this payment method were rejected. Check this box to request reactivation after updating your payment details.'
+                            : isPayoutRejected
+                            ? 'Your seller payout status was rejected. Check this box to request reactivation after updating your payment details.'
+                            : 'This payment method was rejected. Check this box to request reactivation after updating your payment details.'
+                          }
+                          {(payoutRejectionReason || currentMethod?.rejectionReason) && (
+                            <RejectionReason>
+                              <strong>Rejection Reason:</strong> {payoutRejectionReason || currentMethod?.rejectionReason}
+                            </RejectionReason>
+                          )}
+                        </ReactivationDescription>
+                      </CheckboxLabel>
+                    </ReactivationCheckboxContainer>
+                  </FormGroup>
+                ) : null;
+              })()}
             </FormContent>
           </Section>
         )}
@@ -614,7 +816,12 @@ const PaymentMethodPage = ({ embedded = false }) => {
         {activeTab === 'mobile' && (
           <Section $marginBottom="lg">
             <SectionHeader $padding="md">
-              <h3>Mobile Money Details</h3>
+              <h3>{editingMethodId ? 'Edit Mobile Money Details' : 'Mobile Money Details'}</h3>
+              {editingMethodId && (
+                <InfoBanner style={{ marginTop: 'var(--spacing-sm)' }}>
+                  <FaEdit /> You are editing an existing payment method. Make your changes and click "Update Payment Method" to save.
+                </InfoBanner>
+              )}
             </SectionHeader>
             <FormContent>
               {hasMobileMoneyDetails && (
@@ -678,6 +885,44 @@ const PaymentMethodPage = ({ embedded = false }) => {
                   ))}
                 </Select>
               </FormGroup>
+
+              {/* Reactivation Field - Show when editing and (payout is rejected OR payment method is rejected) */}
+              {editingMethodId && (() => {
+                const currentMethod = paymentMethods.find(m => (m._id || m.id) === editingMethodId);
+                const isMethodRejected = currentMethod?.verificationStatus === 'rejected';
+                const shouldShowReactivation = isPayoutRejected || isMethodRejected;
+                
+                return shouldShowReactivation ? (
+                  <FormGroup>
+                    <ReactivationCheckboxContainer>
+                      <Checkbox
+                        id="requestReactivation"
+                        type="checkbox"
+                        checked={requestReactivation}
+                        onChange={(e) => setRequestReactivation(e.target.checked)}
+                      />
+                      <CheckboxLabel htmlFor="requestReactivation">
+                        <ReactivationTitle>
+                          <FaCheckCircle /> Request Payment Status Reactivation
+                        </ReactivationTitle>
+                        <ReactivationDescription>
+                          {isPayoutRejected && isMethodRejected 
+                            ? 'Both your seller payout status and this payment method were rejected. Check this box to request reactivation after updating your payment details.'
+                            : isPayoutRejected
+                            ? 'Your seller payout status was rejected. Check this box to request reactivation after updating your payment details.'
+                            : 'This payment method was rejected. Check this box to request reactivation after updating your payment details.'
+                          }
+                          {(payoutRejectionReason || currentMethod?.rejectionReason) && (
+                            <RejectionReason>
+                              <strong>Rejection Reason:</strong> {payoutRejectionReason || currentMethod?.rejectionReason}
+                            </RejectionReason>
+                          )}
+                        </ReactivationDescription>
+                      </CheckboxLabel>
+                    </ReactivationCheckboxContainer>
+                  </FormGroup>
+                ) : null;
+              })()}
             </FormContent>
           </Section>
         )}
@@ -691,8 +936,39 @@ const PaymentMethodPage = ({ embedded = false }) => {
             isLoading={isSubmitting || isUpdateLoading}
             disabled={isSubmitting || isUpdateLoading}
           >
-            <FaSave /> Save Payment Method
+            <FaSave /> {editingMethodId ? 'Update Payment Method' : 'Save Payment Method'}
           </Button>
+          {editingMethodId && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="lg"
+              onClick={() => {
+                setEditingMethodId(null);
+                setRequestReactivation(false);
+                setError(null);
+                setSuccess(false);
+                // Reset form
+                if (activeTab === 'bank') {
+                  setBankDetails({
+                    accountName: '',
+                    accountNumber: '',
+                    bankName: '',
+                    branch: '',
+                  });
+                } else {
+                  setMobileMoneyDetails({
+                    accountName: '',
+                    phone: '',
+                    network: '',
+                  });
+                }
+              }}
+              disabled={isSubmitting || isUpdateLoading}
+            >
+              Cancel Edit
+            </Button>
+          )}
           <Button
             type="button"
             variant="ghost"
@@ -700,7 +976,7 @@ const PaymentMethodPage = ({ embedded = false }) => {
             onClick={() => navigate(PATHS.DASHBOARD)}
             disabled={isSubmitting || isUpdateLoading}
           >
-            Cancel
+            {editingMethodId ? 'Back' : 'Cancel'}
           </Button>
         </ActionSection>
       </Form>
@@ -1124,5 +1400,144 @@ const EmptyMessage = styled.p`
   font-size: var(--font-size-sm);
   color: var(--color-grey-600);
   max-width: 400px;
+`;
+
+const ReactivationCheckboxContainer = styled.div`
+  display: flex;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--color-yellow-50);
+  border: 2px solid var(--color-yellow-200);
+  border-radius: var(--border-radius-md);
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: var(--color-yellow-100);
+    border-color: var(--color-yellow-300);
+  }
+`;
+
+const Checkbox = styled.input`
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: var(--color-primary-500);
+  flex-shrink: 0;
+  margin-top: 2px;
+`;
+
+const CheckboxLabel = styled.label`
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  cursor: pointer;
+  flex: 1;
+`;
+
+const ReactivationTitle = styled.div`
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-weight: var(--font-semibold);
+  color: var(--color-yellow-800);
+  font-size: var(--font-size-sm);
+
+  svg {
+    color: var(--color-yellow-600);
+  }
+`;
+
+const ReactivationDescription = styled.p`
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-yellow-700);
+  line-height: 1.5;
+`;
+
+const RejectionReason = styled.div`
+  margin-top: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-red-50);
+  border-left: 3px solid var(--color-red-300);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  color: var(--color-red-700);
+
+  strong {
+    font-weight: var(--font-semibold);
+    display: block;
+    margin-bottom: var(--spacing-xs);
+  }
+`;
+
+const VerificationStatusBadge = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-semibold);
+  position: relative;
+  
+  ${(props) => {
+    switch (props.$status) {
+      case 'verified':
+        return `
+          background: var(--color-green-50);
+          color: var(--color-green-700);
+          border: 1px solid var(--color-green-200);
+        `;
+      case 'rejected':
+        return `
+          background: var(--color-red-50);
+          color: var(--color-red-700);
+          border: 1px solid var(--color-red-200);
+        `;
+      case 'pending':
+      default:
+        return `
+          background: var(--color-yellow-50);
+          color: var(--color-yellow-700);
+          border: 1px solid var(--color-yellow-200);
+        `;
+    }
+  }}
+  
+  svg {
+    font-size: var(--font-size-sm);
+  }
+`;
+
+const RejectionTooltip = styled.div`
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-grey-900);
+  color: white;
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 1000;
+  
+  ${VerificationStatusBadge}:hover & {
+    opacity: 1;
+  }
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent;
+    border-top-color: var(--color-grey-900);
+  }
 `;
 

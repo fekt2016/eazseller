@@ -42,6 +42,9 @@ export const useCreatePaymentMethod = () => {
     onSuccess: () => {
       toast.success('Payment method added successfully');
       queryClient.invalidateQueries({ queryKey: ['paymentMethods'] });
+      // ✅ CRITICAL: Invalidate sellerStatus after payment method update
+      queryClient.invalidateQueries({ queryKey: ['sellerStatus'] });
+      queryClient.invalidateQueries({ queryKey: ['sellerAuth'] });
     },
     onError: (error) => {
       const message = error.response?.data?.message || error.message || 'Failed to add payment method';
@@ -61,6 +64,9 @@ export const useUpdatePaymentMethod = () => {
     onSuccess: () => {
       toast.success('Payment method updated successfully');
       queryClient.invalidateQueries({ queryKey: ['paymentMethods'] });
+      // ✅ CRITICAL: Invalidate sellerStatus after payment method update
+      queryClient.invalidateQueries({ queryKey: ['sellerStatus'] });
+      queryClient.invalidateQueries({ queryKey: ['sellerAuth'] });
     },
     onError: (error) => {
       const message = error.response?.data?.message || error.message || 'Failed to update payment method';

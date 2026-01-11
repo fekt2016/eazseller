@@ -79,13 +79,41 @@ const AddProductPage = () => {
       }
       formData.append("totalStock", totalStock.toString());
 
-      // Format and append variants
-      const formattedVariants = data.variants.map((variant) => {
+      // Format variants and process variant images
+      const variantImagePromises = data.variants.map(async (variant, index) => {
         // Ensure attributes have values
         const attributes = variant.attributes.map((attr) => ({
           key: attr.key,
           value: attr.value || "N/A", // Default value if empty
         }));
+
+        // Separate existing images (strings) from new images (Files)
+        const existingVariantImages = (variant.images || []).filter(
+          (img) => typeof img === "string"
+        );
+        const newVariantImages = (variant.images || []).filter(
+          (img) => img instanceof File
+        );
+
+        // Process and append new variant images as files
+        if (newVariantImages.length > 0) {
+          const compressionResults = await Promise.allSettled(
+            newVariantImages.map((file) =>
+              compressImage(file, { quality: 0.6, maxWidth: 800, maxHeight: 800 })
+            )
+          );
+
+          compressionResults.forEach((result, imgIndex) => {
+            if (result.status === "fulfilled") {
+              formData.append(`variantImages[${index}]`, result.value);
+            } else {
+              console.warn(`Variant ${index} image ${imgIndex} compression failed:`, result.reason);
+              if (newVariantImages[imgIndex]) {
+                formData.append(`variantImages[${index}]`, newVariantImages[imgIndex]);
+              }
+            }
+          });
+        }
 
         return {
           ...variant,
@@ -99,8 +127,13 @@ const AddProductPage = () => {
               category: data.category,
               variants: variant,
             }),
+          // Include existing images (URLs) in the variant object
+          images: existingVariantImages,
         };
       });
+
+      // Wait for all variant image processing to complete
+      const formattedVariants = await Promise.all(variantImagePromises);
 
       // Append variants as JSON string
       formData.append("variants", JSON.stringify(formattedVariants));

@@ -157,7 +157,8 @@ const EditProduct = () => {
       formData.append("condition", data.condition);
       // formData.append("variants", JSON.stringify(data.variants));
 
-      data.variants.forEach((variant, index) => {
+      // Process variant images asynchronously
+      const variantImagePromises = data.variants.map(async (variant, index) => {
         // Append variant fields
         formData.append(`variants[${index}][price]`, variant.price.toString());
         formData.append(`variants[${index}][stock]`, variant.stock.toString());
@@ -180,7 +181,43 @@ const EditProduct = () => {
             attr.value
           );
         });
+
+        // Handle variant images
+        const existingVariantImages = (variant.images || []).filter(
+          (img) => typeof img === "string"
+        );
+        const newVariantImages = (variant.images || []).filter(
+          (img) => img instanceof File
+        );
+
+        // Append existing images as JSON (will be merged with new ones on backend)
+        if (existingVariantImages.length > 0) {
+          formData.append(`variants[${index}][images]`, JSON.stringify(existingVariantImages));
+        }
+
+        // Process and append new variant images as files
+        if (newVariantImages.length > 0) {
+          const compressionResults = await Promise.allSettled(
+            newVariantImages.map((file) =>
+              compressImage(file, { quality: 0.6, maxWidth: 800, maxHeight: 800 })
+            )
+          );
+
+          compressionResults.forEach((result, imgIndex) => {
+            if (result.status === "fulfilled") {
+              formData.append(`variantImages[${index}]`, result.value);
+            } else {
+              console.warn(`Variant ${index} image ${imgIndex} compression failed:`, result.reason);
+              if (newVariantImages[imgIndex]) {
+                formData.append(`variantImages[${index}]`, newVariantImages[imgIndex]);
+              }
+            }
+          });
+        }
       });
+
+      // Wait for all variant image processing to complete
+      await Promise.all(variantImagePromises);
       formData.append("specifications[weight]", data.specifications.weight);
       formData.append(
         "specifications[dimension]",

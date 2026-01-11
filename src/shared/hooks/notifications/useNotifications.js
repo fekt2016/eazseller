@@ -6,14 +6,22 @@ import {
   markAllAsRead,
   deleteNotification,
 } from '../../services/notifications/notificationApi';
+import useAuth from '../useAuth';
 
 /**
  * Hook to get all notifications
+ * SECURITY: Only runs when seller is authenticated
  */
 export const useNotifications = (params = {}) => {
+  const { seller, isLoading: isSellerLoading } = useAuth();
+  
+  // Ensure enabled is always a boolean - check seller exists
+  const isEnabled = Boolean(seller && (seller.id || seller._id) && !isSellerLoading);
+  
   return useQuery({
     queryKey: ['notifications', params],
     queryFn: () => getNotifications(params),
+    enabled: isEnabled, // Only run when authenticated
     staleTime: 30000, // 30 seconds
     refetchOnWindowFocus: true,
   });
@@ -22,8 +30,14 @@ export const useNotifications = (params = {}) => {
 /**
  * Hook to get unread notification count
  * FIX: Updated settings to ensure count updates immediately
+ * SECURITY: Only runs when seller is authenticated
  */
 export const useUnreadCount = () => {
+  const { seller, isLoading: isSellerLoading } = useAuth();
+  
+  // Ensure enabled is always a boolean - check seller exists
+  const isEnabled = Boolean(seller && (seller.id || seller._id) && !isSellerLoading);
+  
   const query = useQuery({
     queryKey: ['notifications', 'unread'],
     queryFn: async () => {
@@ -51,10 +65,11 @@ export const useUnreadCount = () => {
         throw error;
       }
     },
+    enabled: isEnabled, // Only run when authenticated
     staleTime: 0, // Always consider stale to ensure fresh data
     refetchOnMount: true, // Refetch when component mounts
     refetchOnWindowFocus: true, // Refetch when window regains focus
-    refetchInterval: 30000, // Refetch every 30 seconds for real-time updates
+    refetchInterval: isEnabled ? 30000 : false, // Only poll when authenticated
     refetchIntervalInBackground: false, // Don't refetch when tab is in background
   });
 

@@ -54,24 +54,24 @@ export const TICKET_ROLE = {
 };
 
 /**
- * Status badge colors
+ * Status badge colors - using theme variables
  */
 export const STATUS_COLORS = {
-  open: '#3B82F6',
-  in_progress: '#F59E0B',
-  awaiting_user: '#8B5CF6',
-  escalated: '#EF4444',
-  resolved: '#10B981',
-  closed: '#6B7280',
+  open: 'var(--color-brand-500)',
+  in_progress: 'var(--color-yellow-700)',
+  awaiting_user: 'var(--color-indigo-700)',
+  escalated: 'var(--color-red-600)',
+  resolved: 'var(--color-green-700)',
+  closed: 'var(--color-grey-600)',
 };
 
 /**
- * Priority badge colors
+ * Priority badge colors - using theme variables
  */
 export const PRIORITY_COLORS = {
-  low: '#6B7280',
-  medium: '#3B82F6',
-  high: '#F59E0B',
-  critical: '#EF4444',
+  low: 'var(--color-grey-600)',
+  medium: 'var(--color-brand-500)',
+  high: 'var(--color-yellow-700)',
+  critical: 'var(--color-red-600)',
 };
 

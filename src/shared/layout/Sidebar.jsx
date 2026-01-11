@@ -8,7 +8,6 @@ import {
   FaStore,
   FaCog,
   FaStar,
-  FaMoneyBillWave,
   FaHeadset,
   FaWallet,
   FaReceipt,
@@ -74,11 +73,6 @@ export default function Sidebar({ role, isOpen, onClose }) {
       icon: <FaWallet />,
     },
     {
-      path: PATHS.WITHDRAWALS,
-      label: "Withdrawals",
-      icon: <FaMoneyBillWave />,
-    },
-    {
       path: PATHS.TRANSACTIONS,
       label: "Transactions",
       icon: <FaReceipt />,
@@ -89,19 +83,9 @@ export default function Sidebar({ role, isOpen, onClose }) {
       icon: <FaUndo />,
     },
     {
-      path: PATHS.FUNDS,
-      label: "Funds & Wallet",
-      icon: <FaWallet />,
-    },
-    {
       path: PATHS.SUPPORT,
       label: "Support",
       icon: <FaHeadset />,
-    },
-    {
-      path: PATHS.CHAT_SUPPORT,
-      label: "Chat Support",
-      icon: <FaUsersCog />,
     },
     {
       path: PATHS.NOTIFICATIONS,

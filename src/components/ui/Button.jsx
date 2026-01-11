@@ -40,12 +40,12 @@ const Button = styled.button`
     switch (variant) {
       case 'primary':
         return css`
-          background: var(--color-brand-500); // Purple for seller
+          background: var(--color-primary-500);
           color: var(--color-white-0);
           box-shadow: var(--shadow-sm);
 
           &:hover:not(:disabled) {
-            background: var(--color-brand-600);
+            background: var(--color-primary-600);
             box-shadow: var(--shadow-md);
           }
         `;
@@ -63,11 +63,11 @@ const Button = styled.button`
       case 'outline':
         return css`
           background: transparent;
-          color: var(--color-brand-500);
-          border: 1px solid var(--color-brand-500);
+          color: var(--color-primary-500);
+          border: 1px solid var(--color-primary-500);
 
           &:hover:not(:disabled) {
-            background: var(--color-brand-500);
+            background: var(--color-primary-500);
             color: var(--color-white-0);
           }
         `;
@@ -84,7 +84,7 @@ const Button = styled.button`
         `;
       default:
         return css`
-          background: var(--color-brand-500);
+          background: var(--color-primary-500);
           color: var(--color-white-0);
         `;
     }

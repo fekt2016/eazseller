@@ -37,7 +37,7 @@ const variantStyles = {
     &:hover:not(:disabled) {
       background-color: var(--color-primary-400);
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(255, 196, 0, 0.3);
+      box-shadow: var(--shadow-gold);
     }
     &:active:not(:disabled) {
       transform: translateY(0);
@@ -140,10 +140,10 @@ const ButtonStyled = styled.button`
   ${({ $gradient }) =>
     $gradient &&
     css`
-      background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-primary-600) 100%);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      background: var(--gradient-primary);
+      box-shadow: var(--shadow-md);
       &:hover:not(:disabled) {
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        box-shadow: var(--shadow-lg);
       }
     `}
 
