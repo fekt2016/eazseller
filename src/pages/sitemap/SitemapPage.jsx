@@ -118,9 +118,9 @@ const SitemapPage = () => {
       id: 'external',
       title: 'External Resources',
       links: [
-        { label: 'EazMain (Buyer App)', path: 'https://eazworld.com', external: true },
-        { label: 'EazAdmin Portal', path: 'https://admin.eazworld.com', external: true },
-        { label: 'EazWorld Website', path: 'https://eazworld.com', external: true },
+        { label: 'SaiisaiWeb (Buyer App)', path: 'https://saiisai.com', external: true },
+        { label: 'EazAdmin Portal', path: 'https://admin.saiisai.com', external: true },
+        { label: 'Saiisai Website', path: 'https://saiisai.com', external: true },
       ],
     },
   ];

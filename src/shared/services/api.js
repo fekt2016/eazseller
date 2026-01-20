@@ -1,29 +1,38 @@
 import axios from "axios";
 
-// Determine base URL based on subdomain
+// Determine base URL based on environment variable or defaults
+// Priority: VITE_API_BASE_URL > VITE_API_URL (backward compat) > production default
 const getBaseURL = () => {
-  if (import.meta.env.VITE_API_URL) {
-    return import.meta.env.VITE_API_URL;
+  // Check for API_BASE_URL environment variable (highest priority)
+  // Supports both VITE_API_BASE_URL and VITE_API_URL for backward compatibility
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
+  
+  if (apiBaseUrl) {
+    // Remove trailing slashes and ensure /api/v1 is appended if not present
+    let url = apiBaseUrl.trim().replace(/\/+$/, '');
+    
+    // If URL doesn't already include /api/v1, append it
+    if (!url.includes('/api/v1')) {
+      url = `${url}/api/v1`;
+    }
+    
+    return url;
   }
 
+  // Local development detection
   if (typeof window !== "undefined") {
     const hostParts = window.location.hostname.split(".");
 
     // Local development
-    if (hostParts.includes("localhost")) {
+    if (hostParts.includes("localhost") || hostParts.includes("127.0.0.1")) {
       return "http://localhost:4000/api/v1";
     }
 
-    // Seller subdomain handling
-    const subdomain = hostParts[0];
-    if (subdomain === "seller") {
-      return "https://eazworld.com/api/v1";
-    }
-
-    // Default production API
-    return "https://eazworld.com/api/v1";
+    // Production: Default to https://api.saiisai.com/api/v1
+    return "https://api.saiisai.com/api/v1";
   }
 
+  // Server-side rendering fallback
   return "http://localhost:4000/api/v1";
 };
 

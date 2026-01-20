@@ -79,7 +79,7 @@ const SellerPrivacyPolicyPage = () => {
           <PolicyTitle>Seller Privacy Policy</PolicyTitle>
           <LastUpdated>Effective Date: {effectiveDate}</LastUpdated>
           <IntroText>
-            At EazSeller, operated by EazWorld, we are committed to protecting the privacy and security of seller information. This Seller Privacy Policy explains how we collect, use, share, and safeguard information related to your seller account, store, products, and business operations on the EazShop marketplace. By using the EazSeller portal, you agree to the practices described in this policy.
+            At Saiisai Seller, we are committed to protecting the privacy and security of seller information. This Seller Privacy Policy explains how we collect, use, share, and safeguard information related to your seller account, store, products, and business operations on the EazShop marketplace. By using the EazSeller portal, you agree to the practices described in this policy.
           </IntroText>
         </PolicyHeader>
 
@@ -88,7 +88,7 @@ const SellerPrivacyPolicyPage = () => {
           <SectionTitle>1. Introduction</SectionTitle>
           <SectionContent>
             <Paragraph>
-              EazSeller is the seller dashboard and portal for the EazShop marketplace, operated by EazWorld. This Privacy Policy applies to all information collected through the EazSeller platform, including our seller dashboard, mobile applications, seller support services, and any other seller-related services that link to this policy.
+              Saiisai Seller is the seller dashboard and portal for the Saiisai marketplace. This Privacy Policy applies to all information collected through the EazSeller platform, including our seller dashboard, mobile applications, seller support services, and any other seller-related services that link to this policy.
             </Paragraph>
             <Paragraph>
               This policy is specifically designed for sellers using our platform. It explains how we handle seller account information, store data, product listings, financial information, and other business-related data. If you are a buyer using EazShop, please refer to the buyer Privacy Policy.
@@ -302,7 +302,7 @@ const SellerPrivacyPolicyPage = () => {
             <BulletList>
               <li>
                 <Paragraph>
-                  <strong>EazWorld Affiliates:</strong> We may share your information with other EazWorld entities and affiliates to provide integrated services, process orders, manage payouts, provide support, and operate our business. These affiliates are bound by the same privacy standards.
+                  <strong>Saiisai Affiliates:</strong> We may share your information with other Saiisai entities and affiliates to provide integrated services, process orders, manage payouts, provide support, and operate our business. These affiliates are bound by the same privacy standards.
                 </Paragraph>
               </li>
               <li>
@@ -439,7 +439,7 @@ const SellerPrivacyPolicyPage = () => {
           <SectionTitle>7. International Transfers</SectionTitle>
           <SectionContent>
             <Paragraph>
-              EazWorld operates globally, and your seller information may be transferred to, stored in, and processed in countries other than your country of residence. These countries may have data protection laws that differ from those in your jurisdiction.
+              Saiisai operates globally, and your seller information may be transferred to, stored in, and processed in countries other than your country of residence. These countries may have data protection laws that differ from those in your jurisdiction.
             </Paragraph>
             <Paragraph>
               When we transfer your information internationally, we take steps to ensure that appropriate safeguards are in place to protect your data. These safeguards may include standard contractual clauses, certification schemes, adequacy decisions, and other legal mechanisms designed to ensure adequate protection of your information.
@@ -485,13 +485,13 @@ const SellerPrivacyPolicyPage = () => {
             <BulletList>
               <li>
                 <Paragraph>
-                  <strong>Email:</strong> privacy@eazworld.com or seller-privacy@eazworld.com
+                  <strong>Email:</strong> privacy@saiisai.com or seller-privacy@saiisai.com
                 </Paragraph>
               </li>
               <li>
                 <Paragraph>
                   <strong>Postal Address:</strong><br />
-                  EazWorld Data Protection Officer<br />
+                  Saiisai Data Protection Officer<br />
                   [Address to be updated]<br />
                   Ghana
                 </Paragraph>

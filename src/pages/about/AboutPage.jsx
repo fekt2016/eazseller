@@ -56,17 +56,17 @@ import {
 } from './about.styles';
 
 /**
- * Premium About Us Page for EazWorld/EazShop (Seller App)
+ * Premium About Us Page for Saiisai (Seller App)
  * Modern, polished design with seller branding (purple theme)
  */
 const AboutPage = () => {
   // SEO
   useDynamicPageTitle({
-    title: 'About Us • EazWorld',
-    description: 'Learn more about EazWorld, our mission, vision, and story. Building the future of e-commerce, logistics, and technology for Africa and the world.',
-    keywords: 'EazWorld, EazShop, about us, company story, mission, vision, e-commerce, marketplace, Africa',
-    defaultTitle: 'About Us • EazWorld',
-    defaultDescription: 'Learn more about EazWorld, our mission, vision, and story.',
+    title: 'About Us • Saiisai',
+    description: 'Learn more about Saiisai, our mission, vision, and story. Building the future of e-commerce, logistics, and technology for Africa and the world.',
+    keywords: 'Saiisai, about us, company story, mission, vision, e-commerce, marketplace, Africa',
+    defaultTitle: 'About Us • Saiisai',
+    defaultDescription: 'Learn more about Saiisai, our mission, vision, and story.',
   });
 
   // Animation variants
@@ -126,8 +126,8 @@ const AboutPage = () => {
   const timelineEvents = [
     {
       year: '2023',
-      title: 'EazWorld Founded',
-      description: 'EazWorld was established with a vision to revolutionize digital commerce and technology services in Africa.',
+      title: 'Saiisai Founded',
+      description: 'Saiisai was established with a vision to revolutionize digital commerce and technology services in Africa.',
     },
     {
       year: '2024',
@@ -204,9 +204,9 @@ const AboutPage = () => {
         <SectionTitle>Who We Are</SectionTitle>
         <OverviewGrid>
           <OverviewContent>
-            <h3>EazWorld: Your Complete Digital Ecosystem</h3>
+            <h3>Saiisai: Your Complete Digital Ecosystem</h3>
             <p>
-              EazWorld is a multi-product technology company dedicated to empowering businesses
+              Saiisai is a multi-product technology company dedicated to empowering businesses
               and individuals across Africa through innovative digital solutions. We've built a
               comprehensive ecosystem that addresses the diverse needs of modern commerce and services.
             </p>
@@ -350,7 +350,7 @@ const AboutPage = () => {
       >
         <SectionTitle>Meet Our Team</SectionTitle>
         <SectionDescription>
-          The passionate individuals behind EazWorld's success.
+          The passionate individuals behind Saiisai's success.
         </SectionDescription>
         <TeamGrid>
           {teamMembers.map((member, index) => (
@@ -402,7 +402,7 @@ const AboutPage = () => {
         viewport={{ once: true, amount: 0.3 }}
         variants={fadeUp}
       >
-        <CTATitle>Join the EazWorld Ecosystem</CTATitle>
+        <CTATitle>Join the Saiisai Ecosystem</CTATitle>
         <CTASubtitle>
           Whether you're a buyer, seller, or business, we're here to support your growth.
         </CTASubtitle>

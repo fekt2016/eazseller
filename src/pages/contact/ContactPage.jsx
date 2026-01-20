@@ -52,7 +52,7 @@ const SpinningIcon = styled(FaSpinner)`
 `;
 
 /**
- * Modern Contact Us Page for EazShop/EazWorld (Seller App)
+ * Modern Contact Us Page for Saiisai (Seller App)
  * Fully responsive with form validation and React Query integration
  */
 const ContactPage = () => {
@@ -459,13 +459,13 @@ const ContactPage = () => {
         </SectionDescription>
         <LocationGrid>
           <LocationContent>
-            <h3>EazWorld Headquarters</h3>
+            <h3>Saiisai Headquarters</h3>
             <p>
               We're located in the heart of Accra, Ghana, where we work every day
               to build and improve our digital ecosystem.
             </p>
             <address>
-              Accra, Ghana • EazWorld HQ
+              Accra, Ghana • Saiisai HQ
             </address>
           </LocationContent>
           <LocationMap

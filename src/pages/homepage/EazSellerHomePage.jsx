@@ -405,7 +405,7 @@ const EazSellerHomePage = () => {
             </FooterLink>
           </FooterLinks>
           <FooterCopyright>
-            © {new Date().getFullYear()} EazShop / EazWorld. All rights reserved.
+            © {new Date().getFullYear()} Saiisai. All rights reserved.
           </FooterCopyright>
         </FooterContent>
       </FooterSection>
