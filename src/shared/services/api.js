@@ -1,38 +1,44 @@
 import axios from "axios";
 
-// Determine base URL based on environment variable or defaults
-// Priority: VITE_API_BASE_URL > VITE_API_URL (backward compat) > production default
+// Determine base URL based on environment and hostname
+// In development (localhost), ALWAYS use local backend (http://localhost:4000/api/v1)
+// In production, use VITE_API_BASE_URL / VITE_API_URL or default https://api.saiisai.com/api/v1
 const getBaseURL = () => {
-  // Check for API_BASE_URL environment variable (highest priority)
-  // Supports both VITE_API_BASE_URL and VITE_API_URL for backward compatibility
-  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
-  
-  if (apiBaseUrl) {
-    // Remove trailing slashes and ensure /api/v1 is appended if not present
-    let url = apiBaseUrl.trim().replace(/\/+$/, '');
-    
-    // If URL doesn't already include /api/v1, append it
-    if (!url.includes('/api/v1')) {
-      url = `${url}/api/v1`;
-    }
-    
-    return url;
-  }
-
-  // Local development detection
   if (typeof window !== "undefined") {
-    const hostParts = window.location.hostname.split(".");
+    const hostname = window.location.hostname;
+    const isLocalhost =
+      hostname === "localhost" ||
+      hostname === "127.0.0.1" ||
+      hostname === "::1";
 
-    // Local development
-    if (hostParts.includes("localhost") || hostParts.includes("127.0.0.1")) {
+    // ✅ Development: always talk to local backend, never api.saiisai.com
+    if (isLocalhost) {
       return "http://localhost:4000/api/v1";
     }
 
-    // Production: Default to https://api.saiisai.com/api/v1
+    // Non-localhost (production / staging in browser)
+    // Check for API_BASE_URL environment variable (highest priority)
+    // Supports both VITE_API_BASE_URL and VITE_API_URL for backward compatibility
+    const apiBaseUrl =
+      import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
+
+    if (apiBaseUrl) {
+      // Remove trailing slashes and ensure /api/v1 is appended if not present
+      let url = apiBaseUrl.trim().replace(/\/+$/, "");
+
+      // If URL doesn't already include /api/v1, append it
+      if (!url.includes("/api/v1")) {
+        url = `${url}/api/v1`;
+      }
+
+      return url;
+    }
+
+    // Browser, non-localhost, no env override: default to production API
     return "https://api.saiisai.com/api/v1";
   }
 
-  // Server-side rendering fallback
+  // Server-side / non-browser fallback: default to local backend
   return "http://localhost:4000/api/v1";
 };
 
@@ -162,24 +168,38 @@ api.interceptors.request.use((config) => {
   
   // SECURITY: Warn if seller is trying to access admin-only routes
   const adminOnlyRoutes = [
-    '/order', // GET /order is admin-only, sellers should use /order/get-seller-orders
-    '/users/', // GET /users/:id is admin-only (unless /me or /profile)
+    // IMPORTANT: Be precise here to avoid flagging valid seller routes
+    '/order',       // Admin order dashboard root (not /order/get-seller-orders)
+    '/users/',      // Admin user management (not /users/me or /users/profile)
     '/admin',
     '/logs',
     '/eazshop',
   ];
   
   const isAdminRoute = adminOnlyRoutes.some(route => {
-    if (route.endsWith('/')) {
-      return normalizedPath.startsWith(route) && !normalizedPath.includes('/me') && !normalizedPath.includes('/profile');
+    if (route === '/order') {
+      // Only treat the bare /order or /order/ as admin-only.
+      // Do NOT flag seller-specific endpoints like /order/get-seller-orders or /order/seller-order/:id
+      return (
+        normalizedPath === '/order' ||
+        normalizedPath === '/order/'
+      );
     }
+    
+    if (route.endsWith('/')) {
+      return (
+        normalizedPath.startsWith(route) &&
+        !normalizedPath.includes('/me') &&
+        !normalizedPath.includes('/profile')
+      );
+    }
+    
     return normalizedPath === route || normalizedPath.startsWith(route);
   });
   
   if (isAdminRoute && method === 'get') {
-    console.error(`[API] ⚠️ SECURITY WARNING: Seller attempting to access admin-only route: ${method.toUpperCase()} ${normalizedPath}`);
-    console.error(`[API] ⚠️ This will likely result in a 403 permission error.`);
-    console.error(`[API] ⚠️ Sellers should use seller-specific endpoints instead.`);
+    console.error(`[API] ⚠️ SECURITY WARNING: Possible admin-only route: ${method.toUpperCase()} ${normalizedPath}`);
+    console.error(`[API] ⚠️ If you see 403 errors here, confirm this route is intended for sellers.`);
   }
 
   // Log full URL for debugging

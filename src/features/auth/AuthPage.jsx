@@ -318,12 +318,10 @@ const AuthPage = () => {
       const requiresVerification = apiResponse?.requiresVerification || apiResponse?.data?.requiresVerification;
       
       if (requiresVerification) {
-        // Navigate to OTP verification screen or show verification message
         console.log("[AuthPage] Registration successful - email verification required");
-        // You might want to navigate to a verification page or show a modal
-        // For now, we'll show a message and keep them on the page
-        alert('Registration successful! Please check your email for the verification code.');
-        setActiveTab("login");
+        alert('Registration successful! Please check your email for the verification code we sent to your email.');
+        // Redirect seller to dedicated verification page with email pre-filled
+        navigate(`${PATHS.VERIFY_ACCOUNT}?email=${encodeURIComponent(formData.email)}`);
       } else {
         console.log("[AuthPage] Registration successful - cookie set by backend");
         navigate(PATHS.DASHBOARD);

@@ -52,6 +52,7 @@ const SellerFundsPage = lazy(() => import("../features/sellerFunds/pages/SellerF
 const SellerNotificationsPage = lazy(() => import("../pages/notifications/SellerNotificationsPage"));
 const ForgotPasswordPage = lazy(() => import("../features/auth/ForgotPasswordPage"));
 const ResetPasswordPage = lazy(() => import("../features/auth/ResetPasswordPage"));
+const VerifyAccountPage = lazy(() => import("../features/auth/VerifyAccountPage"));
 
 // Redirect component for /dashboard/tracking/* to /tracking/*
 const TrackingRedirect = () => {
@@ -131,6 +132,25 @@ export default function SellerRoutes() {
           element={
             <Suspense fallback={<LoadingSpinner fullScreen />}>
               <ForgotPasswordPage />
+            </Suspense>
+          }
+        />
+      </Route>
+      
+      {/* Email Verification Page - Public with Header, No Sidebar */}
+      <Route
+        path={PATHS.VERIFY_ACCOUNT}
+        element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <DashboardLayout showSidebar={false} />
+          </Suspense>
+        }
+      >
+        <Route
+          index
+          element={
+            <Suspense fallback={<LoadingSpinner fullScreen />}>
+              <VerifyAccountPage />
             </Suspense>
           }
         />
@@ -352,11 +372,9 @@ export default function SellerRoutes() {
           path="orders"
           element={
             <ProtectedRoute>
-              <SellerProtectedRoute allowedStage="verified">
-                <Suspense fallback={<LoadingSpinner fullScreen />}>
-                  <Orders />
-                </Suspense>
-              </SellerProtectedRoute>
+              <Suspense fallback={<LoadingSpinner fullScreen />}>
+                <Orders />
+              </Suspense>
             </ProtectedRoute>
           }
         />
@@ -511,11 +529,9 @@ export default function SellerRoutes() {
           path="store/pickup-locations"
           element={
             <ProtectedRoute>
-              <SellerProtectedRoute allowedStage="verified">
-                <Suspense fallback={<LoadingSpinner fullScreen />}>
-                  <PickupLocationsListPage />
-                </Suspense>
-              </SellerProtectedRoute>
+              <Suspense fallback={<LoadingSpinner fullScreen />}>
+                <PickupLocationsListPage />
+              </Suspense>
             </ProtectedRoute>
           }
         />
@@ -523,11 +539,9 @@ export default function SellerRoutes() {
           path="store/pickup-locations/create"
           element={
             <ProtectedRoute>
-              <SellerProtectedRoute allowedStage="verified">
-                <Suspense fallback={<LoadingSpinner fullScreen />}>
-                  <PickupLocationCreatePage />
-                </Suspense>
-              </SellerProtectedRoute>
+              <Suspense fallback={<LoadingSpinner fullScreen />}>
+                <PickupLocationCreatePage />
+              </Suspense>
             </ProtectedRoute>
           }
         />
@@ -535,11 +549,9 @@ export default function SellerRoutes() {
           path="store/pickup-locations/:id/edit"
           element={
             <ProtectedRoute>
-              <SellerProtectedRoute allowedStage="verified">
-                <Suspense fallback={<LoadingSpinner fullScreen />}>
-                  <PickupLocationEditPage />
-                </Suspense>
-              </SellerProtectedRoute>
+              <Suspense fallback={<LoadingSpinner fullScreen />}>
+                <PickupLocationEditPage />
+              </Suspense>
             </ProtectedRoute>
           }
         />

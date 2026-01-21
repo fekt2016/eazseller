@@ -116,6 +116,8 @@ const ProtectedRoutes = ({ children }) => {
     </div>;
   }
 
+  // Only allow sellers with status "active" into protected routes.
+  // Pending or other statuses are redirected.
   if (seller.status !== "active") {
     console.warn("[ProtectedRoute] Seller status is not active - redirecting", {
       status: seller.status,

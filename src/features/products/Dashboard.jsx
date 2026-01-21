@@ -238,6 +238,7 @@ const Dashboard = () => {
 
   const isLoading = isOrdersLoading || isProductLoading || isSellerLoading;
   const anyDataAvailable = orders.length > 0 || products.length > 0;
+  const hasError = !!(ordersError || productError || sellerError);
 
   const handleRetry = () => {
     refetchOrders();
@@ -315,7 +316,7 @@ const Dashboard = () => {
     );
   }
 
-  if (!anyDataAvailable) {
+  if (!anyDataAvailable && hasError) {
     return (
       <PageContainer>
         <ErrorState

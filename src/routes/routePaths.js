@@ -100,6 +100,7 @@ export const PATHS = {
   SIGNUP: "/signup",
   FORGOT_PASSWORD: "/forgot-password",
   RESET_PASSWORD: "/reset-password/:token",
+  VERIFY_ACCOUNT: "/verify-account",
 
   // Onboarding & Setup
   SETUP: "/dashboard/setup",
