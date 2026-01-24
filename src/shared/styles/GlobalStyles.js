@@ -292,7 +292,7 @@ html {
 
 body {
   font-family: var(--font-body);
-  font-weight: 400;
+  font-weight: 300; /* lighter body text */
   color: var(--color-grey-700);
   transition: color 0.3s, background-color 0.3s;
   min-height: 100vh;
@@ -304,38 +304,38 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
-  font-weight: 500;
+  font-weight: 400; /* lighter base heading weight */
   line-height: 1.2;
   color: var(--color-grey-900);
 }
 
 h1 {
-  font-weight: 600;
+  font-weight: 500; /* still slightly bolder than others, but reduced from 600 */
   font-size: 3.2rem;
 }
 
 h2 {
-  font-weight: 600;
+  font-weight: 400;
   font-size: 2.4rem;
 }
 
 h3 {
-  font-weight: 500;
+  font-weight: 400;
   font-size: 2rem;
 }
 
 h4 {
-  font-weight: 500;
+  font-weight: 400;
   font-size: 1.8rem;
 }
 
 h5 {
-  font-weight: 500;
+  font-weight: 400;
   font-size: 1.6rem;
 }
 
 h6 {
-  font-weight: 500;
+  font-weight: 400;
   font-size: 1.4rem;
 }
 

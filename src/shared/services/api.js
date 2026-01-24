@@ -230,6 +230,32 @@ api.interceptors.request.use((config) => {
   // Backend will read from req.cookies.seller_jwt (or req.cookies.main_jwt for buyer routes)
   // NO localStorage fallback - cookies are the only authentication method
   
+  // SECURITY: CSRF Protection - Read token from cookie and send in header
+  // CSRF token is required for all state-changing operations (POST, PATCH, PUT, DELETE)
+  if (['post', 'patch', 'put', 'delete'].includes(method)) {
+    // Get CSRF token from cookie
+    const getCookie = (name) => {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return null;
+    };
+    
+    const csrfToken = getCookie('csrf-token');
+    
+    if (csrfToken) {
+      config.headers['X-CSRF-Token'] = csrfToken;
+      if (import.meta.env.DEV) {
+        console.debug(`[API] CSRF token added to ${method.toUpperCase()} ${normalizedPath}`);
+      }
+    } else {
+      if (import.meta.env.DEV) {
+        console.warn(`[API] ⚠️ CSRF token not found in cookie for ${method.toUpperCase()} ${normalizedPath}`);
+        console.warn(`[API] ⚠️ This may cause a 403 error. User may need to refresh the page or log in again.`);
+      }
+    }
+  }
+  
   if (import.meta.env.DEV) {
     console.debug(`[API] Cookie will be sent automatically for ${method.toUpperCase()} ${normalizedPath}`);
   }

@@ -5,7 +5,7 @@ import useAuth from '../shared/hooks/useAuth';
 import { LoadingState } from '../shared/components/ui/LoadingComponents';
 import { PATHS } from './routePaths';
 
-const ProtectedRoutes = ({ children }) => {
+const ProtectedRoutes = ({ children, allowPending = false }) => {
   const queryClient = useQueryClient();
   const { seller, sellerData, isLoading, error } = useAuth();
 
@@ -118,7 +118,13 @@ const ProtectedRoutes = ({ children }) => {
 
   // Only allow sellers with status "active" into protected routes.
   // Pending or other statuses are redirected.
+  // Exception: If allowPending is true, allow pending sellers (for onboarding flows like payment methods)
   if (seller.status !== "active") {
+    if (allowPending && seller.status === "pending") {
+      // Allow pending sellers to access this route (e.g., for adding payment methods during onboarding)
+      return <Suspense fallback={<LoadingState message="Loading..." />}>{children}</Suspense>;
+    }
+    
     console.warn("[ProtectedRoute] Seller status is not active - redirecting", {
       status: seller.status,
     });

@@ -199,7 +199,7 @@ const AddProductPage = () => {
 export default AddProductPage;
 
 const PageContainer = styled.div`
-  padding: 2rem;
+  padding: 1.2rem 1.6rem; /* reduced overall padding for a tighter layout */
   background-color: #f8fafc;
   min-height: 100vh;
   max-width: 1200px;
@@ -255,7 +255,7 @@ const FormContainer = styled.div`
   border-radius: 12px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
     0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  padding: 2rem;
+  padding: 1.5rem; /* reduced inner padding within the form card */
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 
   &:hover {

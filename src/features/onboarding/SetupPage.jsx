@@ -50,8 +50,8 @@ const SetupPage = () => {
       icon: <FaBuilding />,
       action: (requiredSetup.hasBusinessDocumentsVerified || businessDocumentsStatus?.isVerified)
         ? 'Documents verified' 
-        : 'Upload documents',
-      link: `${PATHS.SETTINGS}#verification`,
+        : 'Update documents',
+      link: `${PATHS.SETTINGS}?tab=profile&scrollTo=verification-documents`,
       color: 'var(--color-primary-500)',
     },
     {
@@ -63,7 +63,7 @@ const SetupPage = () => {
       action: (requiredSetup.hasPaymentMethodVerified || paymentMethodStatus?.isVerified)
         ? 'Payment method verified' 
         : 'Add payment method',
-      link: PATHS.PAYMENT_REQUESTS || PATHS.DASHBOARD,
+      link: PATHS.PAYMENT_METHODS,
       color: 'var(--color-green-700)',
     },
     {

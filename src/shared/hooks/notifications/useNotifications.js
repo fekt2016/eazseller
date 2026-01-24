@@ -15,15 +15,44 @@ import useAuth from '../useAuth';
 export const useNotifications = (params = {}) => {
   const { seller, isLoading: isSellerLoading } = useAuth();
   
-  // Ensure enabled is always a boolean - check seller exists
-  const isEnabled = Boolean(seller && (seller.id || seller._id) && !isSellerLoading);
+  // Ensure enabled is always a boolean - check seller exists and has valid ID
+  const hasValidSeller = seller && 
+                        typeof seller === 'object' && 
+                        !Array.isArray(seller) &&
+                        (seller.id || seller._id) &&
+                        (seller.email || seller.name || seller.phone);
+  
+  const isEnabled = Boolean(!isSellerLoading && hasValidSeller);
   
   return useQuery({
     queryKey: ['notifications', params],
-    queryFn: () => getNotifications(params),
+    queryFn: async () => {
+      try {
+        return await getNotifications(params);
+      } catch (error) {
+        // If 401, user is not authenticated - return empty array instead of throwing
+        if (error?.response?.status === 401) {
+          console.warn('[useNotifications] 401 error - seller not authenticated');
+          return {
+            status: 'success',
+            data: {
+              notifications: [],
+            },
+          };
+        }
+        throw error;
+      }
+    },
     enabled: isEnabled, // Only run when authenticated
     staleTime: 30000, // 30 seconds
     refetchOnWindowFocus: true,
+    retry: (failureCount, error) => {
+      // Don't retry on 401 errors (auth failure)
+      if (error?.response?.status === 401) {
+        return false;
+      }
+      return failureCount < 2;
+    },
   });
 };
 
@@ -35,8 +64,14 @@ export const useNotifications = (params = {}) => {
 export const useUnreadCount = () => {
   const { seller, isLoading: isSellerLoading } = useAuth();
   
-  // Ensure enabled is always a boolean - check seller exists
-  const isEnabled = Boolean(seller && (seller.id || seller._id) && !isSellerLoading);
+  // Ensure enabled is always a boolean - check seller exists and has valid ID
+  const hasValidSeller = seller && 
+                        typeof seller === 'object' && 
+                        !Array.isArray(seller) &&
+                        (seller.id || seller._id) &&
+                        (seller.email || seller.name || seller.phone);
+  
+  const isEnabled = Boolean(!isSellerLoading && hasValidSeller);
   
   const query = useQuery({
     queryKey: ['notifications', 'unread'],
@@ -52,11 +87,21 @@ export const useUnreadCount = () => {
         // Ensure response structure is consistent
         return data;
       } catch (error) {
+        // If 401, user is not authenticated - return zero count instead of throwing
+        if (error?.response?.status === 401) {
+          console.warn('[EazSeller useUnreadCount] ⚠️ 401 error - seller not authenticated, returning zero count');
+          return {
+            status: 'success',
+            data: {
+              unreadCount: 0,
+            },
+          };
+        }
         // Handle network errors gracefully
         if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
           console.warn('[EazSeller useUnreadCount] ⚠️ Network error - returning default response');
           return {
-            status: 'error',
+            status: 'success',
             data: {
               unreadCount: 0,
             },
@@ -71,6 +116,13 @@ export const useUnreadCount = () => {
     refetchOnWindowFocus: true, // Refetch when window regains focus
     refetchInterval: isEnabled ? 30000 : false, // Only poll when authenticated
     refetchIntervalInBackground: false, // Don't refetch when tab is in background
+    retry: (failureCount, error) => {
+      // Don't retry on 401 errors (auth failure)
+      if (error?.response?.status === 401) {
+        return false;
+      }
+      return failureCount < 2;
+    },
   });
 
   // Debug logging

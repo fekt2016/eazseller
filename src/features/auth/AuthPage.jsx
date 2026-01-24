@@ -7,6 +7,7 @@ import { validateGhanaPhone } from '../../shared/utils/helpers';
 import { PATHS } from '../../routes/routePaths';
 import { ButtonSpinner } from '../../shared/components/ButtonSpinner';
 import { ErrorState } from '../../shared/components/ui/LoadingComponents';
+import Logo from '../../shared/components/Logo';
 
 // Accra neighborhoods list
 const ACCRA_NEIGHBORHOODS = [
@@ -355,36 +356,12 @@ const AuthPage = () => {
 
   return (
     <Container>
-      <LeftPanel>
-        <h2 style={{ fontSize: "2.5rem", marginBottom: "1rem" }}>
-          Seller Portal
-        </h2>
-        <p
-          style={{
-            fontSize: "1.2rem",
-            marginBottom: "2rem",
-            maxWidth: "500px",
-          }}
-        >
-          Manage your products, track orders, and grow your business with our
-          powerful seller tools.
-        </p>
-
-        <FeatureList>
-          <li>Track orders and manage inventory in real-time</li>
-          <li>Gain insights with detailed sales analytics</li>
-          <li>Reach more customers with our marketplace</li>
-          <li>Get paid quickly with secure payment processing</li>
-        </FeatureList>
-      </LeftPanel>
-
-      <RightPanel>
         <AuthCard>
-          <Logo>
-            <h1>
-              Seller<span>Portal</span>
-            </h1>
-          </Logo>
+          <LogoContainer>
+            <LogoLink to={PATHS.LANDING}>
+              <Logo />
+            </LogoLink>
+          </LogoContainer>
 
           <Tabs>
             <Tab
@@ -427,6 +404,17 @@ const AuthPage = () => {
               ? "Enter your email and password to access your account"
               : "Fill in your details to get started"}
           </Subtitle>
+
+          {(loginError || verify2FAError || verifyOtpError || sendOtpError || registerError) && (
+            <ErrorBanner>
+              {loginError?.response?.data?.message || 
+               verify2FAError?.response?.data?.message || 
+               verifyOtpError?.response?.data?.message || 
+               sendOtpError?.response?.data?.message || 
+               registerError?.response?.data?.message || 
+               "An error occurred. Please try again."}
+            </ErrorBanner>
+          )}
 
           {/* Error Messages */}
           {(loginError || verify2FAError || sendOtpError || verifyOtpError) && activeTab === "login" && (
@@ -783,7 +771,6 @@ const AuthPage = () => {
             )}
           </FooterText>
         </AuthCard>
-      </RightPanel>
     </Container>
   );
 };
@@ -792,113 +779,161 @@ export default AuthPage;
 
 // Styled Components
 const fadeIn = keyframes`
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { 
+    opacity: 0; 
+    transform: translateY(20px) scale(0.98); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0) scale(1); 
+  }
+`;
+
+const slideIn = keyframes`
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 `;
 
 const Container = styled.div`
   display: flex;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
   font-family: var(--font-body);
-`;
-
-const LeftPanel = styled.div`
-  flex: 1;
-  background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
   padding: 2rem;
-  color: white;
-  text-align: center;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 196, 0, 0.05) 0%, transparent 70%);
+    pointer-events: none;
+  }
 
   @media (max-width: 768px) {
-    display: none;
+    padding: 1rem;
+    align-items: flex-start;
+    padding-top: 3rem;
   }
-`;
-
-const RightPanel = styled.div`
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 2rem;
 `;
 
 const AuthCard = styled.div`
   background: white;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  padding: 2.5rem;
+  border-radius: 24px;
+  box-shadow: 
+    0 20px 60px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.04);
+  padding: 3.5rem;
   width: 100%;
-  max-width: 450px;
-  animation: ${fadeIn} 0.5s ease-out;
+  max-width: 480px;
+  animation: ${fadeIn} 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  z-index: 1;
+  backdrop-filter: blur(10px);
+
+  @media (max-width: 768px) {
+    padding: 2rem 1.5rem;
+    border-radius: 20px;
+    max-width: 100%;
+  }
 `;
 
-const Logo = styled.div`
+const LogoContainer = styled.div`
   text-align: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2.5rem;
+  animation: ${slideIn} 0.5s ease-out 0.1s both;
+`;
 
-  h1 {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #2c3e50;
-    margin: 0;
+const LogoLink = styled(Link)`
+  display: inline-block;
+  text-decoration: none;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: scale(1.05);
   }
 
-  span {
-    color: #4b6cb7;
+  &:active {
+    transform: scale(0.98);
   }
 `;
 
 const Title = styled.h2`
   text-align: center;
-  color: #2c3e50;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  font-size: 1.8rem;
+  color: #0f172a;
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+  font-size: 1.75rem;
+  letter-spacing: -0.3px;
+  line-height: 1.3;
 `;
 
 const Subtitle = styled.p`
   text-align: center;
-  color: #718096;
-  font-size: 0.9rem;
-  margin-bottom: 2rem;
+  color: #64748b;
+  font-size: 0.95rem;
+  margin-bottom: 2.5rem;
+  line-height: 1.6;
+  font-weight: 400;
+`;
+
+const ErrorBanner = styled.div`
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 0.875rem 1rem;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+  animation: ${slideIn} 0.3s ease-out;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  &::before {
+    content: '⚠';
+    font-size: 1.1rem;
+  }
 `;
 
 const Tabs = styled.div`
   display: flex;
   justify-content: center;
-  margin-bottom: 2rem;
-  border-bottom: 2px solid #f0f4f8;
+  margin-bottom: 2.5rem;
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 0.375rem;
+  gap: 0.375rem;
 `;
 
 const Tab = styled.button`
-  background: none;
+  background: ${(props) => (props.$active ? "white" : "transparent")};
   border: none;
-  padding: 0.8rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 600;
-  color: ${(props) => (props.$active ? "#4b6cb7" : "#a0aec0")};
+  padding: 0.75rem 1.75rem;
+  font-size: 0.95rem;
+  font-weight: ${(props) => (props.$active ? "500" : "400")};
+  color: ${(props) => (props.$active ? "var(--color-primary-600)" : "#64748b")};
   cursor: pointer;
   position: relative;
-  transition: color 0.3s ease;
-
-  &:after {
-    content: "";
-    position: absolute;
-    bottom: -2px;
-    left: 0;
-    width: 100%;
-    height: 3px;
-    background: ${(props) => (props.$active ? "#4b6cb7" : "transparent")};
-    transition: background 0.3s ease;
-  }
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 8px;
+  flex: 1;
+  box-shadow: ${(props) => (props.$active ? "0 2px 8px rgba(0, 0, 0, 0.08)" : "none")};
 
   &:hover {
-    color: #4b6cb7;
+    color: ${(props) => (props.$active ? "var(--color-primary-700)" : "var(--color-primary-600)")};
   }
 `;
 
@@ -916,30 +951,51 @@ const InputGroup = styled.div`
 `;
 
 const Label = styled.label`
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #4a5568;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: #475569;
+  margin-bottom: 0.25rem;
+  display: block;
 
   span {
-    color: #e53e3e;
+    color: #dc2626;
+    margin-left: 2px;
   }
 `;
 
 const Input = styled.input`
-  padding: 1rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: all 0.3s ease;
+  padding: 0.875rem 1rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #ffffff;
+  color: #0f172a;
+  font-weight: 400;
+  width: 100%;
 
   &:focus {
-    border-color: #4b6cb7;
-    box-shadow: 0 0 0 3px rgba(75, 108, 183, 0.2);
+    border-color: var(--color-primary-500);
+    box-shadow: 
+      0 0 0 4px rgba(255, 196, 0, 0.1),
+      0 2px 8px rgba(0, 0, 0, 0.04);
     outline: none;
+    background: #ffffff;
+  }
+
+  &:hover:not(:focus) {
+    border-color: #cbd5e1;
   }
 
   &::placeholder {
-    color: #a0aec0;
+    color: #94a3b8;
+    font-weight: 400;
+  }
+
+  &:disabled {
+    background: #f8fafc;
+    cursor: not-allowed;
+    opacity: 0.6;
   }
 `;
 
@@ -949,36 +1005,43 @@ const MethodToggle = styled.button`
   top: 0;
   background: none;
   border: none;
-  color: #4b6cb7;
-  font-size: 0.75rem;
+  color: var(--color-primary-600);
+  font-size: 0.8125rem;
   cursor: pointer;
-  padding: 5px;
-  text-decoration: underline;
-  transition: color 0.2s;
+  padding: 0.5rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  font-weight: 400;
+  border-radius: 6px;
 
   &:hover {
-    color: #2e59d9;
+    color: var(--color-primary-700);
+    background: rgba(255, 196, 0, 0.08);
   }
 `;
 
 const ForgotPasswordLink = styled(Link)`
   align-self: flex-end;
-  margin-top: 0.5rem;
+  margin-top: -0.5rem;
+  margin-bottom: 0.5rem;
   font-size: 0.875rem;
-  color: #4b6cb7;
+  color: var(--color-primary-600);
   text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s ease;
+  font-weight: 400;
+  transition: all 0.2s ease;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  display: inline-block;
 
   &:hover {
-    color: #2e59d9;
-    text-decoration: underline;
+    color: var(--color-primary-700);
+    background: rgba(255, 196, 0, 0.08);
   }
 
   &:focus {
-    outline: 2px solid #4b6cb7;
+    outline: 2px solid var(--color-primary-500);
     outline-offset: 2px;
-    border-radius: 4px;
+    border-radius: 6px;
   }
 `;
 
@@ -986,105 +1049,149 @@ const OtpContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
 `;
 
 const OtpInputs = styled.div`
   display: flex;
-  gap: 0.75rem;
+  gap: 0.875rem;
   justify-content: center;
+  flex-wrap: wrap;
 `;
 
 const OtpInput = styled.input`
-  width: 3.5rem;
-  height: 3.5rem;
+  width: 3.25rem;
+  height: 3.25rem;
   text-align: center;
   font-size: 1.5rem;
-  font-weight: 600;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  transition: all 0.3s ease;
+  font-weight: 500;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #ffffff;
 
   &:focus {
     outline: none;
-    border-color: #4b6cb7;
-    box-shadow: 0 0 0 3px rgba(75, 108, 183, 0.2);
+    border-color: var(--color-primary-500);
+    box-shadow: 
+      0 0 0 4px rgba(255, 196, 0, 0.1),
+      0 2px 8px rgba(0, 0, 0, 0.04);
+    transform: scale(1.05);
+  }
+
+  &:hover:not(:focus) {
+    border-color: #cbd5e1;
   }
 `;
 
 const ResendContainer = styled.div`
-  margin-top: 0.5rem;
+  margin-top: 0.75rem;
   text-align: center;
+  padding-top: 1rem;
+  border-top: 1px solid #f1f5f9;
 `;
 
 const ResendText = styled.span`
   font-size: 0.875rem;
-  color: #718096;
+  color: #64748b;
+  font-weight: 400;
 `;
 
 const ResendButton = styled.button`
   background: none;
   border: none;
-  color: #4b6cb7;
+  color: var(--color-primary-600);
   font-size: 0.875rem;
   cursor: pointer;
-  text-decoration: underline;
-  padding: 0.5rem;
+  text-decoration: none;
+  padding: 0.5rem 0.75rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
   margin: 0 auto;
-  transition: color 0.2s;
+  transition: all 0.2s ease;
+  border-radius: 8px;
+  font-weight: 400;
 
   &:hover:not(:disabled) {
-    color: #2e59d9;
+    color: var(--color-primary-700);
+    background: rgba(255, 196, 0, 0.08);
   }
 
   &:disabled {
-    color: #a0aec0;
+    color: #cbd5e0;
     cursor: not-allowed;
+    opacity: 0.6;
   }
 `;
 
 const BackButton = styled.button`
   background: none;
   border: none;
-  color: #4b6cb7;
+  color: var(--color-primary-600);
   font-size: 0.875rem;
   cursor: pointer;
-  padding: 0.5rem;
+  padding: 0.5rem 0.75rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
   margin: 0.5rem auto 0;
-  transition: color 0.2s;
+  transition: all 0.2s ease;
+  border-radius: 8px;
+  font-weight: 400;
 
   &:hover {
-    color: #2e59d9;
-    text-decoration: underline;
+    color: var(--color-primary-700);
+    background: rgba(255, 196, 0, 0.08);
   }
 `;
 
 const SubmitButton = styled.button`
-  background: linear-gradient(to right, #4b6cb7, #3a56a2);
+  background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-600));
   color: white;
   border: none;
-  padding: 1rem;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
+  padding: 0.9375rem 1.5rem;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
-  height: 50px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  height: 48px;
   display: flex;
   justify-content: center;
   align-items: center;
+  gap: 0.5rem;
+  box-shadow: 
+    0 2px 8px rgba(255, 196, 0, 0.25),
+    0 0 0 0 rgba(255, 196, 0, 0);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+  }
 
   &:hover:not(:disabled) {
-    background: linear-gradient(to right, #3a56a2, #2c3e70);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(75, 108, 183, 0.3);
+    background: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-700));
+    transform: translateY(-1px);
+    box-shadow: 
+      0 4px 16px rgba(255, 196, 0, 0.35),
+      0 0 0 4px rgba(255, 196, 0, 0.1);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 
+      0 2px 8px rgba(255, 196, 0, 0.25),
+      0 0 0 2px rgba(255, 196, 0, 0.1);
   }
 
   &:disabled {
@@ -1092,22 +1199,30 @@ const SubmitButton = styled.button`
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
+    opacity: 0.7;
+  }
+
+  &:hover:not(:disabled)::before {
+    left: 100%;
   }
 `;
 
 const ErrorText = styled.span`
-  color: #e53e3e;
-  font-size: 0.85rem;
-  margin-top: 0.25rem;
+  color: #dc2626;
+  font-size: 0.8125rem;
+  margin-top: 0.375rem;
   display: block;
+  font-weight: 400;
 `;
 
 const Divider = styled.div`
   display: flex;
   align-items: center;
   text-align: center;
-  color: #a0aec0;
-  margin: 1.5rem 0;
+  color: #94a3b8;
+  margin: 2rem 0;
+  font-size: 0.875rem;
+  font-weight: 400;
 
   &:before,
   &:after {
@@ -1127,77 +1242,71 @@ const Divider = styled.div`
 
 const FooterText = styled.p`
   text-align: center;
-  color: #718096;
-  font-size: 0.9rem;
+  color: #64748b;
+  font-size: 0.875rem;
+  margin-top: 1.5rem;
+  font-weight: 400;
 
   a {
-    color: #4b6cb7;
+    color: var(--color-primary-600);
     text-decoration: none;
-    font-weight: 600;
+    font-weight: 500;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    display: inline-block;
 
     &:hover {
-      text-decoration: underline;
-    }
-  }
-`;
-
-const FeatureList = styled.ul`
-  list-style: none;
-  padding: 0;
-  max-width: 400px;
-
-  li {
-    display: flex;
-    align-items: flex-start;
-    margin-bottom: 1.5rem;
-
-    &:before {
-      content: "✓";
-      color: #48bb78;
-      font-weight: bold;
-      margin-right: 0.8rem;
-      font-size: 1.2rem;
+      color: var(--color-primary-700);
+      background: rgba(255, 196, 0, 0.08);
     }
   }
 `;
 
 const HelpText = styled.span`
-  color: #718096;
-  font-size: 0.85rem;
-  margin-top: 0.25rem;
+  color: #64748b;
+  font-size: 0.8125rem;
+  margin-top: 0.375rem;
   display: block;
+  font-weight: 400;
+  line-height: 1.5;
 `;
 
 const PhoneInputContainer = styled.div`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-top: 0.25rem;
+  margin-top: 0.375rem;
+  flex-wrap: wrap;
 `;
 
 const NetworkIndicator = styled.div`
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  background: #f0f4f8;
-  color: #2c3e50;
-  border-radius: 6px;
-  padding: 0.2rem 0.7rem;
-  font-size: 0.95rem;
-  font-weight: 600;
+  background: #f8fafc;
+  color: #475569;
+  border-radius: 8px;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
   margin-left: 0.5rem;
+  border: 1px solid #e2e8f0;
 
   &.mtn {
     background: #fffbe6;
     color: #ffbe00;
+    border-color: #ffeb99;
   }
   &.telecel {
     background: #ffe6f0;
     color: #e6007a;
+    border-color: #ffb3d1;
   }
   &.airteltigo {
     background: #e6f0ff;
     color: #0057b8;
+    border-color: #b3d9ff;
   }
 `;
 
@@ -1207,48 +1316,68 @@ const NetworkIcon = styled.span`
 `;
 
 const PhonePrefix = styled.span`
-  background: #f0f4f8;
-  color: #4b6cb7;
-  border-radius: 6px;
-  padding: 0.5rem 0.9rem;
-  font-size: 1rem;
-  font-weight: 600;
+  background: #f8fafc;
+  color: var(--color-primary-600);
+  border-radius: 10px;
+  padding: 0.875rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 500;
   margin-right: 0.5rem;
+  border: 1.5px solid #e2e8f0;
+  white-space: nowrap;
 `;
 
 const PhoneInput = styled.input`
-  padding: 1rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: all 0.3s ease;
+  padding: 0.875rem 1rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   flex: 1;
+  background: #ffffff;
+  color: #0f172a;
+  font-weight: 400;
 
   &:focus {
-    border-color: #4b6cb7;
-    box-shadow: 0 0 0 3px rgba(75, 108, 183, 0.2);
+    border-color: var(--color-primary-500);
+    box-shadow: 
+      0 0 0 4px rgba(255, 196, 0, 0.1),
+      0 2px 8px rgba(0, 0, 0, 0.04);
     outline: none;
   }
 
+  &:hover:not(:focus) {
+    border-color: #cbd5e1;
+  }
+
   &::placeholder {
-    color: #a0aec0;
+    color: #94a3b8;
+    font-weight: 400;
   }
 `;
 
 const LocationSelect = styled.select`
-  padding: 1rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: all 0.3s ease;
+  padding: 0.875rem 1rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   background-color: white;
-  color: #2c3e50;
+  color: #0f172a;
   cursor: pointer;
+  font-weight: 400;
+  width: 100%;
 
   &:focus {
-    border-color: #4b6cb7;
-    box-shadow: 0 0 0 3px rgba(75, 108, 183, 0.2);
+    border-color: var(--color-primary-500);
+    box-shadow: 
+      0 0 0 4px rgba(255, 196, 0, 0.1),
+      0 2px 8px rgba(0, 0, 0, 0.04);
     outline: none;
+  }
+
+  &:hover:not(:focus) {
+    border-color: #cbd5e1;
   }
 
   option {

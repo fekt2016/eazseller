@@ -545,12 +545,12 @@ const PaymentMethodPage = ({ embedded = false }) => {
                         </AccountDetails>
                       </td>
                       <td>
-                        <VerificationStatusBadge $status={method.verificationStatus || 'pending'}>
-                          {method.verificationStatus === 'verified' ? (
+                        <VerificationStatusBadge $status={method.verificationStatus || method.status || 'pending'}>
+                          {(method.verificationStatus === 'verified' || method.status === 'verified' || method.status === 'active') ? (
                             <>
                               <FaCheckCircle /> Verified
                             </>
-                          ) : method.verificationStatus === 'rejected' ? (
+                          ) : (method.verificationStatus === 'rejected' || method.status === 'rejected') ? (
                             <>
                               <FaTimesCircle /> Rejected
                               {method.rejectionReason && (
@@ -561,10 +561,16 @@ const PaymentMethodPage = ({ embedded = false }) => {
                             </>
                           ) : (
                             <>
-                              <FaClock /> Pending
+                              <FaClock /> Pending Admin Review
                             </>
                           )}
                         </VerificationStatusBadge>
+                        {/* Show info tooltip for pending status */}
+                        {(method.verificationStatus === 'pending' || method.status === 'pending' || !method.verificationStatus) && (
+                          <StatusInfoTooltip>
+                            Your payment method is awaiting admin verification. You will be notified once it's reviewed.
+                          </StatusInfoTooltip>
+                        )}
                       </td>
                       <td>
                         <DefaultSelector>
@@ -588,56 +594,8 @@ const PaymentMethodPage = ({ embedded = false }) => {
                       </td>
                       <td>
                         <ActionButtons>
-                          {/* Show Activate/Reactivate button for payment methods that need activation */}
-                          {(method.verificationStatus === 'rejected' || 
-                            method.verificationStatus === 'pending' || 
-                            !method.verificationStatus) && (
-                            <ActionButton
-                              type="button"
-                              variant="primary"
-                              size="sm"
-                              onClick={async () => {
-                                // Request activation by updating seller payment methods
-                                // This will trigger backend to reset payoutStatus to 'pending' if needed
-                                try {
-                                  const paymentMethodsUpdate = method.type === 'bank_transfer'
-                                    ? {
-                                        paymentMethods: {
-                                          bankAccount: {
-                                            accountName: method.accountName || method.name || '',
-                                            accountNumber: method.accountNumber || '',
-                                            bankName: method.bankName || '',
-                                            branch: method.branch || '',
-                                          }
-                                        }
-                                      }
-                                    : {
-                                        paymentMethods: {
-                                          mobileMoney: {
-                                            accountName: method.accountName || method.name || '',
-                                            phone: method.mobileNumber || method.phone || '',
-                                            network: method.provider || method.network || '',
-                                          }
-                                        }
-                                      };
-                                  
-                                  await update(paymentMethodsUpdate);
-                                  const actionText = method.verificationStatus === 'rejected' ? 'reactivation' : 'activation';
-                                  toast.success(`${actionText.charAt(0).toUpperCase() + actionText.slice(1)} requested! Your payment method will be reviewed by admin.`);
-                                  // Refetch payment methods to update status
-                                  await refetchPaymentMethods();
-                                } catch (activationError) {
-                                  console.error('Error requesting activation:', activationError);
-                                  toast.error(activationError.response?.data?.message || 'Failed to request activation. Please try again.');
-                                }
-                              }}
-                              title={method.verificationStatus === 'rejected' 
-                                ? 'Request reactivation for this rejected payment method' 
-                                : 'Request activation/verification for this payment method'}
-                            >
-                              <FaCheckCircle /> {method.verificationStatus === 'rejected' ? 'Reactivate' : 'Activate'}
-                            </ActionButton>
-                          )}
+                          {/* Note: Payment method verification is done by admin only */}
+                          {/* Sellers can only submit for verification, not activate */}
                           <ActionButton
                             type="button"
                             variant="ghost"
@@ -1541,3 +1499,13 @@ const RejectionTooltip = styled.div`
   }
 `;
 
+const StatusInfoTooltip = styled.div`
+  margin-top: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-blue-50);
+  border-left: 3px solid var(--color-blue-300);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  color: var(--color-blue-700);
+  line-height: 1.4;
+`;

@@ -178,8 +178,15 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add" }) => {
     });
   }, [productName, subCategory, variants, reset, seller, getCategoryName]);
 
+  const [step, setStep] = useState(1);
+
+  const goNext = () => setStep((s) => Math.min(s + 1, 2));
+  const goBack = () => setStep((s) => Math.max(s - 1, 1));
+
   if (isLoading) return <LoadingSpinner />;
   if (error) return <div>Error loading categories</div>;
+
+  const isLastStep = step === 2;
 
   return (
     <ProductFormContainer>
@@ -191,56 +198,86 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add" }) => {
           {mode === "add" ? "Add New Product" : "Edit Product"}
         </FormTitle>
       </FormHeader>
+
+      <StepperContainer>
+        <Step $active={step === 1}>Details</Step>
+        <StepDivider />
+        <Step $active={step === 2}>Media & Specs</Step>
+      </StepperContainer>
+
       <FormProvider {...methods}>
-        <StyledForm onSubmit={handleSubmit(onSubmit)}>
-          <SectionContainer>
-            <SectionTitle>Basic Information</SectionTitle>
-            <BasicSection />
-          </SectionContainer>
+        <StyledForm
+          onSubmit={handleSubmit((values) => {
+            if (!isLastStep) {
+              goNext();
+              return;
+            }
+            onSubmit(values);
+          })}
+        >
+          {step === 1 && (
+            <>
+              <SectionContainer>
+                <SectionTitle>Basic Information</SectionTitle>
+                <BasicSection />
+              </SectionContainer>
 
-          <SectionContainer>
-            <SectionTitle>Category</SectionTitle>
-            <CategorySection
-              categories={allCategories}
-              parentCategory={parentCategory}
-              subCategory={subCategory}
-            />
-          </SectionContainer>
+              <SectionContainer>
+                <SectionTitle>Category</SectionTitle>
+                <CategorySection
+                  categories={allCategories}
+                  parentCategory={parentCategory}
+                  subCategory={subCategory}
+                />
+              </SectionContainer>
 
-          <SectionContainer>
-            <SectionTitle>Variants</SectionTitle>
-            <VariantSection
-              variantAttributes={variantAttributes}
-              fields={variantFields}
-              append={addNewVariant}
-              remove={removeVariant}
-              update={updateVariant}
-              seller={seller}
-            />
-          </SectionContainer>
+              <SectionContainer>
+                <SectionTitle>Variants</SectionTitle>
+                <VariantSection
+                  variantAttributes={variantAttributes}
+                  fields={variantFields}
+                  append={addNewVariant}
+                  remove={removeVariant}
+                  update={updateVariant}
+                  seller={seller}
+                />
+              </SectionContainer>
+            </>
+          )}
 
-          <SectionContainer>
-            <SectionTitle>Specifications</SectionTitle>
-            <SpecificationSection />
-          </SectionContainer>
+          {step === 2 && (
+            <>
+              <SectionContainer>
+                <SectionTitle>Specifications</SectionTitle>
+                <SpecificationSection />
+              </SectionContainer>
 
-          <SectionContainer>
-            <SectionTitle>Images</SectionTitle>
-            <ImageSection
-              isSubmitting={isSubmitting}
-              initialData={initialData}
-            />
-          </SectionContainer>
+              <SectionContainer>
+                <SectionTitle>Images</SectionTitle>
+                <ImageSection
+                  isSubmitting={isSubmitting}
+                  initialData={initialData}
+                />
+              </SectionContainer>
+            </>
+          )}
 
-          <SubmitButton type="submit" disabled={isSubmitting}>
-            {isSubmitting ? (
-              <LoadingSpinner />
-            ) : mode === "add" ? (
-              "Add Product"
-            ) : (
-              "Save Changes"
+          <FormActions>
+            {step > 1 && (
+              <SecondaryButton type="button" onClick={goBack}>
+                Back
+              </SecondaryButton>
             )}
-          </SubmitButton>
+            <PrimaryButton type={isLastStep ? "submit" : "submit"} disabled={isSubmitting}>
+              {isSubmitting && isLastStep ? (
+                <LoadingSpinner />
+              ) : isLastStep ? (
+                mode === "add" ? "Add Product" : "Save Changes"
+              ) : (
+                "Next"
+              )}
+            </PrimaryButton>
+          </FormActions>
         </StyledForm>
       </FormProvider>
     </ProductFormContainer>
@@ -292,7 +329,7 @@ const StyledForm = styled.form`
   border-radius: 12px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
     0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  padding: 2rem;
+  padding: 1.5rem;
 `;
 
 const SectionContainer = styled.div`
@@ -336,5 +373,81 @@ const SubmitButton = styled.button`
   &:disabled {
     background: #a0aec0;
     cursor: not-allowed;
+  }
+`;
+
+const StepperContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+`;
+
+const Step = styled.div`
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  background: ${(p) => (p.$active ? "var(--color-primary-50)" : "#f1f5f9")};
+  color: ${(p) => (p.$active ? "var(--color-primary-700)" : "#64748b")};
+  border: 1px solid
+    ${(p) => (p.$active ? "var(--color-primary-400)" : "#e2e8f0")};
+`;
+
+const StepDivider = styled.div`
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    rgba(148, 163, 184, 0.7),
+    rgba(148, 163, 184, 0.1)
+  );
+`;
+
+const FormActions = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+`;
+
+const PrimaryButton = styled.button`
+  background: #3182ce;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.7rem 1.4rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+
+  &:hover {
+    background: #2b6cb0;
+  }
+
+  &:disabled {
+    background: #a0aec0;
+    cursor: not-allowed;
+  }
+`;
+
+const SecondaryButton = styled.button`
+  background: #e2e8f0;
+  color: #1f2933;
+  border: none;
+  border-radius: 6px;
+  padding: 0.7rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 400;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #cbd5e0;
   }
 `;

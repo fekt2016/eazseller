@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
-import { FaStore, FaMapMarkerAlt, FaFacebook, FaInstagram, FaTwitter, FaTiktok, FaSave, FaArrowLeft, FaFileUpload, FaFile, FaTimes, FaCompass, FaSearchLocation, FaUser, FaEye, FaFileAlt } from 'react-icons/fa';
+import { FaStore, FaMapMarkerAlt, FaFacebook, FaInstagram, FaTwitter, FaTiktok, FaSave, FaArrowLeft, FaFileUpload, FaFile, FaTimes, FaCompass, FaSearchLocation, FaUser, FaEye, FaFileAlt, FaCheckCircle, FaClock } from 'react-icons/fa';
 import useAuth from '../../shared/hooks/useAuth';
 import useSellerStatus from '../../shared/hooks/useSellerStatus';
 import { PATHS } from '../../routes/routePaths';
@@ -12,7 +12,7 @@ import { compressImage } from '../../shared/utils/imageCompressor';
 
 const BusinessProfilePage = ({ embedded = false }) => {
   const { seller, update, isUpdateLoading } = useAuth();
-  const { updateOnboardingAsync } = useSellerStatus();
+  const { updateOnboardingAsync, businessDocumentsStatus } = useSellerStatus();
   const navigate = useNavigate();
   const location = useLocation();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -98,17 +98,43 @@ const BusinessProfilePage = ({ embedded = false }) => {
   // Cleanup preview URLs
   useEffect(() => {
     return () => {
-      if (businessCertPreview?.startsWith('blob:')) {
+      // Only revoke blob URLs (temporary file previews), not Cloudinary URLs
+      if (typeof businessCertPreview === 'string' && businessCertPreview.startsWith('blob:')) {
         URL.revokeObjectURL(businessCertPreview);
       }
-      if (idProofPreview?.startsWith('blob:')) {
+      if (typeof idProofPreview === 'string' && idProofPreview.startsWith('blob:')) {
         URL.revokeObjectURL(idProofPreview);
       }
-      if (addressProofPreview?.startsWith('blob:')) {
+      if (typeof addressProofPreview === 'string' && addressProofPreview.startsWith('blob:')) {
         URL.revokeObjectURL(addressProofPreview);
       }
     };
   }, [businessCertPreview, idProofPreview, addressProofPreview]);
+
+  // Scroll to verification documents section when query parameter is present
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const scrollTo = searchParams.get('scrollTo');
+    
+    if (scrollTo === 'verification-documents') {
+      // Small delay to ensure the component is rendered
+      setTimeout(() => {
+        const element = document.getElementById('verification-documents');
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          // Clean up the query parameter after scrolling
+          const newSearchParams = new URLSearchParams(location.search);
+          newSearchParams.delete('scrollTo');
+          const newSearch = newSearchParams.toString();
+          window.history.replaceState(
+            null,
+            '',
+            `${location.pathname}${newSearch ? `?${newSearch}` : ''}${location.hash || ''}`
+          );
+        }
+      }, 500); // Increased delay to ensure tab content is rendered
+    }
+  }, [location.search, location.pathname, location.hash]);
 
   // Validate Ghana digital address format
   const validateDigitalAddress = (address) => {
@@ -740,14 +766,53 @@ const BusinessProfilePage = ({ embedded = false }) => {
         </Section>
 
         {/* Verification Documents Section */}
-        <Section $marginBottom="lg">
+        <Section id="verification-documents" $marginBottom="lg">
           <SectionHeader $padding="md">
             <h3>Verification Documents</h3>
             <HelperText style={{ margin: 0, fontSize: 'var(--font-size-xs)' }}>
               Upload documents for account verification (Images or PDF, max 5MB each)
             </HelperText>
           </SectionHeader>
-          <FormContent>
+          
+          {/* Check if documents are submitted */}
+          {(() => {
+            const hasDocuments = seller?.verificationDocuments?.businessCert || 
+                                 seller?.verificationDocuments?.idProof || 
+                                 seller?.verificationDocuments?.addresProof;
+            const isVerified = businessDocumentsStatus?.isVerified || false;
+            const isPending = hasDocuments && !isVerified;
+            
+            // Show status if documents are submitted
+            if (hasDocuments) {
+              return (
+                <FormContent>
+                  <VerificationStatusCard $verified={isVerified}>
+                    <StatusIcon $verified={isVerified}>
+                      {isVerified ? <FaCheckCircle /> : <FaClock />}
+                    </StatusIcon>
+                    <StatusContent>
+                      <StatusTitle $verified={isVerified}>
+                        {isVerified ? 'Documents Verified' : 'Waiting for Admin Verification'}
+                      </StatusTitle>
+                      <StatusMessage>
+                        {isVerified 
+                          ? 'Your business documents have been verified by our admin team. You can now proceed with your seller account setup.'
+                          : 'Your documents have been submitted and are currently under review by our admin team. We will notify you once the verification is complete.'}
+                      </StatusMessage>
+                      {isPending && (
+                        <StatusNote>
+                          This process typically takes 1-3 business days. Please check back later or contact support if you have any questions.
+                        </StatusNote>
+                      )}
+                    </StatusContent>
+                  </VerificationStatusCard>
+                </FormContent>
+              );
+            }
+            
+            // Show form if no documents are submitted
+            return (
+              <FormContent>
             {/* Business Certificate */}
             <FormGroup>
               <Label htmlFor="businessCert">
@@ -936,7 +1001,9 @@ const BusinessProfilePage = ({ embedded = false }) => {
                 )}
               </FileUploadContainer>
             </FormGroup>
-          </FormContent>
+              </FormContent>
+            );
+          })()}
         </Section>
 
         {/* Submit Button */}
@@ -1381,3 +1448,77 @@ const ErrorText = styled.span`
   display: block;
 `;
 
+const VerificationStatusCard = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-xl);
+  background: ${props => props.$verified 
+    ? 'linear-gradient(135deg, var(--color-green-50) 0%, var(--color-green-100) 100%)' 
+    : 'linear-gradient(135deg, var(--color-blue-50) 0%, var(--color-blue-100) 100%)'};
+  border: 2px solid ${props => props.$verified 
+    ? 'var(--color-green-300)' 
+    : 'var(--color-blue-300)'};
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+`;
+
+const StatusIcon = styled.div`
+  flex-shrink: 0;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: ${props => props.$verified 
+    ? 'var(--color-green-500)' 
+    : 'var(--color-blue-500)'};
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  box-shadow: 0 4px 12px ${props => props.$verified 
+    ? 'rgba(34, 197, 94, 0.3)' 
+    : 'rgba(59, 130, 246, 0.3)'};
+`;
+
+const StatusContent = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+`;
+
+const StatusTitle = styled.h4`
+  margin: 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-bold);
+  color: ${props => props.$verified 
+    ? 'var(--color-green-700)' 
+    : 'var(--color-blue-700)'};
+`;
+
+const StatusMessage = styled.p`
+  margin: 0;
+  font-size: var(--font-size-md);
+  color: ${props => props.$verified 
+    ? 'var(--color-green-800)' 
+    : 'var(--color-blue-800)'};
+  line-height: 1.6;
+`;
+
+const StatusNote = styled.p`
+  margin: var(--spacing-sm) 0 0 0;
+  font-size: var(--font-size-sm);
+  color: ${props => props.$verified 
+    ? 'var(--color-green-700)' 
+    : 'var(--color-blue-700)'};
+  font-style: italic;
+  opacity: 0.8;
+  line-height: 1.5;
+`;

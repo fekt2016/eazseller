@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { Link } from "react-router-dom";
 
 /**
- * EazShop Logo Component
+ * Saiisai Logo Component
  * Can be used as a standalone logo or as a link to home
  */
 const Logo = ({ 
@@ -43,8 +43,7 @@ const Logo = ({
       </LogoIcon>
       {variant !== "icon" && (
         <LogoText $variant={variant}>
-          <LogoTextPrimary>Eaz</LogoTextPrimary>
-          <LogoTextSecondary>Shop</LogoTextSecondary>
+          <LogoTextPrimary>Saiisai</LogoTextPrimary>
         </LogoText>
       )}
     </LogoContainer>
@@ -80,20 +79,23 @@ const LogoLink = styled(Link)`
 
 const LogoIcon = styled.div`
   width: ${(props) => {
-    if (props.$variant === "compact") return "32px";
-    if (props.$variant === "icon") return "40px";
-    return "40px";
+    if (props.$variant === "compact") return "40px";
+    if (props.$variant === "icon") return "52px";
+    return "46px";
   }};
   height: ${(props) => {
-    if (props.$variant === "compact") return "32px";
-    if (props.$variant === "icon") return "40px";
-    return "40px";
+    if (props.$variant === "compact") return "40px";
+    if (props.$variant === "icon") return "52px";
+    return "46px";
   }};
   color: #ffc400;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: #ffffff; /* White background behind the logo icon */
+  border-radius: 999px;      /* Fully rounded background */
+  padding: 4px;              /* Extra padding so the white background is larger than the icon */
 
   svg {
     width: 100%;

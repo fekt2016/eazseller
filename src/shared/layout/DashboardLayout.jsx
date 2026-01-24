@@ -52,17 +52,27 @@ const DashboardGlobalStyle = createGlobalStyle`
     flex: 1;
     padding: 2rem;
     overflow-y: auto;
-    max-height: calc(100vh - var(--header-height));
     background: var(--color-grey-100);
+    max-height: calc(100vh - var(--header-height));
+    
+    &.no-header {
+      max-height: 100vh;
+      padding: 0;
+    }
     
     @media (max-width: ${BREAKPOINT_MD}) {
       padding: 1.5rem;
       max-height: calc(100vh - var(--header-height) - 60px);
+      
+      &.no-header {
+        padding: 0;
+        max-height: 100vh;
+      }
     }
   }
 `;
 
-export default function DashboardLayout({ showSidebar = true }) {
+export default function DashboardLayout({ showSidebar = true, showHeader = true }) {
   const { seller, isLoading: isSellerLoading, error: sellerError } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -96,16 +106,18 @@ export default function DashboardLayout({ showSidebar = true }) {
           </>
         )}
         <div className={`dashboard-content ${!shouldShowSidebar ? 'no-sidebar' : ''}`}>
-          {shouldShowSidebar ? (
-            <Header 
-              user={seller} 
-              onToggleSidebar={toggleSidebar} 
-              isSidebarOpen={isSidebarOpen} 
-            />
-          ) : (
-            <PublicHeader />
+          {showHeader && (
+            shouldShowSidebar ? (
+              <Header 
+                user={seller} 
+                onToggleSidebar={toggleSidebar} 
+                isSidebarOpen={isSidebarOpen} 
+              />
+            ) : (
+              <PublicHeader />
+            )
           )}
-          <main className="dashboard-main">
+          <main className={`dashboard-main ${!showHeader ? 'no-header' : ''}`}>
             <Outlet />
           </main>
         </div>

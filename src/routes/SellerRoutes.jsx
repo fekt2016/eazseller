@@ -82,12 +82,12 @@ export default function SellerRoutes() {
         />
       </Route>
       
-      {/* Auth Routes - Public with Header, No Sidebar */}
+      {/* Auth Routes - Public without Header, No Sidebar */}
       <Route 
         path={PATHS.LOGIN}
         element={
           <Suspense fallback={<LoadingSpinner />}>
-            <DashboardLayout showSidebar={false} />
+            <DashboardLayout showSidebar={false} showHeader={false} />
           </Suspense>
         }
       >
@@ -123,7 +123,7 @@ export default function SellerRoutes() {
         path={PATHS.FORGOT_PASSWORD}
         element={
           <Suspense fallback={<LoadingSpinner />}>
-            <DashboardLayout showSidebar={false} />
+            <DashboardLayout showSidebar={false} showHeader={false} />
           </Suspense>
         }
       >
@@ -160,7 +160,7 @@ export default function SellerRoutes() {
         path="/reset-password"
         element={
           <Suspense fallback={<LoadingSpinner />}>
-            <DashboardLayout showSidebar={false} />
+            <DashboardLayout showSidebar={false} showHeader={false} />
           </Suspense>
         }
       >
@@ -584,7 +584,7 @@ export default function SellerRoutes() {
         <Route
           path="finance/payment-methods"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowPending={true}>
               <Suspense fallback={<LoadingSpinner fullScreen />}>
                 <PaymentMethodPage />
               </Suspense>
@@ -594,7 +594,7 @@ export default function SellerRoutes() {
         <Route
           path="settings"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowPending={true}>
               <Suspense fallback={<LoadingSpinner fullScreen />}>
                 <SettingsPage />
               </Suspense>

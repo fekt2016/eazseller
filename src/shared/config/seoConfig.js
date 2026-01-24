@@ -1,20 +1,23 @@
 /**
- * SEO Configuration for Saysay (Seller Dashboard)
+ * SEO Configuration for Saiisai (Seller Dashboard)
  * Minimal SEO metadata - all pages set to noIndex by default
  */
 
-const BASE_URL = (typeof process !== 'undefined' && process.env?.REACT_APP_SELLER_URL) || window.location.origin || 'https://seller.saysay.com';
-const DEFAULT_IMAGE = `${BASE_URL}/images/saysay-seller-og.jpg`;
-const DEFAULT_DESCRIPTION = 'Saysay Seller Dashboard - Manage your online store';
+const BASE_URL =
+  (typeof process !== "undefined" && process.env?.REACT_APP_SELLER_URL) ||
+  window.location.origin ||
+  "https://seller.saiisai.com";
+const DEFAULT_IMAGE = `${BASE_URL}/images/saiisai-seller-og.jpg`;
+const DEFAULT_DESCRIPTION = "Saiisai Seller Dashboard - Manage your online store";
 
 const seoConfig = {
   // ────────────────────────────────────────────────
   // Dashboard
   // ────────────────────────────────────────────────
   dashboard: {
-    title: 'Seller Dashboard - Saysay',
-    description: 'Manage your products, orders, and store on Saysay',
-    keywords: 'seller dashboard, Saysay seller',
+    title: "Seller Dashboard - Saiisai",
+    description: "Manage your products, orders, and store on Saiisai",
+    keywords: "seller dashboard, Saiisai seller",
     image: DEFAULT_IMAGE,
     type: 'website',
     canonical: `${BASE_URL}/dashboard`,
@@ -26,9 +29,9 @@ const seoConfig = {
   // Orders
   // ────────────────────────────────────────────────
   orders: {
-    title: 'Orders - Seller Dashboard | Saysay',
+    title: "Orders - Seller Dashboard | Saiisai",
     description: 'View and manage your orders',
-    keywords: 'orders, seller, Saysay',
+    keywords: "orders, seller, Saiisai",
     image: DEFAULT_IMAGE,
     type: 'website',
     canonical: `${BASE_URL}/orders`,
@@ -40,9 +43,9 @@ const seoConfig = {
   // Products
   // ────────────────────────────────────────────────
   products: {
-    title: 'Products - Seller Dashboard | Saysay',
+    title: "Products - Seller Dashboard | Saiisai",
     description: 'Manage your product listings',
-    keywords: 'products, seller, Saysay',
+    keywords: "products, seller, Saiisai",
     image: DEFAULT_IMAGE,
     type: 'website',
     canonical: `${BASE_URL}/products`,
@@ -54,9 +57,9 @@ const seoConfig = {
   // Add Product
   // ────────────────────────────────────────────────
   addProduct: {
-    title: 'Add Product - Seller Dashboard | Saysay',
+    title: "Add Product - Seller Dashboard | Saiisai",
     description: 'Add a new product to your store',
-    keywords: 'add product, seller, Saysay',
+    keywords: "add product, seller, Saiisai",
     image: DEFAULT_IMAGE,
     type: 'website',
     canonical: `${BASE_URL}/products/add`,

@@ -1,11 +1,22 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import paymentMethodApi from '../services/paymentMethodApi';
 import { toast } from 'react-toastify';
+import useAuth from './useAuth';
 
 /**
  * Get current user's payment methods from PaymentMethod model
+ * SECURITY: Only runs when seller is authenticated
  */
 export const useGetPaymentMethods = () => {
+  const { seller, isLoading: isAuthLoading } = useAuth();
+  
+  // Only enable query when seller is authenticated
+  const isEnabled = Boolean(
+    !isAuthLoading && // Auth must be ready
+    seller && // Seller must exist
+    (seller.id || seller._id) // Seller must have an ID
+  );
+  
   return useQuery({
     queryKey: ['paymentMethods'],
     queryFn: async () => {
@@ -13,6 +24,11 @@ export const useGetPaymentMethods = () => {
         const response = await paymentMethodApi.getMyPaymentMethods();
         return response?.data?.paymentMethods || [];
       } catch (error) {
+        // If 401, user is not authenticated - return empty array instead of throwing
+        if (error.response?.status === 401) {
+          console.warn('[useGetPaymentMethods] 401 error - seller not authenticated');
+          return [];
+        }
         // If 404 or no payment methods, return empty array (not an error)
         if (error.response?.status === 404) {
           return [];
@@ -20,10 +36,11 @@ export const useGetPaymentMethods = () => {
         throw error;
       }
     },
+    enabled: isEnabled, // Only run when authenticated
     staleTime: 1000 * 60 * 5, // 5 minutes
     retry: (failureCount, error) => {
-      // Don't retry on 404 (no payment methods found)
-      if (error.response?.status === 404) {
+      // Don't retry on 401 (auth failure) or 404 (no payment methods found)
+      if (error.response?.status === 401 || error.response?.status === 404) {
         return false;
       }
       return failureCount < 2;

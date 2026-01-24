@@ -91,7 +91,7 @@ const InputGroup = styled.div`
 const Label = styled.label`
   display: block;
   margin-bottom: 0.5rem;
-  font-weight: 500;
+  font-weight: 400; /* reduced boldness */
   color: #2d3748;
 `;
 
