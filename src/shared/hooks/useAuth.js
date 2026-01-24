@@ -24,11 +24,32 @@ const useAuth = () => {
         // Cookie is automatically sent by browser via withCredentials: true
         // No need to read from localStorage
         const response = await authApi.getCurrentUser();
-        // Handle nested response structures
-        const seller = response?.data?.data?.data || response?.data?.data || response?.data || response;
+        
+        // Backend returns: { status: 'success', data: { data: sellerData, isSetupComplete: ... } }
+        // axios response structure: response.data = API response
+        const apiResponse = response?.data || response;
+        const seller = apiResponse?.data?.data || apiResponse?.data || apiResponse?.seller || apiResponse;
 
         if (seller && (seller._id || seller.id)) {
+          if (import.meta.env.DEV) {
+            console.debug('[useAuth] Seller data extracted successfully:', {
+              id: seller._id || seller.id,
+              email: seller.email,
+              role: seller.role,
+              status: seller.status,
+            });
+          }
           return seller;
+        }
+
+        // Log response structure for debugging
+        if (import.meta.env.DEV || import.meta.env.MODE === 'development') {
+          console.warn('[useAuth] No seller data found in response:', {
+            hasResponse: !!response,
+            hasData: !!response?.data,
+            responseKeys: response?.data ? Object.keys(response.data) : [],
+            apiResponseKeys: apiResponse ? Object.keys(apiResponse) : [],
+          });
         }
 
         // No seller data - cookie may be expired or missing
@@ -181,6 +202,7 @@ const useAuth = () => {
       }
       const response = await authApi.login(email, password);
 
+      // authApi.login returns response.data, so response is already the API response
       if (response?.requires2FA || response?.status === '2fa_required') {
         if (import.meta.env.DEV) {
           console.debug('🔐 [Seller Login] 2FA required');
@@ -195,9 +217,16 @@ const useAuth = () => {
 
       // SECURITY: Token is in HTTP-only cookie, NOT in response
       // Backend sets cookie automatically - no token storage needed
-      const sellerData = response?.user || response?.data?.user;
+      // Backend returns: { status: 'success', message: 'Login successful', user: sellerData }
+      const sellerData = response?.user || response?.data?.user || response?.data?.data;
 
       if (!sellerData || (!sellerData.id && !sellerData._id)) {
+        console.error('❌ [Seller Login] No seller data in response:', {
+          response,
+          hasUser: !!response?.user,
+          hasDataUser: !!response?.data?.user,
+          hasDataData: !!response?.data?.data,
+        });
         throw new Error('Login failed: No seller data received');
       }
 
@@ -213,12 +242,19 @@ const useAuth = () => {
 
       return { success: true, seller: sellerData };
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       if (data?.success) {
+        // Set the seller data immediately for instant UI update
         queryClient.setQueryData(["sellerAuth"], data.seller);
+        
+        // Invalidate and refetch to get full seller data from /seller/me
+        // This ensures we have the complete seller object with all fields
+        await queryClient.invalidateQueries({ queryKey: ['sellerAuth'] });
+        await queryClient.refetchQueries({ queryKey: ['sellerAuth'] });
+        
+        // Invalidate notifications
         queryClient.invalidateQueries({ queryKey: ['notifications'] });
-        // Refetch auth to ensure ProtectedRoute sees the updated state
-        queryClient.invalidateQueries({ queryKey: ['sellerAuth'] });
+        
         if (import.meta.env.DEV) {
           console.debug('✅ [Seller Login] Auth state updated and queries invalidated');
         }

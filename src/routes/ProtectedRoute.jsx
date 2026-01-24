@@ -24,15 +24,17 @@ const ProtectedRoutes = ({ children, allowPending = false }) => {
     }
   }, [isLoading, seller]);
 
-  // Debug logging
+  // Debug logging (only in development)
   useEffect(() => {
-    console.log("[ProtectedRoute] Auth State:", {
-      isLoading,
-      hasSeller: !!seller,
-      sellerRole: seller?.role,
-      sellerStatus: seller?.status,
-      error: error?.message,
-    });
+    if (import.meta.env.DEV) {
+      console.log("[ProtectedRoute] Auth State:", {
+        isLoading,
+        hasSeller: !!seller,
+        sellerRole: seller?.role,
+        sellerStatus: seller?.status,
+        error: error?.message,
+      });
+    }
   }, [isLoading, seller, error]);
   
   // IMPORTANT: Don't redirect during mutations/API calls
@@ -48,32 +50,26 @@ const ProtectedRoutes = ({ children, allowPending = false }) => {
   }
 
   if (error) {
-    console.error("[ProtectedRoute] Error fetching seller data:", error);
-    console.warn("REDIRECT TRIGGERED FROM: ProtectedRoute.jsx - Error state (line ~50)");
-    console.warn("REDIRECT REASON: Error fetching seller data");
-    console.warn("REDIRECT DETAILS:", {
-      errorMessage: error?.message,
-      errorType: error?.constructor?.name,
-      hasSeller: !!seller,
-      isLoading
-    });
+    // Only log errors in development
+    if (import.meta.env.DEV) {
+      console.error("[ProtectedRoute] Error fetching seller data:", error);
+      console.warn("REDIRECT DETAILS:", {
+        errorMessage: error?.message,
+        errorType: error?.constructor?.name,
+        hasSeller: !!seller,
+        isLoading
+      });
+    }
     
-    // COMMENTED OUT - Redirect to login disabled for debugging
-    // return (
-    //   <Navigate
-    //     to={PATHS.LOGIN}
-    //     state={{ error: "Error fetching seller data" }}
-    //     replace
-    //   />
-    // );
-    
-    // Instead, show error but don't redirect
-    console.error("[ProtectedRoute] 🛑 REDIRECT DISABLED FOR DEBUGGING - Error:", error);
-    return <div style={{ padding: '2rem', color: 'red' }}>
-      <h2>DEBUG: ProtectedRoute Error</h2>
-      <p>Error: {error?.message || 'Unknown error'}</p>
-      <p>Check console for details. Redirect disabled for debugging.</p>
-    </div>;
+    // In production, redirect to login on error
+    // Network errors or 401s are expected when not authenticated
+    return (
+      <Navigate
+        to={PATHS.LOGIN}
+        state={{ error: "Error fetching seller data" }}
+        replace
+      />
+    );
   }
 
   // CRITICAL: Verify user is a seller, not a buyer
@@ -93,27 +89,19 @@ const ProtectedRoutes = ({ children, allowPending = false }) => {
 
   // Double-check role - reject buyers trying to access seller routes
   if (seller.role !== "seller") {
-    console.error("[ProtectedRoute] SECURITY: Buyer detected in seller app - redirecting to login", {
-      hasSeller: !!seller,
-      role: seller?.role,
-      email: seller?.email,
-      phone: seller?.phone,
-    });
-  
+    if (import.meta.env.DEV) {
+      console.error("[ProtectedRoute] SECURITY: Buyer detected in seller app - redirecting to login", {
+        hasSeller: !!seller,
+        role: seller?.role,
+        email: seller?.email,
+        phone: seller?.phone,
+      });
+    }
     
     // Clear any stale auth data
     queryClient.setQueryData(["sellerAuth"], null);
     
-  
     return <Navigate to={PATHS.LOGIN} replace />;
-    
-    // Instead, show error but don't redirect
-    console.error("[ProtectedRoute] 🛑 REDIRECT DISABLED FOR DEBUGGING - Wrong role");
-    return <div style={{ padding: '2rem', color: 'red' }}>
-      <h2>DEBUG: ProtectedRoute - Wrong Role</h2>
-      <p>User role: {seller?.role} (expected: seller)</p>
-      <p>Check console for details. Redirect disabled for debugging.</p>
-    </div>;
   }
 
   // Only allow sellers with status "active" into protected routes.

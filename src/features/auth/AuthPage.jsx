@@ -143,10 +143,12 @@ const AuthPage = () => {
         loginMutation(
           loginData,
           {
-            onSuccess: (result) => {
+            onSuccess: async (result) => {
               // Result from mutationFn is { success: true, seller: sellerData } or { requires2FA: true, ... }
               if (result?.requires2FA) {
-                console.log("[AuthPage] 2FA required");
+                if (import.meta.env.DEV) {
+                  console.log("[AuthPage] 2FA required");
+                }
                 setLoginSessionId(result.loginSessionId);
                 setLoginStep("2fa");
               } else if (result?.success) {
@@ -158,15 +160,20 @@ const AuthPage = () => {
                   return;
                 }
                 
-                console.log('👤 [AuthPage] Seller logged in:', {
-                  id: seller.id || seller._id,
-                  email: seller.email,
-                  name: seller.name || seller.shopName,
-                  role: seller.role,
-                });
+                if (import.meta.env.DEV) {
+                  console.log('👤 [AuthPage] Seller logged in:', {
+                    id: seller.id || seller._id,
+                    email: seller.email,
+                    name: seller.name || seller.shopName,
+                    role: seller.role,
+                  });
+                }
                 
-                // Navigate to dashboard
-                navigate(PATHS.DASHBOARD);
+                // Wait a moment for auth state to update, then navigate
+                // This ensures ProtectedRoute has the seller data
+                setTimeout(() => {
+                  navigate(PATHS.DASHBOARD);
+                }, 100);
                 
                 // Reset form
                 setLoginState({ email: "", password: "" });
