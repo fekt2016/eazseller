@@ -180,20 +180,32 @@ const AuthPage = () => {
               }
             },
             onError: (err) => {
+              const errorMessage = err.response?.data?.message || err.message;
+              const statusCode = err.response?.status;
+              
               console.error("[AuthPage] Login failed:", {
-                message: err.message,
+                message: errorMessage,
                 response: err.response?.data,
-                status: err.response?.status,
+                status: statusCode,
               });
               
-              // Handle unverified account
-              if (err.response?.status === 403) {
-                const errorMessage = err.response?.data?.message || err.message;
-                if (errorMessage.includes('not verified') || errorMessage.includes('verify')) {
-                  // Navigate to verification page or show message
-                  console.log("[AuthPage] Account not verified - redirect to verification");
+              // Handle unverified account (403)
+              if (statusCode === 403) {
+                const messageLower = errorMessage.toLowerCase();
+                if (messageLower.includes('not verified') || 
+                    messageLower.includes('verify') || 
+                    messageLower.includes('verification') ||
+                    messageLower.includes('unverified')) {
+                  // Redirect to verification page with email as query parameter
+                  if (import.meta.env.DEV) {
+                    console.log("[AuthPage] Account not verified - redirecting to verification page");
+                  }
+                  navigate(`${PATHS.VERIFY_ACCOUNT}?email=${encodeURIComponent(loginState.email)}`);
+                  return;
                 }
               }
+              
+              // Error will be displayed via loginError from the mutation
             },
           }
         );
