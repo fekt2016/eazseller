@@ -16,14 +16,49 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add" }) => {
   console.log("Initial data:", initialData);
   const { seller } = useAuth();
 
-  const { getCategories } = useCategory();
+  const { getCategories, getParentCategories } = useCategory();
   const { data, isLoading, error } = getCategories;
+  const { data: parentCategoriesData, isLoading: isLoadingParents } = getParentCategories;
 
   const [variantAttributes, setVariantAttributes] = useState([]);
 
   const allCategories = useMemo(() => {
-    return data?.data?.results || [];
+    // Handle different response structures
+    const categories = data?.data?.results || 
+                      data?.data?.data?.results || 
+                      data?.results || 
+                      data?.data || 
+                      [];
+    
+    // Debug logging (only in development)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[ProductForm] Categories data structure:', {
+        hasData: !!data,
+        dataKeys: data ? Object.keys(data) : [],
+        categoriesCount: categories.length,
+        firstCategory: categories[0],
+      });
+    }
+    
+    return Array.isArray(categories) ? categories : [];
   }, [data]);
+
+  // Extract parent categories from dedicated endpoint
+  const parentCategoriesFromEndpoint = useMemo(() => {
+    const parents = parentCategoriesData?.data?.categories || 
+                    parentCategoriesData?.categories || 
+                    parentCategoriesData?.data || 
+                    [];
+    
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[ProductForm] Parent categories from endpoint:', {
+        hasData: !!parentCategoriesData,
+        parentCategoriesCount: Array.isArray(parents) ? parents.length : 0,
+      });
+    }
+    
+    return Array.isArray(parents) ? parents : [];
+  }, [parentCategoriesData]);
 
   const initialFormValues = useMemo(() => {
     const defaults = {
@@ -96,8 +131,11 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add" }) => {
     return defaults;
   }, [initialData]);
 
-  const methods = useForm({ defaultValues: initialFormValues });
-  const { handleSubmit, control, watch, reset } = methods;
+  const methods = useForm({ 
+    defaultValues: initialFormValues,
+    mode: 'onChange' // Validate on change for better UX
+  });
+  const { handleSubmit, control, watch, reset, trigger, formState: { errors } } = methods;
   const parentCategory = watch("parentCategory");
   const subCategory = watch("subCategory");
   const productName = watch("name");
@@ -180,18 +218,52 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add" }) => {
 
   const [step, setStep] = useState(1);
 
-  const goNext = () => setStep((s) => Math.min(s + 1, 2));
-  const goBack = () => setStep((s) => Math.max(s - 1, 1));
+  // Validate step 1 fields before proceeding
+  const validateStep1 = async () => {
+    const step1Fields = ['name', 'parentCategory', 'subCategory'];
+    const isValid = await trigger(step1Fields);
+    return isValid;
+  };
 
-  if (isLoading) return <LoadingSpinner />;
+  const goNext = async () => {
+    if (step === 1) {
+      // Validate step 1 before proceeding
+      const isValid = await validateStep1();
+      if (isValid) {
+        setStep(2);
+        // Scroll to top of form
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    } else {
+      setStep(2);
+    }
+  };
+
+  const goBack = () => {
+    setStep(1);
+    // Scroll to top of form
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  if (isLoading || isLoadingParents) return <LoadingSpinner />;
   if (error) return <div>Error loading categories</div>;
 
   const isLastStep = step === 2;
 
+  const handleHeaderBack = () => {
+    if (step === 2) {
+      // On step 2, go back to step 1
+      goBack();
+    } else {
+      // On step 1, go back to previous page
+      window.history.back();
+    }
+  };
+
   return (
     <ProductFormContainer>
       <FormHeader>
-        <BackButton onClick={() => window.history.back()}>
+        <BackButton onClick={handleHeaderBack}>
           <FaArrowLeft /> Back
         </BackButton>
         <FormTitle>
@@ -200,35 +272,53 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add" }) => {
       </FormHeader>
 
       <StepperContainer>
-        <Step $active={step === 1}>Details</Step>
-        <StepDivider />
-        <Step $active={step === 2}>Media & Specs</Step>
+        <Step $active={step === 1}>
+          {step === 1 ? "1. Product Details" : "✓ Product Details"}
+        </Step>
+        <StepDivider $completed={step === 2} />
+        <Step $active={step === 2}>
+          {step === 2 ? "2. Media & Specifications" : "Media & Specifications"}
+        </Step>
       </StepperContainer>
 
       <FormProvider {...methods}>
         <StyledForm
           onSubmit={handleSubmit((values) => {
-            if (!isLastStep) {
-              goNext();
-              return;
+            // Only submit on last step
+            if (isLastStep) {
+              onSubmit(values);
             }
-            onSubmit(values);
           })}
         >
           {step === 1 && (
-            <>
+            <Step1Content>
+              <StepHeader>
+                <StepNumber>Step 1 of 2</StepNumber>
+                <StepDescription>Enter basic product information, category, and variants</StepDescription>
+              </StepHeader>
+              
               <SectionContainer>
                 <SectionTitle>Basic Information</SectionTitle>
                 <BasicSection />
+                {errors.name && <ErrorMessage>{errors.name.message}</ErrorMessage>}
               </SectionContainer>
 
               <SectionContainer>
                 <SectionTitle>Category</SectionTitle>
-                <CategorySection
-                  categories={allCategories}
-                  parentCategory={parentCategory}
-                  subCategory={subCategory}
-                />
+                {allCategories.length === 0 && parentCategoriesFromEndpoint.length === 0 ? (
+                  <div style={{ padding: '1rem', color: '#718096', textAlign: 'center' }}>
+                    Loading categories...
+                  </div>
+                ) : (
+                  <CategorySection
+                    categories={allCategories}
+                    parentCategories={parentCategoriesFromEndpoint}
+                    parentCategory={parentCategory}
+                    subCategory={subCategory}
+                  />
+                )}
+                {errors.parentCategory && <ErrorMessage>{errors.parentCategory.message}</ErrorMessage>}
+                {errors.subCategory && <ErrorMessage>{errors.subCategory.message}</ErrorMessage>}
               </SectionContainer>
 
               <SectionContainer>
@@ -242,16 +332,16 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add" }) => {
                   seller={seller}
                 />
               </SectionContainer>
-            </>
+            </Step1Content>
           )}
 
           {step === 2 && (
-            <>
-              <SectionContainer>
-                <SectionTitle>Specifications</SectionTitle>
-                <SpecificationSection />
-              </SectionContainer>
-
+            <Step2Content>
+              <StepHeader>
+                <StepNumber>Step 2 of 2</StepNumber>
+                <StepDescription>Add product images and specifications</StepDescription>
+              </StepHeader>
+              
               <SectionContainer>
                 <SectionTitle>Images</SectionTitle>
                 <ImageSection
@@ -259,24 +349,35 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add" }) => {
                   initialData={initialData}
                 />
               </SectionContainer>
-            </>
+
+              <SectionContainer>
+                <SectionTitle>Specifications</SectionTitle>
+                <SpecificationSection />
+              </SectionContainer>
+            </Step2Content>
           )}
 
           <FormActions>
             {step > 1 && (
               <SecondaryButton type="button" onClick={goBack}>
-                Back
+                <FaArrowLeft /> Back
               </SecondaryButton>
             )}
-            <PrimaryButton type={isLastStep ? "submit" : "submit"} disabled={isSubmitting}>
-              {isSubmitting && isLastStep ? (
-                <LoadingSpinner />
-              ) : isLastStep ? (
-                mode === "add" ? "Add Product" : "Save Changes"
-              ) : (
-                "Next"
-              )}
-            </PrimaryButton>
+            {!isLastStep ? (
+              <PrimaryButton type="button" onClick={goNext}>
+                Next <span style={{ marginLeft: '0.5rem' }}>→</span>
+              </PrimaryButton>
+            ) : (
+              <PrimaryButton type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <LoadingSpinner /> Submitting...
+                  </>
+                ) : (
+                  mode === "add" ? "Add Product" : "Save Changes"
+                )}
+              </PrimaryButton>
+            )}
           </FormActions>
         </StyledForm>
       </FormProvider>
@@ -380,28 +481,41 @@ const StepperContainer = styled.div`
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
 `;
 
 const Step = styled.div`
-  padding: 0.4rem 0.9rem;
-  border-radius: 999px;
-  font-size: 0.85rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
   font-weight: 500;
-  background: ${(p) => (p.$active ? "var(--color-primary-50)" : "#f1f5f9")};
-  color: ${(p) => (p.$active ? "var(--color-primary-700)" : "#64748b")};
-  border: 1px solid
-    ${(p) => (p.$active ? "var(--color-primary-400)" : "#e2e8f0")};
+  background: ${(p) => (p.$active ? "var(--color-primary-600)" : "#ffffff")};
+  color: ${(p) => (p.$active ? "#ffffff" : "#64748b")};
+  border: 2px solid
+    ${(p) => (p.$active ? "var(--color-primary-600)" : "#e2e8f0")};
+  transition: all 0.3s ease;
+  position: relative;
+  
+  ${(p) => p.$active && `
+    box-shadow: 0 2px 8px rgba(49, 130, 206, 0.3);
+    transform: translateY(-1px);
+  `}
 `;
 
 const StepDivider = styled.div`
   flex: 1;
-  height: 1px;
+  height: 2px;
   background: linear-gradient(
     to right,
-    rgba(148, 163, 184, 0.7),
+    ${(p) => p.$completed ? "var(--color-primary-400)" : "rgba(148, 163, 184, 0.3)"},
     rgba(148, 163, 184, 0.1)
   );
+  border-radius: 2px;
+  transition: background 0.3s ease;
 `;
 
 const FormActions = styled.div`
@@ -412,42 +526,123 @@ const FormActions = styled.div`
 `;
 
 const PrimaryButton = styled.button`
-  background: #3182ce;
+  background: var(--color-primary-600);
   color: white;
   border: none;
-  border-radius: 6px;
-  padding: 0.7rem 1.4rem;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
   font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
+  gap: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 
   &:hover {
-    background: #2b6cb0;
+    background: var(--color-primary-700);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 
   &:disabled {
     background: #a0aec0;
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
   }
 `;
 
 const SecondaryButton = styled.button`
-  background: #e2e8f0;
-  color: #1f2933;
-  border: none;
-  border-radius: 6px;
-  padding: 0.7rem 1.2rem;
+  background: #ffffff;
+  color: #4a5568;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
   font-size: 0.9rem;
-  font-weight: 400;
+  font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 
   &:hover {
-    background: #cbd5e0;
+    background: #f7fafc;
+    border-color: #cbd5e0;
+    transform: translateY(-1px);
   }
+
+  &:active {
+    transform: translateY(0);
+  }
+`;
+
+const Step1Content = styled.div`
+  animation: fadeIn 0.3s ease-in;
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+`;
+
+const Step2Content = styled.div`
+  animation: fadeIn 0.3s ease-in;
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+`;
+
+const StepHeader = styled.div`
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e2e8f0;
+`;
+
+const StepNumber = styled.div`
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-primary-600);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+`;
+
+const StepDescription = styled.p`
+  font-size: 0.95rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+`;
+
+const ErrorMessage = styled.div`
+  color: #e53e3e;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: #fed7d7;
+  border-radius: 4px;
+  border-left: 3px solid #e53e3e;
 `;

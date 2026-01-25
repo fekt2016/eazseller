@@ -5,18 +5,83 @@ import api from '../services/api';
 const useCategory = () => {
   const queryClient = useQueryClient();
 
-  // Get all categories
+  // Get all categories - fetch all pages to ensure we get everything
   const getCategories = useQuery({
     queryKey: ["categories"],
     queryFn: async () => {
       try {
-        const response = await categoryService.getAllCategories({
-          limit: 1000,
-        }); // Set a high limit to get all categories
-        return response;
+        let allCategories = [];
+        let page = 1;
+        let hasMore = true;
+        const limit = 1000; // Fetch 1000 per page
+        
+        // Fetch all pages until we get everything
+        while (hasMore) {
+          const response = await categoryService.getAllCategories({
+            limit,
+            page,
+          });
+          
+          // Handle different response structures from handleFactory.getAll
+          // Backend returns: { status: 'success', results: [...], meta: {...} }
+          const categories = response?.data?.results || 
+                            response?.data?.data?.results || 
+                            response?.data?.data || 
+                            response?.results || 
+                            response?.data || 
+                            [];
+          
+          // Get pagination info from meta
+          const meta = response?.data?.meta || response?.meta || {};
+          const total = meta.total || categories.length;
+          const totalPages = meta.totalPages || Math.ceil(total / limit) || 1;
+          
+          if (Array.isArray(categories) && categories.length > 0) {
+            allCategories = [...allCategories, ...categories];
+            
+            // Check if there are more pages
+            hasMore = page < totalPages && categories.length === limit;
+            page++;
+            
+            // Debug logging (only in development)
+            if (process.env.NODE_ENV === 'development') {
+              console.log(`[useCategory] Fetched page ${page - 1}:`, {
+                categoriesInPage: categories.length,
+                totalSoFar: allCategories.length,
+                totalPages,
+                hasMore,
+              });
+            }
+          } else {
+            hasMore = false;
+          }
+          
+          // Safety limit to prevent infinite loops
+          if (page > 100) {
+            console.warn('[useCategory] Reached safety limit of 100 pages');
+            hasMore = false;
+          }
+        }
+        
+        // Debug logging (only in development)
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[useCategory] Categories fetched:', {
+            totalCategories: allCategories.length,
+            pagesFetched: page - 1,
+            sampleCategory: allCategories[0],
+          });
+        }
+        
+        // Return in the expected format
+        return {
+          data: {
+            results: allCategories,
+            total: allCategories.length,
+          }
+        };
       } catch (error) {
         console.error("Failed to fetch categories:", error);
-        return [];
+        throw error; // Re-throw to let React Query handle it
       }
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -97,13 +162,26 @@ const useCategory = () => {
   const getParentCategories = useQuery({
     queryKey: ["parentCategories"],
     queryFn: async () => {
-      console.log("Fetching parent categories...");
+      if (process.env.NODE_ENV === 'development') {
+        console.log("Fetching parent categories from /categories/parents endpoint...");
+      }
       try {
         const response = await categoryService.getParentCategories();
+        
+        // Debug logging (only in development)
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[useCategory] Parent categories response:', {
+            hasResponse: !!response,
+            responseKeys: response ? Object.keys(response) : [],
+            dataKeys: response?.data ? Object.keys(response.data) : [],
+            categoriesCount: response?.data?.categories?.length || 0,
+          });
+        }
+        
         return response;
       } catch (error) {
-        console.error("Failed to fetch parent categories:", error.mess);
-        return [];
+        console.error("Failed to fetch parent categories:", error.message || error);
+        throw error; // Re-throw to let React Query handle it
       }
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
