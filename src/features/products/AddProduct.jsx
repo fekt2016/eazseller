@@ -72,7 +72,16 @@ const AddProductPage = () => {
       
       if (data.productType === "simple") {
         totalStock = data.stock;
-        productPrice = data.price || 0;
+        productPrice = parseFloat(data.price) || 0;
+        
+        // Validate simple product price
+        if (productPrice <= 0) {
+          toast.error('Product price must be greater than 0', {
+            position: 'top-right',
+            autoClose: 5000,
+          });
+          return;
+        }
       } else {
         // For variant products, calculate total stock and use minimum variant price as main price
         totalStock = data.variants.reduce(
@@ -83,10 +92,39 @@ const AddProductPage = () => {
         const variantPrices = data.variants
           .map((v) => parseFloat(v.price) || 0)
           .filter((p) => p > 0);
-        productPrice = variantPrices.length > 0 ? Math.min(...variantPrices) : 0;
+        
+        if (variantPrices.length === 0) {
+          toast.error('At least one variant must have a price greater than 0', {
+            position: 'top-right',
+            autoClose: 5000,
+          });
+          return;
+        }
+        
+        productPrice = Math.min(...variantPrices);
+        
+        // Validate all variant prices
+        const invalidVariants = data.variants.filter(
+          (v) => !v.price || parseFloat(v.price) <= 0
+        );
+        if (invalidVariants.length > 0) {
+          toast.error('All variants must have a price greater than 0', {
+            position: 'top-right',
+            autoClose: 5000,
+          });
+          return;
+        }
       }
       
-      // Always append price (required by backend)
+      // Always append price (required by backend) - ensure it's > 0
+      if (productPrice <= 0) {
+        toast.error('Product price must be greater than 0', {
+          position: 'top-right',
+          autoClose: 5000,
+        });
+        return;
+      }
+      
       formData.append("price", productPrice.toString());
       formData.append("totalStock", totalStock.toString());
 
