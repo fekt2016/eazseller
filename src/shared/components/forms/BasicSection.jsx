@@ -2,7 +2,7 @@ import { useFormContext } from "react-hook-form";
 import styled from "styled-components";
 
 const BasicSection = () => {
-  const { register, watch } = useFormContext();
+  const { register, watch, formState: { errors } } = useFormContext();
   
   const name = watch("name") || "";
   const description = watch("description") || "";
@@ -19,12 +19,14 @@ const BasicSection = () => {
         </Label>
         <Input
           {...register("name", { 
-            required: "Product name is required",
+            required: "Please enter a product name",
             maxLength: { value: 200, message: "Product name must be less than 200 characters" }
           })}
           placeholder="e.g., Samsung Galaxy S21 Ultra 128GB"
           maxLength={200}
+          $hasError={!!errors.name}
         />
+        {errors.name && <ErrorMessage>{errors.name.message}</ErrorMessage>}
         <HelperText>Choose a clear, descriptive name that customers will search for</HelperText>
       </FieldGroup>
 
@@ -77,7 +79,10 @@ const BasicSection = () => {
           <Label>
             Condition <Required>*</Required>
           </Label>
-          <Select {...register("condition", { required: "Product condition is required" })}>
+          <Select 
+            {...register("condition", { required: "Please select a product condition" })}
+            $hasError={!!errors.condition}
+          >
             <option value="">Select condition</option>
             <option value="new">New</option>
             <option value="refurbished">Refurbished</option>
@@ -85,6 +90,7 @@ const BasicSection = () => {
             <option value="open_box">Open Box</option>
             <option value="for_parts">For Parts</option>
           </Select>
+          {errors.condition && <ErrorMessage>{errors.condition.message}</ErrorMessage>}
           <HelperText>Physical condition of the product</HelperText>
         </FieldGroup>
 
@@ -162,7 +168,7 @@ const HelperText = styled.p`
 const Input = styled.input`
   width: 100%;
   padding: 0.875rem 1rem;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid ${props => props.$hasError ? '#e53e3e' : '#e2e8f0'};
   border-radius: 8px;
   font-size: 1.0625rem;
   color: #1e293b;
@@ -172,12 +178,12 @@ const Input = styled.input`
 
   &:focus {
     outline: none;
-    border-color: var(--color-primary-500);
-    box-shadow: 0 0 0 3px rgba(255, 196, 0, 0.1);
+    border-color: ${props => props.$hasError ? '#e53e3e' : 'var(--color-primary-500)'};
+    box-shadow: 0 0 0 3px ${props => props.$hasError ? 'rgba(229, 62, 62, 0.1)' : 'rgba(255, 196, 0, 0.1)'};
   }
 
   &:hover:not(:focus) {
-    border-color: #cbd5e1;
+    border-color: ${props => props.$hasError ? '#e53e3e' : '#cbd5e1'};
   }
 
   &::placeholder {
@@ -194,7 +200,7 @@ const Input = styled.input`
 const Select = styled.select`
   width: 100%;
   padding: 0.875rem 1rem;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid ${props => props.$hasError ? '#e53e3e' : '#e2e8f0'};
   border-radius: 8px;
   font-size: 1.0625rem;
   color: #1e293b;
@@ -205,12 +211,12 @@ const Select = styled.select`
 
   &:focus {
     outline: none;
-    border-color: var(--color-primary-500);
-    box-shadow: 0 0 0 3px rgba(255, 196, 0, 0.1);
+    border-color: ${props => props.$hasError ? '#e53e3e' : 'var(--color-primary-500)'};
+    box-shadow: 0 0 0 3px ${props => props.$hasError ? 'rgba(229, 62, 62, 0.1)' : 'rgba(255, 196, 0, 0.1)'};
   }
 
   &:hover:not(:focus) {
-    border-color: #cbd5e1;
+    border-color: ${props => props.$hasError ? '#e53e3e' : '#cbd5e1'};
   }
 
   @media (max-width: 768px) {
@@ -310,6 +316,10 @@ const ErrorMessage = styled.span`
   display: block;
   margin-top: 0.5rem;
   color: #e53e3e;
-  font-size: 1rem;
+  font-size: 0.875rem;
   font-weight: 400;
+  padding: 0.5rem;
+  background: #fed7d7;
+  border-radius: 4px;
+  border-left: 3px solid #e53e3e;
 `;

@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useFormContext } from "react-hook-form";
 import { FiUploadCloud, FiX } from "react-icons/fi";
 
@@ -59,23 +59,34 @@ const HelperText = styled.span`
 `;
 
 const UploadArea = styled.div`
-  border: 2px dashed #cbd5e0;
+  border: 2px dashed ${props => props.$hasError ? '#e53e3e' : '#cbd5e0'};
   border-radius: 12px;
   padding: 2rem 1.5rem;
   text-align: center;
   transition: all 0.3s;
   cursor: pointer;
   position: relative;
-  background: #f8fafc;
+  background: ${props => props.$hasError ? '#fef2f2' : '#f8fafc'};
 
   &:hover {
-    border-color: var(--color-primary-500);
-    background-color: #fefce8;
+    border-color: ${props => props.$hasError ? '#e53e3e' : 'var(--color-primary-500)'};
+    background-color: ${props => props.$hasError ? '#fee2e2' : '#fefce8'};
   }
 
   @media (max-width: 768px) {
     padding: 1.5rem 1rem;
   }
+`;
+
+const ImageErrorMessage = styled.div`
+  color: #e53e3e;
+  font-size: 0.875rem;
+  margin-top: 0.75rem;
+  font-weight: 400;
+  padding: 0.5rem;
+  background: #fed7d7;
+  border-radius: 4px;
+  border-left: 3px solid #e53e3e;
 `;
 
 const UploadIcon = styled.div`
@@ -212,14 +223,37 @@ const CoverImage = styled.img`
 `;
 
 export default function ImageSection({ isSubmitting }) {
-  const { watch, setValue } = useFormContext();
+  const { watch, setValue, register, trigger, formState: { errors } } = useFormContext();
   const [coverPreview, setCoverPreview] = useState("");
   const [imagePreviews, setImagePreviews] = useState([]);
+  
+  // Use ref to track cover image to prevent it from being cleared
+  const coverImageRef = useRef(null);
 
   // Watch form values for images
   const imageCover = watch("imageCover");
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const images = watch("images") || [];
+  
+  // Update ref when imageCover changes
+  useEffect(() => {
+    if (imageCover) {
+      coverImageRef.current = imageCover;
+    }
+  }, [imageCover]);
+  
+  // Register imageCover for validation
+  useEffect(() => {
+    register("imageCover", {
+      required: "Please upload a cover image for your product",
+      validate: (value) => {
+        if (!value || (typeof value === 'string' && value === '')) {
+          return "Please upload a cover image for your product";
+        }
+        return true;
+      }
+    });
+  }, [register]);
 
   // Sync cover preview
   useEffect(() => {
@@ -261,7 +295,16 @@ export default function ImageSection({ isSubmitting }) {
   const handleCoverImage = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setValue("imageCover", file);
+      setValue("imageCover", file, { shouldValidate: true, shouldDirty: true });
+      // Update ref to track the cover image
+      coverImageRef.current = file;
+      // Trigger validation after setting the value
+      trigger("imageCover");
+      // Clear the input value to allow re-selecting the same file
+      e.target.value = '';
+    } else {
+      // If no file selected, don't clear the existing value
+      // This prevents accidental clearing when clicking cancel
     }
   };
 
@@ -269,7 +312,39 @@ export default function ImageSection({ isSubmitting }) {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
 
-    setValue("images", [...images, ...files]);
+    // Get current images to preserve them - use the watched value directly
+    const currentImages = images || [];
+    
+    // Get the cover image from ref (most reliable) or current value
+    const currentImageCover = coverImageRef.current || imageCover;
+    
+    // Set the new images array
+    setValue("images", [...currentImages, ...files], { 
+      shouldDirty: true,
+      shouldValidate: false 
+    });
+    
+    // Ensure imageCover is preserved - restore it immediately if needed
+    if (currentImageCover) {
+      // Check if imageCover was cleared and restore it
+      const checkAndRestore = () => {
+        const currentCover = watch("imageCover");
+        if (!currentCover && currentImageCover) {
+          setValue("imageCover", currentImageCover, { 
+            shouldValidate: true,
+            shouldDirty: true 
+          });
+          coverImageRef.current = currentImageCover;
+        }
+      };
+      
+      // Check immediately and also after a brief delay to catch any async clearing
+      checkAndRestore();
+      setTimeout(checkAndRestore, 10);
+    }
+    
+    // Clear the input value to allow re-selecting the same files
+    e.target.value = '';
   };
 
   const handleRemoveImage = (index) => {
@@ -286,7 +361,7 @@ export default function ImageSection({ isSubmitting }) {
           Cover Image <Required>*</Required>
           <HelperText>This is the main image customers will see first</HelperText>
         </UploadLabel>
-        <UploadArea>
+        <UploadArea $hasError={!!errors.imageCover}>
           <UploadIcon>
             <FiUploadCloud />
           </UploadIcon>
@@ -299,8 +374,13 @@ export default function ImageSection({ isSubmitting }) {
             accept="image/*"
             onChange={handleCoverImage}
             disabled={isSubmitting}
+            name="imageCover"
+            key={`cover-image-${imageCover ? 'has-file' : 'no-file'}`}
           />
         </UploadArea>
+        {errors.imageCover && (
+          <ImageErrorMessage>{errors.imageCover.message}</ImageErrorMessage>
+        )}
 
         {coverPreview && (
           <PreviewContainer>

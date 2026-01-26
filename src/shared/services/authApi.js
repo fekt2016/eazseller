@@ -37,7 +37,10 @@ const authApi = {
     // Normalize email to lowercase to match database storage
     const normalizedEmail = email?.toLowerCase().trim();
     console.log('🔐 [Seller Login] Attempting login with email:', normalizedEmail);
-    const response = await api.post('/seller/login', { email: normalizedEmail, password });
+    // Increase timeout for login requests (30 seconds) to handle slow device session creation
+    const response = await api.post('/seller/login', { email: normalizedEmail, password }, {
+      timeout: 30000, // 30 seconds for login
+    });
     console.log('🔐 [Seller Login] Response status:', response.data?.status);
     return response.data;
   },

@@ -124,6 +124,7 @@ export default function VariantSection({ variantAttributes = [], seller }) {
           category: subCategory,
         }),
         status: "active",
+        condition: "new", // Default condition
       };
     });
 
@@ -143,6 +144,7 @@ export default function VariantSection({ variantAttributes = [], seller }) {
       price: 0,
       stock: 0,
       status: "active",
+      condition: "new", // Default condition
     });
   };
 
@@ -192,23 +194,19 @@ export default function VariantSection({ variantAttributes = [], seller }) {
         </AttributeList>
       </AttributeManagement>
 
-      <VariantTableWrapper>
-        <VariantTable>
-          <thead>
-            <tr>
-              <TableHeader>Attributes</TableHeader>
-              <TableHeader>SKU</TableHeader>
-              <TableHeader>Price</TableHeader>
-              <TableHeader>Stock</TableHeader>
-              <TableHeader>Images</TableHeader>
-              <TableHeader>Status</TableHeader>
-              <TableHeader>Actions</TableHeader>
-            </tr>
-          </thead>
-          <tbody>
-            {fields.map((field, idx) => (
+      <VariantCardsContainer>
+        {fields.map((field, idx) => (
+          <VariantCard key={field.id}>
+            <VariantCardHeader>
+              <VariantCardTitle>Variant {idx + 1}</VariantCardTitle>
+              {fields.length > 1 && (
+                <RemoveVariantButton type="button" onClick={() => remove(idx)}>
+                  <FiX /> Remove
+                </RemoveVariantButton>
+              )}
+            </VariantCardHeader>
+            <VariantCardBody>
               <VariantRow
-                key={field.id}
                 variantIndex={idx}
                 allAttributes={allAttributes}
                 canRemove={fields.length > 1}
@@ -219,17 +217,14 @@ export default function VariantSection({ variantAttributes = [], seller }) {
                 getValues={getValues}
                 seller={seller}
               />
-            ))}
-          </tbody>
-          <tfoot>
-            <tr>
-              <TotalStockLabel colSpan="3">Total Stock:</TotalStockLabel>
-              <TotalStockValue>{totalStock}</TotalStockValue>
-              <td colSpan="3"></td>
-            </tr>
-          </tfoot>
-        </VariantTable>
-      </VariantTableWrapper>
+            </VariantCardBody>
+          </VariantCard>
+        ))}
+        <TotalQuantityCard>
+          <TotalQuantityLabel>Total Quantity:</TotalQuantityLabel>
+          <TotalQuantityValue>{totalStock}</TotalQuantityValue>
+        </TotalQuantityCard>
+      </VariantCardsContainer>
     </div>
   );
 }
@@ -245,6 +240,7 @@ function VariantRow({
   getValues,
   seller,
 }) {
+  const { formState: { errors } } = useFormContext();
   const firstRun = useRef(true);
   const prevAttrValues = useRef([]);
   const subCategory = useWatch({ name: "subCategory", control }) || "GENERAL";
@@ -254,6 +250,8 @@ function VariantRow({
     name: `variants.${variantIndex}.attributes`,
     defaultValue: [],
   });
+  
+  const variantErrors = errors.variants?.[variantIndex];
 
   useEffect(() => {
     if (firstRun.current) {
@@ -294,8 +292,10 @@ function VariantRow({
   }, [watchedAttrs, setValue, getValues, variantIndex, seller, subCategory]);
 
   return (
-    <tr>
-      <TableCell>
+    <VariantFieldsGrid>
+      {/* Attributes Section */}
+      <VariantFieldGroup>
+        <FieldLabel>Attributes</FieldLabel>
         <VariantAttributes>
           {allAttributes.map((attr, ai) => {
             // Find the attribute index in the variant's attributes array
@@ -330,59 +330,98 @@ function VariantRow({
             );
           })}
         </VariantAttributes>
-      </TableCell>
-      <TableCell>
+      </VariantFieldGroup>
+
+      {/* SKU */}
+      <VariantFieldGroup>
+        <FieldLabel>SKU</FieldLabel>
         <Input
           readOnly
           {...register(`variants.${variantIndex}.sku`)}
           placeholder="SKU"
         />
-      </TableCell>
-      <TableCell>
+      </VariantFieldGroup>
+
+      {/* Price */}
+      <VariantFieldGroup>
+        <FieldLabel>Price <Required>*</Required></FieldLabel>
         <Input
           type="number"
           step="0.01"
           min="0.01"
           {...register(`variants.${variantIndex}.price`, {
-            required: "Variant price is required",
+            required: "Please enter a price for this variant",
             min: { value: 0.01, message: "Price must be greater than 0" },
           })}
           placeholder="Price"
+          $hasError={!!variantErrors?.price}
         />
-      </TableCell>
-      <TableCell>
+        {variantErrors?.price && (
+          <VariantErrorMessage>{variantErrors.price.message}</VariantErrorMessage>
+        )}
+      </VariantFieldGroup>
+
+      {/* Quantity */}
+      <VariantFieldGroup>
+        <FieldLabel>Quantity <Required>*</Required></FieldLabel>
         <Input
           type="number"
           min="0"
           {...register(`variants.${variantIndex}.stock`, {
-            required: "Variant stock is required",
-            min: { value: 0, message: "Stock must be 0 or greater" },
+            required: "Please enter quantity for this variant",
+            min: { value: 0, message: "Quantity must be 0 or greater" },
           })}
-          placeholder="Stock"
+          placeholder="Quantity"
+          $hasError={!!variantErrors?.stock}
         />
-      </TableCell>
-      <TableCell>
+        {variantErrors?.stock && (
+          <VariantErrorMessage>{variantErrors.stock.message}</VariantErrorMessage>
+        )}
+      </VariantFieldGroup>
+
+      {/* Status */}
+      <VariantFieldGroup>
+        <FieldLabel>Status</FieldLabel>
+        <Select {...register(`variants.${variantIndex}.status`)}>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </Select>
+      </VariantFieldGroup>
+
+      {/* Condition */}
+      <VariantFieldGroup>
+        <FieldLabel>Condition <Required>*</Required></FieldLabel>
+        <Select 
+          {...register(`variants.${variantIndex}.condition`, { 
+            required: "Please select a condition for this variant" 
+          })}
+          $hasError={!!variantErrors?.condition}
+        >
+          <option value="">Select condition</option>
+          <option value="new">New</option>
+          <option value="like_new">Like New</option>
+          <option value="open_box">Open Box</option>
+          <option value="refurbished">Refurbished</option>
+          <option value="used">Used</option>
+          <option value="fair">Fair</option>
+          <option value="poor">Poor</option>
+        </Select>
+        {variantErrors?.condition && (
+          <VariantErrorMessage>{variantErrors.condition.message}</VariantErrorMessage>
+        )}
+      </VariantFieldGroup>
+
+      {/* Images - Full Width */}
+      <VariantFieldGroupFullWidth>
+        <FieldLabel>Images</FieldLabel>
         <VariantImageUpload
           variantIndex={variantIndex}
           control={control}
           setValue={setValue}
           register={register}
         />
-      </TableCell>
-      <TableCell>
-        <Select {...register(`variants.${variantIndex}.status`)}>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </Select>
-      </TableCell>
-      <TableCell>
-        {canRemove && (
-          <RemoveButton onClick={() => remove(variantIndex)}>
-            Remove
-          </RemoveButton>
-        )}
-      </TableCell>
-    </tr>
+      </VariantFieldGroupFullWidth>
+    </VariantFieldsGrid>
   );
 }
 
@@ -490,52 +529,113 @@ const RemoveAttributeButton = styled.button`
   }
 `;
 
-const VariantTableWrapper = styled.div`
+const VariantCardsContainer = styled.div`
   width: 100%;
-  overflow-x: auto;
-  overflow-y: visible;
-  -webkit-overflow-scrolling: touch;
-  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
   margin-top: 1rem;
+`;
+
+const VariantCard = styled.div`
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
   
-  /* Custom scrollbar styling */
-  &::-webkit-scrollbar {
-    height: 8px;
+  &:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
   }
   
-  &::-webkit-scrollbar-track {
-    background: #f1f5f9;
-    border-radius: 4px;
-  }
-  
-  &::-webkit-scrollbar-thumb {
-    background: #cbd5e0;
-    border-radius: 4px;
-    
-    &:hover {
-      background: #a0aec0;
-    }
+  @media (max-width: 768px) {
+    padding: 1rem;
   }
 `;
 
-const VariantTable = styled.table`
+const VariantCardHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #f1f5f9;
+`;
+
+const VariantCardTitle = styled.h4`
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1e293b;
+`;
+
+const RemoveVariantButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  &:hover {
+    background: #fecaca;
+    border-color: #fca5a5;
+  }
+  
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+`;
+
+const VariantCardBody = styled.div`
   width: 100%;
-  min-width: 800px; /* Ensure table doesn't get too squished */
-  border-collapse: collapse;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  overflow: hidden;
-  background: white;
 `;
-const TableHeader = styled.th`
-  padding: 1rem;
-  text-align: left;
-  background-color: #edf2f7;
-  border-bottom: 2px solid #e2e8f0;
+
+const VariantFieldsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
 `;
-const TableCell = styled.td`
-  padding: 1rem;
-  border-bottom: 1px solid #e2e8f0;
+
+const VariantFieldGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+const VariantFieldGroupFullWidth = styled.div`
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+const FieldLabel = styled.label`
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+`;
+
+const Required = styled.span`
+  color: #ef4444;
+  font-weight: 600;
 `;
 const VariantAttributes = styled.div`
   display: flex;
@@ -555,9 +655,17 @@ const AttributeName = styled.span`
 const Input = styled.input`
   width: 100%;
   padding: 0.5rem;
-  border: 1px solid #cbd5e0;
+  border: 1px solid ${props => props.$hasError ? '#e53e3e' : '#cbd5e0'};
   border-radius: 4px;
   font-size: 0.9rem;
+  transition: border-color 0.2s;
+  
+  &:focus {
+    outline: none;
+    border-color: ${props => props.$hasError ? '#e53e3e' : '#3182ce'};
+    box-shadow: 0 0 0 2px ${props => props.$hasError ? 'rgba(229, 62, 62, 0.1)' : 'rgba(49, 130, 206, 0.1)'};
+  }
+  
   &[readonly] {
     background: #f7fafc;
     cursor: not-allowed;
@@ -566,34 +674,55 @@ const Input = styled.input`
 const Select = styled.select`
   width: 100%;
   padding: 0.5rem;
-  border: 1px solid #cbd5e0;
+  border: 1px solid ${props => props.$hasError ? '#e53e3e' : '#cbd5e0'};
   border-radius: 4px;
   font-size: 0.9rem;
-`;
-const RemoveButton = styled.button`
-  padding: 0.5rem 1rem;
-  background: #e53e3e;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  &:hover {
-    background: #c53030;
+  transition: border-color 0.2s;
+  
+  &:focus {
+    outline: none;
+    border-color: ${props => props.$hasError ? '#e53e3e' : '#3182ce'};
+    box-shadow: 0 0 0 2px ${props => props.$hasError ? 'rgba(229, 62, 62, 0.1)' : 'rgba(49, 130, 206, 0.1)'};
   }
 `;
-const TotalStockLabel = styled.td`
+
+const VariantErrorMessage = styled.div`
+  color: #e53e3e;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  font-weight: 400;
+  padding: 0.25rem 0.5rem;
+  background: #fed7d7;
+  border-radius: 3px;
+  border-left: 2px solid #e53e3e;
+`;
+const TotalQuantityCard = styled.div`
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+`;
+
+const TotalQuantityLabel = styled.div`
+  font-size: 1.125rem;
   font-weight: 600;
   color: #2d3748;
-  background: #f7fafc;
-  border-top: 2px solid #e2e8f0;
-  padding: 1rem;
 `;
-const TotalStockValue = styled.td`
+
+const TotalQuantityValue = styled.div`
+  font-size: 1.5rem;
   font-weight: 700;
   color: #3182ce;
-  background: #f7fafc;
-  border-top: 2px solid #e2e8f0;
-  padding: 1rem;
 `;
 
 // Variant Image Upload Component

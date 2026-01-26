@@ -57,6 +57,7 @@ export default function VariantForm({
       stock: 0,
       sku: "",
       status: "active",
+      condition: "new", // Default condition
       images: [],
     },
   });
@@ -71,6 +72,7 @@ export default function VariantForm({
         stock: initialData.stock || 0,
         sku: initialData.sku || "",
         status: initialData.status || "active",
+        condition: initialData.condition || "new", // Include condition
         images: initialData.images || [],
       });
     }
@@ -197,6 +199,27 @@ export default function VariantForm({
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
           </Select>
+        </FormField>
+
+        <FormField>
+          <Label htmlFor="condition">
+            Condition <Required>*</Required>
+          </Label>
+          <Select 
+            id="condition" 
+            {...register("condition", {
+              required: "Condition is required",
+            })}
+          >
+            <option value="new">New</option>
+            <option value="like_new">Like New</option>
+            <option value="open_box">Open Box</option>
+            <option value="refurbished">Refurbished</option>
+            <option value="used">Used</option>
+            <option value="fair">Fair</option>
+            <option value="poor">Poor</option>
+          </Select>
+          {errors.condition && <ErrorText>{errors.condition.message}</ErrorText>}
         </FormField>
       </Section>
 

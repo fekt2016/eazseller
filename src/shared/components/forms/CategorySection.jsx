@@ -313,24 +313,27 @@ const CategorySection = ({ categories, parentCategories: parentCategoriesProp })
           name="parentCategory"
           defaultValue={""}
           control={control}
-          rules={{ required: "Parent category is required" }}
-          render={({ field }) => (
-            <SelectContainer>
-              <Select {...field} value={field.value || ""}>
-                <option value="">Select a category</option>
-                {parentCategories.length === 0 ? (
-                  <option value="" disabled>
-                    No categories available
-                  </option>
-                ) : (
-                  parentCategories.map((category) => (
-                    <option key={category._id} value={category._id}>
-                      {category.name}
+          rules={{ required: "Please select a parent category" }}
+          render={({ field, fieldState: { error } }) => (
+            <div>
+              <SelectContainer>
+                <Select {...field} value={field.value || ""} $hasError={!!error}>
+                  <option value="">Select a category</option>
+                  {parentCategories.length === 0 ? (
+                    <option value="" disabled>
+                      No categories available
                     </option>
-                  ))
-                )}
-              </Select>
-            </SelectContainer>
+                  ) : (
+                    parentCategories.map((category) => (
+                      <option key={category._id} value={category._id}>
+                        {category.name}
+                      </option>
+                    ))
+                  )}
+                </Select>
+              </SelectContainer>
+              {error && <ErrorMessage>{error.message}</ErrorMessage>}
+            </div>
           )}
         />
       </FormGroup>
@@ -347,21 +350,33 @@ const CategorySection = ({ categories, parentCategories: parentCategoriesProp })
             name="subCategory"
             defaultValue={""}
             control={control}
-            render={({ field }) => (
-              <Select {...field} value={field.value || ""}>
-                <option value="">Select a subcategory</option>
-                {subCategories.length === 0 ? (
-                  <option value="" disabled>
-                    No subcategories available for this category
-                  </option>
-                ) : (
-                  subCategories.map((category) => (
-                    <option key={category._id} value={category._id}>
-                      {category.name}
+            rules={{ 
+              required: "Please select a subcategory",
+              validate: (value) => {
+                if (!value || value === "") {
+                  return "Please select a subcategory";
+                }
+                return true;
+              }
+            }}
+            render={({ field, fieldState: { error } }) => (
+              <div>
+                <Select {...field} value={field.value || ""} $hasError={!!error}>
+                  <option value="">Select a subcategory</option>
+                  {subCategories.length === 0 ? (
+                    <option value="" disabled>
+                      No subcategories available for this category
                     </option>
-                  ))
-                )}
-              </Select>
+                  ) : (
+                    subCategories.map((category) => (
+                      <option key={category._id} value={category._id}>
+                        {category.name}
+                      </option>
+                    ))
+                  )}
+                </Select>
+                {error && <ErrorMessage>{error.message}</ErrorMessage>}
+              </div>
             )}
           />
         </FormGroup>
@@ -388,7 +403,7 @@ const SelectContainer = styled.div`
 const Select = styled.select`
   width: 100%;
   padding: 0.875rem 1rem;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid ${props => props.$hasError ? '#e53e3e' : '#e2e8f0'};
   border-radius: 8px;
   background-color: #fff;
   font-size: 1.0625rem;
@@ -399,15 +414,16 @@ const Select = styled.select`
   background-position: right 0.75rem center;
   background-size: 12px;
   padding-right: 2.5rem;
+  transition: border-color 0.2s;
   
   &:focus {
-    border-color: var(--color-primary-600);
+    border-color: ${props => props.$hasError ? '#e53e3e' : 'var(--color-primary-600)'};
     outline: none;
-    box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+    box-shadow: 0 0 0 3px ${props => props.$hasError ? 'rgba(229, 62, 62, 0.1)' : 'rgba(49, 130, 206, 0.1)'};
   }
   
   &:hover {
-    border-color: #cbd5e0;
+    border-color: ${props => props.$hasError ? '#e53e3e' : '#cbd5e0'};
   }
   
   /* Ensure all options are visible - native select handles scrolling */
@@ -429,6 +445,17 @@ const CategoryCount = styled.span`
   font-weight: 400;
   color: #718096;
   margin-left: 0.5rem;
+`;
+
+const ErrorMessage = styled.div`
+  color: #e53e3e;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  font-weight: 400;
+  padding: 0.5rem;
+  background: #fed7d7;
+  border-radius: 4px;
+  border-left: 3px solid #e53e3e;
 `;
 
 export default CategorySection;

@@ -28,7 +28,10 @@ const useAuth = () => {
         // Backend returns: { status: 'success', data: { data: sellerData, isSetupComplete: ... } }
         // axios response structure: response.data = API response
         const apiResponse = response?.data || response;
-        const seller = apiResponse?.data?.data || apiResponse?.data || apiResponse?.seller || apiResponse;
+        
+        // Extract seller from nested structure: apiResponse.data.data
+        // Also handle alternative structures for backward compatibility
+        const seller = apiResponse?.data?.data || apiResponse?.data?.seller || apiResponse?.data || apiResponse?.seller || apiResponse;
 
         if (seller && (seller._id || seller.id)) {
           if (import.meta.env.DEV) {
@@ -49,6 +52,8 @@ const useAuth = () => {
             hasData: !!response?.data,
             responseKeys: response?.data ? Object.keys(response.data) : [],
             apiResponseKeys: apiResponse ? Object.keys(apiResponse) : [],
+            apiResponseData: apiResponse?.data,
+            apiResponseDataKeys: apiResponse?.data ? Object.keys(apiResponse.data) : [],
           });
         }
 
@@ -95,8 +100,9 @@ const useAuth = () => {
     throwOnError: false,
   });
 
-  // Extract seller from sellerData (handle nested structures)
-  const seller = sellerData?.data?.data || sellerData?.data || sellerData || null;
+  // sellerData is already the seller object returned from queryFn
+  // No need to extract - it's already the seller object or null
+  const seller = sellerData || null;
 
   // CRITICAL: Verify the user is actually a seller, not a buyer
   // If the backend returns a user with role !== 'seller', reject it

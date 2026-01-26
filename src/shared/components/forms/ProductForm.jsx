@@ -221,20 +221,61 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
 
   // Validate step 1 fields before proceeding
   const validateStep1 = async () => {
-    const step1Fields = ['name', 'parentCategory', 'subCategory'];
-    const isValid = await trigger(step1Fields);
-    return isValid;
+    // Validate basic fields first
+    const basicFields = ['name', 'condition', 'parentCategory', 'subCategory'];
+    const basicValid = await trigger(basicFields);
+    
+    if (!basicValid) {
+      return false;
+    }
+    
+    // Validate all variants exist and have required fields
+    const currentVariants = watch('variants') || [];
+    if (!currentVariants || currentVariants.length === 0) {
+      // Show alert if no variants
+      alert('Please add at least one product variant before proceeding');
+      return false;
+    }
+    
+    // Validate each variant's required fields
+    const variantFields = [];
+    currentVariants.forEach((_, index) => {
+      variantFields.push(`variants.${index}.price`);
+      variantFields.push(`variants.${index}.stock`);
+      variantFields.push(`variants.${index}.condition`);
+    });
+    
+    const variantsValid = await trigger(variantFields);
+    
+    if (!variantsValid) {
+      // Error messages are already displayed inline by the form fields
+      // Just return false to prevent proceeding
+      return false;
+    }
+    
+    return true;
   };
 
   const goNext = async () => {
     if (step === 1) {
       // Validate step 1 before proceeding
       const isValid = await validateStep1();
-      if (isValid) {
-        setStep(2);
-        // Scroll to top of form
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (!isValid) {
+        // Scroll to first error field
+        setTimeout(() => {
+          const firstErrorField = document.querySelector('input:invalid, select:invalid') ||
+                                  document.querySelector('[data-error="true"]') ||
+                                  document.querySelector('.error-message')?.parentElement?.querySelector('input, select');
+          if (firstErrorField) {
+            firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            firstErrorField.focus();
+          }
+        }, 100);
+        return;
       }
+      setStep(2);
+      // Scroll to top of form
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       setStep(2);
     }
@@ -301,9 +342,67 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
 
       <FormProvider {...methods}>
         <StyledForm
-          onSubmit={handleSubmit((values) => {
+          onSubmit={handleSubmit(async (values) => {
             // Only submit on last step
             if (isLastStep) {
+              // Validate all required fields before submission
+              const allFields = [
+                'name',
+                'condition',
+                'parentCategory',
+                'subCategory',
+                'imageCover'
+              ];
+              
+              // Add variant fields
+              const currentVariants = values.variants || [];
+              currentVariants.forEach((_, index) => {
+                allFields.push(`variants.${index}.price`);
+                allFields.push(`variants.${index}.stock`);
+                allFields.push(`variants.${index}.condition`);
+              });
+              
+              const isValid = await trigger(allFields);
+              
+              if (!isValid) {
+                // Scroll to first error
+                setTimeout(() => {
+                  const firstErrorField = document.querySelector('input:invalid, select:invalid') ||
+                                          document.querySelector('[data-error="true"]') ||
+                                          document.querySelector('.error-message')?.parentElement?.querySelector('input, select');
+                  if (firstErrorField) {
+                    firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstErrorField.focus();
+                  }
+                }, 100);
+                return;
+              }
+              
+              // Validate variants exist
+              if (!values.variants || values.variants.length === 0) {
+                // Scroll back to step 1 and show error
+                setStep(1);
+                setTimeout(() => {
+                  alert('Please add at least one product variant');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }, 100);
+                return;
+              }
+              
+              // Validate cover image
+              if (!values.imageCover) {
+                // Error message will be shown by ImageSection validation
+                // Just scroll to it
+                setTimeout(() => {
+                  const imageError = document.querySelector('[name="imageCover"]')?.closest('.error-message') || 
+                                    document.querySelector('.error-message');
+                  if (imageError) {
+                    imageError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }
+                }, 100);
+                return;
+              }
+              
               onSubmit(values);
             }
           })}
@@ -322,8 +421,6 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
                   <span>Basic Information</span>
                 </SectionTitle>
                 <BasicSection />
-                {errors.name && <ErrorMessage>{errors.name.message}</ErrorMessage>}
-                {errors.condition && <ErrorMessage>{errors.condition.message}</ErrorMessage>}
               </SectionContainer>
 
               <SectionContainer>
@@ -342,8 +439,6 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
                     subCategory={subCategory}
                   />
                 )}
-                {errors.parentCategory && <ErrorMessage>{errors.parentCategory.message}</ErrorMessage>}
-                {errors.subCategory && <ErrorMessage>{errors.subCategory.message}</ErrorMessage>}
               </SectionContainer>
 
               <SectionContainer>
@@ -393,7 +488,11 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
               </SecondaryButton>
             )}
             {!isEditMode && !isLastStep ? (
-              <PrimaryButton type="button" onClick={goNext}>
+              <PrimaryButton 
+                type="button" 
+                onClick={goNext}
+                disabled={isSubmitting}
+              >
                 Next <span style={{ marginLeft: '0.5rem' }}>→</span>
               </PrimaryButton>
             ) : (

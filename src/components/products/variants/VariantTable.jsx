@@ -73,7 +73,7 @@ export default function VariantTable({
     },
     {
       key: 'stock',
-      title: 'Stock',
+      title: 'Quantity',
       align: 'center',
       render: (variant) => (
         <StockIndicator stock={variant.stock || 0}>
@@ -90,6 +90,17 @@ export default function VariantTable({
         <StatusBadge status={variant.status || "active"}>
           {variant.status || "active"}
         </StatusBadge>
+      ),
+      hideOnMobile: true,
+    },
+    {
+      key: 'condition',
+      title: 'Condition',
+      align: 'center',
+      render: (variant) => (
+        <ConditionBadge condition={variant.condition || "new"}>
+          {variant.condition ? variant.condition.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : "New"}
+        </ConditionBadge>
       ),
       hideOnMobile: true,
     },
@@ -203,6 +214,56 @@ const StatusBadge = styled.div`
     status === "active" 
       ? "var(--color-green-700)" 
       : "var(--color-grey-700)"};
+`;
+
+const ConditionBadge = styled.div`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-cir);
+  font-weight: var(--font-semibold);
+  font-size: var(--font-size-xs);
+  font-family: var(--font-body);
+  text-transform: capitalize;
+  background: ${({ condition }) => {
+    switch (condition) {
+      case 'new':
+        return 'var(--color-blue-100)';
+      case 'like_new':
+      case 'open_box':
+        return 'var(--color-green-100)';
+      case 'refurbished':
+        return 'var(--color-purple-100)';
+      case 'used':
+        return 'var(--color-yellow-100)';
+      case 'fair':
+        return 'var(--color-orange-100)';
+      case 'poor':
+        return 'var(--color-red-100)';
+      default:
+        return 'var(--color-grey-100)';
+    }
+  }};
+  color: ${({ condition }) => {
+    switch (condition) {
+      case 'new':
+        return 'var(--color-blue-700)';
+      case 'like_new':
+      case 'open_box':
+        return 'var(--color-green-700)';
+      case 'refurbished':
+        return 'var(--color-purple-700)';
+      case 'used':
+        return 'var(--color-yellow-700)';
+      case 'fair':
+        return 'var(--color-orange-700)';
+      case 'poor':
+        return 'var(--color-red-700)';
+      default:
+        return 'var(--color-grey-700)';
+    }
+  }};
 `;
 
 const ActionButtons = styled.div`
