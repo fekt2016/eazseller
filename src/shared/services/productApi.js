@@ -53,7 +53,15 @@ export const productService = {
   },
   updateProduct: async (id, productData) => {
     try {
-      const response = await api.patch(`/product/${id}`, productData);
+      // Check if productData is FormData (for image uploads)
+      const isFormData = productData instanceof FormData;
+      
+      const response = await api.patch(`/product/${id}`, productData, {
+        timeout: isFormData ? 120000 : 30000, // 2 minutes for FormData (images), 30s for regular updates
+        headers: isFormData ? {
+          "Content-Type": "multipart/form-data",
+        } : undefined,
+      });
 
       // Axios handles status codes differently than Fetch API
       if (response.status < 200 || response.status >= 300) {
