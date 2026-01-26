@@ -207,6 +207,9 @@ export default function ResponsiveDataTable({
                   // Skip rendering if column has hideOnMobile flag
                   if (column.hideOnMobile) return null;
                   
+                  // Skip actions column in mobile view - it's rendered separately in CardActions
+                  if (column.key === 'actions' && showActions) return null;
+                  
                   return (
                     <CardRow key={column.key} $alignItems={column.align === 'center' ? 'center' : 'flex-start'}>
                       <CardLabel>{column.title}</CardLabel>

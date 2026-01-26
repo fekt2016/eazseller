@@ -1,5 +1,5 @@
-import { useParams, Link } from "react-router-dom";
-import { useMemo } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { useMemo, useState, useEffect } from "react";
 import styled from "styled-components";
 import useProduct from '../../shared/hooks/useProduct';
 import useVariants from '../../shared/hooks/variants/useVariants';
@@ -7,14 +7,17 @@ import ProductForm from '../../shared/components/forms/ProductForm';
 import { compressImage } from '../../shared/utils/imageCompressor';
 import { LoadingContainer } from '../../shared/components/LoadingSpinner';
 import useDynamicPageTitle from '../../shared/hooks/useDynamicPageTitle';
-import { PageContainer, PageHeader, TitleSection, ActionSection, Section, SectionHeader } from '../../shared/components/ui/SpacingSystem';
+import { PageContainer, PageHeader, TitleSection, ActionSection, Section } from '../../shared/components/ui/SpacingSystem';
 import Button from '../../shared/components/ui/Button';
-// Card component will be created inline if needed
 import { PATHS } from '../../routes/routePaths';
-import { FaLayerGroup, FaBox, FaInfoCircle, FaArrowRight } from "react-icons/fa";
+import { FaLayerGroup, FaBox, FaInfoCircle, FaArrowRight, FaArrowLeft, FaCheckCircle, FaExclamationTriangle, FaEye, FaEyeSlash } from "react-icons/fa";
+import { toast } from 'react-toastify';
 
 const EditProduct = () => {
   const { id: productId } = useParams();
+  const navigate = useNavigate();
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { useGetProductById, updateProduct } = useProduct();
   const {
@@ -22,17 +25,41 @@ const EditProduct = () => {
     isLoading,
     error,
   } = useGetProductById(productId);
-  console.log("product", productResponse);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  
   const product = productResponse?.data?.product || {};
-  console.log("prod", product);
 
   // Fetch variants from API
   const { getVariants } = useVariants();
   const { data: variantsData, isLoading: variantsLoading } = getVariants(productId);
   
   const variants = useMemo(() => {
-    return variantsData?.data || variantsData || [];
+    const rawVariants = variantsData?.data || variantsData || [];
+    
+    // Deduplicate variants by _id to prevent showing duplicates
+    if (!Array.isArray(rawVariants)) return [];
+    
+    const seen = new Set();
+    const uniqueVariants = rawVariants.filter((variant) => {
+      const id = variant._id || variant.id || JSON.stringify(variant);
+      if (seen.has(id)) {
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('[EditProduct] Duplicate variant detected and removed:', id);
+        }
+        return false;
+      }
+      seen.add(id);
+      return true;
+    });
+    
+    if (process.env.NODE_ENV === 'development' && rawVariants.length !== uniqueVariants.length) {
+      console.log('[EditProduct] Variants deduplication:', {
+        original: rawVariants.length,
+        unique: uniqueVariants.length,
+        removed: rawVariants.length - uniqueVariants.length,
+      });
+    }
+    
+    return uniqueVariants;
   }, [variantsData]);
 
   const hasVariants = variants && variants.length > 0;
@@ -65,7 +92,19 @@ const EditProduct = () => {
       price: product.price || 0,
       brand: product.brand || "",
       manufacturer: product.manufacturer || "",
-      warranty: product.warranty || "",
+      warranty: (() => {
+        // Always convert warranty to a plain string for the form
+        if (!product.warranty) return "";
+        if (typeof product.warranty === 'string') return product.warranty.trim();
+        if (typeof product.warranty === 'object' && product.warranty !== null) {
+          // Extract details or create readable string from object
+          return product.warranty.details || 
+                 (product.warranty.duration && product.warranty.type 
+                   ? `${product.warranty.duration} ${product.warranty.type}`.trim()
+                   : "");
+        }
+        return String(product.warranty).trim();
+      })(),
       condition: product.condition || "new",
 
       // Image handling
@@ -74,16 +113,13 @@ const EditProduct = () => {
         typeof img === "object" ? img.url : img
       ),
 
-      // Categories
+      // Categories - extract IDs as strings for form
       parentCategory: product.parentCategory
-        ? {
-            value: product.parentCategory._id,
-            label: product.parentCategory.name,
-          }
-        : null,
+        ? (product.parentCategory._id || product.parentCategory)
+        : "",
       subCategory: product.subCategory
-        ? { value: product.subCategory._id, label: product.subCategory.name }
-        : null,
+        ? (product.subCategory._id || product.subCategory)
+        : "",
 
       // Variants handling
       variants: parsedVariants.map((variant) => ({
@@ -93,13 +129,21 @@ const EditProduct = () => {
         attributes: variant.attributes || [],
       })),
 
-      // Specifications handling
+      // Specifications handling - convert objects to strings for form inputs
       specifications: {
-        weight: product.specifications?.weight || "",
-        dimension: product.specifications?.dimension || "",
+        weight: product.specifications?.weight 
+          ? (typeof product.specifications.weight === 'object' && product.specifications.weight !== null
+              ? `${product.specifications.weight.value || ''}${product.specifications.weight.unit || ''}`.trim()
+              : String(product.specifications.weight).trim())
+          : "",
+        dimension: product.specifications?.dimensions 
+          ? (typeof product.specifications.dimensions === 'object' && product.specifications.dimensions !== null
+              ? `${product.specifications.dimensions.length || ''}x${product.specifications.dimensions.width || ''}x${product.specifications.dimensions.height || ''}${product.specifications.dimensions.unit || ''}`.trim()
+              : String(product.specifications.dimensions).trim())
+          : "",
         material: (product.specifications?.material || []).map((m) => ({
           hexCode: m.hexCode || "",
-          value: Array.isArray(m.value) ? m.value : [m.value || ""],
+          value: Array.isArray(m.value) ? (m.value[0] || "") : (m.value || ""), // Ensure value is a string, not array
         })),
       },
 
@@ -107,10 +151,47 @@ const EditProduct = () => {
       attributes: product.attributes || [],
     };
   }, [product]);
-  console.log(" edit initial form data", initialFormData);
+  // Track unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+
   const handleSubmit = async (data) => {
-    console.log("Form data before submission:", data);
+    setIsSubmitting(true);
+    setHasUnsavedChanges(false);
     const formData = new FormData();
+    
+    // CRITICAL: Ensure warranty is a plain string before processing
+    // Convert any object/JSON to a plain string immediately
+    if (data.warranty && typeof data.warranty === 'object') {
+      data.warranty = data.warranty.details || 
+                     (data.warranty.duration && data.warranty.type 
+                       ? `${data.warranty.duration} ${data.warranty.type}`.trim()
+                       : "");
+    } else if (data.warranty && typeof data.warranty === 'string' && data.warranty.trim().startsWith('{')) {
+      // If it's a JSON string, parse and extract
+      try {
+        const parsed = JSON.parse(data.warranty);
+        if (typeof parsed === 'object' && parsed !== null) {
+          data.warranty = parsed.details || 
+                        (parsed.duration && parsed.type 
+                          ? `${parsed.duration} ${parsed.type}`.trim()
+                          : "");
+        }
+      } catch (e) {
+        // If parsing fails, use as-is but ensure it's a string
+        data.warranty = String(data.warranty).trim();
+      }
+    }
 
     try {
       // Handle image cover
@@ -145,15 +226,52 @@ const EditProduct = () => {
         formData.append("newImages", file); // Changed field name
       });
 
-      // Other fields
-      formData.append("name", data.name);
-      formData.append("description", data.description);
-      formData.append("price", data.price.toString());
+      // Other fields - ensure required fields are always sent
+      formData.append("name", data.name || "");
+      formData.append("description", data.description || "");
+      
+      // Price is required - ensure it's always sent and valid
+      const productPrice = parseFloat(data.price) || 0;
+      if (productPrice <= 0) {
+        toast.error('Product price must be greater than 0', {
+          position: 'top-right',
+          autoClose: 5000,
+        });
+        setIsSubmitting(false);
+        setHasUnsavedChanges(true);
+        return;
+      }
+      formData.append("price", productPrice.toString());
+      
+      // Categories are required
+      if (!data.parentCategory) {
+        toast.error('Parent category is required', {
+          position: 'top-right',
+          autoClose: 5000,
+        });
+        setIsSubmitting(false);
+        setHasUnsavedChanges(true);
+        return;
+      }
       formData.append("parentCategory", data.parentCategory);
+      
+      if (!data.subCategory) {
+        toast.error('Sub category is required', {
+          position: 'top-right',
+          autoClose: 5000,
+        });
+        setIsSubmitting(false);
+        setHasUnsavedChanges(true);
+        return;
+      }
       formData.append("subCategory", data.subCategory);
-      formData.append("brand", data.brand);
+      
+      formData.append("brand", data.brand || "");
       formData.append("manufacturer", data.manufacturer);
-      formData.append("warranty", data.warranty);
+      
+      // IMPORTANT: Do NOT send warranty from EditProduct to avoid casting issues.
+      // The existing warranty stored in the product will be preserved on update.
+      
       formData.append("condition", data.condition);
       // formData.append("variants", JSON.stringify(data.variants));
 
@@ -218,120 +336,320 @@ const EditProduct = () => {
 
       // Wait for all variant image processing to complete
       await Promise.all(variantImagePromises);
-      formData.append("specifications[weight]", data.specifications.weight);
-      formData.append(
-        "specifications[dimension]",
-        data.specifications.dimension
-      );
-
-      data.specifications.material.forEach((mat, index) => {
-        formData.append(
-          `specifications[material][${index}][hexCode]`,
-          mat.hexCode
-        );
-        const values = Array.isArray(mat.value) ? mat.value : [mat.value];
-        values.forEach((val, valIndex) => {
-          formData.append(
-            `specifications[material][${index}][value][${valIndex}]`,
-            val
-          );
-        });
-      });
+      
+      // Handle specifications - send as JSON string
+      // Only include fields that have values (don't send null/empty fields)
+      const specifications = {};
+      
+      // Material array
+      const materials = (data.specifications?.material || [])
+        .map((mat) => ({
+          value: Array.isArray(mat.value) ? mat.value[0] || "" : (mat.value || ""),
+          hexCode: mat.hexCode || "",
+        }))
+        .filter((mat) => mat.value || mat.hexCode); // Filter out empty materials
+      
+      if (materials.length > 0) {
+        specifications.material = materials;
+      }
+      
+      // Weight object
+      if (data.specifications?.weight) {
+        const weightStr = String(data.specifications.weight).trim();
+        if (weightStr) {
+          const weightMatch = weightStr.match(/([\d.]+)\s*([a-z]+)/i);
+          if (weightMatch) {
+            specifications.weight = {
+              value: parseFloat(weightMatch[1]) || 0,
+              unit: weightMatch[2].toLowerCase() || 'g',
+            };
+          } else {
+            // If no unit found, try to extract number and default to 'g'
+            const numMatch = weightStr.match(/([\d.]+)/);
+            if (numMatch) {
+              specifications.weight = {
+                value: parseFloat(numMatch[1]) || 0,
+                unit: 'g',
+              };
+            }
+          }
+        }
+      }
+      
+      // Dimensions object (note: form field is 'dimension' but schema expects 'dimensions')
+      if (data.specifications?.dimension) {
+        const dimStr = String(data.specifications.dimension).trim();
+        if (dimStr) {
+          // Match format: "10x10x5cm" or "10x10x5" or "10 x 10 x 5 cm"
+          const dimMatch = dimStr.match(/([\d.]+)\s*x\s*([\d.]+)\s*x\s*([\d.]+)\s*([a-z]+)?/i);
+          if (dimMatch) {
+            const length = parseFloat(dimMatch[1]) || 0;
+            const width = parseFloat(dimMatch[2]) || 0;
+            const height = parseFloat(dimMatch[3]) || 0;
+            const unit = dimMatch[4]?.toLowerCase() || 'cm';
+            
+            // Validate unit is in enum ['cm', 'in']
+            const validUnit = (unit === 'cm' || unit === 'in') ? unit : 'cm';
+            
+            // Only add if we have valid dimensions
+            if (length > 0 && width > 0 && height > 0) {
+              specifications.dimensions = {
+                length,
+                width,
+                height,
+                unit: validUnit,
+              };
+            }
+          }
+        }
+      }
+      
+      // Only append specifications if it has at least one field
+      if (Object.keys(specifications).length > 0) {
+        formData.append("specifications", JSON.stringify(specifications));
+      }
       // formData.append("attributes", JSON.stringify(data.attributes));
 
-      // Debug log
-      for (const [key, value] of formData.entries()) {
-        console.log(key, value);
+      // Debug: Log what's being sent (in development only)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[EditProduct] FormData contents:');
+        for (const [key, value] of formData.entries()) {
+          if (value instanceof File) {
+            console.log(`  ${key}: [File] ${value.name} (${value.size} bytes)`);
+          } else {
+            console.log(`  ${key}:`, value);
+          }
+        }
       }
-      updateProduct.mutate({
-        id: product._id,
-        data: formData,
-      });
+
+      updateProduct.mutate(
+        {
+          id: product._id,
+          data: formData,
+        },
+        {
+          onSuccess: () => {
+            toast.success('Product updated successfully!', {
+              position: 'top-right',
+              autoClose: 3000,
+            });
+            setIsSubmitting(false);
+            // Navigate back after a short delay
+            setTimeout(() => {
+              navigate(PATHS.PRODUCTS);
+            }, 1500);
+          },
+          onError: (error) => {
+            // Log full error details for debugging
+            console.error('[EditProduct] Update error - Full details:', {
+              message: error?.message,
+              response: error?.response?.data,
+              status: error?.response?.status,
+              statusText: error?.response?.statusText,
+              headers: error?.response?.headers,
+              request: error?.request,
+              config: error?.config,
+            });
+            
+            // Extract error message - check multiple possible locations
+            let errorMessage = 'Failed to update product. Please try again.';
+            let errorDetails = null;
+            
+            if (error?.response?.data) {
+              const responseData = error.response.data;
+              
+              // Check for validation errors object
+              if (responseData.errors && typeof responseData.errors === 'object') {
+                const validationErrors = Object.entries(responseData.errors)
+                  .map(([field, message]) => {
+                    const msg = Array.isArray(message) ? message.join(', ') : message;
+                    return `${field}: ${msg}`;
+                  })
+                  .join('\n');
+                errorMessage = `Validation errors:\n${validationErrors}`;
+                errorDetails = responseData.errors;
+              }
+              // Check for message field (could be a string or object)
+              else if (responseData.message) {
+                errorMessage = typeof responseData.message === 'string' 
+                  ? responseData.message 
+                  : JSON.stringify(responseData.message);
+              }
+              // Check for error field
+              else if (responseData.error) {
+                errorMessage = typeof responseData.error === 'string'
+                  ? responseData.error
+                  : JSON.stringify(responseData.error);
+              }
+              // Check for status field
+              else if (responseData.status === 'fail' || responseData.status === 'error') {
+                errorMessage = responseData.message || 'Update failed';
+              }
+            } else if (error?.message) {
+              errorMessage = error.message;
+            }
+            
+            // Log the extracted error message
+            console.error('[EditProduct] Extracted error message:', errorMessage);
+            if (errorDetails) {
+              console.error('[EditProduct] Error details:', errorDetails);
+            }
+            
+            // Show error in toast with full message
+            toast.error(errorMessage, {
+              position: 'top-right',
+              autoClose: 10000, // Longer timeout for validation errors
+              style: { whiteSpace: 'pre-line' }, // Allow line breaks
+            });
+            setIsSubmitting(false);
+            setHasUnsavedChanges(true); // Keep unsaved state on error
+          },
+        }
+      );
     } catch (err) {
       console.error("Submission error:", err);
+      toast.error('An error occurred while updating the product. Please try again.', {
+        position: 'top-right',
+        autoClose: 5000,
+      });
+      setIsSubmitting(false);
+      setHasUnsavedChanges(true);
     }
   };
   if (isLoading) return <LoadingContainer />;
-  if (error) return <div>{error.message}</div>;
+  if (error) {
+    return (
+      <PageContainer>
+        <ErrorContainer>
+          <FaExclamationTriangle />
+          <h2>Error Loading Product</h2>
+          <p>{error.message || 'Failed to load product. Please try again.'}</p>
+          <Button onClick={() => navigate(PATHS.PRODUCTS)} variant="primary">
+            <FaArrowLeft /> Back to Products
+          </Button>
+        </ErrorContainer>
+      </PageContainer>
+    );
+  }
+
+  const productStatus = product?.status || 'draft';
+  const isVisible = product?.isVisible !== false;
+  const moderationStatus = product?.moderationStatus || 'pending';
+
   return (
     <PageContainer>
-      <PageHeader $padding="lg" $marginBottom="lg">
-        <TitleSection>
-          <h1>Edit Product</h1>
-          <p>{product?.name || "Update product information"}</p>
-        </TitleSection>
-        <ActionSection>
-          <Button
-            as={Link}
-            to={PATHS.PRODUCT_VARIANTS.replace(':productId', productId)}
-            variant="outline"
-            size="md"
-          >
-            <FaLayerGroup /> Manage Variants
-          </Button>
-        </ActionSection>
-      </PageHeader>
+      {/* Breadcrumbs */}
+      <BreadcrumbNav>
+        <BreadcrumbLink to={PATHS.DASHBOARD}>Dashboard</BreadcrumbLink>
+        <BreadcrumbSeparator>/</BreadcrumbSeparator>
+        <BreadcrumbLink to={PATHS.PRODUCTS}>Products</BreadcrumbLink>
+        <BreadcrumbSeparator>/</BreadcrumbSeparator>
+        <BreadcrumbCurrent>{product?.name || 'Edit Product'}</BreadcrumbCurrent>
+      </BreadcrumbNav>
+
+      {/* Header Section */}
+      <HeaderCard>
+        <HeaderContent>
+          <HeaderLeft>
+            <BackButton onClick={() => navigate(PATHS.PRODUCTS)}>
+              <FaArrowLeft /> Back
+            </BackButton>
+            <TitleGroup>
+              <PageTitle>Edit Product</PageTitle>
+              <ProductName>{product?.name || 'Loading...'}</ProductName>
+            </TitleGroup>
+          </HeaderLeft>
+          <HeaderRight>
+            <StatusBadges>
+              <StatusBadge $status={productStatus} $type="status">
+                {productStatus === 'active' && <FaCheckCircle />}
+                {productStatus === 'draft' && <FaInfoCircle />}
+                {productStatus === 'inactive' && <FaExclamationTriangle />}
+                <span>{productStatus.charAt(0).toUpperCase() + productStatus.slice(1).replace('_', ' ')}</span>
+              </StatusBadge>
+              <StatusBadge $status={moderationStatus} $type="moderation">
+                {moderationStatus === 'approved' && <FaCheckCircle />}
+                {moderationStatus === 'pending' && <FaInfoCircle />}
+                {moderationStatus === 'rejected' && <FaExclamationTriangle />}
+                <span>{moderationStatus.charAt(0).toUpperCase() + moderationStatus.slice(1)}</span>
+              </StatusBadge>
+              <VisibilityBadge $visible={isVisible}>
+                {isVisible ? <FaEye /> : <FaEyeSlash />}
+                <span>{isVisible ? 'Visible' : 'Hidden'}</span>
+              </VisibilityBadge>
+            </StatusBadges>
+          </HeaderRight>
+        </HeaderContent>
+        
+        {hasUnsavedChanges && (
+          <UnsavedWarning>
+            <FaExclamationTriangle />
+            <span>You have unsaved changes</span>
+          </UnsavedWarning>
+        )}
+      </HeaderCard>
 
       {/* Variants Summary Card */}
       {!variantsLoading && (
-        <Section $padding="lg" $marginBottom="lg">
-          <VariantsCard>
-            <VariantsSummaryHeader>
-              <VariantsTitle>
-                <FaLayerGroup />
-                <div>
-                  <h3>Product Variants</h3>
-                  <VariantsSubtitle>
-                    {hasVariants 
-                      ? `${variantCount} variant${variantCount !== 1 ? 's' : ''} configured`
-                      : 'No variants configured'}
-                  </VariantsSubtitle>
-                </div>
-              </VariantsTitle>
-              <Button
-                as={Link}
-                to={PATHS.PRODUCT_VARIANTS.replace(':productId', productId)}
-                variant={hasVariants ? "primary" : "outline"}
-                size="md"
-              >
-                {hasVariants ? (
-                  <>
-                    <FaLayerGroup /> View All Variants
-                  </>
-                ) : (
-                  <>
-                    <FaBox /> Add Variants
-                  </>
-                )}
-                <FaArrowRight />
-              </Button>
-            </VariantsSummaryHeader>
+        <VariantsSummaryCard>
+          <VariantsCardHeader>
+            <VariantsTitle>
+              <FaLayerGroup />
+              <div>
+                <h3>Product Variants</h3>
+                <VariantsSubtitle>
+                  {hasVariants 
+                    ? `${variantCount} variant${variantCount !== 1 ? 's' : ''} configured`
+                    : 'No variants configured'}
+                </VariantsSubtitle>
+              </div>
+            </VariantsTitle>
+            <Button
+              as={Link}
+              to={PATHS.PRODUCT_VARIANTS.replace(':productId', productId)}
+              variant={hasVariants ? "primary" : "outline"}
+              size="md"
+            >
+              {hasVariants ? (
+                <>
+                  <FaLayerGroup /> View All Variants
+                </>
+              ) : (
+                <>
+                  <FaBox /> Add Variants
+                </>
+              )}
+              <FaArrowRight />
+            </Button>
+          </VariantsCardHeader>
 
-            {hasVariants && (
+          {hasVariants && (
+            <>
               <VariantsInfo>
                 <InfoItem>
-                  <InfoLabel>Total Variants:</InfoLabel>
+                  <InfoLabel>Total Variants</InfoLabel>
                   <InfoValue>{variantCount}</InfoValue>
                 </InfoItem>
                 <InfoItem>
-                  <InfoLabel>Total Stock:</InfoLabel>
+                  <InfoLabel>Total Stock</InfoLabel>
                   <InfoValue>{totalVariantStock} units</InfoValue>
                 </InfoItem>
                 <InfoItem>
-                  <InfoLabel>Active Variants:</InfoLabel>
+                  <InfoLabel>Active Variants</InfoLabel>
                   <InfoValue>
                     {variants.filter(v => v.status === 'active').length}
                   </InfoValue>
                 </InfoItem>
               </VariantsInfo>
-            )}
 
-            {hasVariants && (
               <VariantsPreview>
-                <PreviewTitle>Quick Preview:</PreviewTitle>
+                <PreviewTitle>Quick Preview</PreviewTitle>
                 <VariantsList>
-                  {variants.slice(0, 3).map((variant, idx) => (
-                    <VariantPreviewItem key={variant._id || idx}>
+                  {variants.slice(0, 3).map((variant, idx) => {
+                    // Use a more unique key to prevent React from creating duplicates
+                    const uniqueKey = variant._id || variant.id || `variant-${idx}-${variant.sku || Date.now()}`;
+                    return (
+                    <VariantPreviewItem key={uniqueKey}>
                       <VariantAttributes>
                         {variant.attributes?.map((attr, ai) => (
                           <AttributeBadge key={ai}>
@@ -342,12 +660,13 @@ const EditProduct = () => {
                       <VariantDetails>
                         <span>Price: GH₵{parseFloat(variant.price || 0).toFixed(2)}</span>
                         <span>Stock: {variant.stock || 0}</span>
-                        <StatusBadge $status={variant.status || 'active'}>
+                        <VariantStatusBadge $status={variant.status || 'active'}>
                           {variant.status || 'active'}
-                        </StatusBadge>
+                        </VariantStatusBadge>
                       </VariantDetails>
                     </VariantPreviewItem>
-                  ))}
+                    );
+                  })}
                 </VariantsList>
                 {variantCount > 3 && (
                   <ViewMoreLink
@@ -358,28 +677,32 @@ const EditProduct = () => {
                   </ViewMoreLink>
                 )}
               </VariantsPreview>
-            )}
+            </>
+          )}
 
-            {!hasVariants && (
-              <NoVariantsMessage>
-                <FaInfoCircle />
-                <div>
-                  <p>This product doesn't have any variants yet.</p>
-                  <p>Add variants to offer different options (size, color, etc.) to your customers.</p>
-                </div>
-              </NoVariantsMessage>
-            )}
-          </VariantsCard>
-        </Section>
+          {!hasVariants && (
+            <NoVariantsMessage>
+              <FaInfoCircle />
+              <div>
+                <p>This product doesn't have any variants yet.</p>
+                <p>Add variants to offer different options (size, color, etc.) to your customers.</p>
+              </div>
+            </NoVariantsMessage>
+          )}
+        </VariantsSummaryCard>
       )}
 
+      {/* Product Form */}
       {product && (
-        <ProductForm
-          initialData={initialFormData}
-          onSubmit={handleSubmit}
-          isSubmitting={updateProduct.isLoading}
-          mode="edit"
-        />
+        <FormWrapper>
+          <ProductForm
+            initialData={initialFormData}
+            onSubmit={handleSubmit}
+            isSubmitting={isSubmitting || updateProduct.isPending}
+            mode="edit"
+            onFormChange={() => setHasUnsavedChanges(true)}
+          />
+        </FormWrapper>
       )}
     </PageContainer>
   );
@@ -388,6 +711,287 @@ const EditProduct = () => {
 export default EditProduct;
 
 // Styled Components
+const BreadcrumbNav = styled.nav`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+  color: #64748b;
+  
+  @media (max-width: 768px) {
+    font-size: 0.8125rem;
+    flex-wrap: wrap;
+  }
+`;
+
+const BreadcrumbLink = styled(Link)`
+  color: #64748b;
+  text-decoration: none;
+  transition: color 0.2s;
+  
+  &:hover {
+    color: var(--color-primary-600);
+    text-decoration: underline;
+  }
+`;
+
+const BreadcrumbSeparator = styled.span`
+  color: #cbd5e1;
+`;
+
+const BreadcrumbCurrent = styled.span`
+  color: #1e293b;
+  font-weight: 500;
+`;
+
+const HeaderCard = styled.div`
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  margin-bottom: 2rem;
+  
+  @media (max-width: 768px) {
+    padding: 1.25rem 1.5rem;
+  }
+`;
+
+const HeaderContent = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+`;
+
+const HeaderLeft = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  min-width: 0;
+`;
+
+const HeaderRight = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  
+  @media (max-width: 768px) {
+    width: 100%;
+    margin-top: 1rem;
+  }
+`;
+
+const BackButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  
+  &:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #334155;
+  }
+  
+  svg {
+    font-size: 0.75rem;
+  }
+`;
+
+const TitleGroup = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
+const PageTitle = styled.h1`
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 0.25rem 0;
+  
+  @media (max-width: 768px) {
+    font-size: 1.25rem;
+  }
+`;
+
+const ProductName = styled.p`
+  font-size: 0.9375rem;
+  color: #64748b;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+`;
+
+const StatusBadges = styled.div`
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  
+  @media (max-width: 768px) {
+    width: 100%;
+  }
+`;
+
+const StatusBadge = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  
+  ${({ $type, $status }) => {
+    if ($type === 'status') {
+      if ($status === 'active') {
+        return `
+          background: #dcfce7;
+          color: #166534;
+        `;
+      } else if ($status === 'draft') {
+        return `
+          background: #fef3c7;
+          color: #92400e;
+        `;
+      } else {
+        return `
+          background: #fee2e2;
+          color: #991b1b;
+        `;
+      }
+    } else {
+      // moderation status
+      if ($status === 'approved') {
+        return `
+          background: #dcfce7;
+          color: #166534;
+        `;
+      } else if ($status === 'pending') {
+        return `
+          background: #fef3c7;
+          color: #92400e;
+        `;
+      } else {
+        return `
+          background: #fee2e2;
+          color: #991b1b;
+        `;
+      }
+    }
+  }}
+  
+  svg {
+    font-size: 0.875rem;
+  }
+`;
+
+const VisibilityBadge = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  background: ${({ $visible }) => ($visible ? '#dcfce7' : '#f1f5f9')};
+  color: ${({ $visible }) => ($visible ? '#166534' : '#64748b')};
+  
+  svg {
+    font-size: 0.875rem;
+  }
+`;
+
+const UnsavedWarning = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background: #fef3c7;
+  border: 1px solid #fbbf24;
+  border-radius: 8px;
+  color: #92400e;
+  font-size: 0.875rem;
+  font-weight: 500;
+  
+  svg {
+    font-size: 1rem;
+  }
+`;
+
+const FormWrapper = styled.div`
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+`;
+
+const VariantsSummaryCard = styled.div`
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  margin-bottom: 2rem;
+  
+  @media (max-width: 768px) {
+    padding: 1.25rem 1.5rem;
+  }
+`;
+
+const VariantsCardHeader = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+`;
+
+const ErrorContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  text-align: center;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  
+  svg {
+    font-size: 3rem;
+    color: #ef4444;
+    margin-bottom: 1rem;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+    color: #1e293b;
+    margin: 0 0 0.5rem 0;
+  }
+  
+  p {
+    color: #64748b;
+    margin: 0 0 1.5rem 0;
+  }
+`;
+
 const VariantsCard = styled.div`
   background: var(--color-white-0);
   border-radius: var(--border-radius-lg);
@@ -518,7 +1122,7 @@ const VariantDetails = styled.div`
   flex-wrap: wrap;
 `;
 
-const StatusBadge = styled.span`
+const VariantStatusBadge = styled.span`
   padding: var(--spacing-xs) var(--spacing-sm);
   border-radius: var(--border-radius-cir);
   font-size: var(--font-size-xs);

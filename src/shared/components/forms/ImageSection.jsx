@@ -3,6 +3,214 @@ import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { FiUploadCloud, FiX } from "react-icons/fi";
 
+// Styled components - defined before component to ensure they're available
+const ImageSectionContainer = styled.div`
+  margin-bottom: 2rem;
+`;
+
+const ImageUploadCard = styled.div`
+  padding: 1.5rem;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  
+  &:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  }
+  
+  @media (max-width: 768px) {
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+`;
+
+const UploadLabel = styled.label`
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin-bottom: 1rem;
+  font-weight: 500;
+  color: #1e293b;
+  font-size: 0.9375rem;
+`;
+
+const Required = styled.span`
+  color: #ef4444;
+  font-weight: 600;
+  margin-left: 0.25rem;
+`;
+
+const Optional = styled.span`
+  color: #64748b;
+  font-weight: 400;
+  font-size: 0.8125rem;
+  margin-left: 0.25rem;
+`;
+
+const HelperText = styled.span`
+  font-size: 0.8125rem;
+  color: #64748b;
+  font-weight: 400;
+  line-height: 1.4;
+`;
+
+const UploadArea = styled.div`
+  border: 2px dashed #cbd5e0;
+  border-radius: 12px;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  transition: all 0.3s;
+  cursor: pointer;
+  position: relative;
+  background: #f8fafc;
+
+  &:hover {
+    border-color: var(--color-primary-500);
+    background-color: #fefce8;
+  }
+
+  @media (max-width: 768px) {
+    padding: 1.5rem 1rem;
+  }
+`;
+
+const UploadIcon = styled.div`
+  font-size: 2.5rem;
+  color: var(--color-primary-500);
+  margin-bottom: 1rem;
+  
+  @media (max-width: 768px) {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+  }
+`;
+
+const UploadText = styled.p`
+  margin: 0;
+  color: #718096;
+
+  strong {
+    color: #3182ce;
+    font-weight: 500;
+  }
+`;
+
+const FileInput = styled.input`
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  cursor: pointer;
+`;
+
+const PreviewContainer = styled.div`
+  margin-top: 1.5rem;
+`;
+
+const PreviewTitle = styled.h4`
+  font-size: 1.1rem;
+  color: #2d3748;
+  margin-top: 0;
+  margin-bottom: 1rem;
+`;
+
+const PreviewGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.75rem;
+  }
+  
+  @media (max-width: 480px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+`;
+
+const ImagePreview = styled.div`
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  aspect-ratio: 1/1;
+`;
+
+const PreviewImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+`;
+
+const RemoveButton = styled.button`
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 32px;
+  height: 32px;
+  background: rgba(229, 62, 62, 0.9);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 32px; /* Touch-friendly */
+  min-height: 32px;
+
+  &:hover {
+    background: #c53030;
+    transform: scale(1.1);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+  
+  @media (max-width: 768px) {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    top: 0.375rem;
+    right: 0.375rem;
+    
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+`;
+
+const CoverPreview = styled.div`
+  max-width: 400px;
+  margin-top: 1rem;
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+`;
+
+const CoverImage = styled.img`
+  width: 100%;
+  max-height: 300px;
+  object-fit: cover;
+`;
+
 export default function ImageSection({ isSubmitting }) {
   const { watch, setValue } = useFormContext();
   const [coverPreview, setCoverPreview] = useState("");
@@ -72,11 +280,12 @@ export default function ImageSection({ isSubmitting }) {
 
   return (
     <ImageSectionContainer>
-      <SectionTitle>Product Images</SectionTitle>
-
       {/* Cover Image Upload */}
       <ImageUploadCard>
-        <UploadLabel>Cover Image *</UploadLabel>
+        <UploadLabel>
+          Cover Image <Required>*</Required>
+          <HelperText>This is the main image customers will see first</HelperText>
+        </UploadLabel>
         <UploadArea>
           <UploadIcon>
             <FiUploadCloud />
@@ -84,7 +293,7 @@ export default function ImageSection({ isSubmitting }) {
           <UploadText>
             <strong>Click to upload</strong> or drag and drop
           </UploadText>
-          <UploadText>Recommended size: 1200x800 pixels</UploadText>
+          <UploadText>Recommended: 1200x800 pixels (JPG, PNG, WebP)</UploadText>
           <FileInput
             type="file"
             accept="image/*"
@@ -105,7 +314,11 @@ export default function ImageSection({ isSubmitting }) {
 
       {/* Additional Images Upload */}
       <ImageUploadCard>
-        <UploadLabel>Additional Images</UploadLabel>
+        <UploadLabel>
+          Additional Images
+          <Optional>(Optional)</Optional>
+          <HelperText>Add more images to showcase different angles and features</HelperText>
+        </UploadLabel>
         <UploadArea>
           <UploadIcon>
             <FiUploadCloud />
@@ -113,7 +326,7 @@ export default function ImageSection({ isSubmitting }) {
           <UploadText>
             <strong>Click to upload</strong> or drag and drop
           </UploadText>
-          <UploadText>You can select multiple images</UploadText>
+          <UploadText>You can select multiple images (up to 10)</UploadText>
           <FileInput
             type="file"
             multiple
@@ -146,147 +359,3 @@ export default function ImageSection({ isSubmitting }) {
     </ImageSectionContainer>
   );
 }
-
-// Styled components remain the same
-const ImageSectionContainer = styled.div`
-  margin-bottom: 2rem;
-`;
-
-const SectionTitle = styled.h3`
-  font-size: 1.3rem;
-  color: #2d3748;
-  margin-top: 0;
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid #e2e8f0;
-`;
-
-const ImageUploadCard = styled.div`
-  padding: 1.5rem;
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-`;
-
-const UploadLabel = styled.label`
-  display: block;
-  margin-bottom: 1rem;
-  font-weight: 500;
-  color: #4a5568;
-`;
-
-const UploadArea = styled.div`
-  border: 2px dashed #cbd5e0;
-  border-radius: 8px;
-  padding: 2rem;
-  text-align: center;
-  transition: all 0.3s;
-  cursor: pointer;
-  position: relative;
-
-  &:hover {
-    border-color: #3182ce;
-    background-color: #f8fafc;
-  }
-`;
-
-const UploadIcon = styled.div`
-  font-size: 2.5rem;
-  color: #a0aec0;
-  margin-bottom: 1rem;
-`;
-
-const UploadText = styled.p`
-  margin: 0;
-  color: #718096;
-
-  strong {
-    color: #3182ce;
-    font-weight: 500;
-  }
-`;
-
-const FileInput = styled.input`
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  opacity: 0;
-  cursor: pointer;
-`;
-
-const PreviewContainer = styled.div`
-  margin-top: 1.5rem;
-`;
-
-const PreviewTitle = styled.h4`
-  font-size: 1.1rem;
-  color: #2d3748;
-  margin-top: 0;
-  margin-bottom: 1rem;
-`;
-
-const PreviewGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 1rem;
-`;
-
-const ImagePreview = styled.div`
-  position: relative;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  aspect-ratio: 1/1;
-`;
-
-const PreviewImage = styled.img`
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-`;
-
-const RemoveButton = styled.button`
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  width: 28px;
-  height: 28px;
-  background: rgba(229, 62, 62, 0.9);
-  color: white;
-  border: none;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    background: #c53030;
-    transform: scale(1.1);
-  }
-
-  svg {
-    width: 16px;
-    height: 16px;
-  }
-`;
-
-const CoverPreview = styled.div`
-  max-width: 400px;
-  margin-top: 1rem;
-  position: relative;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-`;
-
-const CoverImage = styled.img`
-  width: 100%;
-  max-height: 300px;
-  object-fit: cover;
-`;

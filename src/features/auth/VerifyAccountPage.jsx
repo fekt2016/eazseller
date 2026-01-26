@@ -1,6 +1,7 @@
 import { useState } from "react";
 import styled from "styled-components";
 import { useSearchParams, Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import useAuth from "../../shared/hooks/useAuth";
 import { PATHS } from "../../routes/routePaths";
 import { ButtonSpinner } from "../../shared/components/ButtonSpinner";
@@ -151,14 +152,39 @@ function VerifyAccountPage() {
     verifyAccountMutation(
       { email: trimmedEmail, otp: trimmedOtp },
       {
-        onSuccess: () => {
-          // Show a short success message, then redirect to login
+        onSuccess: (response) => {
+          // Show success toast notification
+          toast.success("Email verified successfully! Redirecting to login...", {
+            position: "top-center",
+            autoClose: 2000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          });
+          
+          // Show info message
           setInfoMessage(
             "Email verified successfully. Redirecting you to the login page..."
           );
+          
+          // Redirect to login after a short delay
           setTimeout(() => {
             navigate(PATHS.LOGIN);
-          }, 1500);
+          }, 2000);
+        },
+        onError: (error) => {
+          // Error toast is handled by the error display below
+          // But we can add a toast here too if needed
+          const errorMessage = error?.response?.data?.message || error?.message || "Verification failed. Please try again.";
+          toast.error(errorMessage, {
+            position: "top-center",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+          });
         },
       }
     );

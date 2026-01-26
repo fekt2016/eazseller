@@ -114,13 +114,13 @@ const normalizedBaseURL = baseURL.endsWith('/') ? baseURL.slice(0, -1) : baseURL
 const api = axios.create({
   baseURL: normalizedBaseURL,
   withCredentials: true, // CRITICAL: Required for cookie-based authentication
-  timeout: 15000,
+  timeout: 15000, // 15 seconds - if backend doesn't respond, increasing timeout won't help
   headers: {
     'Content-Type': 'application/json', // Explicitly set JSON content type
   },
 });
 
-// Request interceptor
+  // Request interceptor
 api.interceptors.request.use((config) => {
   const relativePath = getRelativePath(config.url);
   const normalizedPath = normalizePath(relativePath);
@@ -277,6 +277,31 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Handle timeout errors with user-friendly messages
+    const isTimeout = error?.code === 'ECONNABORTED' || error?.message?.includes('timeout');
+    if (isTimeout) {
+      const url = error.config?.url || '';
+      const isAuthRequest = url.includes('/seller/login') || url.includes('/seller/signup') || 
+                           url.includes('/seller/verify') || url.includes('/auth/');
+      
+      const timeoutMessage = isAuthRequest
+        ? 'The server is taking too long to respond. Please check your internet connection and try again.'
+        : 'Request timed out. Please try again.';
+      
+      console.error(`[API] ⏱️ Timeout error: ${timeoutMessage}`, {
+        url: error.config?.url,
+        timeout: error.config?.timeout,
+        code: error.code,
+      });
+      
+      // Create a more user-friendly error
+      const timeoutError = new Error(timeoutMessage);
+      timeoutError.code = 'ECONNABORTED';
+      timeoutError.isTimeout = true;
+      timeoutError.url = error.config?.url;
+      return Promise.reject(timeoutError);
+    }
+    
     // Enhanced logging for verify-otp errors
     const isVerifyOtpError = error.config?.url?.includes('verify-otp');
     

@@ -66,17 +66,28 @@ const AddProductPage = () => {
       formData.append("parentCategory", data.parentCategory);
       formData.append("subCategory", data.subCategory);
 
-      // Calculate total stock
+      // Calculate total stock and price
       let totalStock = 0;
+      let productPrice = 0;
+      
       if (data.productType === "simple") {
         totalStock = data.stock;
-        formData.append("price", data.price.toString());
+        productPrice = data.price || 0;
       } else {
+        // For variant products, calculate total stock and use minimum variant price as main price
         totalStock = data.variants.reduce(
           (sum, variant) => sum + (parseInt(variant.stock) || 0),
           0
         );
+        // Use minimum variant price as the main product price
+        const variantPrices = data.variants
+          .map((v) => parseFloat(v.price) || 0)
+          .filter((p) => p > 0);
+        productPrice = variantPrices.length > 0 ? Math.min(...variantPrices) : 0;
       }
+      
+      // Always append price (required by backend)
+      formData.append("price", productPrice.toString());
       formData.append("totalStock", totalStock.toString());
 
       // Format variants and process variant images
@@ -138,15 +149,64 @@ const AddProductPage = () => {
       // Append variants as JSON string
       formData.append("variants", JSON.stringify(formattedVariants));
 
-      // Append specifications
-      const keyValuePairs = data.specifications?.keyValuePairs || [];
+      // Append specifications - format correctly for backend
       const specifications = {
-        keyValuePairs: keyValuePairs.filter((pair) => pair.key && pair.value),
-        about: data.specifications?.about || "",
+        material: (data.specifications?.material || []).map((mat) => ({
+          value: Array.isArray(mat.value) ? mat.value[0] || "" : (mat.value || ""),
+          hexCode: mat.hexCode || "",
+        })).filter((mat) => mat.value || mat.hexCode), // Filter out empty materials
+        weight: data.specifications?.weight ? (() => {
+          // Parse weight string (e.g., "0.5kg", "500g") into object
+          const weightStr = String(data.specifications.weight).trim();
+          if (!weightStr) return null;
+          
+          const weightMatch = weightStr.match(/([\d.]+)\s*([a-z]+)/i);
+          if (weightMatch) {
+            return {
+              value: parseFloat(weightMatch[1]) || 0,
+              unit: weightMatch[2].toLowerCase() || 'g',
+            };
+          }
+          // If no unit found, try to extract number and default to 'g'
+          const numMatch = weightStr.match(/([\d.]+)/);
+          return {
+            value: numMatch ? parseFloat(numMatch[1]) : 0,
+            unit: 'g',
+          };
+        })() : null,
+        dimension: data.specifications?.dimension || "",
       };
+      
       formData.append("specifications", JSON.stringify(specifications));
       formData.append("manufacturer", data.manufacturer || "");
-      formData.append("warranty", data.warranty || "");
+      
+      // Handle warranty - ensure it's ALWAYS sent as a plain string (backend will parse and convert to object)
+      // This prevents validation errors from Mongoose trying to cast objects to strings
+      let warrantyValue = "";
+      if (data.warranty !== undefined && data.warranty !== null && data.warranty !== "") {
+        try {
+          // If it's already a string, use it directly
+          if (typeof data.warranty === 'string') {
+            warrantyValue = data.warranty.trim();
+          } 
+          // If it's an object, extract the details string or create a readable string
+          else if (typeof data.warranty === 'object') {
+            warrantyValue = data.warranty.details || 
+                          (data.warranty.duration && data.warranty.type 
+                            ? `${data.warranty.duration} ${data.warranty.type}`.trim()
+                            : "");
+          }
+          // If it's something else, convert to string
+          else {
+            warrantyValue = String(data.warranty).trim();
+          }
+        } catch (e) {
+          // If anything fails, just convert to string
+          warrantyValue = String(data.warranty).trim();
+        }
+      }
+      // Always append as a plain string, never as object or JSON
+      formData.append("warranty", warrantyValue);
       formData.append("condition", data.condition || "new");
       // Append remaining product data
       formData.append("seller", seller.id);
@@ -219,7 +279,8 @@ const BackButton = styled.button`
   border: 1px solid #e2e8f0;
   border-radius: 6px;
   padding: 0.6rem 1.2rem;
-  font-size: 0.9rem;
+  font-size: 1rem;
+  font-weight: 400;
   color: #4a5568;
   cursor: pointer;
   transition: all 0.2s;
@@ -232,19 +293,20 @@ const BackButton = styled.button`
   }
 
   svg {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
   }
 `;
 
 const PageTitle = styled.h1`
-  font-size: 1.8rem;
-  font-weight: 700;
+  font-size: 2rem;
+  font-weight: 500;
   color: #1a202c;
   margin: 1.5rem 0 0.5rem;
 `;
 
 const HeaderDescription = styled.p`
-  font-size: 1rem;
+  font-size: 1.125rem;
+  font-weight: 400;
   color: #718096;
   max-width: 700px;
   line-height: 1.5;

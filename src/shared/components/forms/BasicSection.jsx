@@ -1,65 +1,105 @@
 import { useFormContext } from "react-hook-form";
 import styled from "styled-components";
 
-// In BasicSection.js
-
 const BasicSection = () => {
-  const { register } = useFormContext();
+  const { register, watch } = useFormContext();
+  
+  const name = watch("name") || "";
+  const description = watch("description") || "";
+  const nameLength = name.length;
+  const descriptionLength = description.length;
 
   return (
     <div>
-      {/* Existing fields */}
+      {/* Product Name */}
       <FieldGroup>
-        <Label>Product Name*</Label>
+        <Label>
+          Product Name <Required>*</Required>
+          {nameLength > 0 && <CharCount $warning={nameLength > 100}>{nameLength}/200</CharCount>}
+        </Label>
         <Input
-          {...register("name", { required: "Product name is required" })}
-          placeholder="Enter product name"
+          {...register("name", { 
+            required: "Product name is required",
+            maxLength: { value: 200, message: "Product name must be less than 200 characters" }
+          })}
+          placeholder="e.g., Samsung Galaxy S21 Ultra 128GB"
+          maxLength={200}
         />
+        <HelperText>Choose a clear, descriptive name that customers will search for</HelperText>
       </FieldGroup>
 
+      {/* Description */}
       <FieldGroup>
-        <Label>Description</Label>
+        <Label>
+          Description
+          {descriptionLength > 0 && <CharCount $warning={descriptionLength > 2000}>{descriptionLength}/5000</CharCount>}
+        </Label>
         <TextArea
-          {...register("description")}
-          placeholder="Enter product description"
-          rows={4}
+          {...register("description", {
+            maxLength: { value: 5000, message: "Description must be less than 5000 characters" }
+          })}
+          placeholder="Describe your product in detail. Include key features, benefits, and what makes it special..."
+          rows={6}
+          maxLength={5000}
         />
+        <HelperText>Provide detailed information to help customers make informed decisions</HelperText>
       </FieldGroup>
 
-      {/* New fields group */}
+      {/* Additional Information */}
       <FieldRow>
         <FieldGroup style={{ flex: 1 }}>
-          <Label>Manufacturer</Label>
+          <Label>
+            Brand
+            <Optional>(Optional)</Optional>
+          </Label>
+          <Input
+            {...register("brand")}
+            placeholder="e.g., Samsung, Apple, Nike"
+          />
+          <HelperText>Product brand or manufacturer name</HelperText>
+        </FieldGroup>
+
+        <FieldGroup style={{ flex: 1 }}>
+          <Label>
+            Manufacturer
+            <Optional>(Optional)</Optional>
+          </Label>
           <Input
             {...register("manufacturer")}
-            placeholder="e.g., Sony, Samsung"
+            placeholder="e.g., Sony Corporation"
           />
+          <HelperText>Company that manufactured the product</HelperText>
         </FieldGroup>
+      </FieldRow>
 
+      <FieldRow>
         <FieldGroup style={{ flex: 1 }}>
-          <Label>Warranty</Label>
-          <Input
-            {...register("warranty")}
-            placeholder="e.g., 1 year, 2 years"
-          />
-        </FieldGroup>
-
-        <FieldGroup style={{ flex: 1 }}>
-          <Label>Condition*</Label>
-          <Select {...register("condition", { required: true })}>
+          <Label>
+            Condition <Required>*</Required>
+          </Label>
+          <Select {...register("condition", { required: "Product condition is required" })}>
+            <option value="">Select condition</option>
             <option value="new">New</option>
             <option value="refurbished">Refurbished</option>
             <option value="used">Used</option>
             <option value="open_box">Open Box</option>
             <option value="for_parts">For Parts</option>
           </Select>
+          <HelperText>Physical condition of the product</HelperText>
+        </FieldGroup>
+
+        <FieldGroup style={{ flex: 1 }}>
+          <Label>
+            Warranty
+            <Optional>(Optional)</Optional>
+          </Label>
+          <Input
+            {...register("warranty")}
+            placeholder="e.g., 1 year, 2 years, 6 months"
+          />
+          <HelperText>Warranty period offered with this product</HelperText>
         </FieldGroup>
       </FieldRow>
-
-      <FieldGroup>
-        <Label>Brand</Label>
-        <Input {...register("brand")} placeholder="Enter brand name" />
-      </FieldGroup>
     </div>
   );
 };
@@ -80,38 +120,103 @@ const FieldRow = styled.div`
 `;
 
 const Label = styled.label`
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 0.5rem;
-  font-weight: 400; /* reduced boldness */
-  color: #4a5568;
+  font-weight: 400;
+  color: #1e293b;
+  font-size: 1.0625rem;
+  
+  @media (max-width: 768px) {
+    font-size: 1rem;
+  }
+`;
+
+const Required = styled.span`
+  color: #ef4444;
+  font-weight: 500;
+  margin-left: 0.25rem;
+`;
+
+const Optional = styled.span`
+  color: #64748b;
+  font-weight: 400;
+  font-size: 0.9375rem;
+  margin-left: 0.25rem;
+`;
+
+const CharCount = styled.span`
+  font-size: 0.875rem;
+  color: ${({ $warning }) => ($warning ? '#ef4444' : '#64748b')};
+  font-weight: 400;
+`;
+
+const HelperText = styled.p`
+  margin: 0.375rem 0 0 0;
+  font-size: 0.9375rem;
+  color: #64748b;
+  line-height: 1.4;
 `;
 
 const Input = styled.input`
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 1rem;
+  padding: 0.875rem 1rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1.0625rem;
+  color: #1e293b;
+  background: #ffffff;
+  transition: all 0.2s ease;
+  min-height: 44px; /* Touch-friendly on mobile */
 
   &:focus {
     outline: none;
-    border-color: #3182ce;
-    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
+    border-color: var(--color-primary-500);
+    box-shadow: 0 0 0 3px rgba(255, 196, 0, 0.1);
+  }
+
+  &:hover:not(:focus) {
+    border-color: #cbd5e1;
+  }
+
+  &::placeholder {
+    color: #94a3b8;
+  }
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+    font-size: 1.125rem; /* Prevent zoom on iOS */
+    min-height: 48px;
   }
 `;
 
 const Select = styled.select`
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 1rem;
+  padding: 0.875rem 1rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1.0625rem;
+  color: #1e293b;
   background-color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 44px; /* Touch-friendly on mobile */
 
   &:focus {
     outline: none;
-    border-color: #3182ce;
-    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
+    border-color: var(--color-primary-500);
+    box-shadow: 0 0 0 3px rgba(255, 196, 0, 0.1);
+  }
+
+  &:hover:not(:focus) {
+    border-color: #cbd5e1;
+  }
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+    font-size: 1.125rem; /* Prevent zoom on iOS */
+    min-height: 48px;
   }
 `;
 
@@ -168,18 +273,36 @@ const FormGroup = styled.div`
 
 const TextArea = styled.textarea`
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #cbd5e0;
-  border-radius: 6px;
-  font-size: 1rem;
-  min-height: 100px;
+  padding: 0.875rem 1rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1.0625rem;
+  color: #1e293b;
+  background: #ffffff;
+  min-height: 120px;
   resize: vertical;
-  transition: border-color 0.2s;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  line-height: 1.6;
 
   &:focus {
     outline: none;
-    border-color: #3182ce;
-    box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
+    border-color: var(--color-primary-500);
+    box-shadow: 0 0 0 3px rgba(255, 196, 0, 0.1);
+  }
+
+  &:hover:not(:focus) {
+    border-color: #cbd5e1;
+  }
+
+  &::placeholder {
+    color: #94a3b8;
+  }
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+    font-size: 1.125rem; /* Prevent zoom on iOS */
+    min-height: 140px;
   }
 `;
 
@@ -187,5 +310,6 @@ const ErrorMessage = styled.span`
   display: block;
   margin-top: 0.5rem;
   color: #e53e3e;
-  font-size: 0.875rem;
+  font-size: 1rem;
+  font-weight: 400;
 `;

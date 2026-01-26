@@ -75,16 +75,17 @@ const FormGroup = styled.div`
 const Label = styled.label`
   display: block;
   margin-bottom: 0.5rem;
-  font-weight: 400; /* reduced boldness */
+  font-weight: 400;
+  font-size: 1.0625rem;
   color: #4a5568;
 `;
 
 const Input = styled.input`
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #cbd5e0;
-  border-radius: 6px;
-  font-size: 1rem;
+  padding: 0.875rem 1rem;
+  border: 1.5px solid #cbd5e0;
+  border-radius: 8px;
+  font-size: 1.0625rem;
   transition: border-color 0.2s;
 
   &:focus {
@@ -102,5 +103,6 @@ const ErrorMessage = styled.span`
   display: block;
   margin-top: 0.5rem;
   color: #e53e3e;
-  font-size: 0.875rem;
+  font-size: 1rem;
+  font-weight: 400;
 `;

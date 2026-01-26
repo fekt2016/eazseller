@@ -2,7 +2,7 @@ import styled from "styled-components";
 import { useFormContext } from "react-hook-form";
 
 const InventorySection = ({ isSubmitting }) => {
-  const { register, watch } = useFormContext();
+  const { register, watch, formState: { errors } } = useFormContext();
   const variants = watch("variants");
   const totalStock = watch("totalStock");
 
@@ -11,7 +11,7 @@ const InventorySection = ({ isSubmitting }) => {
       <SectionTitle>Inventory</SectionTitle>
       <FormGroup>
         <Label>
-          Total Stock
+          Total Stock *
           {variants?.length > 0 && (
             <InfoText>(Calculated from variants)</InfoText>
           )}
@@ -25,12 +25,21 @@ const InventorySection = ({ isSubmitting }) => {
             placeholder="0"
           />
         ) : (
-          <Input
-            type="text"
-            {...register("totalStock", { required: "Stock is required" })}
-            disabled={isSubmitting}
-            placeholder="Enter stock quantity"
-          />
+          <>
+            <Input
+              type="number"
+              step="1"
+              min="0"
+              {...register("totalStock", { 
+                required: "Stock is required",
+                min: { value: 0, message: "Stock must be 0 or greater" },
+                valueAsNumber: true,
+              })}
+              disabled={isSubmitting}
+              placeholder="Enter stock quantity"
+            />
+            {errors.totalStock && <ErrorMessage>{errors.totalStock.message}</ErrorMessage>}
+          </>
         )}
       </FormGroup>
     </SectionContainer>
@@ -39,8 +48,8 @@ const InventorySection = ({ isSubmitting }) => {
 export default InventorySection;
 
 const SectionTitle = styled.h2`
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: 1.5rem;
+  font-weight: 400;
   margin-bottom: 1.5rem;
   color: #2d3748;
 `;
@@ -60,16 +69,17 @@ const FormGroup = styled.div`
 const Label = styled.label`
   display: block;
   margin-bottom: 0.5rem;
-  font-weight: 400; /* reduced boldness */
+  font-weight: 400;
+  font-size: 1.0625rem;
   color: #2d3748;
 `;
 
 const Input = styled.input`
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 1rem;
+  padding: 0.875rem 1rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1.0625rem;
 
   &:read-only {
     background-color: #f7fafc;
@@ -82,4 +92,11 @@ const InfoText = styled.span`
   color: #718096;
   margin-left: 0.5rem;
   font-weight: normal;
+`;
+
+const ErrorMessage = styled.span`
+  display: block;
+  margin-top: 0.5rem;
+  color: #e53e3e;
+  font-size: 0.875rem;
 `;

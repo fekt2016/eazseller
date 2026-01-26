@@ -58,13 +58,35 @@ export default function VariantSection({ variantAttributes = [], seller }) {
 
   // Generate variants from options
   const generateVariants = () => {
-    const variantOptions = getValues("variantOptions") || [];
+    const attributes = getValues("attributes") || [];
     const subCategory = getValues("subCategory") || "GENERAL";
 
-    if (!variantOptions || variantOptions.length === 0) return;
+    // Filter out attributes that have both name and value
+    const validAttributes = attributes.filter(
+      (attr) => attr?.name && attr?.value && attr.value.trim()
+    );
 
-    // Create all possible combinations of option values
-    const combinations = variantOptions.reduce((acc, option) => {
+    if (!validAttributes || validAttributes.length === 0) {
+      console.warn("No valid attributes found. Please add attributes with values first.");
+      // You could also show a toast notification here
+      return;
+    }
+
+    // Parse comma-separated values from each attribute
+    const attributeOptions = validAttributes.map((attr) => {
+      const values = attr.value
+        .split(",")
+        .map((v) => v.trim())
+        .filter(Boolean);
+      
+      return {
+        key: attr.name,
+        values: values,
+      };
+    });
+
+    // Create all possible combinations of option values (cartesian product)
+    const combinations = attributeOptions.reduce((acc, option) => {
       if (!acc.length) {
         return option.values.map((value) => ({ [option.key]: value }));
       }
@@ -73,20 +95,27 @@ export default function VariantSection({ variantAttributes = [], seller }) {
       );
     }, []);
 
+    if (combinations.length === 0) {
+      console.warn("No combinations generated. Please check your attribute values.");
+      return;
+    }
+
     // Create variant objects from combinations
     const newVariants = combinations.map((combo) => {
-      const attributes = allAttributes.map((attr) => ({
-        key: attr.name,
-        value: combo[attr.name] || "",
+      // Map combination values to attribute format
+      const variantAttributes = Object.keys(combo).map((key) => ({
+        key: key,
+        value: combo[key],
       }));
 
-      const variantObj = attributes.reduce((acc, attr) => {
+      // Create variant object for SKU generation
+      const variantObj = variantAttributes.reduce((acc, attr) => {
         if (attr.value) acc[attr.key] = attr.value;
         return acc;
       }, {});
 
       return {
-        attributes,
+        attributes: variantAttributes,
         price: 0,
         stock: 0,
         sku: generateSKU({
@@ -100,6 +129,7 @@ export default function VariantSection({ variantAttributes = [], seller }) {
 
     // Replace existing variants with the new generated ones
     replace(newVariants);
+    console.log(`Generated ${newVariants.length} variants from ${validAttributes.length} attributes`);
   };
 
   // Add a single variant manually
@@ -162,42 +192,44 @@ export default function VariantSection({ variantAttributes = [], seller }) {
         </AttributeList>
       </AttributeManagement>
 
-      <VariantTable>
-        <thead>
-          <tr>
-            <TableHeader>Attributes</TableHeader>
-            <TableHeader>SKU</TableHeader>
-            <TableHeader>Price</TableHeader>
-            <TableHeader>Stock</TableHeader>
-            <TableHeader>Images</TableHeader>
-            <TableHeader>Status</TableHeader>
-            <TableHeader>Actions</TableHeader>
-          </tr>
-        </thead>
-        <tbody>
-          {fields.map((field, idx) => (
-            <VariantRow
-              key={field.id}
-              variantIndex={idx}
-              allAttributes={allAttributes}
-              canRemove={fields.length > 1}
-              remove={remove}
-              register={register}
-              control={control}
-              setValue={setValue}
-              getValues={getValues}
-              seller={seller}
-            />
-          ))}
-        </tbody>
-        <tfoot>
-          <tr>
-            <TotalStockLabel colSpan="3">Total Stock:</TotalStockLabel>
-            <TotalStockValue>{totalStock}</TotalStockValue>
-            <td colSpan="3"></td>
-          </tr>
-        </tfoot>
-      </VariantTable>
+      <VariantTableWrapper>
+        <VariantTable>
+          <thead>
+            <tr>
+              <TableHeader>Attributes</TableHeader>
+              <TableHeader>SKU</TableHeader>
+              <TableHeader>Price</TableHeader>
+              <TableHeader>Stock</TableHeader>
+              <TableHeader>Images</TableHeader>
+              <TableHeader>Status</TableHeader>
+              <TableHeader>Actions</TableHeader>
+            </tr>
+          </thead>
+          <tbody>
+            {fields.map((field, idx) => (
+              <VariantRow
+                key={field.id}
+                variantIndex={idx}
+                allAttributes={allAttributes}
+                canRemove={fields.length > 1}
+                remove={remove}
+                register={register}
+                control={control}
+                setValue={setValue}
+                getValues={getValues}
+                seller={seller}
+              />
+            ))}
+          </tbody>
+          <tfoot>
+            <tr>
+              <TotalStockLabel colSpan="3">Total Stock:</TotalStockLabel>
+              <TotalStockValue>{totalStock}</TotalStockValue>
+              <td colSpan="3"></td>
+            </tr>
+          </tfoot>
+        </VariantTable>
+      </VariantTableWrapper>
     </div>
   );
 }
@@ -310,14 +342,22 @@ function VariantRow({
         <Input
           type="number"
           step="0.01"
-          {...register(`variants.${variantIndex}.price`)}
+          min="0.01"
+          {...register(`variants.${variantIndex}.price`, {
+            required: "Variant price is required",
+            min: { value: 0.01, message: "Price must be greater than 0" },
+          })}
           placeholder="Price"
         />
       </TableCell>
       <TableCell>
         <Input
           type="number"
-          {...register(`variants.${variantIndex}.stock`)}
+          min="0"
+          {...register(`variants.${variantIndex}.stock`, {
+            required: "Variant stock is required",
+            min: { value: 0, message: "Stock must be 0 or greater" },
+          })}
           placeholder="Stock"
         />
       </TableCell>
@@ -450,12 +490,42 @@ const RemoveAttributeButton = styled.button`
   }
 `;
 
+const VariantTableWrapper = styled.div`
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 8px;
+  margin-top: 1rem;
+  
+  /* Custom scrollbar styling */
+  &::-webkit-scrollbar {
+    height: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 4px;
+    
+    &:hover {
+      background: #a0aec0;
+    }
+  }
+`;
+
 const VariantTable = styled.table`
   width: 100%;
+  min-width: 800px; /* Ensure table doesn't get too squished */
   border-collapse: collapse;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   overflow: hidden;
+  background: white;
 `;
 const TableHeader = styled.th`
   padding: 1rem;

@@ -65,7 +65,8 @@ const SpecificationSection = () => {
   );
 };
 const SectionTitle = styled.h4`
-  font-size: 1.2rem;
+  font-size: 1.5rem;
+  font-weight: 400;
   color: #2d3748;
   margin-top: 0;
   margin-bottom: 1.5rem;
@@ -91,16 +92,17 @@ const InputGroup = styled.div`
 const Label = styled.label`
   display: block;
   margin-bottom: 0.5rem;
-  font-weight: 400; /* reduced boldness */
+  font-weight: 400;
+  font-size: 1.0625rem;
   color: #2d3748;
 `;
 
 const Input = styled.input`
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 1rem;
+  padding: 0.875rem 1rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 1.0625rem;
   transition: border-color 0.2s;
 
   &:focus {

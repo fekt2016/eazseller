@@ -376,7 +376,8 @@ const FormGroup = styled.div`
 const Label = styled.label`
   display: block;
   margin-bottom: 0.5rem;
-  font-weight: 400; /* reduced boldness */
+  font-weight: 400;
+  font-size: 1.0625rem;
   color: #2d3748;
 `;
 const SelectContainer = styled.div`
@@ -386,11 +387,11 @@ const SelectContainer = styled.div`
 
 const Select = styled.select`
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
+  padding: 0.875rem 1rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
   background-color: #fff;
-  font-size: 1rem;
+  font-size: 1.0625rem;
   cursor: pointer;
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
@@ -424,7 +425,7 @@ const Select = styled.select`
 `;
 
 const CategoryCount = styled.span`
-  font-size: 0.85rem;
+  font-size: 1rem;
   font-weight: 400;
   color: #718096;
   margin-left: 0.5rem;

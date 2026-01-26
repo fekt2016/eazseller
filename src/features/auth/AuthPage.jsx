@@ -37,12 +37,9 @@ const AuthPage = () => {
     email: "",
     password: "",
   });
-  const [loginMethod, setLoginMethod] = useState("email"); // 'email' for email+password, 'otp' for OTP-based
-  const [loginStep, setLoginStep] = useState("credentials"); // 'credentials', '2fa', 'otp'
+  const [loginStep, setLoginStep] = useState("credentials"); // 'credentials', '2fa'
   const [twoFactorCode, setTwoFactorCode] = useState("");
   const [loginSessionId, setLoginSessionId] = useState(null);
-  const [otp, setOtp] = useState("");
-  const [otpCountdown, setOtpCountdown] = useState(0);
   
   // Register state
   const [formData, setFormData] = useState({
@@ -57,25 +54,13 @@ const AuthPage = () => {
   });
   const [passwordError, setPasswordError] = useState("");
 
-  const { login, verify2FALogin, sendOtp, verifyOtp, register, verifyAccount, resendOtp } = useAuth();
+  const { login, verify2FALogin, register, verifyAccount, resendOtp } = useAuth();
   const { mutate: loginMutation, isPending: isLoggingIn, error: loginError } = login;
   const { mutate: verify2FALoginMutation, isPending: isVerifying2FA, error: verify2FAError } = verify2FALogin;
-  const { mutate: sendOtpMutation, isPending: isSendingOtp, error: sendOtpError } = sendOtp;
-  const { mutate: verifyOtpMutation, isPending: isVerifyingOtp, error: verifyOtpError } = verifyOtp;
   const { mutateAsync: registerMutation, isPending: isRegistering, error: registerError } = register;
   
   const navigate = useNavigate();
 
-  // OTP countdown timer
-  useEffect(() => {
-    let timer;
-    if (otpCountdown > 0) {
-      timer = setInterval(() => {
-        setOtpCountdown((prev) => prev - 1);
-      }, 1000);
-    }
-    return () => clearInterval(timer);
-  }, [otpCountdown]);
 
   // Validate phone number in real-time
   useEffect(() => {
@@ -109,118 +94,120 @@ const AuthPage = () => {
     }
 
     if (loginStep === "credentials") {
-      if (loginMethod === "email") {
-        // New email+password login flow (matches EazMain)
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        const trimmedEmail = loginState.email.trim().toLowerCase();
-        
-        if (!trimmedEmail || !emailRegex.test(trimmedEmail)) {
-          // Show error - you might want to add toast or error state
-          console.error("[AuthPage] Invalid email address");
-          return false; // Explicitly return false to prevent form submission
-        }
-        
-        if (!loginState.password) {
-          console.error("[AuthPage] Password is required");
-          return false; // Explicitly return false to prevent form submission
-        }
+      // Email+password login flow
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const trimmedEmail = loginState.email.trim().toLowerCase();
+      
+      if (!trimmedEmail || !emailRegex.test(trimmedEmail)) {
+        // Show error - you might want to add toast or error state
+        console.error("[AuthPage] Invalid email address");
+        return false; // Explicitly return false to prevent form submission
+      }
+      
+      if (!loginState.password) {
+        console.error("[AuthPage] Password is required");
+        return false; // Explicitly return false to prevent form submission
+      }
 
-        // SECURITY: Ensure we're sending a proper object, not a string
-        const loginData = { 
-          email: trimmedEmail, 
-          password: loginState.password 
-        };
-        
-        if (import.meta.env.DEV) {
-          console.log('[AuthPage] Sending login request with data:', {
-            email: loginData.email,
-            hasPassword: !!loginData.password,
-            dataType: typeof loginData,
-            isObject: typeof loginData === 'object' && !Array.isArray(loginData),
-          });
-        }
-
-        loginMutation(
-          loginData,
-          {
-            onSuccess: async (result) => {
-              // Result from mutationFn is { success: true, seller: sellerData } or { requires2FA: true, ... }
-              if (result?.requires2FA) {
-                if (import.meta.env.DEV) {
-                  console.log("[AuthPage] 2FA required");
-                }
-                setLoginSessionId(result.loginSessionId);
-                setLoginStep("2fa");
-              } else if (result?.success) {
-                // Login successful
-                const seller = result.seller;
-                
-                if (!seller || (!seller.id && !seller._id)) {
-                  console.error("❌ [AuthPage] Login successful but no seller data received:", result);
-                  return;
-                }
-                
-                if (import.meta.env.DEV) {
-                  console.log('👤 [AuthPage] Seller logged in:', {
-                    id: seller.id || seller._id,
-                    email: seller.email,
-                    name: seller.name || seller.shopName,
-                    role: seller.role,
-                  });
-                }
-                
-                // Wait a moment for auth state to update, then navigate
-                // This ensures ProtectedRoute has the seller data
-                setTimeout(() => {
-                  navigate(PATHS.DASHBOARD);
-                }, 100);
-                
-                // Reset form
-                setLoginState({ email: "", password: "" });
-              }
-            },
-            onError: (err) => {
-              const errorMessage = err.response?.data?.message || err.message;
-              const statusCode = err.response?.status;
-              
-              console.error("[AuthPage] Login failed:", {
-                message: errorMessage,
-                response: err.response?.data,
-                status: statusCode,
-              });
-              
-              // Handle unverified account (403)
-              if (statusCode === 403) {
-                const messageLower = errorMessage.toLowerCase();
-                if (messageLower.includes('not verified') || 
-                    messageLower.includes('verify') || 
-                    messageLower.includes('verification') ||
-                    messageLower.includes('unverified')) {
-                  // Redirect to verification page with email as query parameter
-                  if (import.meta.env.DEV) {
-                    console.log("[AuthPage] Account not verified - redirecting to verification page");
-                  }
-                  navigate(`${PATHS.VERIFY_ACCOUNT}?email=${encodeURIComponent(loginState.email)}`);
-                  return;
-                }
-              }
-              
-              // Error will be displayed via loginError from the mutation
-            },
-          }
-        );
-      } else {
-        // OTP-based login (backward compatibility)
-        sendOtpMutation(loginState.email, {
-          onSuccess: () => {
-            setLoginStep("otp");
-            setOtpCountdown(120); // 2 minutes countdown
-          },
-          onError: (err) => {
-            console.error("[AuthPage] OTP send failed:", err.message);
-          },
+      // SECURITY: Ensure we're sending a proper object, not a string
+      const loginData = { 
+        email: trimmedEmail, 
+        password: loginState.password 
+      };
+      
+      if (import.meta.env.DEV) {
+        console.log('[AuthPage] Sending login request with data:', {
+          email: loginData.email,
+          hasPassword: !!loginData.password,
+          dataType: typeof loginData,
+          isObject: typeof loginData === 'object' && !Array.isArray(loginData),
         });
       }
+
+      loginMutation(
+        loginData,
+        {
+          onSuccess: async (result) => {
+            // Result from mutationFn is { success: true, seller: sellerData } or { requires2FA: true, ... }
+            if (result?.requires2FA) {
+              if (import.meta.env.DEV) {
+                console.log("[AuthPage] 2FA required");
+              }
+              setLoginSessionId(result.loginSessionId);
+              setLoginStep("2fa");
+            } else if (result?.success) {
+              // Login successful
+              const seller = result.seller;
+              
+              if (!seller || (!seller.id && !seller._id)) {
+                console.error("❌ [AuthPage] Login successful but no seller data received:", result);
+                return;
+              }
+              
+              if (import.meta.env.DEV) {
+                console.log('👤 [AuthPage] Seller logged in:', {
+                  id: seller.id || seller._id,
+                  email: seller.email,
+                  name: seller.name || seller.shopName,
+                  role: seller.role,
+                });
+              }
+              
+              // Wait a moment for auth state to update, then navigate
+              // This ensures ProtectedRoute has the seller data
+              setTimeout(() => {
+                navigate(PATHS.DASHBOARD);
+              }, 100);
+              
+              // Reset form
+              setLoginState({ email: "", password: "" });
+            }
+          },
+          onError: (err) => {
+            const errorMessage = err.response?.data?.message || err.message;
+            const statusCode = err.response?.status;
+            const isTimeout = err?.code === 'ECONNABORTED' || err?.isTimeout || err?.message?.includes('timeout');
+            
+            console.error("[AuthPage] Login failed:", {
+              message: errorMessage,
+              response: err.response?.data,
+              status: statusCode,
+              isTimeout,
+              code: err.code,
+            });
+            
+            // Handle timeout errors
+            if (isTimeout) {
+              console.error("❌ [Seller Login] Login error: ", {
+                message: err.message || 'Request timed out',
+                status: statusCode,
+                error: err.error,
+                code: err.code,
+              });
+              // Error will be displayed via loginError from the mutation
+              return;
+            }
+            
+            // Handle unverified account (403)
+            if (statusCode === 403) {
+              const messageLower = errorMessage.toLowerCase();
+              if (messageLower.includes('not verified') || 
+                  messageLower.includes('verify') || 
+                  messageLower.includes('verification') ||
+                  messageLower.includes('unverified')) {
+                // Redirect to verification page with email as query parameter
+                if (import.meta.env.DEV) {
+                  console.log("[AuthPage] Account not verified - redirecting to verification page");
+                }
+                navigate(`${PATHS.VERIFY_ACCOUNT}?email=${encodeURIComponent(loginState.email)}`);
+                return;
+              }
+            }
+            
+            // Error will be displayed via loginError from the mutation
+          },
+        }
+      );
     } else if (loginStep === "2fa") {
       // Verify 2FA code
       if (!twoFactorCode || twoFactorCode.length !== 6) {
@@ -266,34 +253,6 @@ const AuthPage = () => {
               response: err.response?.data,
               status: err.response?.status,
             });
-          },
-        }
-      );
-    } else {
-      // OTP verification (backward compatibility)
-      verifyOtpMutation(
-        {
-          loginId: loginState.email,
-          otp,
-          password: loginState.password,
-          redirectTo: PATHS.DASHBOARD,
-        },
-        {
-          onSuccess: (data) => {
-            console.log("[AuthPage] OTP verified successfully");
-            console.log("[AuthPage] Cookie set by backend - authentication successful");
-            
-            // Navigate to dashboard
-            const finalRedirect = data?.redirectTo || PATHS.DASHBOARD;
-            navigate(finalRedirect);
-            
-            // Reset form
-            setLoginState({ email: "", password: "" });
-            setOtp("");
-            setLoginStep("credentials");
-          },
-          onError: (err) => {
-            console.error("[AuthPage] OTP verification failed:", err.message);
           },
         }
       );
@@ -351,27 +310,6 @@ const AuthPage = () => {
     }
   };
 
-  const handleResendOtp = () => {
-    if (loginMethod === "otp") {
-      sendOtpMutation(loginState.email, {
-        onSuccess: () => {
-          setOtpCountdown(120);
-        },
-        onError: (err) => {
-          console.error("[AuthPage] Resend OTP failed:", err.message);
-        },
-      });
-    }
-  };
-
-  const toggleLoginMethod = () => {
-    setLoginMethod(loginMethod === "email" ? "otp" : "email");
-    setLoginState({ ...loginState, email: "" });
-    setLoginStep("credentials");
-    setOtp("");
-    setTwoFactorCode("");
-    setLoginSessionId(null);
-  };
 
   return (
     <Container>
@@ -388,7 +326,6 @@ const AuthPage = () => {
               onClick={() => {
                 setActiveTab("login");
                 setLoginStep("credentials");
-                setOtp("");
                 setTwoFactorCode("");
                 setLoginSessionId(null);
                 setLoginState({ email: "", password: "" });
@@ -408,8 +345,6 @@ const AuthPage = () => {
             {activeTab === "login"
               ? loginStep === "2fa"
                 ? "Two-Factor Authentication"
-                : loginStep === "otp"
-                ? "Verify Identity"
                 : "Welcome Back"
               : "Create Your Seller Account"}
           </Title>
@@ -417,29 +352,48 @@ const AuthPage = () => {
           <Subtitle>
             {activeTab === "login" && loginStep === "2fa"
               ? "Enter the 6-digit code from your authenticator app (Google Authenticator, Authy, etc.)"
-              : activeTab === "login" && loginStep === "otp"
-              ? `Enter verification code sent to your ${loginMethod === "otp" ? "email/phone" : "email"}`
               : activeTab === "login"
               ? "Enter your email and password to access your account"
               : "Fill in your details to get started"}
           </Subtitle>
 
-          {(loginError || verify2FAError || verifyOtpError || sendOtpError || registerError) && (
+          {(loginError || verify2FAError || registerError) && (
             <ErrorBanner>
-              {loginError?.response?.data?.message || 
-               verify2FAError?.response?.data?.message || 
-               verifyOtpError?.response?.data?.message || 
-               sendOtpError?.response?.data?.message || 
-               registerError?.response?.data?.message || 
-               "An error occurred. Please try again."}
+              {(() => {
+                // Handle timeout errors with user-friendly message
+                if (loginError?.code === 'ECONNABORTED' || loginError?.isTimeout || loginError?.message?.includes('timeout')) {
+                  return 'The server is taking too long to respond. Please check your internet connection and try again.';
+                }
+                if (verify2FAError?.code === 'ECONNABORTED' || verify2FAError?.isTimeout) {
+                  return 'Request timed out. Please try again.';
+                }
+                return loginError?.response?.data?.message || 
+                       verify2FAError?.response?.data?.message || 
+                       registerError?.response?.data?.message || 
+                       loginError?.message ||
+                       verify2FAError?.message ||
+                       registerError?.message ||
+                       "An error occurred. Please try again.";
+              })()}
             </ErrorBanner>
           )}
 
           {/* Error Messages */}
-          {(loginError || verify2FAError || sendOtpError || verifyOtpError) && activeTab === "login" && (
+          {(loginError || verify2FAError) && activeTab === "login" && (
             <ErrorState
               title="Authentication Failed"
-              message={(loginError || verify2FAError || sendOtpError || verifyOtpError)?.response?.data?.message || (loginError || verify2FAError || sendOtpError || verifyOtpError)?.message || "Authentication failed. Please try again."}
+              message={(() => {
+                // Handle timeout errors with user-friendly message
+                if (loginError?.code === 'ECONNABORTED' || loginError?.isTimeout || loginError?.message?.includes('timeout')) {
+                  return 'The server is taking too long to respond. Please check your internet connection and try again.';
+                }
+                if (verify2FAError?.code === 'ECONNABORTED' || verify2FAError?.isTimeout) {
+                  return 'Request timed out. Please try again.';
+                }
+                return (loginError || verify2FAError)?.response?.data?.message || 
+                       (loginError || verify2FAError)?.message || 
+                       "Authentication failed. Please try again.";
+              })()}
             />
           )}
           {registerError && activeTab === "register" && (
@@ -454,48 +408,37 @@ const AuthPage = () => {
               {loginStep === "credentials" ? (
                 <>
                   <InputGroup>
-                    <Label>
-                      {loginMethod === "email" ? "Email Address" : "Email/Phone"}
-                    </Label>
+                    <Label>Email Address</Label>
                     <Input
-                      type={loginMethod === "email" ? "email" : "text"}
+                      type="email"
                       name="email"
                       value={loginState.email}
                       onChange={(e) =>
                         setLoginState({ ...loginState, email: e.target.value })
                       }
-                      placeholder={
-                        loginMethod === "email"
-                          ? "your.email@example.com"
-                          : "email or phone number"
-                      }
+                      placeholder="your.email@example.com"
                       required
                       autoComplete="email"
                     />
-                    <MethodToggle type="button" onClick={toggleLoginMethod}>
-                      Use {loginMethod === "email" ? "OTP login" : "email + password"} instead
-                    </MethodToggle>
                   </InputGroup>
 
-                  {loginMethod === "email" && (
-                    <InputGroup>
-                      <Label>Password</Label>
-                      <Input
-                        type="password"
-                        name="password"
-                        value={loginState.password}
-                        onChange={(e) =>
-                          setLoginState({ ...loginState, password: e.target.value })
-                        }
-                        placeholder="Enter your password"
-                        required
-                        autoComplete="current-password"
-                      />
-                      <ForgotPasswordLink to={PATHS.FORGOT_PASSWORD}>
-                        Forgot password?
-                      </ForgotPasswordLink>
-                    </InputGroup>
-                  )}
+                  <InputGroup>
+                    <Label>Password</Label>
+                    <Input
+                      type="password"
+                      name="password"
+                      value={loginState.password}
+                      onChange={(e) =>
+                        setLoginState({ ...loginState, password: e.target.value })
+                      }
+                      placeholder="Enter your password"
+                      required
+                      autoComplete="current-password"
+                    />
+                    <ForgotPasswordLink to={PATHS.FORGOT_PASSWORD}>
+                      Forgot password?
+                    </ForgotPasswordLink>
+                  </InputGroup>
                 </>
               ) : loginStep === "2fa" ? (
                 <OtpContainer>
@@ -543,91 +486,27 @@ const AuthPage = () => {
                     ← Back to Login
                   </BackButton>
                 </OtpContainer>
-              ) : (
-                <OtpContainer>
-                  <OtpInputs>
-                    {[...Array(6)].map((_, index) => (
-                      <OtpInput
-                        key={index}
-                        type="text"
-                        maxLength={1}
-                        value={otp[index] || ""}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/[^0-9]/g, "");
-                          const newOtp = otp.split("");
-                          newOtp[index] = value;
-                          setOtp(newOtp.join(""));
-
-                          // Auto-focus next input
-                          if (value && index < 5) {
-                            const nextInput = document.getElementById(`otp-${index + 1}`);
-                            if (nextInput) nextInput.focus();
-                          }
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Backspace" && !otp[index] && index > 0) {
-                            const prevInput = document.getElementById(`otp-${index - 1}`);
-                            if (prevInput) prevInput.focus();
-                          }
-                        }}
-                        id={`otp-${index}`}
-                      />
-                    ))}
-                  </OtpInputs>
-
-                  <ResendContainer>
-                    {otpCountdown > 0 ? (
-                      <ResendText>
-                        Resend code in {Math.floor(otpCountdown / 60)}:
-                        {(otpCountdown % 60).toString().padStart(2, "0")}
-                      </ResendText>
-                    ) : (
-                      <ResendButton
-                        type="button"
-                        onClick={handleResendOtp}
-                        disabled={isSendingOtp}
-                      >
-                        {isSendingOtp ? <ButtonSpinner size="14px" /> : "Resend Code"}
-                      </ResendButton>
-                    )}
-                  </ResendContainer>
-                </OtpContainer>
-              )}
+              ) : null}
 
               <SubmitButton
                 type="button"
                 onClick={handleLoginSubmit}
                 disabled={
                   loginStep === "credentials"
-                    ? loginMethod === "email"
-                      ? isLoggingIn || !loginState.email || !loginState.password
-                      : isSendingOtp || !loginState.email || !loginState.password
+                    ? isLoggingIn || !loginState.email || !loginState.password
                     : loginStep === "2fa"
                     ? isVerifying2FA || twoFactorCode.length < 6
-                    : isVerifyingOtp || otp.length < 6
+                    : false
                 }
               >
-                {isLoggingIn || isVerifying2FA || isSendingOtp || isVerifyingOtp ? (
+                {isLoggingIn || isVerifying2FA ? (
                   <PropagateLoader color="#ffffff" size={10} />
                 ) : loginStep === "2fa" ? (
                   "Verify 2FA & Login"
-                ) : loginStep === "otp" ? (
-                  "Verify"
-                ) : loginMethod === "email" ? (
-                  "Sign In"
                 ) : (
-                  "Send OTP"
+                  "Sign In"
                 )}
               </SubmitButton>
-
-              {loginStep === "otp" && (
-                <BackButton type="button" onClick={() => {
-                  setLoginStep("credentials");
-                  setOtp("");
-                }}>
-                  ← Change Credentials
-                </BackButton>
-              )}
             </Form>
           ) : (
             <Form onSubmit={handleRegisterSubmit}>
@@ -846,6 +725,17 @@ const Container = styled.div`
     align-items: flex-start;
     padding-top: 3rem;
   }
+
+  /* Mobile phone optimizations */
+  @media (max-width: 640px) {
+    padding: 1rem 0.75rem;
+    padding-top: 2rem;
+  }
+
+  @media (max-width: 480px) {
+    padding: 0.75rem 0.5rem;
+    padding-top: 1.5rem;
+  }
 `;
 
 const AuthCard = styled.div`
@@ -866,6 +756,17 @@ const AuthCard = styled.div`
     padding: 2rem 1.5rem;
     border-radius: 20px;
     max-width: 100%;
+  }
+
+  /* Mobile phone optimizations */
+  @media (max-width: 640px) {
+    padding: 2.5rem 1.75rem;
+    border-radius: 18px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 2rem 1.5rem;
+    border-radius: 16px;
   }
 `;
 
@@ -894,18 +795,42 @@ const Title = styled.h2`
   color: #0f172a;
   margin-bottom: 0.75rem;
   font-weight: 500;
-  font-size: 1.75rem;
+  font-size: clamp(1.5rem, 4vw, 1.75rem);
   letter-spacing: -0.3px;
   line-height: 1.3;
+
+  /* Mobile phone optimizations */
+  @media (max-width: 640px) {
+    font-size: clamp(1.4rem, 5vw, 1.75rem);
+    margin-bottom: 1rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: clamp(1.3rem, 6vw, 1.6rem);
+    margin-bottom: 1rem;
+  }
 `;
 
 const Subtitle = styled.p`
   text-align: center;
   color: #64748b;
-  font-size: 0.95rem;
+  font-size: clamp(0.9rem, 2.5vw, 0.95rem);
   margin-bottom: 2.5rem;
   line-height: 1.6;
   font-weight: 400;
+
+  /* Mobile phone optimizations */
+  @media (max-width: 640px) {
+    font-size: clamp(0.95rem, 3vw, 1rem);
+    margin-bottom: 2rem;
+    line-height: 1.65;
+  }
+
+  @media (max-width: 480px) {
+    font-size: clamp(1rem, 3.5vw, 1.05rem);
+    margin-bottom: 2rem;
+    line-height: 1.7;
+  }
 `;
 
 const ErrorBanner = styled.div`
@@ -914,7 +839,7 @@ const ErrorBanner = styled.div`
   color: #dc2626;
   padding: 0.875rem 1rem;
   border-radius: 12px;
-  font-size: 0.875rem;
+  font-size: clamp(0.875rem, 2.5vw, 0.9375rem);
   margin-bottom: 1.5rem;
   animation: ${slideIn} 0.3s ease-out;
   display: flex;
@@ -924,6 +849,19 @@ const ErrorBanner = styled.div`
   &::before {
     content: '⚠';
     font-size: 1.1rem;
+  }
+
+  /* Mobile phone optimizations */
+  @media (max-width: 640px) {
+    padding: 1rem 1.125rem;
+    font-size: clamp(0.9375rem, 3vw, 1rem);
+    border-radius: 14px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 1.125rem 1.25rem;
+    font-size: clamp(1rem, 3.5vw, 1.0625rem);
+    border-radius: 16px;
   }
 `;
 
@@ -941,7 +879,7 @@ const Tab = styled.button`
   background: ${(props) => (props.$active ? "white" : "transparent")};
   border: none;
   padding: 0.75rem 1.75rem;
-  font-size: 0.95rem;
+  font-size: clamp(0.95rem, 2.5vw, 1rem);
   font-weight: ${(props) => (props.$active ? "500" : "400")};
   color: ${(props) => (props.$active ? "var(--color-primary-600)" : "#64748b")};
   cursor: pointer;
@@ -950,9 +888,23 @@ const Tab = styled.button`
   border-radius: 8px;
   flex: 1;
   box-shadow: ${(props) => (props.$active ? "0 2px 8px rgba(0, 0, 0, 0.08)" : "none")};
+  min-height: 44px; /* Minimum touch target */
 
   &:hover {
     color: ${(props) => (props.$active ? "var(--color-primary-700)" : "var(--color-primary-600)")};
+  }
+
+  /* Mobile phone optimizations */
+  @media (max-width: 640px) {
+    padding: 0.875rem 1.5rem;
+    font-size: clamp(1rem, 3vw, 1.0625rem);
+    min-height: 48px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 1rem 1.25rem;
+    font-size: clamp(1.0625rem, 3.5vw, 1.125rem);
+    min-height: 52px;
   }
 `;
 
@@ -960,6 +912,15 @@ const Form = styled.form`
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+
+  /* Mobile phone optimizations - increase spacing */
+  @media (max-width: 640px) {
+    gap: 1.75rem;
+  }
+
+  @media (max-width: 480px) {
+    gap: 2rem;
+  }
 `;
 
 const InputGroup = styled.div`
@@ -970,7 +931,7 @@ const InputGroup = styled.div`
 `;
 
 const Label = styled.label`
-  font-size: 0.875rem;
+  font-size: clamp(0.875rem, 2.5vw, 0.9375rem);
   font-weight: 400;
   color: #475569;
   margin-bottom: 0.25rem;
@@ -980,18 +941,30 @@ const Label = styled.label`
     color: #dc2626;
     margin-left: 2px;
   }
+
+  /* Mobile phone optimizations - increase readability */
+  @media (max-width: 640px) {
+    font-size: clamp(0.9375rem, 3vw, 1rem);
+    margin-bottom: 0.5rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: clamp(1rem, 3.5vw, 1.0625rem);
+    margin-bottom: 0.5rem;
+  }
 `;
 
 const Input = styled.input`
   padding: 0.875rem 1rem;
   border: 1.5px solid #e2e8f0;
   border-radius: 12px;
-  font-size: 0.95rem;
+  font-size: clamp(0.95rem, 2.5vw, 1rem);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   background: #ffffff;
   color: #0f172a;
   font-weight: 400;
   width: 100%;
+  min-height: 44px; /* Minimum touch target size */
 
   &:focus {
     border-color: var(--color-primary-500);
@@ -1016,26 +989,20 @@ const Input = styled.input`
     cursor: not-allowed;
     opacity: 0.6;
   }
-`;
 
-const MethodToggle = styled.button`
-  position: absolute;
-  right: 0;
-  top: 0;
-  background: none;
-  border: none;
-  color: var(--color-primary-600);
-  font-size: 0.8125rem;
-  cursor: pointer;
-  padding: 0.5rem;
-  text-decoration: none;
-  transition: all 0.2s ease;
-  font-weight: 400;
-  border-radius: 6px;
+  /* Mobile phone optimizations - larger touch targets and text */
+  @media (max-width: 640px) {
+    padding: 1rem 1.125rem;
+    font-size: clamp(1rem, 3vw, 1.0625rem);
+    min-height: 48px;
+    border-radius: 14px;
+  }
 
-  &:hover {
-    color: var(--color-primary-700);
-    background: rgba(255, 196, 0, 0.08);
+  @media (max-width: 480px) {
+    padding: 1.125rem 1.25rem;
+    font-size: clamp(1.0625rem, 3.5vw, 1.125rem);
+    min-height: 52px;
+    border-radius: 16px;
   }
 `;
 
@@ -1043,7 +1010,7 @@ const ForgotPasswordLink = styled(Link)`
   align-self: flex-end;
   margin-top: -0.5rem;
   margin-bottom: 0.5rem;
-  font-size: 0.875rem;
+  font-size: clamp(0.875rem, 2.5vw, 0.9375rem);
   color: var(--color-primary-600);
   text-decoration: none;
   font-weight: 400;
@@ -1051,6 +1018,9 @@ const ForgotPasswordLink = styled(Link)`
   padding: 0.25rem 0.5rem;
   border-radius: 6px;
   display: inline-block;
+  min-height: 32px; /* Minimum touch target */
+  display: inline-flex;
+  align-items: center;
 
   &:hover {
     color: var(--color-primary-700);
@@ -1061,6 +1031,19 @@ const ForgotPasswordLink = styled(Link)`
     outline: 2px solid var(--color-primary-500);
     outline-offset: 2px;
     border-radius: 6px;
+  }
+
+  /* Mobile phone optimizations */
+  @media (max-width: 640px) {
+    font-size: clamp(0.9375rem, 3vw, 1rem);
+    padding: 0.375rem 0.625rem;
+    min-height: 36px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: clamp(1rem, 3.5vw, 1.0625rem);
+    padding: 0.5rem 0.75rem;
+    min-height: 40px;
   }
 `;
 
@@ -1077,18 +1060,28 @@ const OtpInputs = styled.div`
   gap: 0.875rem;
   justify-content: center;
   flex-wrap: wrap;
+
+  /* Mobile phone optimizations - increase gap for easier tapping */
+  @media (max-width: 640px) {
+    gap: 1rem;
+  }
+
+  @media (max-width: 480px) {
+    gap: 1.125rem;
+  }
 `;
 
 const OtpInput = styled.input`
   width: 3.25rem;
   height: 3.25rem;
   text-align: center;
-  font-size: 1.5rem;
+  font-size: clamp(1.5rem, 4vw, 1.75rem);
   font-weight: 500;
   border: 1.5px solid #e2e8f0;
   border-radius: 12px;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   background: #ffffff;
+  min-height: 44px; /* Minimum touch target */
 
   &:focus {
     outline: none;
@@ -1102,46 +1095,22 @@ const OtpInput = styled.input`
   &:hover:not(:focus) {
     border-color: #cbd5e1;
   }
-`;
 
-const ResendContainer = styled.div`
-  margin-top: 0.75rem;
-  text-align: center;
-  padding-top: 1rem;
-  border-top: 1px solid #f1f5f9;
-`;
-
-const ResendText = styled.span`
-  font-size: 0.875rem;
-  color: #64748b;
-  font-weight: 400;
-`;
-
-const ResendButton = styled.button`
-  background: none;
-  border: none;
-  color: var(--color-primary-600);
-  font-size: 0.875rem;
-  cursor: pointer;
-  text-decoration: none;
-  padding: 0.5rem 0.75rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 0 auto;
-  transition: all 0.2s ease;
-  border-radius: 8px;
-  font-weight: 400;
-
-  &:hover:not(:disabled) {
-    color: var(--color-primary-700);
-    background: rgba(255, 196, 0, 0.08);
+  /* Mobile phone optimizations - larger OTP inputs */
+  @media (max-width: 640px) {
+    width: 3.75rem;
+    height: 3.75rem;
+    font-size: clamp(1.75rem, 5vw, 2rem);
+    min-height: 48px;
+    border-radius: 14px;
   }
 
-  &:disabled {
-    color: #cbd5e0;
-    cursor: not-allowed;
-    opacity: 0.6;
+  @media (max-width: 480px) {
+    width: 4rem;
+    height: 4rem;
+    font-size: clamp(2rem, 6vw, 2.25rem);
+    min-height: 52px;
+    border-radius: 16px;
   }
 `;
 
@@ -1149,7 +1118,7 @@ const BackButton = styled.button`
   background: none;
   border: none;
   color: var(--color-primary-600);
-  font-size: 0.875rem;
+  font-size: clamp(0.875rem, 2.5vw, 0.9375rem);
   cursor: pointer;
   padding: 0.5rem 0.75rem;
   display: flex;
@@ -1159,10 +1128,24 @@ const BackButton = styled.button`
   transition: all 0.2s ease;
   border-radius: 8px;
   font-weight: 400;
+  min-height: 44px; /* Minimum touch target */
 
   &:hover {
     color: var(--color-primary-700);
     background: rgba(255, 196, 0, 0.08);
+  }
+
+  /* Mobile phone optimizations */
+  @media (max-width: 640px) {
+    font-size: clamp(0.9375rem, 3vw, 1rem);
+    padding: 0.625rem 0.875rem;
+    min-height: 48px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: clamp(1rem, 3.5vw, 1.0625rem);
+    padding: 0.75rem 1rem;
+    min-height: 52px;
   }
 `;
 
@@ -1172,11 +1155,11 @@ const SubmitButton = styled.button`
   border: none;
   padding: 0.9375rem 1.5rem;
   border-radius: 12px;
-  font-size: 0.95rem;
+  font-size: clamp(0.95rem, 2.5vw, 1rem);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  height: 48px;
+  min-height: 48px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -1224,14 +1207,41 @@ const SubmitButton = styled.button`
   &:hover:not(:disabled)::before {
     left: 100%;
   }
+
+  /* Mobile phone optimizations - larger touch targets and text */
+  @media (max-width: 640px) {
+    padding: 1.125rem 1.75rem;
+    font-size: clamp(1rem, 3vw, 1.0625rem);
+    min-height: 52px;
+    border-radius: 14px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 1.25rem 2rem;
+    font-size: clamp(1.0625rem, 3.5vw, 1.125rem);
+    min-height: 56px;
+    border-radius: 16px;
+    font-weight: 600;
+  }
 `;
 
 const ErrorText = styled.span`
   color: #dc2626;
-  font-size: 0.8125rem;
+  font-size: clamp(0.8125rem, 2.5vw, 0.875rem);
   margin-top: 0.375rem;
   display: block;
   font-weight: 400;
+
+  /* Mobile phone optimizations */
+  @media (max-width: 640px) {
+    font-size: clamp(0.875rem, 3vw, 0.9375rem);
+    margin-top: 0.5rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: clamp(0.9375rem, 3.5vw, 1rem);
+    margin-top: 0.5rem;
+  }
 `;
 
 const Divider = styled.div`
@@ -1240,7 +1250,7 @@ const Divider = styled.div`
   text-align: center;
   color: #94a3b8;
   margin: 2rem 0;
-  font-size: 0.875rem;
+  font-size: clamp(0.875rem, 2.5vw, 0.9375rem);
   font-weight: 400;
 
   &:before,
@@ -1257,12 +1267,23 @@ const Divider = styled.div`
   &:after {
     margin-left: 1rem;
   }
+
+  /* Mobile phone optimizations */
+  @media (max-width: 640px) {
+    margin: 2.5rem 0;
+    font-size: clamp(0.9375rem, 3vw, 1rem);
+  }
+
+  @media (max-width: 480px) {
+    margin: 2.5rem 0;
+    font-size: clamp(1rem, 3.5vw, 1.0625rem);
+  }
 `;
 
 const FooterText = styled.p`
   text-align: center;
   color: #64748b;
-  font-size: 0.875rem;
+  font-size: clamp(0.875rem, 2.5vw, 0.9375rem);
   margin-top: 1.5rem;
   font-weight: 400;
 
@@ -1274,21 +1295,60 @@ const FooterText = styled.p`
     border-radius: 6px;
     transition: all 0.2s ease;
     display: inline-block;
+    min-height: 32px;
+    display: inline-flex;
+    align-items: center;
 
     &:hover {
       color: var(--color-primary-700);
       background: rgba(255, 196, 0, 0.08);
     }
   }
+
+  /* Mobile phone optimizations */
+  @media (max-width: 640px) {
+    font-size: clamp(0.9375rem, 3vw, 1rem);
+    margin-top: 2rem;
+
+    a {
+      padding: 0.375rem 0.625rem;
+      min-height: 36px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    font-size: clamp(1rem, 3.5vw, 1.0625rem);
+    margin-top: 2rem;
+    line-height: 1.6;
+
+    a {
+      padding: 0.5rem 0.75rem;
+      min-height: 40px;
+      font-size: clamp(1rem, 3.5vw, 1.0625rem);
+    }
+  }
 `;
 
 const HelpText = styled.span`
   color: #64748b;
-  font-size: 0.8125rem;
+  font-size: clamp(0.8125rem, 2.5vw, 0.875rem);
   margin-top: 0.375rem;
   display: block;
   font-weight: 400;
   line-height: 1.5;
+
+  /* Mobile phone optimizations */
+  @media (max-width: 640px) {
+    font-size: clamp(0.875rem, 3vw, 0.9375rem);
+    margin-top: 0.5rem;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 480px) {
+    font-size: clamp(0.9375rem, 3.5vw, 1rem);
+    margin-top: 0.5rem;
+    line-height: 1.65;
+  }
 `;
 
 const PhoneInputContainer = styled.div`
@@ -1339,23 +1399,42 @@ const PhonePrefix = styled.span`
   color: var(--color-primary-600);
   border-radius: 10px;
   padding: 0.875rem 1rem;
-  font-size: 0.95rem;
+  font-size: clamp(0.95rem, 2.5vw, 1rem);
   font-weight: 500;
   margin-right: 0.5rem;
   border: 1.5px solid #e2e8f0;
   white-space: nowrap;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+
+  /* Mobile phone optimizations */
+  @media (max-width: 640px) {
+    padding: 1rem 1.125rem;
+    font-size: clamp(1rem, 3vw, 1.0625rem);
+    min-height: 48px;
+    border-radius: 12px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 1.125rem 1.25rem;
+    font-size: clamp(1.0625rem, 3.5vw, 1.125rem);
+    min-height: 52px;
+    border-radius: 14px;
+  }
 `;
 
 const PhoneInput = styled.input`
   padding: 0.875rem 1rem;
   border: 1.5px solid #e2e8f0;
   border-radius: 12px;
-  font-size: 0.95rem;
+  font-size: clamp(0.95rem, 2.5vw, 1rem);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   flex: 1;
   background: #ffffff;
   color: #0f172a;
   font-weight: 400;
+  min-height: 44px; /* Minimum touch target */
 
   &:focus {
     border-color: var(--color-primary-500);
@@ -1373,19 +1452,35 @@ const PhoneInput = styled.input`
     color: #94a3b8;
     font-weight: 400;
   }
+
+  /* Mobile phone optimizations */
+  @media (max-width: 640px) {
+    padding: 1rem 1.125rem;
+    font-size: clamp(1rem, 3vw, 1.0625rem);
+    min-height: 48px;
+    border-radius: 14px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 1.125rem 1.25rem;
+    font-size: clamp(1.0625rem, 3.5vw, 1.125rem);
+    min-height: 52px;
+    border-radius: 16px;
+  }
 `;
 
 const LocationSelect = styled.select`
   padding: 0.875rem 1rem;
   border: 1.5px solid #e2e8f0;
   border-radius: 12px;
-  font-size: 0.95rem;
+  font-size: clamp(0.95rem, 2.5vw, 1rem);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   background-color: white;
   color: #0f172a;
   cursor: pointer;
   font-weight: 400;
   width: 100%;
+  min-height: 44px; /* Minimum touch target */
 
   &:focus {
     border-color: var(--color-primary-500);
@@ -1401,5 +1496,21 @@ const LocationSelect = styled.select`
 
   option {
     padding: 0.5rem;
+    font-size: 1rem; /* Prevent zoom on iOS */
+  }
+
+  /* Mobile phone optimizations */
+  @media (max-width: 640px) {
+    padding: 1rem 1.125rem;
+    font-size: clamp(1rem, 3vw, 1.0625rem);
+    min-height: 48px;
+    border-radius: 14px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 1.125rem 1.25rem;
+    font-size: clamp(1.0625rem, 3.5vw, 1.125rem);
+    min-height: 52px;
+    border-radius: 16px;
   }
 `;

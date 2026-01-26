@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import ResponsiveDataTable from '../../../shared/components/ui/ResponsiveDataTable';
 import Button from '../../../shared/components/ui/Button';
 import { ButtonSpinner } from '../../../shared/components/ui/LoadingComponents';
-import { FaEdit, FaTrash } from "react-icons/fa";
+import { FaEdit, FaTrash, FaBoxOpen } from "react-icons/fa";
 
 export default function VariantTable({ 
   variants = [], 
@@ -25,6 +25,29 @@ export default function VariantTable({
   };
 
   const variantColumns = [
+    {
+      key: 'image',
+      title: 'Image',
+      align: 'center',
+      render: (variant) => {
+        const images = variant.images || [];
+        const firstImage = Array.isArray(images) ? images[0] : (typeof images === 'string' ? images : null);
+        const imageUrl = typeof firstImage === 'object' && firstImage?.url ? firstImage.url : firstImage;
+        
+        return (
+          <VariantImageContainer>
+            {imageUrl ? (
+              <VariantImage src={imageUrl} alt="Variant" />
+            ) : (
+              <NoImagePlaceholder>
+                <FaBoxOpen />
+                <span>No Image</span>
+              </NoImagePlaceholder>
+            )}
+          </VariantImageContainer>
+        );
+      },
+    },
     {
       key: 'name',
       title: 'Variant Name',
@@ -189,3 +212,44 @@ const ActionButtons = styled.div`
   gap: var(--spacing-xs);
 `;
 
+const VariantImageContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 60px;
+  height: 60px;
+  margin: 0 auto;
+`;
+
+const VariantImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--color-grey-200);
+  background: var(--color-white-0);
+`;
+
+const NoImagePlaceholder = styled.div`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-grey-100);
+  border-radius: var(--border-radius-md);
+  border: 1px dashed var(--color-grey-300);
+  color: var(--color-grey-500);
+  font-size: var(--font-size-xs);
+  gap: var(--spacing-xs);
+  
+  svg {
+    font-size: var(--font-size-lg);
+  }
+  
+  span {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-medium);
+  }
+`;
