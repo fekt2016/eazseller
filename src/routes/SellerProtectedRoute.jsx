@@ -14,8 +14,8 @@ import useSellerStatus from '../shared/hooks/useSellerStatus';
  * Rules:
  * - ✅ Read isSetupComplete from backend (no frontend computation)
  * - ✅ Read isVerified from onboardingStage
- * - ❌ No nested checks, no document parsing, no complex logic
- * - ✅ Guards read booleans only
+ * - ✅ Also check individual verification statuses as fallback
+ * - ✅ Allow access if all 3 verifications are complete (documents, contact, payment method)
  */
 const SellerProtectedRoute = ({ allowedStage = 'verified', children }) => {
   const {
@@ -24,6 +24,10 @@ const SellerProtectedRoute = ({ allowedStage = 'verified', children }) => {
     error,
     isVerified,
     isSetupComplete, // ✅ Backend-driven boolean
+    verification,
+    requiredSetup,
+    businessDocumentsStatus,
+    paymentMethodStatus,
   } = useSellerStatus();
 
   // Show loading state while fetching status
@@ -38,13 +42,23 @@ const SellerProtectedRoute = ({ allowedStage = 'verified', children }) => {
     return <Navigate to={PATHS.SETUP} replace />;
   }
 
+  // Check if all 3 verifications are individually complete (fallback check)
+  const allDocumentsVerified = requiredSetup?.hasBusinessDocumentsVerified || businessDocumentsStatus?.isVerified || false;
+  const contactVerified = verification?.contactVerified || verification?.emailVerified || false;
+  const paymentMethodVerified = requiredSetup?.hasPaymentMethodVerified || paymentMethodStatus?.isVerified || false;
+  const allThreeVerificationsComplete = allDocumentsVerified && contactVerified && paymentMethodVerified;
+
   // Debug logging in development
   if (process.env.NODE_ENV === 'development') {
-    console.debug('[SellerProtectedRoute] Access check (simplified):', {
+    console.debug('[SellerProtectedRoute] Access check:', {
       allowedStage,
       onboardingStage,
       isVerified,
       isSetupComplete, // ✅ Backend boolean
+      allThreeVerificationsComplete,
+      allDocumentsVerified,
+      contactVerified,
+      paymentMethodVerified,
     });
   }
 
@@ -65,12 +79,29 @@ const SellerProtectedRoute = ({ allowedStage = 'verified', children }) => {
     return <Suspense fallback={<LoadingState message="Loading..." />}>{children}</Suspense>;
   }
 
-  // 3. Setup incomplete - redirect to Setup page
+  // 3. CRITICAL FALLBACK: If all 3 verifications are individually complete, allow access
+  // This ensures sellers can access pages even if backend status flags aren't updated yet
+  if (allThreeVerificationsComplete) {
+    if (process.env.NODE_ENV === 'development') {
+      console.debug('[SellerProtectedRoute] ✅ Access granted - all 3 verifications complete (fallback check)', {
+        allDocumentsVerified,
+        contactVerified,
+        paymentMethodVerified,
+      });
+    }
+    return <Suspense fallback={<LoadingState message="Loading..." />}>{children}</Suspense>;
+  }
+
+  // 4. Setup incomplete - redirect to Setup page
   if (process.env.NODE_ENV === 'development') {
     console.debug('[SellerProtectedRoute] ❌ Redirecting to Setup - setup incomplete', {
       isSetupComplete, // ✅ Backend boolean
       isVerified,
       onboardingStage,
+      allThreeVerificationsComplete,
+      allDocumentsVerified,
+      contactVerified,
+      paymentMethodVerified,
     });
   }
   return <Navigate to={PATHS.SETUP} replace />;

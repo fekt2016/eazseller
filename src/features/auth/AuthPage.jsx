@@ -31,6 +31,7 @@ const ACCRA_NEIGHBORHOODS = [
 const AuthPage = () => {
   const [phoneNetwork, setPhoneNetwork] = useState("");
   const [activeTab, setActiveTab] = useState("login");
+  const [loginClientError, setLoginClientError] = useState("");
   
   // Login state
   const [loginState, setLoginState] = useState({
@@ -52,7 +53,8 @@ const AuthPage = () => {
     network: phoneNetwork,
     contactNumber: "",
   });
-  const [passwordError, setPasswordError] = useState("");
+  // Field-level validation errors: { [fieldName]: errorMessage }
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const { login, verify2FALogin, register, verifyAccount, resendOtp } = useAuth();
   const { mutate: loginMutation, isPending: isLoggingIn, error: loginError } = login;
@@ -74,13 +76,122 @@ const AuthPage = () => {
     }
   }, [formData.contactNumber]);
 
+  // Normalize backend validation errors to field-level errors
+  const normalizeFieldErrors = (error) => {
+    const errors = {};
+    
+    if (!error) return errors;
+    
+    // Check for fieldErrors in response (from AppError.fieldErrors)
+    const responseData = error?.response?.data || error?.data || {};
+    const fieldErrorsFromResponse = responseData.details || responseData.fieldErrors || responseData.errors;
+    
+    if (fieldErrorsFromResponse && typeof fieldErrorsFromResponse === 'object') {
+      // Direct field errors object: { name: "Name is required", email: "Invalid email" }
+      Object.keys(fieldErrorsFromResponse).forEach((field) => {
+        const errorMsg = fieldErrorsFromResponse[field];
+        if (typeof errorMsg === 'string') {
+          errors[field] = errorMsg;
+        } else if (errorMsg?.message) {
+          errors[field] = errorMsg.message;
+        }
+      });
+    }
+    
+    // Check error message for field-specific patterns
+    const errorMessage = responseData.message || error.message || '';
+    if (errorMessage && !Object.keys(errors).length) {
+      // Infer field from error message patterns
+      const messageLower = errorMessage.toLowerCase();
+      
+      // Email errors
+      if (messageLower.includes('email') && (messageLower.includes('invalid') || messageLower.includes('valid'))) {
+        errors.email = 'Please enter a valid email address';
+      } else if (messageLower.includes('email') && messageLower.includes('required')) {
+        errors.email = 'Email address is required';
+      } else if (messageLower.includes('email') && (messageLower.includes('exists') || messageLower.includes('taken') || messageLower.includes('duplicate'))) {
+        errors.email = 'This email address is already registered';
+      }
+      
+      // Password errors
+      if (messageLower.includes('password') && messageLower.includes('required')) {
+        errors.password = 'Password is required';
+      } else if (messageLower.includes('password') && (messageLower.includes('short') || messageLower.includes('8'))) {
+        errors.password = 'Password must be at least 8 characters';
+      }
+      
+      // Name errors
+      if (messageLower.includes('name') && messageLower.includes('required')) {
+        errors.name = 'Name is required';
+      }
+      
+      // Shop name errors
+      if ((messageLower.includes('shop') || messageLower.includes('store')) && messageLower.includes('required')) {
+        errors.shopName = 'Shop name is required';
+      }
+      
+      // Phone errors
+      if ((messageLower.includes('phone') || messageLower.includes('contact')) && messageLower.includes('required')) {
+        errors.contactNumber = 'Phone number is required';
+      } else if ((messageLower.includes('phone') || messageLower.includes('contact')) && (messageLower.includes('invalid') || messageLower.includes('valid'))) {
+        errors.contactNumber = 'Please enter a valid phone number';
+      }
+    }
+    
+    return errors;
+  };
+
+  const getSimpleAuthErrorMessage = (err, stage) => {
+    if (!err) return "";
+
+    const status = err?.response?.status;
+    const code = err?.code;
+    const apiMessage = err?.response?.data?.message;
+    const rawMessage = err?.message;
+
+    const isTimeout =
+      code === "ECONNABORTED" ||
+      err?.isTimeout ||
+      (typeof rawMessage === "string" && rawMessage.toLowerCase().includes("timeout"));
+    const isNetworkError = code === "ERR_NETWORK" || (!err?.response && !!rawMessage);
+
+    if (isTimeout) return "Request timed out. Please try again.";
+    if (isNetworkError) return "Network error. Check your internet and try again.";
+
+    // Keep seller-auth messages simple and consistent
+    if (status === 401) return "Invalid email or password.";
+    if (status === 403) {
+      const msg = String(apiMessage || rawMessage || "").toLowerCase();
+      if (msg.includes("not verified") || msg.includes("verify") || msg.includes("unverified")) {
+        return "Your account is not verified. Please verify your email and try again.";
+      }
+      return "Access denied. Please contact support if this continues.";
+    }
+    if (status === 429) return "Too many attempts. Please wait a moment and try again.";
+    if (status >= 500) return "Server error. Please try again later.";
+
+    // Fallback: use backend message if it’s short and user-facing
+    if (typeof apiMessage === "string" && apiMessage.trim() && apiMessage.trim().length <= 120) {
+      return apiMessage.trim();
+    }
+
+    // Stage-specific fallback
+    if (stage === "2fa") return "Invalid 2FA code. Please try again.";
+    if (stage === "login") return "Login failed. Please try again.";
+    return "Something went wrong. Please try again.";
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
-    // Clear password error when typing
-    if (name === "passwordConfirm" && passwordError) {
-      setPasswordError("");
+    // Clear field error when user starts typing
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => {
+        const updated = { ...prev };
+        delete updated[name];
+        return updated;
+      });
     }
   };
 
@@ -95,17 +206,17 @@ const AuthPage = () => {
 
     if (loginStep === "credentials") {
       // Email+password login flow
+      setLoginClientError("");
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       const trimmedEmail = loginState.email.trim().toLowerCase();
       
       if (!trimmedEmail || !emailRegex.test(trimmedEmail)) {
-        // Show error - you might want to add toast or error state
-        console.error("[AuthPage] Invalid email address");
+        setLoginClientError("Please enter a valid email address.");
         return false; // Explicitly return false to prevent form submission
       }
       
       if (!loginState.password) {
-        console.error("[AuthPage] Password is required");
+        setLoginClientError("Please enter your password.");
         return false; // Explicitly return false to prevent form submission
       }
 
@@ -210,13 +321,14 @@ const AuthPage = () => {
       );
     } else if (loginStep === "2fa") {
       // Verify 2FA code
+      setLoginClientError("");
       if (!twoFactorCode || twoFactorCode.length !== 6) {
-        console.error("[AuthPage] Please enter a valid 6-digit 2FA code");
+        setLoginClientError("Please enter the 6-digit 2FA code.");
         return;
       }
 
       if (!loginSessionId) {
-        console.error("[AuthPage] Login session expired. Please login again.");
+        setLoginClientError("Login session expired. Please login again.");
         setLoginStep("credentials");
         return;
       }
@@ -265,8 +377,55 @@ const AuthPage = () => {
       e.stopPropagation();
     }
 
-    if (formData.password !== formData.passwordConfirm) {
-      setPasswordError("Passwords do not match");
+    // Clear previous field errors
+    setFieldErrors({});
+
+    // Client-side validation before API call
+    const clientErrors = {};
+    
+    if (!formData.name.trim()) {
+      clientErrors.name = 'Name is required';
+    }
+    
+    if (!formData.email.trim()) {
+      clientErrors.email = 'Email address is required';
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email.trim())) {
+        clientErrors.email = 'Please enter a valid email address';
+      }
+    }
+    
+    if (!formData.contactNumber.trim()) {
+      clientErrors.contactNumber = 'Phone number is required';
+    } else {
+      const phoneValidation = validateGhanaPhone(formData.contactNumber);
+      if (!phoneValidation.valid) {
+        clientErrors.contactNumber = 'Please enter a valid Ghanaian phone number';
+      }
+    }
+    
+    if (!formData.shopName.trim()) {
+      clientErrors.shopName = 'Shop name is required';
+    } else if (formData.shopName.trim().length < 3) {
+      clientErrors.shopName = 'Shop name must be at least 3 characters';
+    }
+    
+    if (!formData.password) {
+      clientErrors.password = 'Password is required';
+    } else if (formData.password.length < 8) {
+      clientErrors.password = 'Password must be at least 8 characters';
+    }
+    
+    if (!formData.passwordConfirm) {
+      clientErrors.passwordConfirm = 'Please confirm your password';
+    } else if (formData.password !== formData.passwordConfirm) {
+      clientErrors.passwordConfirm = 'Passwords do not match';
+    }
+    
+    // If client-side validation fails, show errors and stop
+    if (Object.keys(clientErrors).length > 0) {
+      setFieldErrors(clientErrors);
       return;
     }
 
@@ -307,6 +466,17 @@ const AuthPage = () => {
       }
     } catch (error) {
       console.error("[AuthPage] Registration error:", error);
+      
+      // Extract field-level errors from backend response
+      const backendFieldErrors = normalizeFieldErrors(error);
+      
+      if (Object.keys(backendFieldErrors).length > 0) {
+        // Show field-level errors
+        setFieldErrors(backendFieldErrors);
+      } else {
+        // Only show global error if no field errors (network, server down, etc.)
+        // The ErrorBanner will handle this via registerError
+      }
     }
   };
 
@@ -329,13 +499,18 @@ const AuthPage = () => {
                 setTwoFactorCode("");
                 setLoginSessionId(null);
                 setLoginState({ email: "", password: "" });
+                setLoginClientError("");
               }}
             >
               Login
             </Tab>
             <Tab
               $active={activeTab === "register"}
-              onClick={() => setActiveTab("register")}
+              onClick={() => {
+                setActiveTab("register");
+                setFieldErrors({}); // Clear field errors when switching to register tab
+                setLoginClientError("");
+              }}
             >
               Register
             </Tab>
@@ -357,46 +532,26 @@ const AuthPage = () => {
               : "Fill in your details to get started"}
           </Subtitle>
 
-          {(loginError || verify2FAError || registerError) && (
+          {/* Simple, user-friendly auth error message */}
+          {(loginClientError || loginError || verify2FAError || (registerError && Object.keys(fieldErrors).length === 0)) && (
             <ErrorBanner>
               {(() => {
-                // Handle timeout errors with user-friendly message
-                if (loginError?.code === 'ECONNABORTED' || loginError?.isTimeout || loginError?.message?.includes('timeout')) {
-                  return 'The server is taking too long to respond. Please check your internet connection and try again.';
+                if (loginClientError) return loginClientError;
+                if (loginStep === "2fa") {
+                  return getSimpleAuthErrorMessage(verify2FAError || loginError, "2fa");
                 }
-                if (verify2FAError?.code === 'ECONNABORTED' || verify2FAError?.isTimeout) {
-                  return 'Request timed out. Please try again.';
+                // For register, keep existing behavior (out of scope for “seller login”)
+                if (registerError && Object.keys(fieldErrors).length === 0) {
+                  return registerError?.response?.data?.message || registerError?.message || "Registration failed. Please try again.";
                 }
-                return loginError?.response?.data?.message || 
-                       verify2FAError?.response?.data?.message || 
-                       registerError?.response?.data?.message || 
-                       loginError?.message ||
-                       verify2FAError?.message ||
-                       registerError?.message ||
-                       "An error occurred. Please try again.";
+                return getSimpleAuthErrorMessage(loginError || verify2FAError, "login");
               })()}
             </ErrorBanner>
           )}
 
-          {/* Error Messages */}
-          {(loginError || verify2FAError) && activeTab === "login" && (
-            <ErrorState
-              title="Authentication Failed"
-              message={(() => {
-                // Handle timeout errors with user-friendly message
-                if (loginError?.code === 'ECONNABORTED' || loginError?.isTimeout || loginError?.message?.includes('timeout')) {
-                  return 'The server is taking too long to respond. Please check your internet connection and try again.';
-                }
-                if (verify2FAError?.code === 'ECONNABORTED' || verify2FAError?.isTimeout) {
-                  return 'Request timed out. Please try again.';
-                }
-                return (loginError || verify2FAError)?.response?.data?.message || 
-                       (loginError || verify2FAError)?.message || 
-                       "Authentication failed. Please try again.";
-              })()}
-            />
-          )}
-          {registerError && activeTab === "register" && (
+          {/* Login errors are shown via the simple ErrorBanner above */}
+          {/* Only show ErrorState for non-field errors (when no fieldErrors exist) */}
+          {registerError && activeTab === "register" && Object.keys(fieldErrors).length === 0 && (
             <ErrorState
               title="Registration Failed"
               message={registerError?.response?.data?.message || registerError?.message || "Registration failed. Please try again."}
@@ -413,9 +568,10 @@ const AuthPage = () => {
                       type="email"
                       name="email"
                       value={loginState.email}
-                      onChange={(e) =>
-                        setLoginState({ ...loginState, email: e.target.value })
-                      }
+                      onChange={(e) => {
+                        setLoginClientError("");
+                        setLoginState({ ...loginState, email: e.target.value });
+                      }}
                       placeholder="your.email@example.com"
                       required
                       autoComplete="email"
@@ -428,9 +584,10 @@ const AuthPage = () => {
                       type="password"
                       name="password"
                       value={loginState.password}
-                      onChange={(e) =>
-                        setLoginState({ ...loginState, password: e.target.value })
-                      }
+                      onChange={(e) => {
+                        setLoginClientError("");
+                        setLoginState({ ...loginState, password: e.target.value });
+                      }}
                       placeholder="Enter your password"
                       required
                       autoComplete="current-password"
@@ -454,6 +611,7 @@ const AuthPage = () => {
                           onChange={(e) => {
                             const value = e.target.value.replace(/[^0-9]/g, '');
                             if (value.length > 1) return;
+                            setLoginClientError("");
                             
                             const newCodeArray = [...codeArray];
                             newCodeArray[index] = value;
@@ -521,7 +679,9 @@ const AuthPage = () => {
                   onChange={handleChange}
                   placeholder="Enter your full name"
                   required
+                  style={fieldErrors.name ? { borderColor: '#dc2626' } : {}}
                 />
+                {fieldErrors.name && <ErrorText>{fieldErrors.name}</ErrorText>}
               </InputGroup>
 
               <InputGroup>
@@ -537,6 +697,7 @@ const AuthPage = () => {
                     onChange={handleChange}
                     placeholder="Enter your phone number"
                     required
+                    style={fieldErrors.contactNumber ? { borderColor: '#dc2626' } : {}}
                   />
 
                   {phoneNetwork && (
@@ -556,9 +717,13 @@ const AuthPage = () => {
                     </NetworkIndicator>
                   )}
                 </PhoneInputContainer>
-                <HelpText>
-                  Enter Ghanaian number (MTN, Telecel, or AirtelTigo)
-                </HelpText>
+                {fieldErrors.contactNumber ? (
+                  <ErrorText>{fieldErrors.contactNumber}</ErrorText>
+                ) : (
+                  <HelpText>
+                    Enter Ghanaian number (MTN, Telecel, or AirtelTigo)
+                  </HelpText>
+                )}
               </InputGroup>
 
               <InputGroup>
@@ -574,7 +739,9 @@ const AuthPage = () => {
                   required
                   minLength={3}
                   maxLength={50}
+                  style={fieldErrors.shopName ? { borderColor: '#dc2626' } : {}}
                 />
+                {fieldErrors.shopName && <ErrorText>{fieldErrors.shopName}</ErrorText>}
               </InputGroup>
 
               <InputGroup>
@@ -604,7 +771,9 @@ const AuthPage = () => {
                   onChange={handleChange}
                   placeholder="Enter your email"
                   required
+                  style={fieldErrors.email ? { borderColor: '#dc2626' } : {}}
                 />
+                {fieldErrors.email && <ErrorText>{fieldErrors.email}</ErrorText>}
               </InputGroup>
 
               <InputGroup>
@@ -616,7 +785,9 @@ const AuthPage = () => {
                   onChange={handleChange}
                   placeholder="Enter your password"
                   required
+                  style={fieldErrors.password ? { borderColor: '#dc2626' } : {}}
                 />
+                {fieldErrors.password && <ErrorText>{fieldErrors.password}</ErrorText>}
               </InputGroup>
 
               <InputGroup>
@@ -628,8 +799,9 @@ const AuthPage = () => {
                   onChange={handleChange}
                   placeholder="Confirm your password"
                   required
+                  style={fieldErrors.passwordConfirm ? { borderColor: '#dc2626' } : {}}
                 />
-                {passwordError && <ErrorText>{passwordError}</ErrorText>}
+                {fieldErrors.passwordConfirm && <ErrorText>{fieldErrors.passwordConfirm}</ErrorText>}
               </InputGroup>
 
               <SubmitButton type="button" onClick={handleRegisterSubmit} disabled={isRegistering}>

@@ -89,28 +89,29 @@ const SetupPage = () => {
     }
   }, [isLoading, isSetupComplete, onboardingStage, updateOnboarding]);
 
-  // Show success banner if all steps are complete
+  // Show success banner if all steps are complete (pending verification or verified)
   useEffect(() => {
-    if (isSetupComplete && onboardingStage === 'pending_verification') {
+    if (isSetupComplete && (onboardingStage === 'pending_verification' || onboardingStage === 'verified')) {
       setShowSuccessBanner(true);
     }
   }, [isSetupComplete, onboardingStage]);
 
-  // Auto-redirect to dashboard if setup is complete and verified
-  useEffect(() => {
-    if (!isLoading && isSetupComplete && isVerified) {
-      console.log('[SetupPage] Setup complete and verified - redirecting to dashboard', {
-        isSetupComplete, // ✅ Backend boolean
-        isVerified,
-        onboardingStage,
-      });
-      // Redirect to dashboard after a short delay to show success message
-      const timer = setTimeout(() => {
-        navigate(PATHS.DASHBOARD);
-      }, 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [isLoading, isSetupComplete, isVerified, onboardingStage, navigate]);
+  // REMOVED: Auto-redirect to dashboard if setup is complete and verified
+  // Verified sellers should be able to access the setup page to view their status
+  // useEffect(() => {
+  //   if (!isLoading && isSetupComplete && isVerified) {
+  //     console.log('[SetupPage] Setup complete and verified - redirecting to dashboard', {
+  //       isSetupComplete, // ✅ Backend boolean
+  //       isVerified,
+  //       onboardingStage,
+  //     });
+  //     // Redirect to dashboard after a short delay to show success message
+  //     const timer = setTimeout(() => {
+  //       navigate(PATHS.DASHBOARD);
+  //     }, 2000);
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [isLoading, isSetupComplete, isVerified, onboardingStage, navigate]);
 
   // Animate progress bar (3 steps total)
   useEffect(() => {
@@ -216,16 +217,20 @@ const SetupPage = () => {
       </ModernHeader>
 
       {/* Success Banner */}
-      {showSuccessBanner && onboardingStage === 'pending_verification' && (
+      {showSuccessBanner && (onboardingStage === 'pending_verification' || onboardingStage === 'verified') && (
         <SuccessBanner>
           <SuccessContent>
             <SuccessIcon>
               <FaCheckCircle />
             </SuccessIcon>
             <SuccessText>
-              <SuccessTitle>Setup Complete! 🎉</SuccessTitle>
+              <SuccessTitle>
+                {onboardingStage === 'verified' ? 'Account Verified! 🎉' : 'Setup Complete! 🎉'}
+              </SuccessTitle>
               <SuccessMessage>
-                Your store is ready for review. We'll notify you once your account is approved and you can start selling.
+                {onboardingStage === 'verified' 
+                  ? 'Your account has been verified and you can now access all features. You can continue to manage your setup from this page.'
+                  : 'Your store is ready for review. We\'ll notify you once your account is approved and you can start selling.'}
               </SuccessMessage>
             </SuccessText>
             <Confetti>

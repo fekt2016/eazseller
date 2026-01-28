@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import paymentMethodApi from '../services/paymentMethodApi';
 import { toast } from 'react-toastify';
+import { getUserFriendlyErrorMessage } from '../utils/helpers';
+import normalizeError from '../utils/normalizeError';
 import useAuth from './useAuth';
 
 /**
@@ -57,14 +59,22 @@ export const useCreatePaymentMethod = () => {
   return useMutation({
     mutationFn: paymentMethodApi.createPaymentMethod,
     onSuccess: () => {
-      toast.success('Payment method added successfully');
+      // Use a fixed toastId so React-Toastify collapses duplicates
+      toast.success('Payment method added successfully', {
+        toastId: 'payment-method-create-success',
+      });
       queryClient.invalidateQueries({ queryKey: ['paymentMethods'] });
       // ✅ CRITICAL: Invalidate sellerStatus after payment method update
       queryClient.invalidateQueries({ queryKey: ['sellerStatus'] });
       queryClient.invalidateQueries({ queryKey: ['sellerAuth'] });
     },
     onError: (error) => {
-      const message = error.response?.data?.message || error.message || 'Failed to add payment method';
+      console.error('[useCreatePaymentMethod] Error creating payment method:', error);
+      const { message } = normalizeError(error, {
+        fallbackTitle: "Unexpected error",
+        fallbackMessage: "We could not save this payment method. Please try again.",
+        defaultCanRetry: true,
+      });
       toast.error(message);
     },
   });
@@ -79,14 +89,21 @@ export const useUpdatePaymentMethod = () => {
   return useMutation({
     mutationFn: ({ id, data }) => paymentMethodApi.updatePaymentMethod(id, data),
     onSuccess: () => {
-      toast.success('Payment method updated successfully');
+      toast.success('Payment method updated successfully', {
+        toastId: 'payment-method-update-success',
+      });
       queryClient.invalidateQueries({ queryKey: ['paymentMethods'] });
       // ✅ CRITICAL: Invalidate sellerStatus after payment method update
       queryClient.invalidateQueries({ queryKey: ['sellerStatus'] });
       queryClient.invalidateQueries({ queryKey: ['sellerAuth'] });
     },
     onError: (error) => {
-      const message = error.response?.data?.message || error.message || 'Failed to update payment method';
+      console.error('[useUpdatePaymentMethod] Error updating payment method:', error);
+      const { message } = normalizeError(error, {
+        fallbackTitle: "Unexpected error",
+        fallbackMessage: "We could not update this payment method. Please try again.",
+        defaultCanRetry: true,
+      });
       toast.error(message);
     },
   });
@@ -101,11 +118,18 @@ export const useDeletePaymentMethod = () => {
   return useMutation({
     mutationFn: paymentMethodApi.deletePaymentMethod,
     onSuccess: () => {
-      toast.success('Payment method deleted successfully');
+      toast.success('Payment method deleted successfully', {
+        toastId: 'payment-method-delete-success',
+      });
       queryClient.invalidateQueries({ queryKey: ['paymentMethods'] });
     },
     onError: (error) => {
-      const message = error.response?.data?.message || error.message || 'Failed to delete payment method';
+      console.error('[useDeletePaymentMethod] Error deleting payment method:', error);
+      const { message } = normalizeError(error, {
+        fallbackTitle: "Unexpected error",
+        fallbackMessage: "We could not delete this payment method. Please try again.",
+        defaultCanRetry: true,
+      });
       toast.error(message);
     },
   });
@@ -120,11 +144,18 @@ export const useSetDefaultPaymentMethod = () => {
   return useMutation({
     mutationFn: paymentMethodApi.setDefaultPaymentMethod,
     onSuccess: () => {
-      toast.success('Default payment method updated');
+      toast.success('Default payment method updated', {
+        toastId: 'payment-method-set-default-success',
+      });
       queryClient.invalidateQueries({ queryKey: ['paymentMethods'] });
     },
     onError: (error) => {
-      const message = error.response?.data?.message || error.message || 'Failed to set default payment method';
+      console.error('[useSetDefaultPaymentMethod] Error setting default payment method:', error);
+      const { message } = normalizeError(error, {
+        fallbackTitle: "Unexpected error",
+        fallbackMessage: "We could not update your default payment method. Please try again.",
+        defaultCanRetry: true,
+      });
       toast.error(message);
     },
   });

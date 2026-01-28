@@ -7,13 +7,28 @@ import Button from './ui/Button';
 
 /**
  * Banner component to show verification status in dashboard
- * Only shows if seller is not verified
+ * Only shows if seller is not verified or if all 3 verifications are not complete
  */
 const VerificationBanner = () => {
-  const { onboardingStage, isVerified, isLoading } = useSellerStatus();
+  const { 
+    onboardingStage, 
+    isVerified, 
+    isLoading,
+    isSetupComplete,
+    verification,
+    requiredSetup,
+    businessDocumentsStatus,
+    paymentMethodStatus,
+  } = useSellerStatus();
 
-  // Don't show if loading or already verified
-  if (isLoading || isVerified) {
+  // Check if all 3 verifications are individually complete
+  const allDocumentsVerified = requiredSetup?.hasBusinessDocumentsVerified || businessDocumentsStatus?.isVerified || false;
+  const contactVerified = verification?.contactVerified || verification?.emailVerified || false;
+  const paymentMethodVerified = requiredSetup?.hasPaymentMethodVerified || paymentMethodStatus?.isVerified || false;
+  const allThreeVerificationsComplete = allDocumentsVerified && contactVerified && paymentMethodVerified;
+
+  // Don't show if loading, already verified, setup is complete, or all 3 verifications are complete
+  if (isLoading || isVerified || isSetupComplete || allThreeVerificationsComplete) {
     return null;
   }
 

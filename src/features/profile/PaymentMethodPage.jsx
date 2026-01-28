@@ -8,6 +8,7 @@ import { useGetPaymentMethods, useDeletePaymentMethod, useSetDefaultPaymentMetho
 import { PATHS } from '../../routes/routePaths';
 import Button from '../../shared/components/ui/Button';
 import { LoadingState } from '../../shared/components/ui/LoadingComponents';
+import { getUserFriendlyErrorMessage } from '../../shared/utils/helpers';
 import { PageContainer, PageHeader, TitleSection, Section, SectionHeader } from '../../shared/components/ui/SpacingSystem';
 import { detectGhanaPhoneNetwork } from '../../shared/utils/phoneNetworkDetector';
 import { toast } from 'react-toastify';
@@ -22,7 +23,12 @@ const PaymentMethodPage = ({ embedded = false }) => {
   const [activeTab, setActiveTab] = useState('bank'); // 'bank' or 'mobile'
   
   // Fetch payment methods from PaymentMethod model
-  const { data: paymentMethods = [], isLoading: isLoadingPaymentMethods, refetch: refetchPaymentMethods } = useGetPaymentMethods();
+  const { 
+    data: paymentMethods = [], 
+    isLoading: isLoadingPaymentMethods, 
+    error: paymentMethodsError,
+    refetch: refetchPaymentMethods 
+  } = useGetPaymentMethods();
   console.log("paymentMethods", paymentMethods);
   const deletePaymentMethod = useDeletePaymentMethod();
   const setDefaultPaymentMethod = useSetDefaultPaymentMethod();
@@ -47,10 +53,10 @@ const PaymentMethodPage = ({ embedded = false }) => {
     return methodStatus === 'rejected' || (methodStatus === 'pending' && isPayoutPending);
   });
 
-  // Check if there's a default payment method
+  // Check if there's a default payment method (used only when rendering default indicators)
   const hasDefaultPaymentMethod = paymentMethods.some(method => method.isDefault);
   
-  // Handle set default payment method
+  // Handle set default payment method - invoked explicitly by user action.
   const handleSetDefault = async (id) => {
     try {
       await setDefaultPaymentMethod.mutateAsync(id);
@@ -58,22 +64,14 @@ const PaymentMethodPage = ({ embedded = false }) => {
       toast.success('Default payment method updated');
     } catch (error) {
       console.error('Error setting default payment method:', error);
-      toast.error(error.response?.data?.message || 'Failed to set default payment method');
+      const message = getUserFriendlyErrorMessage(
+        error,
+        'We could not update your default payment method. Please try again.'
+      );
+      toast.error(message);
     }
   };
   
-  // Auto-set first payment method as default if none exists
-  useEffect(() => {
-    if (paymentMethods.length > 0 && !hasDefaultPaymentMethod && !isLoadingPaymentMethods) {
-      // Automatically set the first payment method as default
-      const firstMethodId = paymentMethods[0]._id || paymentMethods[0].id;
-      if (firstMethodId) {
-        handleSetDefault(firstMethodId);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paymentMethods.length, hasDefaultPaymentMethod, isLoadingPaymentMethods]);
-
   const [bankDetails, setBankDetails] = useState({
     accountName: '',
     accountNumber: '',

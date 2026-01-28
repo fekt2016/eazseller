@@ -25,7 +25,11 @@ export const useSellerStatus = () => {
         throw error;
       }
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    // This status powers the onboarding steps; we want it to reflect
+    // admin approvals (documents, payouts) as soon as possible.
+    // Keep it effectively "live" so navigation back to the Setup page
+    // refetches instead of serving a 5‑minute‑old snapshot.
+    staleTime: 0,
     refetchOnWindowFocus: true,
   });
 
