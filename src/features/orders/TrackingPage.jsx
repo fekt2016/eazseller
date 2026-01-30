@@ -544,9 +544,9 @@ const TrackingPage = () => {
                     <InfoLabel>Delivery Method</InfoLabel>
                     <InfoValue>
                       {orderData.deliveryMethod === 'pickup_center' 
-                        ? 'Pickup from EazShop Center'
+                        ? 'Pickup from Saiisai Center'
                         : orderData.deliveryMethod === 'dispatch'
-                        ? 'EazShop Dispatch Rider'
+                        ? 'Saiisai Dispatch Rider'
                         : orderData.deliveryMethod === 'seller_delivery'
                         ? "Seller's Own Delivery"
                         : orderData.deliveryMethod.split('_').map(word => 
@@ -583,7 +583,7 @@ const TrackingPage = () => {
                         Pickup Center
                       </InfoLabel>
                       <InfoValue>
-                        <strong>{orderData.pickupCenter.pickupName || 'EazShop Pickup Center'}</strong>
+                        <strong>{orderData.pickupCenter.pickupName || 'Saiisai Pickup Center'}</strong>
                       </InfoValue>
                     </InfoRow>
                     {orderData.pickupCenter.address && (

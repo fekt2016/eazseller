@@ -6,7 +6,7 @@ export const getOrderStructure = (orderData) => {
   console.log("orderData structure", orderData);
   if (!orderData) return [];
 
-  if (orderData?.data?.data?.orderss) {
+  if (orderData?.data?.data?.orders) {
     return orderData?.data?.data?.orders;
   }
   if (orderData?.data?.orders) {

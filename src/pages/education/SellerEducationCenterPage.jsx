@@ -73,10 +73,10 @@ const SellerEducationCenterPage = () => {
   // SEO
   useDynamicPageTitle({
     title: 'Seller Education Center • EazSeller',
-    description: 'Learn how to grow your business on EazShop with tutorials, guides, training videos, and best practices.',
+    description: 'Learn how to grow your business on Saiisai with tutorials, guides, training videos, and best practices.',
     keywords: 'seller education, tutorials, guides, training, EazSeller, EazShop seller resources',
     defaultTitle: 'Seller Education Center • EazSeller',
-    defaultDescription: 'Learn how to grow your business on EazShop with tutorials, guides, training videos, and best practices.',
+    defaultDescription: 'Learn how to grow your business on Saiisai with tutorials, guides, training videos, and best practices.',
   });
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -283,7 +283,7 @@ const SellerEducationCenterPage = () => {
           </HeroIcon>
           <HeroTitle variants={fadeUp}>EazSeller Education Center</HeroTitle>
           <HeroSubtitle variants={fadeUp}>
-            Learn how to succeed on EazShop. Tutorials, guides, tools, and best practices for every seller.
+            Learn how to succeed on Saiisai. Tutorials, guides, tools, and best practices for every seller.
           </HeroSubtitle>
           <SearchBarContainer variants={fadeUp}>
             <form onSubmit={handleSearch}>

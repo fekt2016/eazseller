@@ -131,7 +131,7 @@ const AboutPage = () => {
     },
     {
       year: '2024',
-      title: 'EazShop Marketplace Launched',
+      title: 'Saiisai Marketplace Launched',
       description: 'We launched EazShop, a comprehensive online marketplace connecting buyers and sellers across Ghana and beyond.',
     },
     {
@@ -212,7 +212,7 @@ const AboutPage = () => {
             </p>
             <ul>
               <li>
-                <strong>EazShop</strong> — A leading online marketplace connecting buyers and sellers
+                <strong>Saiisai</strong> — A leading online marketplace connecting buyers and sellers
                 with secure transactions, fast delivery, and exceptional customer service.
               </li>
               <li>

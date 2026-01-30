@@ -6,14 +6,15 @@ export const formatCurrency = (value) =>
   );
 
 export function formatDate(dateStr) {
-  const date = new Intl.DateTimeFormat("en", {
+  if (dateStr == null || dateStr === "") return "—";
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return "—";
+  return new Intl.DateTimeFormat("en", {
     day: "numeric",
     month: "short",
     hour: "2-digit",
     minute: "2-digit",
-  }).format(new Date(dateStr));
-
-  return date;
+  }).format(d);
 }
 
 export const randomOrderId = () => {

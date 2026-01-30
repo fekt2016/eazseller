@@ -59,10 +59,10 @@ const ContactPage = () => {
   // SEO
   useDynamicPageTitle({
     title: 'Contact Us • EazSeller',
-    description: 'Get in touch with EazShop seller support. We\'re here to help you with your store, products, orders, and payments.',
-    keywords: 'contact, support, seller support, customer service, help, EazShop, EazSeller',
+    description: 'Get in touch with Saiisai seller support. We\'re here to help you with your store, products, orders, and payments.',
+    keywords: 'contact, support, seller support, customer service, help, Saiisai, EazSeller',
     defaultTitle: 'Contact Us • EazSeller',
-    defaultDescription: 'Get in touch with EazShop seller support.',
+    defaultDescription: 'Get in touch with Saiisai seller support.',
   });
 
   // Form state
@@ -204,7 +204,7 @@ const ContactPage = () => {
 
   // Handle email
   const handleEmail = () => {
-    window.location.href = 'mailto:support@eazshop.com?subject=Seller%20Support%20-%20EazShop';
+    window.location.href = 'mailto:support@saiisai.com?subject=Seller%20Support%20-%20Saiisai';
   };
 
   // Handle phone

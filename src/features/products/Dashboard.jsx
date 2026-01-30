@@ -117,7 +117,12 @@ const Dashboard = () => {
   // Calculate stats first to get totalRevenue
   const stats = useMemo(() => {
     const deliveredOrders = orders.filter(
-      (order) => order.status?.toLowerCase() === "delivered"
+      (order) => {
+        const status = (order.status || order.currentStatus || order.orderStatus || '').toString().toLowerCase();
+        const currentStatus = (order.currentStatus || '').toString().toLowerCase();
+        const orderStatus = (order.orderStatus || '').toString().toLowerCase();
+        return status === 'delivered' || currentStatus === 'delivered' || orderStatus === 'completed';
+      }
     );
 
     const getDateRange = (period) => {
@@ -236,8 +241,8 @@ const Dashboard = () => {
     
     const completedOrders = orders.filter(
       (order) => {
-        const status = order.currentStatus || order.status || 'pending';
-        return status.toLowerCase() === 'delivered';
+        const status = (order.currentStatus || order.status || order.orderStatus || 'pending').toString().toLowerCase();
+        return status === 'delivered' || status === 'completed';
       }
     ).length;
     

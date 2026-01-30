@@ -490,7 +490,7 @@ const BusinessProfilePage = ({ embedded = false }) => {
         <PageHeader $padding="lg" $marginBottom="lg">
           <TitleSection>
             <h1>Complete Your Business Profile</h1>
-            <p>Fill in your business information to start selling on EazShop</p>
+            <p>Fill in your business information to start selling on Saiisai</p>
           </TitleSection>
           <Button
             variant="ghost"

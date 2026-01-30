@@ -78,9 +78,9 @@ const EazSellerHomePage = () => {
 
   // SEO
   usePageTitle({
-    title: 'Sell on EazShop • EazSeller',
+    title: 'Sell on Saiisai • EazSeller',
     description: 'Join thousands of sellers on EazShop. Create your store, list products, and start selling.',
-    keywords: 'EazSeller, sell on EazShop, seller portal, marketplace, online selling',
+    keywords: 'EazSeller, sell on Saiisai, seller portal, marketplace, online selling',
   });
 
   const toggleMobileMenu = () => {
@@ -237,7 +237,7 @@ const EazSellerHomePage = () => {
               Grow Your Business with EazSeller
             </HeroTitle>
             <HeroSubtitle variants={fadeUp}>
-              Create your store, manage your orders, and reach thousands of customers on EazShop.
+              Create your store, manage your orders, and reach thousands of customers on Saiisai.
             </HeroSubtitle>
             <HeroButtons variants={fadeUp} $justify="flex-start">
               <SecondaryButton
@@ -300,7 +300,7 @@ const EazSellerHomePage = () => {
         <StepsContainer>
           <SectionTitle>Get Started in 3 Simple Steps</SectionTitle>
           <SectionDescription>
-            Start selling on EazShop today
+            Start selling on Saiisai today
           </SectionDescription>
           <StepsGrid>
             {steps.map((step, index) => (
@@ -357,7 +357,7 @@ const EazSellerHomePage = () => {
         <CTAContainer>
           <CTATitle>Ready to Start Selling?</CTATitle>
           <CTASubtitle>
-            Join the EazShop marketplace today and start growing your business.
+            Join the Saiisai marketplace today and start growing your business.
           </CTASubtitle>
           <CTAButtons>
             <CTAButtonSecondary

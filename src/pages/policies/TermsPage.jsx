@@ -43,10 +43,10 @@ const TermsPage = () => {
   // SEO
   useDynamicPageTitle({
     title: 'Terms & Service • EazSeller',
-    description: 'Review the terms and conditions for selling on EazShop. Understand your rights and responsibilities as a seller.',
+    description: 'Review the terms and conditions for selling on Saiisai. Understand your rights and responsibilities as a seller.',
     keywords: 'seller terms, conditions, terms of service, EazSeller terms, seller agreement, service agreement',
     defaultTitle: 'Terms & Service • EazSeller',
-    defaultDescription: 'Review the terms and conditions for selling on EazShop.',
+    defaultDescription: 'Review the terms and conditions for selling on Saiisai.',
   });
 
   // Animation variants
@@ -91,7 +91,7 @@ const TermsPage = () => {
           <SectionTitle>1. Acceptance of Terms</SectionTitle>
           <SectionContent>
             <Paragraph>
-              By registering as a seller on EazShop and accessing the EazSeller platform, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
+              By registering as a seller on Saiisai and accessing the EazSeller platform, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
             </Paragraph>
             <Paragraph>
               These Terms apply to all sellers, vendors, and others who access or use the EazSeller Service.
@@ -106,7 +106,7 @@ const TermsPage = () => {
           <SectionTitle>2. Seller Account Requirements</SectionTitle>
           <SectionContent>
             <Paragraph>
-              To become a seller on EazShop, you must:
+              To become a seller on Saiisai, you must:
             </Paragraph>
             <BulletList>
               <li>Provide accurate, complete, and current information during registration</li>
@@ -167,7 +167,7 @@ const TermsPage = () => {
                   <strong>Platform Fees</strong>
                 </Paragraph>
                 <Paragraph>
-                  EazShop charges a commission fee on each sale. The fee structure is outlined in your seller agreement. Fees are deducted from your payout.
+                  Saiisai charges a commission fee on each sale. The fee structure is outlined in your seller agreement. Fees are deducted from your payout.
                 </Paragraph>
               </li>
               <li>
@@ -213,7 +213,7 @@ const TermsPage = () => {
           <SectionTitle>6. Returns and Refunds</SectionTitle>
           <SectionContent>
             <Paragraph>
-              You must comply with EazShop's Return & Refund Policy. Buyers may return products that are:
+              You must comply with Saiisai's Return & Refund Policy. Buyers may return products that are:
             </Paragraph>
             <BulletList>
               <li>Defective or damaged</li>
@@ -245,7 +245,7 @@ const TermsPage = () => {
               <li>Required for legal or regulatory compliance</li>
             </BulletList>
             <Paragraph>
-              <strong>Tax Obligations:</strong> You are responsible for reporting and paying all applicable taxes on your earnings from EazShop.
+              <strong>Tax Obligations:</strong> You are responsible for reporting and paying all applicable taxes on your earnings from Saiisai.
             </Paragraph>
           </SectionContent>
         </PolicySection>
@@ -262,7 +262,7 @@ const TermsPage = () => {
             <BulletList>
               <li>Manipulate search results or rankings</li>
               <li>Engage in fraudulent transactions or chargebacks</li>
-              <li>Contact buyers outside of the EazShop platform for transactions</li>
+              <li>Contact buyers outside of the Saiisai platform for transactions</li>
               <li>Circumvent platform fees or payment processing</li>
               <li>Use multiple accounts to avoid restrictions</li>
               <li>Post false reviews or ratings</li>
@@ -279,10 +279,10 @@ const TermsPage = () => {
           <SectionTitle>9. Intellectual Property</SectionTitle>
           <SectionContent>
             <Paragraph>
-              You retain ownership of your product listings, images, and content. By listing products on EazShop, you grant us a license to use, display, and distribute your content for the purpose of operating the platform.
+              You retain ownership of your product listings, images, and content. By listing products on Saiisai, you grant us a license to use, display, and distribute your content for the purpose of operating the platform.
             </Paragraph>
             <Paragraph>
-              You may not use EazShop's trademarks, logos, or branding without our prior written consent.
+              You may not use Saiisai's trademarks, logos, or branding without our prior written consent.
             </Paragraph>
           </SectionContent>
         </PolicySection>
@@ -315,7 +315,7 @@ const TermsPage = () => {
           <SectionTitle>11. Limitation of Liability</SectionTitle>
           <SectionContent>
             <Paragraph>
-              EazShop provides a platform for sellers to connect with buyers. We are not responsible for:
+              Saiisai provides a platform for sellers to connect with buyers. We are not responsible for:
             </Paragraph>
             <BulletList>
               <li>The quality, safety, or legality of products sold</li>
@@ -325,7 +325,7 @@ const TermsPage = () => {
             </BulletList>
             <ImportantNotice>
               <Paragraph>
-                <strong>Important:</strong> You are solely responsible for your products, listings, and transactions. EazShop acts as an intermediary platform only.
+                <strong>Important:</strong> You are solely responsible for your products, listings, and transactions. Saiisai acts as an intermediary platform only.
               </Paragraph>
             </ImportantNotice>
           </SectionContent>

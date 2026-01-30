@@ -146,7 +146,7 @@ const SetupPage = () => {
           <TitleSection>
             <WelcomeBadge>
               <FaRocket />
-              Welcome to EazShop!
+              Welcome to Saiisai!
             </WelcomeBadge>
             <MainTitle>Complete Your Seller Setup</MainTitle>
             <Subtitle>Follow these steps to launch your store and start selling</Subtitle>

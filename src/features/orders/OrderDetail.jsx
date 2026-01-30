@@ -25,6 +25,7 @@ import {
   FaClock,
 } from "react-icons/fa";
 import { useParams, useNavigate } from "react-router-dom";
+import { PATHS } from "../../routes/routePaths";
 import { useGetSellerOrder } from '../../shared/hooks/useOrder';
 import useDynamicPageTitle from '../../shared/hooks/useDynamicPageTitle';
 // const order = [];
@@ -284,8 +285,8 @@ function OrderDetails() {
                       <FaTruck size={14} /> Delivery Method
                     </InfoLabel>
                     <InfoValue>
-                      {order.order?.deliveryMethod === 'pickup_center' && 'Pickup from EazShop Center'}
-                      {order.order?.deliveryMethod === 'dispatch' && 'EazShop Dispatch Rider'}
+                      {order.order?.deliveryMethod === 'pickup_center' && 'Pickup from Saiisai Center'}
+                      {order.order?.deliveryMethod === 'dispatch' && 'Saiisai Dispatch Rider'}
                       {order.order?.deliveryMethod === 'seller_delivery' && "Seller's Own Delivery"}
                       {!order.order?.deliveryMethod && 'Standard Shipping'}
                     </InfoValue>
@@ -327,9 +328,9 @@ function OrderDetails() {
                       )}
                       {order.order.deliveryMethod === 'dispatch' && (
                         <DeliveryInstructions>
-                          <InstructionTitle>🚚 Wait for EazShop rider to pick item</InstructionTitle>
+                          <InstructionTitle>🚚 Wait for Saiisai rider to pick item</InstructionTitle>
                           <InstructionText>
-                            An EazShop dispatch rider will come to your location to pick up the item. 
+                            A Saiisai dispatch rider will come to your location to pick up the item. 
                             Please have the order ready for pickup.
                           </InstructionText>
                         </DeliveryInstructions>
@@ -415,7 +416,7 @@ function OrderDetails() {
                     <InfoValue>
                       {order.order?.trackingNumber || order.trackingNumber ? (
                         <TrackingLink 
-                          onClick={() => navigate(`/tracking/${order.order?.trackingNumber || order.trackingNumber}`)}
+                          onClick={() => navigate(PATHS.TRACKING.replace(':trackingNumber', order.order?.trackingNumber || order.trackingNumber))}
                           title="Track Order"
                         >
                           {order.order?.trackingNumber || order.trackingNumber}
@@ -474,18 +475,18 @@ function OrderDetails() {
                 </SummaryValue>
               </TotalRow>
               
-              {/* Seller Earnings (after commission) */}
+              {/* Seller Earnings (after platform commission from order/API) */}
               <SummaryItem style={{ marginTop: '15px', paddingTop: '15px', borderTop: '2px solid var(--color-grey-300)' }}>
                 <SummaryLabel style={{ fontWeight: '600' }}>Your Earnings</SummaryLabel>
                 <SummaryValue style={{ fontWeight: '700', color: 'var(--color-green-700)' }}>
-                  GH₵{((order.total || 0) - ((order.total || 0) * (order.commissionRate || 0.15))).toFixed(2)}
+                  GH₵{((order.total || 0) - ((order.total || 0) * (order.commissionRate ?? 0))).toFixed(2)}
                 </SummaryValue>
               </SummaryItem>
               
               <SummaryItem>
-                <SummaryLabel style={{ fontSize: '13px', color: 'var(--color-grey-500)' }}>Platform Fee ({(order.commissionRate || 0.15) * 100}%)</SummaryLabel>
+                <SummaryLabel style={{ fontSize: '13px', color: 'var(--color-grey-500)' }}>Platform Fee ({(order.commissionRate ?? 0) * 100}%)</SummaryLabel>
                 <SummaryValue style={{ fontSize: '13px', color: 'var(--color-grey-600)' }}>
-                  GH₵{((order.total || 0) * (order.commissionRate || 0.15)).toFixed(2)}
+                  GH₵{((order.total || 0) * (order.commissionRate ?? 0)).toFixed(2)}
                 </SummaryValue>
               </SummaryItem>
 

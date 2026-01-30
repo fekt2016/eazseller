@@ -69,7 +69,7 @@ const PickupLocationsListPage = () => {
         <div>
           <InfoTitle>How Pickup Locations Work</InfoTitle>
           <InfoText>
-            EazShop dispatch riders will pick up orders from your specified locations.
+            Saiisai dispatch riders will pick up orders from your specified locations.
             Set a default location that will be used automatically, or choose a specific location when preparing each order.
             {/* TODO: Backend integration - Link to order preparation screen when implemented */}
           </InfoText>

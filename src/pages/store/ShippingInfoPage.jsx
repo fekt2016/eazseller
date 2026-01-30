@@ -16,7 +16,7 @@ import useDynamicPageTitle from '../../shared/hooks/useDynamicPageTitle';
 export default function ShippingInfoPage() {
   useDynamicPageTitle({
     title: 'Shipping Information - EazSeller',
-    description: 'Learn about EazShop shipping policies, delivery coverage, and seller responsibilities in Ghana',
+    description: 'Learn about Saiisai shipping policies, delivery coverage, and seller responsibilities in Ghana',
     defaultTitle: 'Shipping Information • EazSeller',
   });
 
@@ -40,7 +40,7 @@ export default function ShippingInfoPage() {
           <InfoCard>
             <InfoTitle>EazShop Logistics Handles All Deliveries</InfoTitle>
             <InfoText>
-              EazShop Logistics manages all deliveries nationwide in Ghana. As a seller, 
+              Saiisai Logistics manages all deliveries nationwide in Ghana. As a seller, 
               you do <strong>NOT</strong> need to configure shipping fees, zones, or delivery methods.
             </InfoText>
             <InfoText>
@@ -48,7 +48,7 @@ export default function ShippingInfoPage() {
             </InfoText>
             <ResponsibilityList>
               <ResponsibilityItem>Packaging items securely</ResponsibilityItem>
-              <ResponsibilityItem>Handing packages to EazShop dispatch riders</ResponsibilityItem>
+              <ResponsibilityItem>Handing packages to Saiisai dispatch riders</ResponsibilityItem>
               <ResponsibilityItem>Ensuring products match listing descriptions</ResponsibilityItem>
             </ResponsibilityList>
           </InfoCard>
@@ -133,7 +133,7 @@ export default function ShippingInfoPage() {
                 <strong>Timely Preparation:</strong> Make products ready for pickup within 24 hours of order confirmation
               </ResponsibilityItem>
               <ResponsibilityItem>
-                <strong>Courier Cooperation:</strong> Cooperate with EazShop courier for scheduled pickup
+                <strong>Courier Cooperation:</strong> Cooperate with Saiisai courier for scheduled pickup
               </ResponsibilityItem>
               <ResponsibilityItem>
                 <strong>Accurate Information:</strong> Provide correct weight and dimensions when required for shipping calculations
@@ -141,7 +141,7 @@ export default function ShippingInfoPage() {
             </ResponsibilityList>
             <LegalNote>
               Failure to meet these responsibilities may result in order cancellation, 
-              refund processing, or account restrictions per EazShop seller policies.
+              refund processing, or account restrictions per Saiisai seller policies.
             </LegalNote>
           </ResponsibilityCard>
         </SectionContent>
@@ -193,7 +193,7 @@ export default function ShippingInfoPage() {
                 <StepContent>
                   <StepTitle>Hand to Courier</StepTitle>
                   <StepDescription>
-                    EazShop dispatch rider will collect the package from your location
+                    Saiisai dispatch rider will collect the package from your location
                   </StepDescription>
                 </StepContent>
               </PickupStep>
@@ -232,7 +232,7 @@ export default function ShippingInfoPage() {
               <FeeItem>
                 <FeeLabel>Fee Determination:</FeeLabel>
                 <FeeValue>
-                  EazShop determines shipping fees based on delivery region, package weight, 
+                  Saiisai determines shipping fees based on delivery region, package weight, 
                   and shipping type (standard, same-day, or express)
                 </FeeValue>
               </FeeItem>
@@ -252,7 +252,7 @@ export default function ShippingInfoPage() {
               <FeeItem>
                 <FeeLabel>Failed Deliveries:</FeeLabel>
                 <FeeValue>
-                  EazShop absorbs failed delivery costs based on internal policies. 
+                  Saiisai absorbs failed delivery costs based on internal policies. 
                   You are not charged for delivery attempts
                 </FeeValue>
               </FeeItem>
@@ -307,7 +307,7 @@ export default function ShippingInfoPage() {
             <FAQItem>
               <FAQQuestion>Who pays for shipping?</FAQQuestion>
               <FAQAnswer>
-                The customer pays for shipping. EazShop manages all shipping fees and logistics. 
+                The customer pays for shipping. Saiisai manages all shipping fees and logistics. 
                 Your seller revenue is not affected by shipping costs.
               </FAQAnswer>
             </FAQItem>
@@ -315,7 +315,7 @@ export default function ShippingInfoPage() {
             <FAQItem>
               <FAQQuestion>Can I use my own courier service?</FAQQuestion>
               <FAQAnswer>
-                No. EazShop requires all sellers to use EazShop Logistics for consistency, 
+                No. Saiisai requires all sellers to use Saiisai Logistics for consistency, 
                 tracking, and customer experience. Using external couriers may result in 
                 order cancellation or account restrictions.
               </FAQAnswer>
@@ -324,9 +324,9 @@ export default function ShippingInfoPage() {
             <FAQItem>
               <FAQQuestion>What happens if a package is damaged during delivery?</FAQQuestion>
               <FAQAnswer>
-                EazShop investigates all damage claims. If damage is due to inadequate packaging, 
+                Saiisai investigates all damage claims. If damage is due to inadequate packaging, 
                 the seller may be liable. If damage occurs during transit due to courier handling, 
-                EazShop handles the resolution. Always package items securely to avoid liability.
+                Saiisai handles the resolution. Always package items securely to avoid liability.
               </FAQAnswer>
             </FAQItem>
             
@@ -341,7 +341,7 @@ export default function ShippingInfoPage() {
             <FAQItem>
               <FAQQuestion>What if the courier doesn't show up for pickup?</FAQQuestion>
               <FAQAnswer>
-                Contact EazShop support immediately. We will reschedule the pickup and ensure 
+                Contact Saiisai support immediately. We will reschedule the pickup and ensure 
                 your order is not delayed. You can track pickup status in your orders dashboard.
               </FAQAnswer>
             </FAQItem>

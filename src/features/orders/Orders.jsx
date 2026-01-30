@@ -343,7 +343,7 @@ export default function OrdersPage() {
                 <TableCell>
                   {order.trackingNumber ? (
                     <TrackingLink 
-                      onClick={() => navigate(`/tracking/${order.trackingNumber}`)}
+                      onClick={() => navigate(PATHS.TRACKING.replace(':trackingNumber', order.trackingNumber))}
                       title="Track Order"
                     >
                       {order.trackingNumber}

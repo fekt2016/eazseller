@@ -129,105 +129,105 @@ export const PATHS = {
 // ---------- ROUTE CONFIG (SEO META) ----------
 export const ROUTE_CONFIG = {
   [PATHS.DASHBOARD]: {
-    title: "Seller Dashboard - EazShop",
-    description: "Manage your products, orders, and store on EazShop",
-    keywords: "seller dashboard, EazShop seller",
+    title: "Seller Dashboard - Saiisai",
+    description: "Manage your products, orders, and store on Saiisai",
+    keywords: "seller dashboard, Saiisai seller",
   },
 
   [PATHS.PRODUCTS]: {
-    title: "Products - Seller Dashboard | EazShop",
+    title: "Products - Seller Dashboard | Saiisai",
     description: "Manage your product listings",
-    keywords: "products, seller, EazShop",
+    keywords: "products, seller, Saiisai",
   },
 
   [PATHS.ADD_PRODUCT]: {
-    title: "Add Product - Seller Dashboard | EazShop",
+    title: "Add Product - Seller Dashboard | Saiisai",
     description: "Add a new product to your store",
-    keywords: "add product, seller, EazShop",
+    keywords: "add product, seller, Saiisai",
   },
 
   [PATHS.EDIT_PRODUCT]: {
-    title: "Update Product - Seller Dashboard | EazShop",
+    title: "Update Product - Seller Dashboard | Saiisai",
     description: "Update your product information",
-    keywords: "update product, seller, EazShop",
+    keywords: "update product, seller, Saiisai",
   },
 
   [PATHS.ORDERS]: {
-    title: "Orders - Seller Dashboard | EazShop",
+    title: "Orders - Seller Dashboard | Saiisai",
     description: "View and manage your orders",
-    keywords: "orders, seller, EazShop",
+    keywords: "orders, seller, Saiisai",
   },
 
   [PATHS.ORDER_DETAIL]: {
-    title: "Order Details - Seller Dashboard | EazShop",
+    title: "Order Details - Seller Dashboard | Saiisai",
     description: "View detailed order information",
-    keywords: "order details, seller, EazShop",
+    keywords: "order details, seller, Saiisai",
   },
 
   [PATHS.ANALYTICS]: {
-    title: "Analytics - Seller Dashboard | EazShop",
+    title: "Analytics - Seller Dashboard | Saiisai",
     description: "View your store analytics and insights",
-    keywords: "analytics, seller, EazShop",
+    keywords: "analytics, seller, Saiisai",
   },
 
   [PATHS.SALES]: {
-    title: "Sales Analytics - Seller Dashboard | EazShop",
+    title: "Sales Analytics - Seller Dashboard | Saiisai",
     description: "View your sales performance and trends",
-    keywords: "sales, analytics, seller, EazShop",
+    keywords: "sales, analytics, seller, Saiisai",
   },
 
   [PATHS.MESSAGES]: {
-    title: "Messages - Seller Dashboard | EazShop",
+    title: "Messages - Seller Dashboard | Saiisai",
     description: "Manage customer messages and inquiries",
-    keywords: "messages, seller, EazShop",
+    keywords: "messages, seller, Saiisai",
   },
 
   [PATHS.FINANCE]: {
-    title: "Finance - Seller Dashboard | EazShop",
+    title: "Finance - Seller Dashboard | Saiisai",
     description: "View your earnings and financial reports",
-    keywords: "finance, earnings, seller, EazShop",
+    keywords: "finance, earnings, seller, Saiisai",
   },
 
   [PATHS.EARNINGS]: {
-    title: "Earnings - Seller Dashboard | EazShop",
+    title: "Earnings - Seller Dashboard | Saiisai",
     description: "View your earnings breakdown",
-    keywords: "earnings, seller, EazShop",
+    keywords: "earnings, seller, Saiisai",
   },
 
   [PATHS.PAYOUTS]: {
-    title: "Payouts - Seller Dashboard | EazShop",
+    title: "Payouts - Seller Dashboard | Saiisai",
     description: "Manage your payout requests and history",
-    keywords: "payouts, seller, EazShop",
+    keywords: "payouts, seller, Saiisai",
   },
 
   [PATHS.STORE_SETTINGS]: {
-    title: "Store Settings - Seller Dashboard | EazShop",
+    title: "Store Settings - Seller Dashboard | Saiisai",
     description: "Configure your store settings",
-    keywords: "store settings, seller, EazShop",
+    keywords: "store settings, seller, Saiisai",
   },
 
   [PATHS.SHIPPING_SETTINGS]: {
-    title: "Shipping Settings - Seller Dashboard | EazShop",
+    title: "Shipping Settings - Seller Dashboard | Saiisai",
     description: "Manage your shipping options and rates",
-    keywords: "shipping, settings, seller, EazShop",
+    keywords: "shipping, settings, seller, Saiisai",
   },
 
   [PATHS.PROFILE]: {
-    title: "Profile - Seller Dashboard | EazShop",
+    title: "Profile - Seller Dashboard | Saiisai",
     description: "Manage your seller profile",
-    keywords: "profile, seller, EazShop",
+    keywords: "profile, seller, Saiisai",
   },
 
   [PATHS.SETTINGS]: {
-    title: "Settings - Seller Dashboard | EazShop",
+    title: "Settings - Seller Dashboard | Saiisai",
     description: "Manage your seller account settings",
-    keywords: "settings, seller, EazShop",
+    keywords: "settings, seller, Saiisai",
   },
 
   [PATHS.SUPPORT]: {
-    title: "Support - Seller Dashboard | EazShop",
+    title: "Support - Seller Dashboard | Saiisai",
     description: "Get help and support for sellers",
-    keywords: "support, help, seller, EazShop",
+    keywords: "support, help, seller, Saiisai",
   },
 };
 

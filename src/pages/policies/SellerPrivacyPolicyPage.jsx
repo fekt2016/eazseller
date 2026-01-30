@@ -79,7 +79,7 @@ const SellerPrivacyPolicyPage = () => {
           <PolicyTitle>Seller Privacy Policy</PolicyTitle>
           <LastUpdated>Effective Date: {effectiveDate}</LastUpdated>
           <IntroText>
-            At Saiisai Seller, we are committed to protecting the privacy and security of seller information. This Seller Privacy Policy explains how we collect, use, share, and safeguard information related to your seller account, store, products, and business operations on the EazShop marketplace. By using the EazSeller portal, you agree to the practices described in this policy.
+            At Saiisai Seller, we are committed to protecting the privacy and security of seller information. This Seller Privacy Policy explains how we collect, use, share, and safeguard information related to your seller account, store, products, and business operations on the Saiisai marketplace. By using the EazSeller portal, you agree to the practices described in this policy.
           </IntroText>
         </PolicyHeader>
 
@@ -91,7 +91,7 @@ const SellerPrivacyPolicyPage = () => {
               Saiisai Seller is the seller dashboard and portal for the Saiisai marketplace. This Privacy Policy applies to all information collected through the EazSeller platform, including our seller dashboard, mobile applications, seller support services, and any other seller-related services that link to this policy.
             </Paragraph>
             <Paragraph>
-              This policy is specifically designed for sellers using our platform. It explains how we handle seller account information, store data, product listings, financial information, and other business-related data. If you are a buyer using EazShop, please refer to the buyer Privacy Policy.
+              This policy is specifically designed for sellers using our platform. It explains how we handle seller account information, store data, product listings, financial information, and other business-related data. If you are a buyer using Saiisai, please refer to the buyer Privacy Policy.
             </Paragraph>
             <Paragraph>
               We understand the importance of protecting your business information and are dedicated to maintaining the confidentiality and security of your seller data. Please read this policy carefully to understand our practices.
@@ -386,7 +386,7 @@ const SellerPrivacyPolicyPage = () => {
               </li>
               <li>
                 <Paragraph>
-                  <strong>Required Information:</strong> Some information is required to operate as a seller on EazShop, such as business registration, identity verification, and payment information. If you choose not to provide required information, you may not be able to use certain seller features or receive payouts.
+                  <strong>Required Information:</strong> Some information is required to operate as a seller on Saiisai, such as business registration, identity verification, and payment information. If you choose not to provide required information, you may not be able to use certain seller features or receive payouts.
                 </Paragraph>
               </li>
             </BulletList>
