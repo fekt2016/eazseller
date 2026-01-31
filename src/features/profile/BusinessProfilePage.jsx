@@ -774,15 +774,21 @@ const BusinessProfilePage = ({ embedded = false }) => {
             </HelperText>
           </SectionHeader>
           
-          {/* Check if documents are submitted */}
+          {/* Check if documents are submitted (only show status when seller has actually uploaded at least one document with a URL) */}
           {(() => {
-            const hasDocuments = seller?.verificationDocuments?.businessCert || 
-                                 seller?.verificationDocuments?.idProof || 
-                                 seller?.verificationDocuments?.addresProof;
+            const hasDocumentWithUrl = (doc) => {
+              if (!doc) return false;
+              if (typeof doc === 'string') return String(doc).trim() !== '';
+              return !!(doc.url && String(doc.url).trim() !== '');
+            };
+            const hasDocuments =
+              hasDocumentWithUrl(seller?.verificationDocuments?.businessCert) ||
+              hasDocumentWithUrl(seller?.verificationDocuments?.idProof) ||
+              hasDocumentWithUrl(seller?.verificationDocuments?.addresProof);
             const isVerified = businessDocumentsStatus?.isVerified || false;
             const isPending = hasDocuments && !isVerified;
-            
-            // Show status if documents are submitted
+
+            // Show status only when seller has uploaded documents for verification
             if (hasDocuments) {
               return (
                 <FormContent>

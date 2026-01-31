@@ -208,12 +208,19 @@ function VerifyAccountPage() {
     });
   };
 
+  const resendMsg = resendError?.response?.data?.message ?? resendError?.message;
+  const isResendNetworkError =
+    resendError &&
+    (resendError.message === "Network Error" ||
+      resendError.code === "ERR_NETWORK" ||
+      !resendError.response);
   const combinedError =
     localError ||
     verifyError?.response?.data?.message ||
     verifyError?.message ||
-    resendError?.response?.data?.message ||
-    resendError?.message ||
+    (isResendNetworkError
+      ? "Could not reach the server to resend the code. Check your internet connection and try again."
+      : resendMsg) ||
     "";
 
   return (

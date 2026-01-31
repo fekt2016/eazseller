@@ -350,14 +350,28 @@ api.interceptors.response.use(
     }
 
     // Handle other errors
+    const isNetworkError =
+      error.message === "Network Error" ||
+      error.code === "ERR_NETWORK" ||
+      !error.response;
+    const fullUrl = error.config?.baseURL && error.config?.url
+      ? `${(error.config.baseURL || "").replace(/\/+$/, "")}${error.config.url.startsWith("/") ? "" : "/"}${error.config.url}`
+      : error.config?.url;
     const errorMessage =
       error.response?.data?.message || error.message || "Request failed";
 
     if (isVerifyOtpError && import.meta.env.DEV) {
       console.error(`[API Interceptor] Error Message: ${errorMessage}`);
+    } else if (isNetworkError) {
+      console.error(`[API] Network Error – request may not have reached the server`, {
+        url: fullUrl || error.config?.url,
+        baseURL: error.config?.baseURL,
+        message: error.message,
+        code: error.code,
+      });
     } else {
       console.error(`[API] Error: ${errorMessage}`, {
-        url: error.config?.url,
+        url: fullUrl || error.config?.url,
         status: error.response?.status,
       });
     }
