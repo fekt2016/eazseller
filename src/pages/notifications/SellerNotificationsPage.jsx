@@ -62,7 +62,7 @@ const SellerNotificationsPage = () => {
   };
 
   const handleNotificationClick = (notification) => {
-    if (!notification.read) {
+    if (!(notification.read ?? notification.isRead)) {
       markAsRead.mutate(notification._id);
     }
 
@@ -227,7 +227,7 @@ const SellerNotificationsPage = () => {
           {notifications.map((notification) => (
             <NotificationItem
               key={notification._id}
-              $unread={!notification.read}
+              $unread={!(notification.read ?? notification.isRead)}
               onClick={() => handleNotificationClick(notification)}
             >
               <NotificationIcon $color={getNotificationColor(notification.type)}>
@@ -236,7 +236,7 @@ const SellerNotificationsPage = () => {
               <NotificationContent>
                 <NotificationHeader>
                   <NotificationTitle>{notification.title}</NotificationTitle>
-                  {!notification.read && <UnreadDot />}
+                  {!(notification.read ?? notification.isRead) && <UnreadDot />}
                 </NotificationHeader>
                 <NotificationMessage>{notification.message}</NotificationMessage>
                 <NotificationMeta>
@@ -253,7 +253,7 @@ const SellerNotificationsPage = () => {
                 </NotificationMeta>
               </NotificationContent>
               <NotificationActions>
-                {!notification.read && (
+                {!(notification.read ?? notification.isRead) && (
                   <ActionButton
                     onClick={(e) => {
                       e.stopPropagation();
