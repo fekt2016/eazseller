@@ -19,7 +19,7 @@ export const useGetSellerBalance = () => {
         throw error;
       }
     },
-    staleTime: 1000 * 60 * 1, // 1 minute - balance should update frequently
+    staleTime: 1000 * 30, // 30 seconds - balance and payoutStatus should update soon after admin verification
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     retry: 2,

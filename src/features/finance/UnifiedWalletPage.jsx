@@ -15,6 +15,7 @@ import {
   FaUndo,
   FaDollarSign,
   FaArrowDown,
+  FaSync,
 } from "react-icons/fa";
 import styled from "styled-components";
 import { useSellerBalance } from "../../shared/hooks/finance/useSellerBalance";
@@ -59,6 +60,7 @@ export default function UnifiedWalletPage() {
     error: balanceError,
     payoutStatus,
     payoutRejectionReason,
+    refetch: refetchBalance,
   } = useSellerBalance();
 
   // Get payment requests (all for history tab)
@@ -446,7 +448,16 @@ export default function UnifiedWalletPage() {
             {/* 2️⃣ WITHDRAW ACTION SECTION */}
             {!canWithdraw && withdrawDisabledReason && (
               <ErrorMessage>
-                <FaLock /> {withdrawDisabledReason}
+                <span><FaLock /> {withdrawDisabledReason}</span>
+                {payoutStatus === "pending" && (
+                  <RefreshButton
+                    type="button"
+                    onClick={() => refetchBalance()}
+                    disabled={isBalanceLoading}
+                  >
+                    <FaSync className={isBalanceLoading ? "spin" : ""} /> Refresh status
+                  </RefreshButton>
+                )}
               </ErrorMessage>
             )}
 
@@ -1031,8 +1042,48 @@ const ErrorMessage = styled.div`
   border-radius: var(--border-radius-md);
   margin-bottom: var(--spacing-md);
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+
+  span {
+    flex: 1;
+    min-width: 200px;
+  }
+`;
+
+const RefreshButton = styled.button`
+  display: inline-flex;
   align-items: center;
   gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-red-100);
+  color: var(--color-red-800);
+  border: 1px solid var(--color-red-300);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover:not(:disabled) {
+    background: var(--color-red-200);
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  .spin {
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
 `;
 
 const SubmitButton = styled.button`
