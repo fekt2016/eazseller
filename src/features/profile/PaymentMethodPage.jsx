@@ -29,7 +29,6 @@ const PaymentMethodPage = ({ embedded = false }) => {
     error: paymentMethodsError,
     refetch: refetchPaymentMethods 
   } = useGetPaymentMethods();
-  console.log("paymentMethods", paymentMethods);
   const deletePaymentMethod = useDeletePaymentMethod();
   const setDefaultPaymentMethod = useSetDefaultPaymentMethod();
   const createPaymentMethod = useCreatePaymentMethod();
@@ -103,29 +102,57 @@ const PaymentMethodPage = ({ embedded = false }) => {
   // Mobile networks
   const mobileNetworks = ['MTN', 'Vodafone', 'AirtelTigo'];
 
-  // Load existing seller data
+  // Load existing seller data (from seller.paymentMethods or verified PaymentMethod records)
   useEffect(() => {
-    if (seller) {
-      // Load bank details if they exist
-      if (seller.paymentMethods?.bankAccount) {
+    // Priority 1: seller.paymentMethods (embedded)
+    if (seller?.paymentMethods?.bankAccount) {
+      const bank = seller.paymentMethods.bankAccount;
+      setBankDetails({
+        accountName: bank.accountName || '',
+        accountNumber: bank.accountNumber || '',
+        bankName: bank.bankName || '',
+        branch: bank.branch || '',
+      });
+    } else {
+      // Fallback: verified bank from PaymentMethod API
+      const bankMethod = paymentMethods.find(
+        (pm) => pm.type === 'bank_transfer' && (pm.verificationStatus === 'verified' || pm.status === 'verified')
+      );
+      if (bankMethod) {
         setBankDetails({
-          accountName: seller.paymentMethods.bankAccount.accountName || '',
-          accountNumber: seller.paymentMethods.bankAccount.accountNumber || '',
-          bankName: seller.paymentMethods.bankAccount.bankName || '',
-          branch: seller.paymentMethods.bankAccount.branch || '',
-        });
-      }
-
-      // Load mobile money details if they exist
-      if (seller.paymentMethods?.mobileMoney) {
-        setMobileMoneyDetails({
-          accountName: seller.paymentMethods.mobileMoney.accountName || '',
-          phone: seller.paymentMethods.mobileMoney.phone || '',
-          network: seller.paymentMethods.mobileMoney.network || '',
+          accountName: bankMethod.accountName || bankMethod.name || '',
+          accountNumber: bankMethod.accountNumber || '',
+          bankName: bankMethod.bankName || '',
+          branch: bankMethod.branch || '',
         });
       }
     }
-  }, [seller]);
+
+    if (seller?.paymentMethods?.mobileMoney) {
+      const mobile = seller.paymentMethods.mobileMoney;
+      setMobileMoneyDetails({
+        accountName: mobile.accountName || '',
+        phone: mobile.phone || '',
+        network: mobile.network || '',
+      });
+    } else {
+      // Fallback: verified mobile money from PaymentMethod API
+      const mobileMethod = paymentMethods.find(
+        (pm) => pm.type === 'mobile_money' && (pm.verificationStatus === 'verified' || pm.status === 'verified')
+      );
+      if (mobileMethod) {
+        let network = mobileMethod.provider || mobileMethod.network || '';
+        if (network.toLowerCase() === 'vodafone') network = 'Vodafone';
+        else if (network.toLowerCase() === 'airteltigo' || network.toLowerCase() === 'airtel_tigo') network = 'AirtelTigo';
+        else if (network.toLowerCase() === 'mtn') network = 'MTN';
+        setMobileMoneyDetails({
+          accountName: mobileMethod.accountName || mobileMethod.name || '',
+          phone: mobileMethod.mobileNumber || mobileMethod.phone || '',
+          network,
+        });
+      }
+    }
+  }, [seller, paymentMethods]);
 
   const handleBankChange = (e) => {
     const { name, value } = e.target;
@@ -376,6 +403,16 @@ const PaymentMethodPage = ({ embedded = false }) => {
         setEditingMethodId(null); // Exit edit mode
         setRequestReactivation(false); // Reset reactivation flag
       } else {
+        // Limit: only 1 bank + 1 mobile money per seller
+        if (activeTab === 'bank' && hasBankLimitReached) {
+          setError('You can only have one bank account. Please edit or delete your existing bank account.');
+          return;
+        }
+        if (activeTab === 'mobile' && hasMobileLimitReached) {
+          setError('You can only have one mobile money number. Please edit or delete your existing mobile money.');
+          return;
+        }
+
         // If this is the first payment method, set it as default
         const isFirstPaymentMethod = paymentMethods.length === 0;
         if (isFirstPaymentMethod) {
@@ -421,8 +458,15 @@ const PaymentMethodPage = ({ embedded = false }) => {
     return <LoadingState message="Loading seller information..." />;
   }
 
-  const hasBankDetails = seller.paymentMethods?.bankAccount?.accountNumber;
-  const hasMobileMoneyDetails = seller.paymentMethods?.mobileMoney?.phone;
+  // One bank + one mobile money limit: check both seller.paymentMethods and paymentMethods
+  const hasBankDetails =
+    seller.paymentMethods?.bankAccount?.accountNumber ||
+    paymentMethods.some((pm) => pm.type === 'bank_transfer');
+  const hasMobileMoneyDetails =
+    seller.paymentMethods?.mobileMoney?.phone ||
+    paymentMethods.some((pm) => pm.type === 'mobile_money');
+  const hasBankLimitReached = paymentMethods.some((pm) => pm.type === 'bank_transfer');
+  const hasMobileLimitReached = paymentMethods.some((pm) => pm.type === 'mobile_money');
 
   const content = (
     <>
@@ -430,7 +474,7 @@ const PaymentMethodPage = ({ embedded = false }) => {
         <PageHeader $padding="lg" $marginBottom="lg">
           <TitleSection>
             <h1>Payment Methods</h1>
-            <p>Add your bank account or mobile money details to receive payments</p>
+            <p>Add one bank account and one mobile money number to receive payments</p>
           </TitleSection>
           <Button
             variant="ghost"
@@ -467,7 +511,7 @@ const PaymentMethodPage = ({ embedded = false }) => {
       <Section $marginBottom="lg">
         <SectionHeader $padding="md">
           <h3>Saved Payment Methods</h3>
-          <p>Manage your saved payment methods from the PaymentMethod model</p>
+          <p>You can have one bank account and one mobile money number. Verified methods are used for withdrawals.</p>
         </SectionHeader>
         {isLoadingPaymentMethods ? (
           <LoadingState message="Loading payment methods..." />
@@ -652,6 +696,11 @@ const PaymentMethodPage = ({ embedded = false }) => {
           <Section $marginBottom="lg">
             <SectionHeader $padding="md">
               <h3>{editingMethodId ? 'Edit Bank Account Details' : 'Bank Account Details'}</h3>
+              {hasBankLimitReached && !editingMethodId && (
+                <InfoBanner style={{ marginTop: 'var(--spacing-sm)' }}>
+                  <FaCheckCircle /> You can have only one bank account. Click Edit above to update your existing bank account.
+                </InfoBanner>
+              )}
               {editingMethodId && (
                 <InfoBanner style={{ marginTop: 'var(--spacing-sm)' }}>
                   <FaEdit /> You are editing an existing payment method. Make your changes and click "Update Payment Method" to save.
@@ -659,7 +708,7 @@ const PaymentMethodPage = ({ embedded = false }) => {
               )}
             </SectionHeader>
             <FormContent>
-              {hasBankDetails && (
+              {hasBankDetails && !hasBankLimitReached && (
                 <InfoBanner>
                   <FaCheckCircle /> You have a bank account configured. Update the details below if needed.
                 </InfoBanner>
@@ -773,6 +822,11 @@ const PaymentMethodPage = ({ embedded = false }) => {
           <Section $marginBottom="lg">
             <SectionHeader $padding="md">
               <h3>{editingMethodId ? 'Edit Mobile Money Details' : 'Mobile Money Details'}</h3>
+              {hasMobileLimitReached && !editingMethodId && (
+                <InfoBanner style={{ marginTop: 'var(--spacing-sm)' }}>
+                  <FaCheckCircle /> You can have only one mobile money number. Click Edit above to update your existing mobile money.
+                </InfoBanner>
+              )}
               {editingMethodId && (
                 <InfoBanner style={{ marginTop: 'var(--spacing-sm)' }}>
                   <FaEdit /> You are editing an existing payment method. Make your changes and click "Update Payment Method" to save.
@@ -780,7 +834,7 @@ const PaymentMethodPage = ({ embedded = false }) => {
               )}
             </SectionHeader>
             <FormContent>
-              {hasMobileMoneyDetails && (
+              {hasMobileMoneyDetails && !hasMobileLimitReached && (
                 <InfoBanner>
                   <FaCheckCircle /> You have a mobile money account configured. Update the details below if needed.
                 </InfoBanner>
@@ -890,7 +944,12 @@ const PaymentMethodPage = ({ embedded = false }) => {
             variant="primary"
             size="lg"
             isLoading={isSubmitting || isUpdateLoading}
-            disabled={isSubmitting || isUpdateLoading}
+            disabled={
+              isSubmitting ||
+              isUpdateLoading ||
+              (activeTab === 'bank' && hasBankLimitReached && !editingMethodId) ||
+              (activeTab === 'mobile' && hasMobileLimitReached && !editingMethodId)
+            }
           >
             <FaSave /> {editingMethodId ? 'Update Payment Method' : 'Save Payment Method'}
           </Button>

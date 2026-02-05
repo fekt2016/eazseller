@@ -95,34 +95,63 @@ export default function UnifiedWalletPage() {
     request: null,
   });
 
-  // Load seller's saved payment methods
+  // Load seller's saved payment methods (from seller.paymentMethods or verified PaymentMethod records)
   useEffect(() => {
-    if (seller?.paymentMethods) {
-      if (seller.paymentMethods.bankAccount) {
-        const bank = seller.paymentMethods.bankAccount;
+    // Priority 1: seller.paymentMethods (embedded)
+    if (seller?.paymentMethods?.bankAccount) {
+      const bank = seller.paymentMethods.bankAccount;
+      setPaymentDetails((prev) => ({
+        ...prev,
+        bank: {
+          accountName: bank.accountName || "",
+          accountNumber: bank.accountNumber || "",
+          bankCode: bank.bankCode || "",
+          bankName: bank.bankName || "",
+        },
+      }));
+    } else {
+      // Fallback: verified bank from PaymentMethod API
+      const bankMethod = paymentMethods.find(
+        (pm) => pm.type === 'bank_transfer' && (pm.verificationStatus === 'verified' || pm.status === 'verified')
+      );
+      if (bankMethod) {
         setPaymentDetails((prev) => ({
           ...prev,
           bank: {
-            accountName: bank.accountName || "",
-            accountNumber: bank.accountNumber || "",
-            bankCode: bank.bankCode || "",
-            bankName: bank.bankName || "",
-          },
-        }));
-      }
-
-      if (seller.paymentMethods.mobileMoney) {
-        const mobile = seller.paymentMethods.mobileMoney;
-        setPaymentDetails((prev) => ({
-          ...prev,
-          mobile: {
-            phone: mobile.phone || "",
-            network: mobile.network || "",
+            accountName: bankMethod.accountName || bankMethod.name || "",
+            accountNumber: bankMethod.accountNumber || "",
+            bankCode: bankMethod.bankCode || "",
+            bankName: bankMethod.bankName || "",
           },
         }));
       }
     }
-  }, [seller]);
+
+    if (seller?.paymentMethods?.mobileMoney) {
+      const mobile = seller.paymentMethods.mobileMoney;
+      setPaymentDetails((prev) => ({
+        ...prev,
+        mobile: {
+          phone: mobile.phone || "",
+          network: mobile.network || "",
+        },
+      }));
+    } else {
+      // Fallback: verified mobile money from PaymentMethod API
+      const mobileMethod = paymentMethods.find(
+        (pm) => pm.type === 'mobile_money' && (pm.verificationStatus === 'verified' || pm.status === 'verified')
+      );
+      if (mobileMethod) {
+        setPaymentDetails((prev) => ({
+          ...prev,
+          mobile: {
+            phone: mobileMethod.mobileNumber || mobileMethod.phone || "",
+            network: mobileMethod.provider || mobileMethod.network || "",
+          },
+        }));
+      }
+    }
+  }, [seller, paymentMethods]);
 
   // Check if withdrawal is allowed
   const canWithdraw = payoutStatus === 'verified' && withdrawableBalance > 0;
@@ -637,6 +666,8 @@ export default function UnifiedWalletPage() {
                           {getStatusLabel(request.status)}
                         </RequestStatus>
                       </RequestHeader>
+
+                      {/* Cancel pending requests */}
                       {request.status === "pending" && (
                         <RequestActions>
                           <DeleteButton
@@ -665,6 +696,7 @@ export default function UnifiedWalletPage() {
                           </DeleteButton>
                         </RequestActions>
                       )}
+
                     </RequestCard>
                   ))}
                 </RequestsList>
@@ -757,7 +789,14 @@ export default function UnifiedWalletPage() {
                     </RequestDetails>
                     
                     {/* Action buttons */}
-                    {request.status === "awaiting_paystack_otp" || (request.status === "processing" && request.requiresPin) ? (
+                    {(() => {
+                      const needsOTP =
+                        request.status === "awaiting_paystack_otp" ||
+                        (request.status === "processing" && request.requiresPin) ||
+                        (request.status === "approved" && request.requiresPin && !request.pinSubmitted);
+
+                      return needsOTP;
+                    })() && (
                       <RequestActions>
                         <VerifyOTPButton
                           onClick={() => {
@@ -769,7 +808,7 @@ export default function UnifiedWalletPage() {
                           <FaCheckCircle /> Verify OTP
                         </VerifyOTPButton>
                       </RequestActions>
-                    ) : null}
+                    )}
                     
                     {request.status === "pending" && (
                       <RequestActions>

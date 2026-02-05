@@ -84,34 +84,60 @@ export default function WithdrawalsPage() {
     request: null,
   });
 
-  // Load seller's saved payment methods
+  // Load seller's saved payment methods (from seller.paymentMethods or verified PaymentMethod records)
   useEffect(() => {
-    if (seller?.paymentMethods) {
-      if (seller.paymentMethods.bankAccount) {
-        const bank = seller.paymentMethods.bankAccount;
+    if (seller?.paymentMethods?.bankAccount) {
+      const bank = seller.paymentMethods.bankAccount;
+      setPaymentDetails((prev) => ({
+        ...prev,
+        bank: {
+          accountName: bank.accountName || "",
+          accountNumber: bank.accountNumber || "",
+          bankCode: bank.bankCode || "",
+          bankName: bank.bankName || "",
+        },
+      }));
+    } else {
+      const bankMethod = paymentMethods.find(
+        (pm) => pm.type === 'bank_transfer' && (pm.verificationStatus === 'verified' || pm.status === 'verified')
+      );
+      if (bankMethod) {
         setPaymentDetails((prev) => ({
           ...prev,
           bank: {
-            accountName: bank.accountName || "",
-            accountNumber: bank.accountNumber || "",
-            bankCode: bank.bankCode || "",
-            bankName: bank.bankName || "",
-          },
-        }));
-      }
-
-      if (seller.paymentMethods.mobileMoney) {
-        const mobile = seller.paymentMethods.mobileMoney;
-        setPaymentDetails((prev) => ({
-          ...prev,
-          mobile: {
-            phone: mobile.phone || "",
-            network: mobile.network || "",
+            accountName: bankMethod.accountName || bankMethod.name || "",
+            accountNumber: bankMethod.accountNumber || "",
+            bankCode: bankMethod.bankCode || "",
+            bankName: bankMethod.bankName || "",
           },
         }));
       }
     }
-  }, [seller]);
+
+    if (seller?.paymentMethods?.mobileMoney) {
+      const mobile = seller.paymentMethods.mobileMoney;
+      setPaymentDetails((prev) => ({
+        ...prev,
+        mobile: {
+          phone: mobile.phone || "",
+          network: mobile.network || "",
+        },
+      }));
+    } else {
+      const mobileMethod = paymentMethods.find(
+        (pm) => pm.type === 'mobile_money' && (pm.verificationStatus === 'verified' || pm.status === 'verified')
+      );
+      if (mobileMethod) {
+        setPaymentDetails((prev) => ({
+          ...prev,
+          mobile: {
+            phone: mobileMethod.mobileNumber || mobileMethod.phone || "",
+            network: mobileMethod.provider || mobileMethod.network || "",
+          },
+        }));
+      }
+    }
+  }, [seller, paymentMethods]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -641,21 +667,6 @@ export default function WithdrawalsPage() {
                           </DeleteButton>
                         </RequestActions>
                       )}
-                      {(request.status === "awaiting_paystack_otp" || (request.status === "processing" && request.requiresPin)) && (
-                        <RequestActions>
-                          <VerifyOTPButton
-                            onClick={() => {
-                              const requestId = request._id || request.id;
-                              // Use PATHS constant to ensure correct route path
-                              const verifyOtpPath = PATHS.WITHDRAWAL_VERIFY_OTP.replace(':withdrawalId', requestId);
-                              console.log('[WithdrawalsPage] Navigating to OTP verification:', verifyOtpPath);
-                              navigate(verifyOtpPath);
-                            }}
-                          >
-                            <FaCheckCircle /> Verify OTP
-                          </VerifyOTPButton>
-                        </RequestActions>
-                      )}
                       {/* Show reversal button for processing, awaiting_paystack_otp, or pending statuses (if not already reversed) */}
                       {((request.status === "processing" || request.status === "awaiting_paystack_otp" || request.status === "pending") && !request.reversed) && (
                         <RequestActions>
@@ -788,38 +799,6 @@ export default function WithdrawalsPage() {
                         </DetailItem>
                       )}
                     </RequestDetails>
-                    
-                    {/* Show Verify OTP button for withdrawals awaiting OTP */}
-                    {(() => {
-                      const needsOTP = request.status === "awaiting_paystack_otp" || 
-                                      (request.status === "processing" && request.requiresPin) ||
-                                      (request.status === "approved" && request.requiresPin && !request.pinSubmitted);
-                      
-                      if (needsOTP) {
-                        console.log('[WithdrawalsPage] Showing Verify OTP button for request:', {
-                          id: request._id || request.id,
-                          status: request.status,
-                          requiresPin: request.requiresPin,
-                          pinSubmitted: request.pinSubmitted,
-                        });
-                      }
-                      
-                      return needsOTP;
-                    })() && (
-                      <RequestActions>
-                        <VerifyOTPButton
-                          onClick={() => {
-                            const requestId = request._id || request.id;
-                            // Use PATHS constant to ensure correct route path
-                            const verifyOtpPath = PATHS.WITHDRAWAL_VERIFY_OTP.replace(':withdrawalId', requestId);
-                            console.log('[WithdrawalsPage] Navigating to OTP verification:', verifyOtpPath);
-                            navigate(verifyOtpPath);
-                          }}
-                        >
-                          <FaCheckCircle /> Verify OTP
-                        </VerifyOTPButton>
-                      </RequestActions>
-                    )}
                     
                     {/* Show cancel button for pending requests */}
                     {request.status === "pending" && (
