@@ -222,7 +222,7 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
   // Validate step 1 fields before proceeding
   const validateStep1 = async () => {
     // Validate basic fields first
-    const basicFields = ['name', 'condition', 'parentCategory', 'subCategory'];
+    const basicFields = ['name', 'parentCategory', 'subCategory'];
     const basicValid = await trigger(basicFields);
     
     if (!basicValid) {
@@ -348,7 +348,6 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
               // Validate all required fields before submission
               const allFields = [
                 'name',
-                'condition',
                 'parentCategory',
                 'subCategory',
                 'imageCover'

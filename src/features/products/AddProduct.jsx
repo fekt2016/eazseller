@@ -245,7 +245,7 @@ const AddProductPage = () => {
       }
       // Always append as a plain string, never as object or JSON
       formData.append("warranty", warrantyValue);
-      formData.append("condition", data.condition || "new");
+      formData.append("condition", data.variants?.[0]?.condition || "new");
       // Append remaining product data
       formData.append("seller", seller.id);
 

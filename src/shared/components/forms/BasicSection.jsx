@@ -77,25 +77,6 @@ const BasicSection = () => {
       <FieldRow>
         <FieldGroup style={{ flex: 1 }}>
           <Label>
-            Condition <Required>*</Required>
-          </Label>
-          <Select 
-            {...register("condition", { required: "Please select a product condition" })}
-            $hasError={!!errors.condition}
-          >
-            <option value="">Select condition</option>
-            <option value="new">New</option>
-            <option value="refurbished">Refurbished</option>
-            <option value="used">Used</option>
-            <option value="open_box">Open Box</option>
-            <option value="for_parts">For Parts</option>
-          </Select>
-          {errors.condition && <ErrorMessage>{errors.condition.message}</ErrorMessage>}
-          <HelperText>Physical condition of the product</HelperText>
-        </FieldGroup>
-
-        <FieldGroup style={{ flex: 1 }}>
-          <Label>
             Warranty
             <Optional>(Optional)</Optional>
           </Label>

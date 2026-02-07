@@ -3,6 +3,8 @@ import { useMemo, useState, useEffect } from "react";
 import styled from "styled-components";
 import useProduct from '../../shared/hooks/useProduct';
 import useVariants from '../../shared/hooks/variants/useVariants';
+import useAuth from '../../shared/hooks/useAuth';
+import useAnalytics from '../../shared/hooks/useAnalytics';
 import ProductForm from '../../shared/components/forms/ProductForm';
 import { compressImage } from '../../shared/utils/imageCompressor';
 import { LoadingContainer } from '../../shared/components/LoadingSpinner';
@@ -18,6 +20,18 @@ const EditProduct = () => {
   const navigate = useNavigate();
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { seller } = useAuth();
+  const sellerId = seller?._id ?? seller?.id ?? null;
+  const { useGetSellerProductViews } = useAnalytics();
+  const { data: viewData } = useGetSellerProductViews(sellerId, { enabled: !!sellerId && !!productId });
+
+  const productViewCount = useMemo(() => {
+    const views = viewData?.data?.views || [];
+    const productIdStr = productId?.toString?.() ?? productId;
+    const item = views.find((v) => (v.productId?.toString?.() ?? v.productId) === productIdStr);
+    return item?.views ?? 0;
+  }, [viewData?.data?.views, productId]);
 
   const { useGetProductById, updateProduct } = useProduct();
   const {
@@ -577,6 +591,10 @@ const EditProduct = () => {
                 {isVisible ? <FaEye /> : <FaEyeSlash />}
                 <span>{isVisible ? 'Visible' : 'Hidden'}</span>
               </VisibilityBadge>
+              <ViewCountBadge>
+                <FaEye />
+                <span>{productViewCount} {productViewCount === 1 ? 'view' : 'views'}</span>
+              </ViewCountBadge>
             </StatusBadges>
           </HeaderRight>
         </HeaderContent>
@@ -909,6 +927,21 @@ const VisibilityBadge = styled.div`
   background: ${({ $visible }) => ($visible ? '#dcfce7' : '#f1f5f9')};
   color: ${({ $visible }) => ($visible ? '#166534' : '#64748b')};
   
+  svg {
+    font-size: 0.875rem;
+  }
+`;
+
+const ViewCountBadge = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  background: #eff6ff;
+  color: #1d4ed8;
   svg {
     font-size: 0.875rem;
   }

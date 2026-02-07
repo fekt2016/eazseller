@@ -65,7 +65,7 @@ const Dashboard = () => {
   const { useGetAllProductBySeller } = useProduct();
   const { useGetSellerProductViews } = useAnalytics();
   const { seller, isLoading: isSellerLoading, error: sellerError } = useAuth();
-  const sellerId = useMemo(() => seller?.id || null, [seller]);
+  const sellerId = useMemo(() => seller?._id ?? seller?.id ?? null, [seller]);
   
   // Get seller balance using unified hook
   const {
@@ -103,16 +103,35 @@ const Dashboard = () => {
   }, [ordersData]);
 
   const products = useMemo(() => {
-    return productData?.data?.data || [];
+    const list = productData?.data?.data ?? productData?.data?.products ?? productData?.products;
+    return Array.isArray(list) ? list : [];
   }, [productData]);
+
+  const totalProductCount = useMemo(() => {
+    const total = productData?.data?.total ?? productData?.total ?? productData?.result;
+    if (typeof total === 'number' && total >= 0) return total;
+    return products.length;
+  }, [productData, products.length]);
 
   const totalViews = useMemo(() => {
     return viewData?.data?.views || [];
   }, [viewData]);
 
+  // Total view count from API (number); API returns data.totalViews, not views.length
   const totalViewsCount = useMemo(() => {
-    return totalViews.length;
-  }, [totalViews]);
+    const count = viewData?.data?.totalViews;
+    return typeof count === 'number' && count >= 0 ? count : 0;
+  }, [viewData?.data?.totalViews]);
+
+  // Map productId -> view count for product cards (API returns data.views per product)
+  const viewsByProductId = useMemo(() => {
+    const map = {};
+    (viewData?.data?.views || []).forEach((item) => {
+      const id = item.productId?.toString?.() ?? item.productId;
+      if (id) map[id] = (item.views || 0) + (map[id] || 0);
+    });
+    return map;
+  }, [viewData?.data?.views]);
   
   // Calculate stats first to get totalRevenue
   const stats = useMemo(() => {
@@ -222,14 +241,10 @@ const Dashboard = () => {
           : 0
         : ((currentRevenue - previousRevenue) / previousRevenue) * 100;
 
-    const currentPeriodViews = totalViews.filter(
-      (view) =>
-        new Date(view.viewedAt) >= start && new Date(view.viewedAt) <= end
-    );
-
+    // API returns totalViews (number), not per-event list with viewedAt; use totalViewsCount for conversion
     const conversionRate =
-      currentPeriodViews.length > 0
-        ? (currentPeriodOrders.length / currentPeriodViews.length) * 100
+      totalViewsCount > 0
+        ? (currentPeriodOrders.length / totalViewsCount) * 100
         : 0;
 
     const pendingOrders = orders.filter(
@@ -255,14 +270,14 @@ const Dashboard = () => {
       pendingOrders,
       completedOrders,
       totalOrders,
-      totalProducts: products.length,
+      totalProducts: totalProductCount,
       outOfStock,
       orderChange: parseFloat(orderChange.toFixed(1)),
       conversionRate: parseFloat(conversionRate.toFixed(1)),
-      currentPeriodViews: currentPeriodViews.length,
+      currentPeriodViews: totalViewsCount,
       currentPeriodOrders: currentPeriodOrders.length,
     };
-  }, [orders, products, timeFilter, totalViews]);
+  }, [orders, products, timeFilter, totalViewsCount, totalProductCount]);
   
   // Total revenue from unified hook (already calculated)
   const totalRevenue = totalEarnings;
@@ -533,37 +548,47 @@ const Dashboard = () => {
           </ViewAllButton>
         </StyledSectionHeader>
         <ProductsGrid>
-          {products.slice(0, 4).map((product) => (
-            <ProductCard key={product._id || product.id} as={Link} to={PATHS.PRODUCTS}>
-              <ProductImageWrapper>
-                <ProductImage 
-                  src={product.imageCover} 
-                  alt={product.name}
-                  onError={(e) => {
-                    if (e.target.dataset.fallbackAttempted !== 'true') {
-                      e.target.dataset.fallbackAttempted = 'true';
-                      e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect width="200" height="200" fill="%23f0f0f0"/%3E%3Ctext x="50%25" y="50%25" font-family="Arial" font-size="16" fill="%23999" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E';
-                    }
-                  }}
-                />
-                {(product.sales || product.totalSold) > 0 && (
-                  <SalesBadge>
-                    {product.sales || product.totalSold} sold
-                  </SalesBadge>
-                )}
-              </ProductImageWrapper>
-              <ProductInfo>
-                <ProductName>{product.name}</ProductName>
-                <ProductMeta>
-                  <StockStatus $inStock={(product.stock || product.totalStock || 0) > 0}>
-                    {(product.stock || product.totalStock || 0) > 0
-                      ? `${product.stock || product.totalStock} in stock`
-                      : "Out of stock"}
-                  </StockStatus>
-                </ProductMeta>
-              </ProductInfo>
-            </ProductCard>
-          ))}
+          {products.slice(0, 4).map((product) => {
+            const productIdStr = (product._id || product.id)?.toString?.() ?? (product._id || product.id);
+            const viewCount = viewsByProductId[productIdStr] ?? 0;
+            return (
+              <ProductCard key={product._id || product.id} as={Link} to={PATHS.PRODUCTS}>
+                <ProductImageWrapper>
+                  <ProductImage 
+                    src={product.imageCover} 
+                    alt={product.name}
+                    onError={(e) => {
+                      if (e.target.dataset.fallbackAttempted !== 'true') {
+                        e.target.dataset.fallbackAttempted = 'true';
+                        e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect width="200" height="200" fill="%23f0f0f0"/%3E%3Ctext x="50%25" y="50%25" font-family="Arial" font-size="16" fill="%23999" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E';
+                      }
+                    }}
+                  />
+                  {(product.sales || product.totalSold) > 0 && (
+                    <SalesBadge>
+                      {product.sales || product.totalSold} sold
+                    </SalesBadge>
+                  )}
+                </ProductImageWrapper>
+                <ProductInfo>
+                  <ProductName>{product.name}</ProductName>
+                  <ProductMeta>
+                    <StockStatus $inStock={(product.stock || product.totalStock || 0) > 0}>
+                      {(product.stock || product.totalStock || 0) > 0
+                        ? `${product.stock || product.totalStock} in stock`
+                        : "Out of stock"}
+                    </StockStatus>
+                    {viewCount > 0 && (
+                      <ViewCount>
+                        <FaEye style={{ marginRight: '0.25rem' }} />
+                        {viewCount} {viewCount === 1 ? 'view' : 'views'}
+                      </ViewCount>
+                    )}
+                  </ProductMeta>
+                </ProductInfo>
+              </ProductCard>
+            );
+          })}
         </ProductsGrid>
       </ContentSection>
     </DashboardContainer>
@@ -1004,8 +1029,18 @@ const ProductName = styled.div`
 
 const ProductMeta = styled.div`
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
+  gap: 0.5rem;
+`;
+
+const ViewCount = styled.span`
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.85rem;
+  color: var(--color-grey-600, #64748b);
+  font-weight: 500;
 `;
 
 const StockStatus = styled.div`

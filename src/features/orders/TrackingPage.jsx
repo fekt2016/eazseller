@@ -514,14 +514,6 @@ const TrackingPage = () => {
                     : 'N/A'}
                 </InfoValue>
               </InfoRow>
-              <InfoRow>
-                <InfoLabel>Payment Status</InfoLabel>
-                <InfoValue>
-                  <PaymentBadge $paid={orderData.paymentStatus === 'paid' || orderData.paymentStatus === 'completed'}>
-                    {(orderData.paymentStatus === 'paid' || orderData.paymentStatus === 'completed') ? 'Paid' : 'Pending'}
-                  </PaymentBadge>
-                </InfoValue>
-              </InfoRow>
               {orderData.paidAt && (
                 <InfoRow>
                   <InfoLabel>Paid On</InfoLabel>
@@ -1123,16 +1115,6 @@ const InfoValue = styled.div`
   font-size: 1rem;
   color: #2d3748;
   font-weight: 500;
-`;
-
-const PaymentBadge = styled.span`
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  background: ${props => props.$paid ? '#d1fae5' : '#fef3c7'};
-  color: ${props => props.$paid ? '#065f46' : '#92400e'};
 `;
 
 const PickupMapLink = styled.a`

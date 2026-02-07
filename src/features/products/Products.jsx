@@ -3,7 +3,8 @@ import styled from "styled-components";
 import useAuth from '../../shared/hooks/useAuth';
 import { useMemo, useState } from "react";
 import useProduct from '../../shared/hooks/useProduct';
-import { FaEdit, FaTrash, FaPlus, FaBoxOpen, FaLayerGroup } from "react-icons/fa";
+import useAnalytics from '../../shared/hooks/useAnalytics';
+import { FaEdit, FaTrash, FaPlus, FaBoxOpen, FaLayerGroup, FaEye } from "react-icons/fa";
 import { PATHS } from '../../routes/routePaths';
 import { 
   PageContainer, 
@@ -27,11 +28,22 @@ export default function Products() {
   const sellerId = seller?._id;
 
   const { useGetAllProductBySeller, deleteProduct } = useProduct();
+  const { useGetSellerProductViews } = useAnalytics();
   const { data, isLoading: productsLoading } = useGetAllProductBySeller(sellerId);
+  const { data: viewData } = useGetSellerProductViews(sellerId, { enabled: !!sellerId });
 
   const products = useMemo(() => {
     return data?.data.data || [];
   }, [data]);
+
+  const viewsByProductId = useMemo(() => {
+    const map = {};
+    (viewData?.data?.views || []).forEach((item) => {
+      const id = item.productId?.toString?.() ?? item.productId;
+      if (id) map[id] = (item.views || 0) + (map[id] || 0);
+    });
+    return map;
+  }, [viewData?.data?.views]);
 
   const filteredProducts = useMemo(() => {
     let filtered = products;
@@ -121,6 +133,22 @@ export default function Products() {
           {(product.totalStock || product.stock || 0) === 0 && " (Out of Stock)"}
         </StockIndicator>
       ),
+    },
+    {
+      key: 'views',
+      title: 'Views',
+      align: 'center',
+      render: (product) => {
+        const id = (product._id || product.id)?.toString?.() ?? (product._id || product.id);
+        const count = viewsByProductId[id] ?? 0;
+        return (
+          <TableViewCount>
+            <FaEye />
+            <span>{count}</span>
+          </TableViewCount>
+        );
+      },
+      hideOnMobile: true,
     },
     {
       key: 'actions',
@@ -301,6 +329,15 @@ const StockIndicator = styled.div`
       : stock > 0 
       ? "var(--color-yellow-700)" 
       : "var(--color-red-700)"};
+`;
+
+const TableViewCount = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: var(--font-size-sm);
+  color: var(--color-grey-600, #64748b);
+  font-weight: 500;
 `;
 
 const ActionButtons = styled.div`
