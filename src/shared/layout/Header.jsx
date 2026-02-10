@@ -1,40 +1,10 @@
-import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import styled from "styled-components";
 import { FaBars, FaTimes } from "react-icons/fa";
 import { PATHS } from '../../routes/routePaths';
 import { devicesMax } from '../styles/breakpoint';
-import { useUnreadCount } from '../hooks/notifications/useNotifications';
-import NotificationDropdown from '../components/NotificationDropdown';
 
 const Header = ({ user, onToggleSidebar, isSidebarOpen = false }) => {
-  const { data: unreadData, isLoading, error } = useUnreadCount();
-  
-  // FIX: Extract unread count from response - handle different possible response structures
-  const unreadCount = useMemo(() => {
-    if (!unreadData) return 0;
-    
-    // Backend returns: { status: 'success', data: { unreadCount: number } }
-    const count = unreadData?.data?.unreadCount ?? 
-                  unreadData?.data?.data?.unreadCount ?? 
-                  unreadData?.unreadCount ?? 
-                  0;
-    
-    // Ensure it's a valid number
-    const numCount = Number(count) || 0;
-    
-    // Debug logging (remove in production)
-    if (process.env.NODE_ENV === 'development' && !isLoading) {
-      console.log('[Seller Header] Unread count debug:', {
-        unreadData,
-        extractedCount: numCount,
-        rawData: unreadData
-      });
-    }
-    
-    return numCount;
-  }, [unreadData, isLoading]);
-
   return (
     <Container>
       <LeftSection>
@@ -50,7 +20,6 @@ const Header = ({ user, onToggleSidebar, isSidebarOpen = false }) => {
       <TopbarRight>
         {user ? (
           <>
-            <NotificationDropdown unreadCount={unreadCount} />
             <UserProfile>
               <UserAvatar>{user.avatar || user.name?.[0] || 'U'}</UserAvatar>
               <div style={{ display: "flex", flexDirection: "column" }}>

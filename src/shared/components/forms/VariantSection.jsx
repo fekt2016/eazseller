@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { useFormContext, useFieldArray, useWatch } from "react-hook-form";
 import { generateSKU } from '../../utils/helpers';
 import { FiUploadCloud, FiX, FiImage } from "react-icons/fi";
+import usePlatformTaxRates from "../../hooks/usePlatformTaxRates";
 
 export default function VariantSection({ variantAttributes = [], seller }) {
   const { control, register, setValue, getValues } = useFormContext();
@@ -250,6 +251,17 @@ function VariantRow({
     name: `variants.${variantIndex}.attributes`,
     defaultValue: [],
   });
+
+  const variantPrice = useWatch({
+    control,
+    name: `variants.${variantIndex}.price`,
+    defaultValue: 0,
+  });
+  const { addTaxToBase } = usePlatformTaxRates();
+  const variantTotalWithTax = useMemo(
+    () => addTaxToBase(variantPrice),
+    [variantPrice, addTaxToBase]
+  );
   
   const variantErrors = errors.variants?.[variantIndex];
 
@@ -345,17 +357,25 @@ function VariantRow({
       {/* Price */}
       <VariantFieldGroup>
         <FieldLabel>Price <Required>*</Required></FieldLabel>
-        <Input
-          type="number"
-          step="0.01"
-          min="0.01"
-          {...register(`variants.${variantIndex}.price`, {
-            required: "Please enter a price for this variant",
-            min: { value: 0.01, message: "Price must be greater than 0" },
-          })}
-          placeholder="Price"
-          $hasError={!!variantErrors?.price}
-        />
+        <VariantPriceRow>
+          <Input
+            type="number"
+            step="0.01"
+            min="0.01"
+            {...register(`variants.${variantIndex}.price`, {
+              required: "Please enter a price for this variant",
+              min: { value: 0.01, message: "Price must be greater than 0" },
+            })}
+            placeholder="Price"
+            $hasError={!!variantErrors?.price}
+          />
+          {variantTotalWithTax != null && (
+            <VariantTotalWithTaxBox>
+              <VariantTotalWithTaxLabel>Customer price (incl. tax)</VariantTotalWithTaxLabel>
+              <VariantTotalWithTaxValue>GH₵{variantTotalWithTax.toFixed(2)}</VariantTotalWithTaxValue>
+            </VariantTotalWithTaxBox>
+          )}
+        </VariantPriceRow>
         {variantErrors?.price && (
           <VariantErrorMessage>{variantErrors.price.message}</VariantErrorMessage>
         )}
@@ -615,6 +635,41 @@ const VariantFieldGroup = styled.div`
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+`;
+
+const VariantPriceRow = styled.div`
+  display: flex;
+  align-items: stretch;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+`;
+
+const VariantTotalWithTaxBox = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 120px;
+  padding: 0.5rem 0.75rem;
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  border-radius: 6px;
+  flex: 0 0 auto;
+  @media (min-width: 480px) {
+    min-width: 160px;
+  }
+`;
+
+const VariantTotalWithTaxLabel = styled.span`
+  font-size: 0.75rem;
+  color: #166534;
+  font-weight: 500;
+  margin-bottom: 0.125rem;
+`;
+
+const VariantTotalWithTaxValue = styled.span`
+  font-size: 1rem;
+  font-weight: 600;
+  color: #15803d;
 `;
 
 const VariantFieldGroupFullWidth = styled.div`

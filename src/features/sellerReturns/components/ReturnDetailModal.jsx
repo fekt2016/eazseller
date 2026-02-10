@@ -27,23 +27,24 @@ const ReturnDetailModal = ({
   if (!returnItem) return null;
 
   const refundAmount = returnItem.refundAmount || returnItem.amount || 0;
-  const isApproved = returnItem.status === 'APPROVED' || returnItem.status === 'REFUNDED';
-  const isRejected = returnItem.status === 'REJECTED';
+  const statusUpper = (returnItem.status || '').toUpperCase();
+  const isApproved = statusUpper === 'APPROVED' || statusUpper === 'REFUNDED' || statusUpper === 'COMPLETED';
+  const isRejected = statusUpper === 'REJECTED';
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <>
-          <Overlay
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-          />
+        <Overlay
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+        >
           <ModalContainer
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            onClick={(e) => e.stopPropagation()}
           >
             <ModalHeader>
               <ModalTitle>Return Details</ModalTitle>
@@ -182,18 +183,18 @@ const ReturnDetailModal = ({
                 </InfoSection>
               )}
 
-              {/* Action Buttons */}
-              {returnItem.status === 'PENDING' && (
+              {/* Action Buttons - show when return is not yet approved or rejected */}
+              {!isApproved && !isRejected && (
                 <ApproveRejectReturnButtons
-                  onApprove={() => onApprove(returnItem)}
-                  onReject={() => onReject(returnItem)}
+                  onApprove={(payload) => onApprove(returnItem, payload)}
+                  onReject={(payload) => onReject(returnItem, payload)}
                   isApproving={isApproving}
                   isRejecting={isRejecting}
                 />
               )}
             </ModalContent>
           </ModalContainer>
-        </>
+        </Overlay>
       )}
     </AnimatePresence>
   );
@@ -211,16 +212,17 @@ const Overlay = styled(motion.div)`
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 1000;
   backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  overflow-y: auto;
 `;
 
 const ModalContainer = styled(motion.div)`
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
   width: 90%;
   max-width: 800px;
-  max-height: 90vh;
+  max-height: min(90vh, calc(100vh - 4rem));
   background: var(--color-white-0);
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-xl);
@@ -228,10 +230,11 @@ const ModalContainer = styled(motion.div)`
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  margin: auto;
 
   @media (max-width: 768px) {
     width: 95%;
-    max-height: 95vh;
+    max-height: min(95vh, calc(100vh - 4rem));
   }
 `;
 
@@ -283,7 +286,7 @@ const StatusBanner = styled.div`
   background-color: ${({ $type }) =>
     $type === 'success' ? 'var(--color-green-50)' : 'var(--color-red-50)'};
   border: 1px solid
-    ${({ $type }) => ($type === 'success' ? 'var(--color-green-200)' : 'var(--color-red-200))')};
+    ${({ $type }) => ($type === 'success' ? 'var(--color-green-200)' : 'var(--color-red-200)')};
 
   strong {
     display: block;

@@ -14,6 +14,7 @@ import {
   FaClock,
   FaAngleLeft,
   FaAngleRight,
+  FaUndo,
 } from "react-icons/fa";
 import { PATHS } from '../../routes/routePaths';
 
@@ -366,10 +367,21 @@ export default function OrdersPage() {
                   <ActionButtons>
                     <ActionIcon
                       $color="#3498db"
-                      title="View details"
+                      title="View order details"
                       to={PATHS.ORDER_DETAIL.replace(':id', order._id)}
                     >
                       <FaEye />
+                    </ActionIcon>
+                    {/* Refund detail icon – goes to Returns page pre-filtered by this orderId.
+                        SellerReturnAndFundsPage can use ?orderId= to auto-open the matching refund detail. */}
+                    <ActionIcon
+                      $color="#e67e22"
+                      title="View refund details"
+                      to={`${PATHS.RETURNS}?orderId=${encodeURIComponent(
+                        order.parentOrderId || order.orderId || order._id
+                      )}`}
+                    >
+                      <FaUndo />
                     </ActionIcon>
                   </ActionButtons>
                 </TableCell>

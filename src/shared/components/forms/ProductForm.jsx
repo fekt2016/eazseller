@@ -82,6 +82,8 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
       brand: "",
       manufacturer: "",
       warranty: "",
+      returnWindowDays: 30,
+      promotionKey: "",
       condition: "new",
       specifications: {
         material: [{ value: "", hexCode: "" }],
@@ -100,6 +102,11 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
           initialData.subCategory?._id || initialData.subCategory || "",
         manufacturer: initialData.manufacturer || "",
         warranty: initialData.warranty || "",
+        returnWindowDays:
+          typeof initialData.returnWindowDays === "number"
+            ? initialData.returnWindowDays
+            : defaults.returnWindowDays,
+        promotionKey: initialData.promotionKey || "",
         condition: initialData.condition || "new",
         variants:
           (initialData.variants && Array.isArray(initialData.variants) && initialData.variants.length > 0)

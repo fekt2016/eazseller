@@ -5,6 +5,15 @@ import Button from '../../../shared/components/ui/Button';
 import { formatDate } from '../../../shared/utils/helpers';
 import { devicesMax } from '../../../shared/styles/breakpoint';
 
+// Format refund reason code for display (e.g. not_as_described -> Not as described)
+const formatReasonLabel = (reason) => {
+  if (!reason) return 'No reason provided';
+  const label = String(reason)
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+  return label.length > 30 ? `${label.substring(0, 30)}...` : label;
+};
+
 /**
  * Return List Table Component
  * Displays returns in a responsive table format
@@ -49,14 +58,13 @@ const ReturnListTable = ({ returns, onView, onApprove, onReject, isLoading = fal
               </TableCell>
               <TableCell>{returnItem.quantity || 1}</TableCell>
               <TableCell>
-                <ReasonText>
-                  {returnItem.reason?.substring(0, 30) || 'No reason provided'}
-                  {returnItem.reason?.length > 30 && '...'}
+                <ReasonText title={returnItem.reason}>
+                  {formatReasonLabel(returnItem.reason)}
                 </ReasonText>
               </TableCell>
               <TableCell>
-                <StatusBadge $status={returnItem.status?.toLowerCase()}>
-                  {returnItem.status || 'PENDING'}
+                <StatusBadge $status={(returnItem.status || 'PENDING').toLowerCase()}>
+                  {(returnItem.status || 'PENDING').charAt(0).toUpperCase() + (returnItem.status || 'PENDING').slice(1).toLowerCase()}
                 </StatusBadge>
               </TableCell>
               <TableCell>{formatDate(returnItem.createdAt)}</TableCell>
@@ -124,10 +132,7 @@ const ReturnListTable = ({ returns, onView, onApprove, onReject, isLoading = fal
               </InfoRow>
               <InfoRow>
                 <InfoLabel>Reason:</InfoLabel>
-                <InfoValue>
-                  {returnItem.reason?.substring(0, 50) || 'No reason provided'}
-                  {returnItem.reason?.length > 50 && '...'}
-                </InfoValue>
+                <InfoValue>{formatReasonLabel(returnItem.reason)}</InfoValue>
               </InfoRow>
               <InfoRow>
                 <InfoLabel>Date:</InfoLabel>
@@ -259,9 +264,13 @@ const StatusBadge = styled.span`
       case 'refunded':
         return 'var(--color-green-100)';
       case 'pending':
+      case 'requested':
         return 'var(--color-yellow-100)';
       case 'rejected':
         return 'var(--color-red-100)';
+      case 'seller_review':
+      case 'admin_review':
+        return 'var(--color-blue-100)';
       default:
         return 'var(--color-grey-100)';
     }
@@ -273,9 +282,13 @@ const StatusBadge = styled.span`
       case 'refunded':
         return 'var(--color-green-700)';
       case 'pending':
+      case 'requested':
         return 'var(--color-yellow-700)';
       case 'rejected':
         return 'var(--color-red-700)';
+      case 'seller_review':
+      case 'admin_review':
+        return 'var(--color-blue-700)';
       default:
         return 'var(--color-grey-700)';
     }

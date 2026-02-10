@@ -1,11 +1,32 @@
 import React from 'react';
 import styled from 'styled-components';
-import { FaUser, FaEnvelope, FaPhone, FaCalendar, FaClock, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+import { FaUser, FaEnvelope, FaPhone, FaCalendar, FaClock, FaCheckCircle, FaTimesCircle, FaPowerOff } from 'react-icons/fa';
 import useAuth from '../../../shared/hooks/useAuth';
 import { LoadingState } from '../../../shared/components/ui/LoadingComponents';
+import authApi from '../../../shared/services/authApi';
+import { toast } from 'react-toastify';
 
 const AccountTab = () => {
-  const { seller, isLoading } = useAuth();
+  const navigate = useNavigate();
+  const { seller, isLoading, refetchAuth } = useAuth();
+  const [deactivating, setDeactivating] = React.useState(false);
+
+  const handleDeactivate = async () => {
+    if (!window.confirm('Deactivate your seller account? You will be logged out. Contact support to reactivate.')) return;
+    setDeactivating(true);
+    try {
+      await authApi.updateMyStatus('deactive');
+      toast.success('Account deactivated.');
+      await authApi.logout();
+      if (refetchAuth) refetchAuth();
+      navigate('/seller/login', { replace: true });
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || 'Failed to deactivate account.');
+    } finally {
+      setDeactivating(false);
+    }
+  };
 
   if (isLoading) {
     return <LoadingState message="Loading account information..." />;
@@ -173,6 +194,26 @@ const AccountTab = () => {
           </InfoRow>
         </SectionContent>
       </Section>
+
+      {/* Deactivate account (seller can only set status to deactive) */}
+      {seller.status === 'active' && (
+        <Section>
+          <SectionHeader>
+            <SectionIcon>
+              <FaPowerOff />
+            </SectionIcon>
+            <SectionTitle>Deactivate account</SectionTitle>
+          </SectionHeader>
+          <SectionContent>
+            <Description>
+              Deactivate your seller account. You will be logged out. To reactivate, contact support.
+            </Description>
+            <DeactivateButton type="button" onClick={handleDeactivate} disabled={deactivating}>
+              {deactivating ? 'Deactivating...' : 'Deactivate account'}
+            </DeactivateButton>
+          </SectionContent>
+        </Section>
+      )}
     </Container>
   );
 };
@@ -333,13 +374,35 @@ const StatusBadge = styled.span`
     if (props.$status === 'active') return 'var(--color-green-100)';
     if (props.$status === 'pending') return 'var(--color-yellow-100)';
     if (props.$status === 'suspended') return 'var(--color-red-100)';
+    if (props.$status === 'deactive') return 'var(--color-grey-200)';
     return 'var(--color-grey-100)';
   }};
   color: ${props => {
     if (props.$status === 'active') return 'var(--color-green-700)';
     if (props.$status === 'pending') return 'var(--color-yellow-700)';
     if (props.$status === 'suspended') return 'var(--color-red-700)';
+    if (props.$status === 'deactive') return 'var(--color-grey-600)';
     return 'var(--color-grey-700)';
   }};
 `;
 
+const DeactivateButton = styled.button`
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: var(--color-grey-200);
+  color: var(--color-grey-800);
+  border: 1px solid var(--color-grey-300);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  &:hover:not(:disabled) {
+    background: var(--color-red-100);
+    color: var(--color-red-700);
+    border-color: var(--color-red-200);
+  }
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+`;

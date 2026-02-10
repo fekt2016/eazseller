@@ -40,14 +40,14 @@ const useProduct = () => {
       retry: 2,
     });
 
-  // Get all products by seller
+  // Get all products by seller (request enough so full list loads; backend enforces min 100 per page)
   const useGetAllProductBySeller = (sellerId) => {
     return useQuery({
-      queryKey: ["products", sellerId],
+      queryKey: ["products", "seller", sellerId],
       queryFn: async () => {
         if (!sellerId) return null;
         try {
-          return await productService.getAllProductsBySeller(sellerId);
+          return await productService.getAllProductsBySeller(sellerId, { limit: 200, page: 1 });
         } catch (error) {
           throw new Error(`Failed to load seller products: ${error.message}`);
         }

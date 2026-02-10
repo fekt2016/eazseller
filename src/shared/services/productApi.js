@@ -19,8 +19,9 @@ export const productService = {
     return response.data;
   },
 
-  getAllProductsBySeller: async () => {
-    const response = await api.get("/seller/me/products");
+  getAllProductsBySeller: async (sellerId, params = {}) => {
+    const queryParams = { limit: params.limit ?? 200, page: params.page ?? 1 };
+    const response = await api.get("/seller/me/products", { params: queryParams });
     return response.data;
   },
   createProduct: async (formData) => {

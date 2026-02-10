@@ -1,6 +1,11 @@
 import api from './api';
 
 export const orderService = {
+  /** Platform tax rates from admin (VAT, NHIL, GETFund) – used for product price preview */
+  getTaxRates: async () => {
+    const response = await api.get("/order/tax-rates");
+    return response.data;
+  },
   createOrder: async (data) => {
     const response = await api.post("/order", data);
     return response;

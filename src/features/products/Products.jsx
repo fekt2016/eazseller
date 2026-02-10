@@ -33,7 +33,12 @@ export default function Products() {
   const { data: viewData } = useGetSellerProductViews(sellerId, { enabled: !!sellerId });
 
   const products = useMemo(() => {
-    return data?.data.data || [];
+    const raw = data?.data?.data ?? data?.data?.products ?? data?.products ?? data?.data;
+    const list = Array.isArray(raw) ? raw : [];
+    if (import.meta.env.DEV && list.length > 0) {
+      console.debug('[Products] loaded', list.length, 'products from API (total in response:', data?.data?.total ?? data?.total ?? '—', ')');
+    }
+    return list;
   }, [data]);
 
   const viewsByProductId = useMemo(() => {

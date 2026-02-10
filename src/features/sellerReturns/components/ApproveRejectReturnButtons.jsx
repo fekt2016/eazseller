@@ -16,9 +16,22 @@ const ApproveRejectReturnButtons = ({
 }) => {
   const [showRejectForm, setShowRejectForm] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [showApproveChoice, setShowApproveChoice] = useState(false);
+  const [resolutionType, setResolutionType] = useState('refund');
+  const [resolutionNote, setResolutionNote] = useState('');
 
   const handleApprove = () => {
-    onApprove();
+    if (showApproveChoice) {
+      onApprove({ resolutionType, resolutionNote: resolutionType === 'replacement' ? resolutionNote : undefined });
+      setShowApproveChoice(false);
+      setResolutionNote('');
+    } else {
+      setShowApproveChoice(true);
+    }
+  };
+
+  const handleApproveChoice = (type) => {
+    setResolutionType(type);
   };
 
   const handleReject = () => {
@@ -67,6 +80,51 @@ const ApproveRejectReturnButtons = ({
             </Button>
           </FormActions>
         </RejectForm>
+      ) : showApproveChoice ? (
+        <ApproveChoiceForm>
+          <FormLabel>How do you want to resolve this return?</FormLabel>
+          <ChoiceRow>
+            <ChoiceButton
+              type="button"
+              $active={resolutionType === 'refund'}
+              onClick={() => handleApproveChoice('refund')}
+            >
+              Approve for refund
+            </ChoiceButton>
+            <ChoiceButton
+              type="button"
+              $active={resolutionType === 'replacement'}
+              onClick={() => handleApproveChoice('replacement')}
+            >
+              Offer replacement (new item)
+            </ChoiceButton>
+          </ChoiceRow>
+          {resolutionType === 'replacement' && (
+            <>
+              <FormLabel>Optional note (e.g. when you will ship the replacement)</FormLabel>
+              <StyledTextarea
+                rows={2}
+                value={resolutionNote}
+                onChange={(e) => setResolutionNote(e.target.value)}
+                placeholder="e.g. I will ship the replacement within 3 business days"
+              />
+            </>
+          )}
+          <FormActions>
+            <Button variant="outline" size="md" onClick={() => setShowApproveChoice(false)}>
+              Back
+            </Button>
+            <Button
+              variant="primary"
+              size="md"
+              onClick={handleApprove}
+              disabled={isApproving || isRejecting}
+            >
+              {isApproving ? 'Submitting...' : 'Confirm'}
+              <FaCheck />
+            </Button>
+          </FormActions>
+        </ApproveChoiceForm>
       ) : (
         <ButtonGroup>
           <Button
@@ -113,6 +171,35 @@ const ButtonGroup = styled.div`
     button {
       width: 100%;
     }
+  }
+`;
+
+const ApproveChoiceForm = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+`;
+
+const ChoiceRow = styled.div`
+  display: flex;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+`;
+
+const ChoiceButton = styled.button`
+  flex: 1;
+  min-width: 140px;
+  padding: var(--spacing-md);
+  border: 2px solid ${(p) => (p.$active ? 'var(--color-primary-500)' : 'var(--color-grey-300)')};
+  border-radius: var(--border-radius-md);
+  background: ${(p) => (p.$active ? 'var(--color-primary-50)' : 'var(--color-white-0)')};
+  color: ${(p) => (p.$active ? 'var(--color-primary-700)' : 'var(--color-grey-700)')};
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  &:hover {
+    border-color: var(--color-primary-500);
+    background: var(--color-primary-50);
   }
 `;
 

@@ -41,6 +41,7 @@ const AboutPage = lazy(() => import("../pages/about/AboutPage"));
 const ContactPage = lazy(() => import("../pages/contact/ContactPage"));
 const ReturnRefundPolicyPage = lazy(() => import("../pages/policies/ReturnRefundPolicyPage"));
 const TermsPage = lazy(() => import("../pages/policies/TermsPage"));
+const VatTaxPolicyPage = lazy(() => import("../pages/policies/VatTaxPolicyPage"));
 const SellerPrivacyPolicyPage = lazy(() => import("../pages/policies/SellerPrivacyPolicyPage"));
 const SellerEducationCenterPage = lazy(() => import("../pages/education/SellerEducationCenterPage"));
 const HelpCenterPage = lazy(() => import("../pages/help/HelpCenterPage"));
@@ -245,6 +246,25 @@ export default function SellerRoutes() {
           element={
             <Suspense fallback={<LoadingSpinner fullScreen />}>
               <TermsPage />
+            </Suspense>
+          }
+        />
+      </Route>
+
+      {/* Public VAT & Tax Policy Page - Public with Header, No Sidebar */}
+      <Route
+        path={PATHS.VAT_TAX_POLICY}
+        element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <DashboardLayout showSidebar={false} />
+          </Suspense>
+        }
+      >
+        <Route
+          index
+          element={
+            <Suspense fallback={<LoadingSpinner fullScreen />}>
+              <VatTaxPolicyPage />
             </Suspense>
           }
         />

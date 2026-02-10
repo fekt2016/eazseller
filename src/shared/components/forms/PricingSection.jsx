@@ -1,6 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import styled from "styled-components";
+import usePlatformTaxRates from "../../hooks/usePlatformTaxRates";
 
 export default function PricingSection({ isSubmitting }) {
   const {
@@ -9,27 +10,40 @@ export default function PricingSection({ isSubmitting }) {
     trigger,
     formState: { errors },
   } = useFormContext();
+  const { addTaxToBase } = usePlatformTaxRates();
   const price = watch("price");
+
+  const totalWithTax = useMemo(() => addTaxToBase(price), [price, addTaxToBase]);
 
   useEffect(() => {
     if (price !== undefined) {
       trigger("discountPrice");
     }
   }, [price, trigger]);
+
   return (
     <FormGrid>
       <FormGroup>
-        <Label htmlFor="price">Price *</Label>
-        <Input
-          type="number"
-          step="0.01"
-          {...register("price", {
-            required: "Price is required",
-            min: { value: 0.01, message: "Price must be greater than 0" },
-          })}
-          disabled={isSubmitting}
-          placeholder="0.00"
-        />
+        <Label htmlFor="price">Price * (excl. tax)</Label>
+        <PriceRow>
+          <Input
+            id="price"
+            type="number"
+            step="0.01"
+            {...register("price", {
+              required: "Price is required",
+              min: { value: 0.01, message: "Price must be greater than 0" },
+            })}
+            disabled={isSubmitting}
+            placeholder="0.00"
+          />
+          {totalWithTax != null && (
+            <TotalWithTaxBox>
+              <TotalWithTaxLabel>Customer price (incl. tax)</TotalWithTaxLabel>
+              <TotalWithTaxValue>GH₵{totalWithTax.toFixed(2)}</TotalWithTaxValue>
+            </TotalWithTaxBox>
+          )}
+        </PriceRow>
         {errors.price && <ErrorMessage>{errors.price.message}</ErrorMessage>}
       </FormGroup>
 
@@ -105,4 +119,39 @@ const ErrorMessage = styled.span`
   color: #e53e3e;
   font-size: 1rem;
   font-weight: 400;
+`;
+
+const PriceRow = styled.div`
+  display: flex;
+  align-items: stretch;
+  gap: 1rem;
+  flex-wrap: wrap;
+`;
+
+const TotalWithTaxBox = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 140px;
+  padding: 0.75rem 1rem;
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  border-radius: 8px;
+  flex: 0 0 auto;
+  @media (min-width: 480px) {
+    min-width: 180px;
+  }
+`;
+
+const TotalWithTaxLabel = styled.span`
+  font-size: 0.8125rem;
+  color: #166534;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+`;
+
+const TotalWithTaxValue = styled.span`
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #15803d;
 `;

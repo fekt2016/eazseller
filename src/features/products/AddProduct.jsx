@@ -9,10 +9,28 @@ import { compressImage } from '../../shared/utils/imageCompressor';
 
 const AddProductPage = () => {
   const navigate = useNavigate();
-  const { seller } = useAuth();
+  const { seller, refetchAuth } = useAuth();
   const { createProduct } = useProduct();
 
   const handleSubmit = async (data) => {
+    let currentSeller = seller;
+    let sellerId = currentSeller?.id || currentSeller?._id;
+    if (!sellerId && refetchAuth) {
+      try {
+        const result = await refetchAuth();
+        const refetched = result?.data;
+        currentSeller = refetched ?? seller;
+        sellerId = currentSeller?.id || currentSeller?._id;
+      } catch (_) {
+        /* ignore */
+      }
+    }
+    if (!sellerId) {
+      console.error("AddProduct: No seller loaded. Please log in again.");
+      alert("Session expired or seller not loaded. Please refresh the page or log in again.");
+      return;
+    }
+
     console.log("Form data before submission:", data.parentCategory);
     const formData = new FormData();
 
@@ -246,8 +264,11 @@ const AddProductPage = () => {
       // Always append as a plain string, never as object or JSON
       formData.append("warranty", warrantyValue);
       formData.append("condition", data.variants?.[0]?.condition || "new");
-      // Append remaining product data
-      formData.append("seller", seller.id);
+      if (data.promotionKey) {
+        formData.append("promotionKey", data.promotionKey.trim());
+      }
+      // Backend sets seller from auth; we append for consistency when we have it
+      formData.append("seller", sellerId);
 
       // Log form data for debugging
       for (let [key, value] of formData.entries()) {

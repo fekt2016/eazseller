@@ -14,20 +14,16 @@ import {
   FaTruck,
   FaFileAlt,
   FaMapMarkerAlt,
-  FaBell,
   FaUndo,
 } from "react-icons/fa";
 import useAuth from '../hooks/useAuth';
 import { PATHS } from '../../routes/routePaths';
 import { devicesMax } from '../styles/breakpoint';
 import Logo from '../components/Logo';
-import { useUnreadCount } from '../hooks/notifications/useNotifications';
 import { useSellerBalance } from '../hooks/finance/useSellerBalance';
 
 export default function Sidebar({ role, isOpen, onClose }) {
   const { logout, seller } = useAuth();
-  const { data: unreadData } = useUnreadCount();
-  const unreadCount = unreadData?.data?.unreadCount || 0;
   
   // Get seller balance using the same hook as other pages for consistency
   const { availableBalance, isLoading: isBalanceLoading } = useSellerBalance();
@@ -37,6 +33,7 @@ export default function Sidebar({ role, isOpen, onClose }) {
   const publicMenuItems = [
     { path: PATHS.SHIPPING_INFO, label: "Shipping Info", icon: <FaTruck /> },
     { path: PATHS.TERMS, label: "Terms of Service", icon: <FaFileAlt /> },
+    { path: PATHS.VAT_TAX_POLICY, label: "VAT & Tax Policy", icon: <FaFileAlt /> },
     { path: PATHS.HELP, label: "Help Center", icon: <FaHeadset /> },
   ];
   
@@ -64,7 +61,7 @@ export default function Sidebar({ role, isOpen, onClose }) {
     },
     {
       path: PATHS.DISCOUNT_PRODUCTS,
-      label: "Discount Product",
+      label: "Discounts / Coupons",
       icon: <FaBoxes />,
     },
     {
@@ -86,12 +83,6 @@ export default function Sidebar({ role, isOpen, onClose }) {
       path: PATHS.SUPPORT,
       label: "Support",
       icon: <FaHeadset />,
-    },
-    {
-      path: PATHS.NOTIFICATIONS,
-      label: "Notifications",
-      icon: <FaBell />,
-      badge: unreadCount > 0 ? unreadCount : null,
     },
     {
       path: PATHS.PICKUP_LOCATIONS,

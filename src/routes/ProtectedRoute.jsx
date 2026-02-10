@@ -87,8 +87,9 @@ const ProtectedRoutes = ({ children, allowPending = false }) => {
     return <Navigate to={PATHS.LOGIN} replace />;
   }
 
-  // Double-check role - reject buyers trying to access seller routes
-  if (seller.role !== "seller") {
+  // Double-check role - reject buyers; allow both 'seller' and 'eazshop_store' (platform store)
+  const isSellerRole = seller.role === 'seller' || seller.role === 'eazshop_store';
+  if (!isSellerRole) {
     if (import.meta.env.DEV) {
       console.error("[ProtectedRoute] SECURITY: Buyer detected in seller app - redirecting to login", {
         hasSeller: !!seller,

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -15,7 +15,10 @@ import {
   FaChartLine,
   FaWallet,
   FaStore,
+  FaChevronDown,
+  FaFileAlt,
 } from 'react-icons/fa';
+import { vatTaxPolicySummary, vatTaxFaqItems, vatGralegalWording } from '../../data/help/vatTaxFaq';
 import usePageTitle from '../../shared/hooks/usePageTitle';
 import { PATHS } from '../../routes/routePaths';
 import {
@@ -47,6 +50,19 @@ import {
   CTASubtitle,
   CTAButtons,
   CTAButton,
+  VatSectionWrapper,
+  VatSectionTitle,
+  VatPolicyCard,
+  VatPolicyIntro,
+  VatPolicyHeading,
+  VatPolicyList,
+  VatFaqList,
+  VatFaqItem,
+  VatFaqQuestion,
+  VatFaqAnswer,
+  VatLegalBox,
+  VatLegalTitle,
+  VatPolicyLink,
 } from './help.styles';
 
 /**
@@ -55,6 +71,7 @@ import {
  */
 const HelpCenterPage = () => {
   const navigate = useNavigate();
+  const [openVatFaqIndex, setOpenVatFaqIndex] = useState(null);
 
   // SEO
   usePageTitle({
@@ -168,6 +185,12 @@ const HelpCenterPage = () => {
       icon: <FaShieldAlt />,
       href: PATHS.PRIVACY,
     },
+    {
+      title: 'VAT & Tax Policy',
+      description: 'Seller VAT and tax obligations (Ghana GRA)',
+      icon: <FaShieldAlt />,
+      href: PATHS.VAT_TAX_POLICY,
+    },
   ];
 
   return (
@@ -279,6 +302,69 @@ const HelpCenterPage = () => {
             </QuickLinkCard>
           ))}
         </QuickLinksGrid>
+      </SectionWrapper>
+
+      {/* SECTION 4b — VAT & Tax Q&A */}
+      <SectionWrapper
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={staggerContainer}
+      >
+        <VatSectionWrapper variants={staggerItem}>
+          <VatSectionTitle>
+            <FaFileAlt />
+            VAT & Tax
+          </VatSectionTitle>
+          <VatPolicyCard>
+            <VatPolicyIntro>{vatTaxPolicySummary.intro}</VatPolicyIntro>
+            {vatTaxPolicySummary.points.map((point, idx) => {
+              if (typeof point === 'string') {
+                return <VatPolicyIntro key={idx} style={{ marginTop: 0 }}>{point}</VatPolicyIntro>;
+              }
+              return (
+                <div key={idx}>
+                  <VatPolicyHeading>{point.heading}</VatPolicyHeading>
+                  <VatPolicyList>
+                    {point.items.map((item, i) => (
+                      <li key={i}>{item}</li>
+                    ))}
+                  </VatPolicyList>
+                </div>
+              );
+            })}
+            <VatFaqList>
+              <VatPolicyHeading>VAT FAQ</VatPolicyHeading>
+              {vatTaxFaqItems.map((faq, index) => (
+                <VatFaqItem key={index}>
+                  <VatFaqQuestion
+                    type="button"
+                    onClick={() => setOpenVatFaqIndex(openVatFaqIndex === index ? null : index)}
+                    aria-expanded={openVatFaqIndex === index}
+                  >
+                    <span>{faq.q}</span>
+                    <FaChevronDown
+                      style={{
+                        transform: openVatFaqIndex === index ? 'rotate(180deg)' : 'rotate(0deg)',
+                        transition: 'transform 0.2s ease',
+                        flexShrink: 0,
+                      }}
+                    />
+                  </VatFaqQuestion>
+                  {openVatFaqIndex === index && <VatFaqAnswer>{faq.a}</VatFaqAnswer>}
+                </VatFaqItem>
+              ))}
+            </VatFaqList>
+            <VatLegalBox>
+              <VatLegalTitle>{vatGralegalWording.title}</VatLegalTitle>
+              <p style={{ margin: 0 }}>{vatGralegalWording.text}</p>
+            </VatLegalBox>
+            <VatPolicyLink to={PATHS.VAT_TAX_POLICY}>
+              <FaFileAlt />
+              Full VAT & Tax Policy
+            </VatPolicyLink>
+          </VatPolicyCard>
+        </VatSectionWrapper>
       </SectionWrapper>
 
       {/* SECTION 5 — CTA */}

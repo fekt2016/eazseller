@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import styled from 'styled-components';
 import { FaUndo, FaFilter } from 'react-icons/fa';
+import { useSearchParams } from 'react-router-dom';
 import {
   PageContainer,
   PageHeader,
@@ -23,6 +24,8 @@ const SellerReturnAndFundsPage = () => {
   const [selectedReturn, setSelectedReturn] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState('');
+  const [lastAutoOpenOrderId, setLastAutoOpenOrderId] = useState(null);
+  const [searchParams] = useSearchParams();
 
   const { getAllSellerReturns, approveReturn, rejectReturn } = useSellerReturns();
   const { data: returnsData, isLoading, error } = getAllSellerReturns({ status: statusFilter });
@@ -44,16 +47,46 @@ const SellerReturnAndFundsPage = () => {
     return returns.filter((ret) => ret.status?.toUpperCase() === statusFilter.toUpperCase());
   }, [returns, statusFilter]);
 
+  // When navigated from Orders page with ?orderId=..., auto-open the first matching return detail
+  useEffect(() => {
+    const orderIdFromQuery = searchParams.get('orderId');
+    if (
+      !orderIdFromQuery ||
+      orderIdFromQuery === lastAutoOpenOrderId ||
+      isModalOpen ||
+      selectedReturn ||
+      !Array.isArray(filteredReturns)
+    )
+      return;
+
+    const match = filteredReturns.find((ret) => {
+      const retOrderId = ret.orderId || ret.order?._id || ret.order;
+      return retOrderId && String(retOrderId) === String(orderIdFromQuery);
+    });
+
+    if (match) {
+      setSelectedReturn(match);
+      setIsModalOpen(true);
+      setLastAutoOpenOrderId(orderIdFromQuery);
+    }
+  }, [searchParams, filteredReturns, isModalOpen, selectedReturn, lastAutoOpenOrderId]);
+
   const handleViewReturn = (returnItem) => {
     setSelectedReturn(returnItem);
     setIsModalOpen(true);
   };
 
-  const handleApproveReturn = async (returnItem) => {
+  const handleApproveReturn = async (returnItem, approvalData = {}) => {
     try {
+      const { resolutionType = 'refund', resolutionNote } = approvalData;
+      const refundRequestId = returnItem.returnId || returnItem._id;
       await approveMutation.mutateAsync({
-        returnId: returnItem._id,
-        data: {},
+        returnId: refundRequestId,
+        data: {
+          notes: resolutionNote || '',
+          resolutionType,
+          ...(resolutionNote && { resolutionNote }),
+        },
       });
       setIsModalOpen(false);
       setSelectedReturn(null);
@@ -65,8 +98,9 @@ const SellerReturnAndFundsPage = () => {
 
   const handleRejectReturn = async (returnItem, data = {}) => {
     try {
+      const refundRequestId = returnItem.returnId || returnItem._id;
       await rejectMutation.mutateAsync({
-        returnId: returnItem._id,
+        returnId: refundRequestId,
         data,
       });
       setIsModalOpen(false);

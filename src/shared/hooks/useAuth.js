@@ -105,9 +105,10 @@ const useAuth = () => {
   const seller = sellerData || null;
 
   // CRITICAL: Verify the user is actually a seller, not a buyer
-  // If the backend returns a user with role !== 'seller', reject it
+  // Accept both 'seller' and 'eazshop_store' (platform store) as valid seller roles
+  const isSellerRole = seller?.role === 'seller' || seller?.role === 'eazshop_store';
   let validSeller = seller;
-  if (seller && seller.role && seller.role !== 'seller') {
+  if (seller && seller.role && !isSellerRole) {
     console.error("[useAuth] SECURITY: Non-seller user detected in seller app", {
       role: seller.role,
       email: seller.email,

@@ -83,7 +83,8 @@ export const PATHS = {
   // Return & Refund Policy
   RETURN_REFUND: "/dashboard/return-refund",
   TERMS: "/dashboard/terms",
-  
+  VAT_TAX_POLICY: "/dashboard/vat-tax-policy",
+
   // Privacy Policy (Public)
   PRIVACY: "/privacy",
   PRIVACY_DASHBOARD: "/dashboard/privacy", // Alias for backward compatibility

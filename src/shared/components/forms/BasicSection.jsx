@@ -1,8 +1,10 @@
 import { useFormContext } from "react-hook-form";
 import styled from "styled-components";
+import useActivePromotions from "../../hooks/useActivePromotions";
 
 const BasicSection = () => {
   const { register, watch, formState: { errors } } = useFormContext();
+  const { data: activePromotions = [], isLoading: promotionsLoading } = useActivePromotions();
   
   const name = watch("name") || "";
   const description = watch("description") || "";
@@ -86,7 +88,61 @@ const BasicSection = () => {
           />
           <HelperText>Warranty period offered with this product</HelperText>
         </FieldGroup>
+
+        <FieldGroup style={{ flex: 1 }}>
+          <Label>
+            Return / Refund Window (days) <Required>*</Required>
+          </Label>
+          <Input
+            type="number"
+            min={0}
+            max={365}
+            step={1}
+            {...register("returnWindowDays", {
+              required: "Please specify the refund/return window in days",
+              min: { value: 0, message: "Return window cannot be negative" },
+              max: { value: 365, message: "Return window cannot exceed 365 days" },
+              valueAsNumber: true,
+            })}
+            placeholder="e.g., 30"
+            $hasError={!!errors.returnWindowDays}
+          />
+          {errors.returnWindowDays && (
+            <ErrorMessage>{errors.returnWindowDays.message}</ErrorMessage>
+          )}
+          <HelperText>
+            Number of days the buyer can request a return/refund for this product.
+          </HelperText>
+        </FieldGroup>
       </FieldRow>
+
+      {/* Admin promotion – add this product to a platform promotion */}
+      <FieldGroup>
+        <Label>
+          Admin promotion
+          <Optional>(Optional)</Optional>
+        </Label>
+        <Select
+          {...register("promotionKey")}
+          disabled={promotionsLoading}
+          $hasError={!!errors.promotionKey}
+        >
+          <option value="">None</option>
+          {(activePromotions || []).map((p) => (
+            <option key={p.key} value={p.key}>
+              {p.title}
+              {p.discountType === "fixed" && p.discountFixed > 0
+                ? ` (GH₵${Number(p.discountFixed).toFixed(2)} off)`
+                : p.discountPercent > 0
+                  ? ` (${p.discountPercent}% off)`
+                  : ""}
+            </option>
+          ))}
+        </Select>
+        <HelperText>
+          Add this product to a platform promotion. Discount is set by admin.
+        </HelperText>
+      </FieldGroup>
     </div>
   );
 };

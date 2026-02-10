@@ -116,6 +116,12 @@ const authApi = {
   forgotPassword: (email) => api.post("/seller/forgot-password", { email }),
   resetPassword: ({ token, password }) =>
     api.post(`/seller/reset-password/${token}`, { password }),
+
+  /** Seller settings: set own account status to deactive. Only 'deactive' is allowed. */
+  updateMyStatus: async (status) => {
+    const response = await api.patch("/seller/me/status", { status: status || "deactive" });
+    return response.data;
+  },
 };
 
 export default authApi;

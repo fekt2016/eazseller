@@ -78,11 +78,11 @@ export function returnRole(token) {
 
 // utils/helpers.js
 export const generateSKU = ({ seller, variants, category }) => {
-  console.log("sku", seller);
-  // Provide default values for missing parameters
-  const safeUser = seller || { id: "UNK" };
+  // Provide default values for missing parameters (seller may have id or _id)
+  const sellerId = seller?.id ?? seller?._id;
+  const safeUser = sellerId != null ? String(sellerId) : "UNK";
   const safeVariants = variants || {};
-  const safeCategory = category || "UNK";
+  const safeCategory = category != null ? String(category) : "UNK";
 
   try {
     const cate = safeCategory.slice(0, 3).toUpperCase();
@@ -99,7 +99,7 @@ export const generateSKU = ({ seller, variants, category }) => {
         .substring(0, 3)
         .toUpperCase() || "DEF";
 
-    const userId = safeUser.id.slice(-3);
+    const userId = safeUser.slice(-3);
     const timestamp = Date.now().toString().slice(-4);
 
     return `${userId}-${cate}-${variantString}-${timestamp}`;

@@ -418,3 +418,152 @@ export const CTAButton = styled(motion(Link))`
   }
 `;
 
+// VAT & Tax FAQ Section
+export const VatSectionWrapper = styled(motion.section)`
+  margin: var(--spacing-3xl) 0;
+  max-width: 120rem;
+  margin-left: auto;
+  margin-right: auto;
+`;
+
+export const VatSectionTitle = styled.h2`
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-bold);
+  color: var(--color-grey-900);
+  margin-bottom: var(--spacing-lg);
+  font-family: var(--font-heading);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  
+  @media ${devicesMax.md} {
+    font-size: var(--font-size-xl);
+  }
+`;
+
+export const VatPolicyCard = styled.div`
+  background: var(--color-white-0);
+  border-radius: 12px;
+  padding: var(--spacing-xl);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--color-grey-200);
+  margin-bottom: var(--spacing-2xl);
+`;
+
+export const VatPolicyIntro = styled.p`
+  font-size: var(--font-size-base);
+  color: var(--color-grey-700);
+  line-height: 1.7;
+  margin-bottom: var(--spacing-lg);
+`;
+
+export const VatPolicyHeading = styled.h4`
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-semibold);
+  color: var(--color-grey-900);
+  margin: var(--spacing-lg) 0 var(--spacing-sm);
+  font-family: var(--font-heading);
+`;
+
+export const VatPolicyList = styled.ul`
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--spacing-md);
+  
+  li {
+    padding-left: var(--spacing-lg);
+    position: relative;
+    margin-bottom: var(--spacing-xs);
+    font-size: var(--font-size-base);
+    color: var(--color-grey-700);
+    line-height: 1.6;
+    
+    &::before {
+      content: '•';
+      position: absolute;
+      left: 0;
+      color: #00C896;
+      font-weight: bold;
+    }
+  }
+`;
+
+export const VatFaqList = styled.div`
+  margin-top: var(--spacing-xl);
+`;
+
+export const VatFaqItem = styled.div`
+  background: var(--color-white-0);
+  border: 1px solid var(--color-grey-200);
+  border-radius: 8px;
+  margin-bottom: var(--spacing-sm);
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+  
+  &:hover {
+    border-color: var(--color-grey-300);
+  }
+`;
+
+export const VatFaqQuestion = styled.button`
+  width: 100%;
+  padding: var(--spacing-md) var(--spacing-lg);
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-semibold);
+  color: var(--color-grey-900);
+  font-family: var(--font-heading);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  
+  &:hover {
+    background: var(--color-grey-50);
+  }
+`;
+
+export const VatFaqAnswer = styled.div`
+  padding: 0 var(--spacing-lg) var(--spacing-lg);
+  font-size: var(--font-size-sm);
+  color: var(--color-grey-700);
+  line-height: 1.6;
+`;
+
+export const VatLegalBox = styled.div`
+  margin-top: var(--spacing-xl);
+  padding: var(--spacing-lg);
+  background: var(--color-grey-50);
+  border-left: 4px solid #00C896;
+  border-radius: 0 8px 8px 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-grey-700);
+  line-height: 1.6;
+`;
+
+export const VatLegalTitle = styled.h4`
+  font-size: var(--font-size-base);
+  font-weight: var(--font-semibold);
+  color: var(--color-grey-900);
+  margin-bottom: var(--spacing-sm);
+  font-family: var(--font-heading);
+`;
+
+export const VatPolicyLink = styled(Link)`
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-lg);
+  color: #00C896;
+  font-weight: var(--font-semibold);
+  text-decoration: none;
+  font-size: var(--font-size-base);
+  
+  &:hover {
+    color: #00A67E;
+    text-decoration: underline;
+  }
+`;

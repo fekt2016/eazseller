@@ -120,6 +120,7 @@ const EditProduct = () => {
         return String(product.warranty).trim();
       })(),
       condition: product.condition || "new",
+      promotionKey: product.promotionKey || "",
 
       // Image handling
       imageCover: product.imageCover?.url || product.imageCover || "",
@@ -282,7 +283,12 @@ const EditProduct = () => {
       
       formData.append("brand", data.brand || "");
       formData.append("manufacturer", data.manufacturer);
-      
+      if (data.promotionKey) {
+        formData.append("promotionKey", data.promotionKey.trim());
+      } else {
+        formData.append("promotionKey", "");
+      }
+
       // IMPORTANT: Do NOT send warranty from EditProduct to avoid casting issues.
       // The existing warranty stored in the product will be preserved on update.
       
