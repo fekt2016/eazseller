@@ -531,9 +531,7 @@ export const VatFaqAnswer = styled.div`
   font-size: var(--font-size-sm);
   color: var(--color-grey-700);
   line-height: 1.6;
-`;
-
-export const VatLegalBox = styled.div`
+`;export const VatLegalBox = styled.div`
   margin-top: var(--spacing-xl);
   padding: var(--spacing-lg);
   background: var(--color-grey-50);

@@ -119,8 +119,9 @@ export default function VariantSection({ variantAttributes = [], seller }) {
         attributes: variantAttributes,
         price: 0,
         stock: 0,
+        // Use shared SKU generator (same pattern as Add Product)
         sku: generateSKU({
-          user: seller,
+          seller,
           variants: variantObj,
           category: subCategory,
         }),

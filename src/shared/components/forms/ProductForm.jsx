@@ -83,6 +83,9 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
       manufacturer: "",
       warranty: "",
       returnWindowDays: 30,
+      isPreOrder: false,
+      preOrderAvailableDate: "",
+      preOrderNote: "",
       promotionKey: "",
       condition: "new",
       specifications: {
@@ -106,6 +109,11 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
           typeof initialData.returnWindowDays === "number"
             ? initialData.returnWindowDays
             : defaults.returnWindowDays,
+        isPreOrder: !!initialData.isPreOrder,
+        preOrderAvailableDate: initialData.preOrderAvailableDate
+          ? new Date(initialData.preOrderAvailableDate).toISOString().split("T")[0]
+          : "",
+        preOrderNote: initialData.preOrderNote || "",
         promotionKey: initialData.promotionKey || "",
         condition: initialData.condition || "new",
         variants:
@@ -213,8 +221,9 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
 
       return {
         ...variant,
+        // Use shared SKU generator with seller id + category + variant attributes
         sku: generateSKU({
-          user: seller,
+          seller,
           variants: variantObj,
           category: getCategoryName(subCategory),
         }),

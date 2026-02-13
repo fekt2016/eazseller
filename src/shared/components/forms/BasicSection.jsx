@@ -8,6 +8,7 @@ const BasicSection = () => {
   
   const name = watch("name") || "";
   const description = watch("description") || "";
+  const isPreOrder = watch("isPreOrder");
   const nameLength = name.length;
   const descriptionLength = description.length;
 
@@ -115,6 +116,62 @@ const BasicSection = () => {
           </HelperText>
         </FieldGroup>
       </FieldRow>
+
+      {/* Pre-Order */}
+      <PreOrderSection>
+        <FieldGroup>
+          <CheckboxRow>
+            <Checkbox
+              type="checkbox"
+              id="isPreOrder"
+              {...register("isPreOrder")}
+            />
+            <CheckboxLabel htmlFor="isPreOrder">
+              This product is available for pre-order
+            </CheckboxLabel>
+          </CheckboxRow>
+          <HelperText>
+            Enable this if the product is not yet in stock but customers can order in advance.
+          </HelperText>
+        </FieldGroup>
+
+        {isPreOrder && (
+          <PreOrderFields>
+            <FieldRow>
+              <FieldGroup style={{ flex: 1 }}>
+                <Label>
+                  Expected Availability Date
+                  <Optional>(Optional)</Optional>
+                </Label>
+                <Input
+                  type="date"
+                  {...register("preOrderAvailableDate")}
+                />
+                <HelperText>When do you expect this product to be available for shipping?</HelperText>
+              </FieldGroup>
+
+              <FieldGroup style={{ flex: 1 }}>
+                <Label>
+                  Pre-Order Note
+                  <Optional>(Optional)</Optional>
+                </Label>
+                <Input
+                  {...register("preOrderNote", {
+                    maxLength: { value: 300, message: "Pre-order note must be less than 300 characters" },
+                  })}
+                  placeholder="e.g., Expected to ship by March 2026"
+                  maxLength={300}
+                  $hasError={!!errors.preOrderNote}
+                />
+                {errors.preOrderNote && (
+                  <ErrorMessage>{errors.preOrderNote.message}</ErrorMessage>
+                )}
+                <HelperText>A short message shown to buyers about the pre-order</HelperText>
+              </FieldGroup>
+            </FieldRow>
+          </PreOrderFields>
+        )}
+      </PreOrderSection>
 
       {/* Admin promotion – add this product to a platform promotion */}
       <FieldGroup>
@@ -359,4 +416,44 @@ const ErrorMessage = styled.span`
   background: #fed7d7;
   border-radius: 4px;
   border-left: 3px solid #e53e3e;
+`;
+
+const PreOrderSection = styled.div`
+  margin-bottom: 1.5rem;
+  padding: 1.25rem;
+  background: #fffbeb;
+  border: 1.5px solid #fde68a;
+  border-radius: 10px;
+`;
+
+const PreOrderFields = styled.div`
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #fde68a;
+`;
+
+const CheckboxRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+`;
+
+const Checkbox = styled.input`
+  width: 1.25rem;
+  height: 1.25rem;
+  accent-color: var(--color-primary-500);
+  cursor: pointer;
+  flex-shrink: 0;
+`;
+
+const CheckboxLabel = styled.label`
+  font-size: 1.0625rem;
+  font-weight: 500;
+  color: #1e293b;
+  cursor: pointer;
+  user-select: none;
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+  }
 `;

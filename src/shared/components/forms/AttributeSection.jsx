@@ -49,8 +49,9 @@ export default function AttributeSection({
       ...comb,
       price: "",
       stock: "",
+      // Use shared SKU generator (seller-based) for generated combinations
       sku: generateSKU({
-        user: currentUser,
+        seller: currentUser,
         variants: comb,
         category: categoryCode,
       }),

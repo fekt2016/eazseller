@@ -26,6 +26,7 @@ const CouponBatchModal = ({ batch, onClose }) => {
     applicableCategories: [],
   });
   const [showHighDiscountWarning, setShowHighDiscountWarning] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
 
   // Update form data when batch changes (edit mode)
   useEffect(() => {
@@ -119,6 +120,9 @@ const CouponBatchModal = ({ batch, onClose }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    // Prevent double-submit while already in progress
+    if (isLoading || hasSubmitted) return;
+
     // Validate dates
     if (new Date(formData.expiresAt) <= new Date(formData.validFrom)) {
       alert("Expiration date must be after valid from date");
@@ -143,6 +147,8 @@ const CouponBatchModal = ({ batch, onClose }) => {
       }
     }
 
+    setHasSubmitted(true);
+
     if (batch) {
       // Edit mode
       updateMutation(
@@ -151,6 +157,12 @@ const CouponBatchModal = ({ batch, onClose }) => {
           onSuccess: () => {
             onClose();
           },
+          onError: () => {
+            setHasSubmitted(false);
+          },
+          onSettled: () => {
+            setHasSubmitted(false);
+          },
         }
       );
     } else {
@@ -158,6 +170,12 @@ const CouponBatchModal = ({ batch, onClose }) => {
       createMutation(formData, {
         onSuccess: () => {
           onClose();
+        },
+        onError: () => {
+          setHasSubmitted(false);
+        },
+        onSettled: () => {
+          setHasSubmitted(false);
         },
       });
     }
@@ -310,7 +328,7 @@ const CouponBatchModal = ({ batch, onClose }) => {
             <CheckboxLabel>Allow stacking with other coupons</CheckboxLabel>
           </CheckboxContainer>
 
-            <SubmitButton type="submit" disabled={isLoading}>
+            <SubmitButton type="submit" disabled={isLoading || hasSubmitted}>
               {isLoading ? (
                 <>
                   <LoadingSpinner size="small" />

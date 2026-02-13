@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function VariantInventoryPanel({
   stock = 0,
@@ -9,7 +9,18 @@ export default function VariantInventoryPanel({
   showAlerts = true,
 }) {
   const [localStock, setLocalStock] = useState(stock);
+  // Keep localSku in sync with parent (auto-generated) value
   const [localSku, setLocalSku] = useState(sku);
+
+  // Sync when parent sku prop changes (e.g. auto-generated from attributes)
+  useEffect(() => {
+    setLocalSku(sku || "");
+  }, [sku]);
+
+  // Sync when parent stock prop changes
+  useEffect(() => {
+    setLocalStock(stock || 0);
+  }, [stock]);
 
   const handleStockChange = (e) => {
     const value = parseInt(e.target.value) || 0;

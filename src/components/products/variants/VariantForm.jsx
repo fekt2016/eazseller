@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { useEffect, useRef, useState, useMemo } from "react";
 import AttributeSelector from "./AttributeSelector";
 import VariantInventoryPanel from "./VariantInventoryPanel";
@@ -48,6 +48,7 @@ export default function VariantForm({
     setValue,
     reset,
     getValues,
+    control,
   } = useForm({
     defaultValues: initialData || {
       name: "",
@@ -83,41 +84,67 @@ export default function VariantForm({
   const watchedSku = watch("sku");
   const watchedImages = watch("images") || [];
 
-  // Auto-generate SKU when attributes change
+  // useWatch gives deep, reliable change detection for nested array fields
+  // (registered inputs update individual array elements which watch() may not detect)
+  const deepWatchedAttrs = useWatch({ control, name: "attributes" });
+
+  // Serialize attributes for stable useEffect dependency (detects value-level changes)
+  const attrsKey = useMemo(() => {
+    try {
+      return JSON.stringify(
+        (deepWatchedAttrs || []).map((a) => ({ k: a?.key, v: a?.value }))
+      );
+    } catch {
+      return "";
+    }
+  }, [deepWatchedAttrs]);
+
+  // Auto-generate SKU whenever attributes change (same logic as Add Product form)
   useEffect(() => {
+    // Skip initial render when editing an existing variant that already has a SKU
     if (firstRun.current) {
       firstRun.current = false;
-      return;
+      // But still generate if SKU is empty (new variant)
+      const currentSku = getValues("sku");
+      if (currentSku && currentSku.trim() !== "") return;
     }
 
-    if (!watchedAttributes || watchedAttributes.length === 0) return;
+    const attrs = deepWatchedAttrs || [];
+    if (attrs.length === 0) return;
+
+    // Need at least one attribute with a value to generate
+    const hasValue = attrs.some((a) => a?.key && a?.value && String(a.value).trim() !== "");
+    if (!hasValue) return;
+
+    // Need seller data to generate a proper SKU
+    if (!seller) return;
 
     // Convert attributes array to object format for generateSKU
-    const variantsObj = (watchedAttributes || []).reduce((o, a) => {
+    const variantsObj = attrs.reduce((o, a) => {
       if (a?.key && a.value) o[a.key] = a.value;
       return o;
     }, {});
 
-    // Get category from product
+    // Get category from product (same as ProductForm)
     const category = product?.subCategory?.name || product?.parentCategory?.name || "GENERAL";
 
-    // Generate SKU
+    // Generate SKU using the shared helper (same as Add Product)
     const newSku = generateSKU({
-      seller: seller || { id: seller?._id || seller?.id || "UNK" },
+      seller,
       variants: variantsObj,
-      category: category,
+      category,
     });
 
     const currentSku = getValues("sku");
 
-    // Only update if SKU is empty or if attributes changed significantly
-    if (!currentSku || currentSku.trim() === "") {
+    // Auto-fill if SKU is empty or update with new generated value
+    if (!currentSku || currentSku.trim() === "" || currentSku !== newSku) {
       setValue("sku", newSku, {
         shouldDirty: true,
         shouldValidate: false,
       });
     }
-  }, [watchedAttributes, setValue, getValues, seller, product]);
+  }, [attrsKey, seller, product, setValue, getValues, deepWatchedAttrs]);
 
   const handleFormSubmit = (data) => {
     // Auto-generate SKU if empty before submit
@@ -130,9 +157,9 @@ export default function VariantForm({
       const category = product?.subCategory?.name || product?.parentCategory?.name || "GENERAL";
       
       data.sku = generateSKU({
-        seller: seller || { id: seller?._id || seller?.id || "UNK" },
+        seller,
         variants: variantsObj,
-        category: category,
+        category,
       });
     }
     

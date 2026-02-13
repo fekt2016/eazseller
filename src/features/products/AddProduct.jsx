@@ -187,10 +187,11 @@ const AddProductPage = () => {
           attributes,
           price: variant.price ? Number(variant.price) : 0,
           stock: variant.stock ? Number(variant.stock) : 0,
+          // If SKU is empty, generate it using the same helper as VariantForm/ProductForm
           sku:
             variant.sku ||
             generateSKU({
-              user: seller,
+              seller,
               category: data.category,
               variants: variant,
             }),
@@ -264,6 +265,20 @@ const AddProductPage = () => {
       // Always append as a plain string, never as object or JSON
       formData.append("warranty", warrantyValue);
       formData.append("condition", data.variants?.[0]?.condition || "new");
+      // Return window
+      if (data.returnWindowDays != null) {
+        formData.append("returnWindowDays", String(data.returnWindowDays));
+      }
+      // Pre-order fields
+      formData.append("isPreOrder", data.isPreOrder ? "true" : "false");
+      if (data.isPreOrder) {
+        if (data.preOrderAvailableDate) {
+          formData.append("preOrderAvailableDate", data.preOrderAvailableDate);
+        }
+        if (data.preOrderNote) {
+          formData.append("preOrderNote", data.preOrderNote.trim());
+        }
+      }
       if (data.promotionKey) {
         formData.append("promotionKey", data.promotionKey.trim());
       }

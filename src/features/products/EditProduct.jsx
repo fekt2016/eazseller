@@ -293,6 +293,25 @@ const EditProduct = () => {
       // The existing warranty stored in the product will be preserved on update.
       
       formData.append("condition", data.condition);
+
+      // Return window
+      if (data.returnWindowDays != null) {
+        formData.append("returnWindowDays", String(data.returnWindowDays));
+      }
+      // Pre-order fields
+      formData.append("isPreOrder", data.isPreOrder ? "true" : "false");
+      if (data.isPreOrder) {
+        if (data.preOrderAvailableDate) {
+          formData.append("preOrderAvailableDate", data.preOrderAvailableDate);
+        }
+        if (data.preOrderNote) {
+          formData.append("preOrderNote", data.preOrderNote.trim());
+        }
+      } else {
+        // Clear pre-order fields when toggled off
+        formData.append("preOrderAvailableDate", "");
+        formData.append("preOrderNote", "");
+      }
       // formData.append("variants", JSON.stringify(data.variants));
 
       // Process variant images asynchronously
