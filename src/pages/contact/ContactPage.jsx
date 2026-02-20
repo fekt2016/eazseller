@@ -58,10 +58,10 @@ const SpinningIcon = styled(FaSpinner)`
 const ContactPage = () => {
   // SEO
   useDynamicPageTitle({
-    title: 'Contact Us • EazSeller',
+    title: 'Contact Us • Saiisai Seller',
     description: 'Get in touch with Saiisai seller support. We\'re here to help you with your store, products, orders, and payments.',
-    keywords: 'contact, support, seller support, customer service, help, Saiisai, EazSeller',
-    defaultTitle: 'Contact Us • EazSeller',
+    keywords: 'contact, support, seller support, customer service, help, Saiisai, Saiisai Seller',
+    defaultTitle: 'Contact Us • Saiisai Seller',
     defaultDescription: 'Get in touch with Saiisai seller support.',
   });
 
@@ -209,7 +209,7 @@ const ContactPage = () => {
 
   // Handle phone
   const handlePhone = () => {
-    window.location.href = 'tel:+233123456789';
+    window.location.href = 'tel:+233235222207';
   };
 
   return (
@@ -270,7 +270,7 @@ const ContactPage = () => {
             <ContactCardDescription>
               Send us an email and we'll respond within 24 hours.
             </ContactCardDescription>
-            <ContactCardInfo>support@eazshop.com</ContactCardInfo>
+            <ContactCardInfo>support@saiisai.com</ContactCardInfo>
             <ContactCardButton
               onClick={handleEmail}
               whileHover={{ scale: 1.05 }}
@@ -291,7 +291,7 @@ const ContactPage = () => {
             <ContactCardDescription>
               Call us during business hours for immediate assistance.
             </ContactCardDescription>
-            <ContactCardInfo>+233 (123) 456 789</ContactCardInfo>
+            <ContactCardInfo>+233 235222207</ContactCardInfo>
             <ContactCardButton
               onClick={handlePhone}
               whileHover={{ scale: 1.05 }}

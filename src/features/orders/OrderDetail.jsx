@@ -52,7 +52,7 @@ function OrderDetails() {
     title: "Seller Order",
     dynamicTitle: order?.order && `Seller Order #${order.order.orderNumber || order.order._id?.slice(-8) || order.order._id}`,
     description: "View customer order details.",
-    defaultTitle: "EazSeller Orders",
+    defaultTitle: "Saiisai Seller Orders",
   });
 
   if (isLoading) {
@@ -300,7 +300,7 @@ function OrderDetails() {
                       </InfoLabel>
                       {order.order.deliveryMethod === 'pickup_center' && order.order.pickupCenterId && (
                         <DeliveryInstructions>
-                          <InstructionTitle>📦 Send item to EazShop Pickup Center:</InstructionTitle>
+                          <InstructionTitle>📦 Send item to Saiisai Pickup Center:</InstructionTitle>
                           <InstructionText>
                             <strong>{order.order.pickupCenterId.pickupName}</strong>
                           </InstructionText>
@@ -316,9 +316,9 @@ function OrderDetails() {
                             </InstructionText>
                           )}
                           {order.order.pickupCenterId.googleMapLink && (
-                            <MapLink 
-                              href={order.order.pickupCenterId.googleMapLink} 
-                              target="_blank" 
+                            <MapLink
+                              href={order.order.pickupCenterId.googleMapLink}
+                              target="_blank"
                               rel="noopener noreferrer"
                             >
                               View on Google Maps →
@@ -330,7 +330,7 @@ function OrderDetails() {
                         <DeliveryInstructions>
                           <InstructionTitle>🚚 Wait for Saiisai rider to pick item</InstructionTitle>
                           <InstructionText>
-                            A Saiisai dispatch rider will come to your location to pick up the item. 
+                            A Saiisai dispatch rider will come to your location to pick up the item.
                             Please have the order ready for pickup.
                           </InstructionText>
                         </DeliveryInstructions>
@@ -415,7 +415,7 @@ function OrderDetails() {
                     </InfoLabel>
                     <InfoValue>
                       {order.order?.trackingNumber || order.trackingNumber ? (
-                        <TrackingLink 
+                        <TrackingLink
                           onClick={() => navigate(PATHS.TRACKING.replace(':trackingNumber', order.order?.trackingNumber || order.trackingNumber))}
                           title="Track Order"
                         >
@@ -474,7 +474,7 @@ function OrderDetails() {
                   GH₵{(order.total || 0).toFixed(2)}
                 </SummaryValue>
               </TotalRow>
-              
+
               {/* Seller Earnings (after platform commission from order/API) */}
               <SummaryItem style={{ marginTop: '15px', paddingTop: '15px', borderTop: '2px solid var(--color-grey-300)' }}>
                 <SummaryLabel style={{ fontWeight: '600' }}>Your Earnings</SummaryLabel>
@@ -482,7 +482,7 @@ function OrderDetails() {
                   GH₵{((order.total || 0) - ((order.total || 0) * (order.commissionRate ?? 0))).toFixed(2)}
                 </SummaryValue>
               </SummaryItem>
-              
+
               <SummaryItem>
                 <SummaryLabel style={{ fontSize: '13px', color: 'var(--color-grey-500)' }}>Platform Fee ({(order.commissionRate ?? 0) * 100}%)</SummaryLabel>
                 <SummaryValue style={{ fontSize: '13px', color: 'var(--color-grey-600)' }}>
@@ -601,22 +601,22 @@ const OrderStatus = styled.div`
     props.status === "completed"
       ? "rgba(6, 214, 160, 0.1)"
       : props.status === "processing"
-      ? "rgba(255, 209, 102, 0.1)"
-      : props.status === "shipped"
-      ? "rgba(67, 97, 238, 0.1)"
-      : props.status === "cancelled"
-      ? "rgba(239, 71, 111, 0.1)"
-      : "rgba(101, 119, 134, 0.1)"};
+        ? "rgba(255, 209, 102, 0.1)"
+        : props.status === "shipped"
+          ? "rgba(67, 97, 238, 0.1)"
+          : props.status === "cancelled"
+            ? "rgba(239, 71, 111, 0.1)"
+            : "rgba(101, 119, 134, 0.1)"};
   color: ${(props) =>
     props.status === "completed"
       ? "#06d6a0"
       : props.status === "processing"
-      ? "#ffd166"
-      : props.status === "shipped"
-      ? "#4361ee"
-      : props.status === "cancelled"
-      ? "#ef476f"
-      : "#657786"};
+        ? "#ffd166"
+        : props.status === "shipped"
+          ? "#4361ee"
+          : props.status === "cancelled"
+            ? "#ef476f"
+            : "#657786"};
   font-size: 14px;
   font-weight: 600;
   margin-left: 15px;
@@ -878,12 +878,12 @@ const StatusButton = styled(ActionButton)`
     props.status === "completed"
       ? "var(--color-green-700)"
       : props.status === "processing"
-      ? "var(--color-yellow-700)"
-      : props.status === "shipped"
-      ? "var(--color-primary-500)"
-      : props.status === "cancelled"
-      ? "var(--color-red-600)"
-      : "#94a3b8"};
+        ? "var(--color-yellow-700)"
+        : props.status === "shipped"
+          ? "var(--color-primary-500)"
+          : props.status === "cancelled"
+            ? "var(--color-red-600)"
+            : "#94a3b8"};
   margin-top: 10px;
 `;
 

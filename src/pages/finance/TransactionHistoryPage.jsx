@@ -16,9 +16,9 @@ const ContentSection = styled.section`
 
 const TransactionHistoryPage = () => {
   useDynamicPageTitle({
-    title: 'Transaction History - EazSeller',
+    title: 'Transaction History - Saiisai Seller',
     description: 'View and manage your transaction history',
-    defaultTitle: 'Transactions • EazSeller',
+    defaultTitle: 'Transactions • Saiisai Seller',
   });
 
   // State

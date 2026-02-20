@@ -26,12 +26,12 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
 
   const allCategories = useMemo(() => {
     // Handle different response structures
-    const categories = data?.data?.results || 
-                      data?.data?.data?.results || 
-                      data?.results || 
-                      data?.data || 
-                      [];
-    
+    const categories = data?.data?.results ||
+      data?.data?.data?.results ||
+      data?.results ||
+      data?.data ||
+      [];
+
     // Debug logging (only in development)
     if (process.env.NODE_ENV === 'development') {
       console.log('[ProductForm] Categories data structure:', {
@@ -41,24 +41,24 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
         firstCategory: categories[0],
       });
     }
-    
+
     return Array.isArray(categories) ? categories : [];
   }, [data]);
 
   // Extract parent categories from dedicated endpoint
   const parentCategoriesFromEndpoint = useMemo(() => {
-    const parents = parentCategoriesData?.data?.categories || 
-                    parentCategoriesData?.categories || 
-                    parentCategoriesData?.data || 
-                    [];
-    
+    const parents = parentCategoriesData?.data?.categories ||
+      parentCategoriesData?.categories ||
+      parentCategoriesData?.data ||
+      [];
+
     if (process.env.NODE_ENV === 'development') {
       console.log('[ProductForm] Parent categories from endpoint:', {
         hasData: !!parentCategoriesData,
         parentCategoriesCount: Array.isArray(parents) ? parents.length : 0,
       });
     }
-    
+
     return Array.isArray(parents) ? parents : [];
   }, [parentCategoriesData]);
 
@@ -119,30 +119,30 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
         variants:
           (initialData.variants && Array.isArray(initialData.variants) && initialData.variants.length > 0)
             ? initialData.variants.map((variant) => ({
-                ...variant,
-                price:
-                  typeof variant.price === "number"
-                    ? variant.price
-                    : parseFloat(variant.price) || 0,
-                stock:
-                  typeof variant.stock === "number"
-                    ? variant.stock
-                    : parseInt(variant.stock) || 0,
-                attributes:
-                  variant.attributes?.map((attr) => ({
-                    key: attr.key,
-                    value: attr.value,
-                  })) || [],
-              }))
+              ...variant,
+              price:
+                typeof variant.price === "number"
+                  ? variant.price
+                  : parseFloat(variant.price) || 0,
+              stock:
+                typeof variant.stock === "number"
+                  ? variant.stock
+                  : parseInt(variant.stock) || 0,
+              attributes:
+                variant.attributes?.map((attr) => ({
+                  key: attr.key,
+                  value: attr.value,
+                })) || [],
+            }))
             : defaults.variants,
         specifications: {
           weight: initialData.specifications?.weight || "",
           dimension: initialData.specifications?.dimension || "",
           material: initialData.specifications?.material?.length
             ? initialData.specifications.material.map((m) => ({
-                value: m.value || "",
-                hexCode: m.hexCode || "",
-              }))
+              value: m.value || "",
+              hexCode: m.hexCode || "",
+            }))
             : defaults.specifications.material,
         },
       };
@@ -150,7 +150,7 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
     return defaults;
   }, [initialData]);
 
-  const methods = useForm({ 
+  const methods = useForm({
     defaultValues: initialFormValues,
     mode: 'onChange' // Validate on change for better UX
   });
@@ -173,14 +173,14 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
 
   useEffect(() => {
     reset(initialFormValues);
-    
+
     // Explicitly set category values when initialData is available (for edit mode)
     // This ensures categories are set even if there's a timing issue with reset
     if (initialData && mode === "edit") {
       // Use the same extraction logic as initialFormValues
       const parentCatId = initialData.parentCategory?._id || initialData.parentCategory || "";
       const subCatId = initialData.subCategory?._id || initialData.subCategory || "";
-      
+
       if (parentCatId && parentCatId !== "") {
         setValue("parentCategory", parentCatId, { shouldValidate: false, shouldDirty: false });
       }
@@ -240,11 +240,11 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
     // Validate basic fields first
     const basicFields = ['name', 'parentCategory', 'subCategory'];
     const basicValid = await trigger(basicFields);
-    
+
     if (!basicValid) {
       return false;
     }
-    
+
     // Validate all variants exist and have required fields
     const currentVariants = watch('variants') || [];
     if (!currentVariants || currentVariants.length === 0) {
@@ -252,7 +252,7 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
       alert('Please add at least one product variant before proceeding');
       return false;
     }
-    
+
     // Validate each variant's required fields
     const variantFields = [];
     currentVariants.forEach((_, index) => {
@@ -260,15 +260,15 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
       variantFields.push(`variants.${index}.stock`);
       variantFields.push(`variants.${index}.condition`);
     });
-    
+
     const variantsValid = await trigger(variantFields);
-    
+
     if (!variantsValid) {
       // Error messages are already displayed inline by the form fields
       // Just return false to prevent proceeding
       return false;
     }
-    
+
     return true;
   };
 
@@ -280,8 +280,8 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
         // Scroll to first error field
         setTimeout(() => {
           const firstErrorField = document.querySelector('input:invalid, select:invalid') ||
-                                  document.querySelector('[data-error="true"]') ||
-                                  document.querySelector('.error-message')?.parentElement?.querySelector('input, select');
+            document.querySelector('[data-error="true"]') ||
+            document.querySelector('.error-message')?.parentElement?.querySelector('input, select');
           if (firstErrorField) {
             firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
             firstErrorField.focus();
@@ -368,7 +368,7 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
                 'subCategory',
                 'imageCover'
               ];
-              
+
               // Add variant fields
               const currentVariants = values.variants || [];
               currentVariants.forEach((_, index) => {
@@ -376,15 +376,15 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
                 allFields.push(`variants.${index}.stock`);
                 allFields.push(`variants.${index}.condition`);
               });
-              
+
               const isValid = await trigger(allFields);
-              
+
               if (!isValid) {
                 // Scroll to first error
                 setTimeout(() => {
                   const firstErrorField = document.querySelector('input:invalid, select:invalid') ||
-                                          document.querySelector('[data-error="true"]') ||
-                                          document.querySelector('.error-message')?.parentElement?.querySelector('input, select');
+                    document.querySelector('[data-error="true"]') ||
+                    document.querySelector('.error-message')?.parentElement?.querySelector('input, select');
                   if (firstErrorField) {
                     firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     firstErrorField.focus();
@@ -392,7 +392,7 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
                 }, 100);
                 return;
               }
-              
+
               // Validate variants exist
               if (!values.variants || values.variants.length === 0) {
                 // Scroll back to step 1 and show error
@@ -403,21 +403,21 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
                 }, 100);
                 return;
               }
-              
+
               // Validate cover image
               if (!values.imageCover) {
                 // Error message will be shown by ImageSection validation
                 // Just scroll to it
                 setTimeout(() => {
-                  const imageError = document.querySelector('[name="imageCover"]')?.closest('.error-message') || 
-                                    document.querySelector('.error-message');
+                  const imageError = document.querySelector('[name="imageCover"]')?.closest('.error-message') ||
+                    document.querySelector('.error-message');
                   if (imageError) {
                     imageError.scrollIntoView({ behavior: 'smooth', block: 'center' });
                   }
                 }, 100);
                 return;
               }
-              
+
               onSubmit(values);
             }
           })}
@@ -430,7 +430,7 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
                   <StepDescription>Enter basic product information, category, and variants</StepDescription>
                 </StepHeader>
               )}
-              
+
               <SectionContainer>
                 <SectionTitle>
                   <span>Basic Information</span>
@@ -444,7 +444,9 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
                 </SectionTitle>
                 {allCategories.length === 0 && parentCategoriesFromEndpoint.length === 0 ? (
                   <div style={{ padding: '1rem', color: '#718096', textAlign: 'center' }}>
-                    Loading categories...
+                    {isLoading || isLoadingParents
+                      ? 'Loading categories...'
+                      : 'No categories available. Please ask an admin to add categories first.'}
                   </div>
                 ) : (
                   <CategorySection
@@ -476,7 +478,7 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
                   <StepDescription>Add product images and specifications</StepDescription>
                 </StepHeader>
               )}
-              
+
               <SectionContainer>
                 <SectionTitle>
                   <span>Product Images</span>
@@ -503,8 +505,8 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
               </SecondaryButton>
             )}
             {!isEditMode && !isLastStep ? (
-              <PrimaryButton 
-                type="button" 
+              <PrimaryButton
+                type="button"
                 onClick={goNext}
                 disabled={isSubmitting}
               >

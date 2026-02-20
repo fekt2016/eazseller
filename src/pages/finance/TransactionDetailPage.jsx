@@ -137,9 +137,9 @@ const TransactionDetailPage = () => {
   const navigate = useNavigate();
 
   useDynamicPageTitle({
-    title: `Transaction Details - EazSeller`,
+    title: `Transaction Details - Saiisai Seller`,
     description: 'View detailed transaction information',
-    defaultTitle: 'Transaction Details • EazSeller',
+    defaultTitle: 'Transaction Details • Saiisai Seller',
   });
 
   const {

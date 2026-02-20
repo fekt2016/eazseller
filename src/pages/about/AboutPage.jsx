@@ -132,11 +132,11 @@ const AboutPage = () => {
     {
       year: '2024',
       title: 'Saiisai Marketplace Launched',
-      description: 'We launched EazShop, a comprehensive online marketplace connecting buyers and sellers across Ghana and beyond.',
+      description: 'We launched Saiisai, a comprehensive online marketplace connecting buyers and sellers across Ghana and beyond.',
     },
     {
       year: '2024',
-      title: 'EazSeller & EazAdmin Portals Built',
+      title: 'Saiisai Seller & EazAdmin Portals Built',
       description: 'We developed powerful seller and admin dashboards to streamline operations and empower our partners.',
     },
     {
@@ -216,7 +216,7 @@ const AboutPage = () => {
                 with secure transactions, fast delivery, and exceptional customer service.
               </li>
               <li>
-                <strong>EazSeller</strong> — A powerful seller dashboard that helps merchants manage
+                <strong>Saiisai Seller</strong> — A powerful seller dashboard that helps merchants manage
                 products, orders, finances, and grow their online business.
               </li>
               <li>

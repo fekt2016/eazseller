@@ -27,7 +27,7 @@ import {
 } from './policy.styles';
 
 /**
- * Seller Privacy Policy Page for EazSeller
+ * Seller Privacy Policy Page for Saiisai Seller
  * Comprehensive privacy policy explaining how we collect, use, and protect seller information
  */
 const SellerPrivacyPolicyPage = () => {
@@ -41,9 +41,9 @@ const SellerPrivacyPolicyPage = () => {
 
   // SEO
   usePageTitle({
-    title: 'Seller Privacy Policy • EazSeller',
-    description: 'Learn how EazSeller collects, uses and protects seller and store information.',
-    keywords: 'seller privacy policy, data protection, EazSeller privacy, seller data, store information',
+    title: 'Seller Privacy Policy • Saiisai Seller',
+    description: 'Learn how Saiisai Seller collects, uses and protects seller and store information.',
+    keywords: 'seller privacy policy, data protection, Saiisai Seller privacy, seller data, store information',
   });
 
   // Animation variants
@@ -79,7 +79,7 @@ const SellerPrivacyPolicyPage = () => {
           <PolicyTitle>Seller Privacy Policy</PolicyTitle>
           <LastUpdated>Effective Date: {effectiveDate}</LastUpdated>
           <IntroText>
-            At Saiisai Seller, we are committed to protecting the privacy and security of seller information. This Seller Privacy Policy explains how we collect, use, share, and safeguard information related to your seller account, store, products, and business operations on the Saiisai marketplace. By using the EazSeller portal, you agree to the practices described in this policy.
+            At Saiisai Seller, we are committed to protecting the privacy and security of seller information. This Seller Privacy Policy explains how we collect, use, share, and safeguard information related to your seller account, store, products, and business operations on the Saiisai marketplace. By using the Saiisai Seller portal, you agree to the practices described in this policy.
           </IntroText>
         </PolicyHeader>
 
@@ -88,7 +88,7 @@ const SellerPrivacyPolicyPage = () => {
           <SectionTitle>1. Introduction</SectionTitle>
           <SectionContent>
             <Paragraph>
-              Saiisai Seller is the seller dashboard and portal for the Saiisai marketplace. This Privacy Policy applies to all information collected through the EazSeller platform, including our seller dashboard, mobile applications, seller support services, and any other seller-related services that link to this policy.
+              Saiisai Seller is the seller dashboard and portal for the Saiisai marketplace. This Privacy Policy applies to all information collected through the Saiisai Seller platform, including our seller dashboard, mobile applications, seller support services, and any other seller-related services that link to this policy.
             </Paragraph>
             <Paragraph>
               This policy is specifically designed for sellers using our platform. It explains how we handle seller account information, store data, product listings, financial information, and other business-related data. If you are a buyer using Saiisai, please refer to the buyer Privacy Policy.
@@ -106,7 +106,7 @@ const SellerPrivacyPolicyPage = () => {
           <SectionTitle>2. What Seller Information We Collect</SectionTitle>
           <SectionContent>
             <Paragraph>
-              We collect various types of information to enable you to sell on EazShop, process orders, manage payouts, provide seller support, and ensure compliance with our platform policies. The information we collect includes:
+              We collect various types of information to enable you to sell on Saiisai, process orders, manage payouts, provide seller support, and ensure compliance with our platform policies. The information we collect includes:
             </Paragraph>
 
             <SectionTitle style={{ fontSize: 'var(--font-size-xl)', marginTop: 'var(--spacing-xl)' }}>
@@ -204,7 +204,7 @@ const SellerPrivacyPolicyPage = () => {
             <BulletList>
               <li>
                 <Paragraph>
-                  <strong>Device and Usage Information:</strong> We automatically collect information about the devices you use to access EazSeller, including device type, operating system, browser information, IP address, and usage patterns such as pages visited, features used, and time spent on the platform.
+                  <strong>Device and Usage Information:</strong> We automatically collect information about the devices you use to access Saiisai Seller, including device type, operating system, browser information, IP address, and usage patterns such as pages visited, features used, and time spent on the platform.
                 </Paragraph>
               </li>
               <li>
@@ -219,7 +219,7 @@ const SellerPrivacyPolicyPage = () => {
               </li>
               <li>
                 <Paragraph>
-                  <strong>Cookies and Tracking Technologies:</strong> We use cookies, web beacons, and similar technologies to collect information about your use of the EazSeller platform. This helps us remember your preferences, analyze platform usage, and improve our services.
+                  <strong>Cookies and Tracking Technologies:</strong> We use cookies, web beacons, and similar technologies to collect information about your use of the Saiisai Seller platform. This helps us remember your preferences, analyze platform usage, and improve our services.
                 </Paragraph>
               </li>
             </BulletList>
@@ -356,7 +356,7 @@ const SellerPrivacyPolicyPage = () => {
             <BulletList>
               <li>
                 <Paragraph>
-                  <strong>Access and Edit Business Profile:</strong> You can access and update your seller profile, store information, business details, and account settings through your EazSeller dashboard. You can also update product listings, pricing, inventory, and other store-related information at any time.
+                  <strong>Access and Edit Business Profile:</strong> You can access and update your seller profile, store information, business details, and account settings through your Saiisai Seller dashboard. You can also update product listings, pricing, inventory, and other store-related information at any time.
                 </Paragraph>
               </li>
               <li>
@@ -381,7 +381,7 @@ const SellerPrivacyPolicyPage = () => {
               </li>
               <li>
                 <Paragraph>
-                  <strong>Cookie Settings:</strong> You can manage cookies and similar technologies through your browser settings. However, disabling certain cookies may affect the functionality of the EazSeller platform.
+                  <strong>Cookie Settings:</strong> You can manage cookies and similar technologies through your browser settings. However, disabling certain cookies may affect the functionality of the Saiisai Seller platform.
                 </Paragraph>
               </li>
               <li>
@@ -445,7 +445,7 @@ const SellerPrivacyPolicyPage = () => {
               When we transfer your information internationally, we take steps to ensure that appropriate safeguards are in place to protect your data. These safeguards may include standard contractual clauses, certification schemes, adequacy decisions, and other legal mechanisms designed to ensure adequate protection of your information.
             </Paragraph>
             <Paragraph>
-              By using EazSeller, you consent to the transfer of your information to countries outside your country of residence, including countries that may not have the same level of data protection as your home country. We will continue to protect your information in accordance with this Privacy Policy regardless of where it is processed.
+              By using Saiisai Seller, you consent to the transfer of your information to countries outside your country of residence, including countries that may not have the same level of data protection as your home country. We will continue to protect your information in accordance with this Privacy Policy regardless of where it is processed.
             </Paragraph>
           </SectionContent>
         </PolicySection>
@@ -464,11 +464,11 @@ const SellerPrivacyPolicyPage = () => {
             </Paragraph>
             <BulletList>
               <li>Email notifications to your registered seller email address</li>
-              <li>Prominent notices on the EazSeller dashboard</li>
+              <li>Prominent notices on the Saiisai Seller dashboard</li>
               <li>Other methods as required by applicable law</li>
             </BulletList>
             <Paragraph>
-              We encourage you to review this Seller Privacy Policy periodically to stay informed about how we protect your information. Your continued use of EazSeller after changes become effective constitutes your acceptance of the updated Privacy Policy.
+              We encourage you to review this Seller Privacy Policy periodically to stay informed about how we protect your information. Your continued use of Saiisai Seller after changes become effective constitutes your acceptance of the updated Privacy Policy.
             </Paragraph>
           </SectionContent>
         </PolicySection>

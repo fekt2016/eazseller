@@ -2,7 +2,7 @@ import styled from 'styled-components';
 import { motion } from 'framer-motion';
 
 /**
- * Styled components for Sitemap Page (EazSeller)
+ * Styled components for Sitemap Page (Saiisai Seller)
  * Modern, clean design
  */
 

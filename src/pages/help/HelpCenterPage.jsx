@@ -66,7 +66,7 @@ import {
 } from './help.styles';
 
 /**
- * Help Center Page for EazSeller
+ * Help Center Page for Saiisai Seller
  * Provides help resources, FAQs, and support information for sellers
  */
 const HelpCenterPage = () => {
@@ -75,9 +75,9 @@ const HelpCenterPage = () => {
 
   // SEO
   usePageTitle({
-    title: 'Help Center - EazSeller',
+    title: 'Help Center - Saiisai Seller',
     description: 'Get help with your seller account, products, orders, payments, and more. Find answers to frequently asked questions.',
-    keywords: 'help, support, FAQ, seller support, EazSeller',
+    keywords: 'help, support, FAQ, seller support, Saiisai Seller',
   });
 
   // Animation variants

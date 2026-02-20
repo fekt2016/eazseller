@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import styled, { keyframes } from "styled-components";
+import { FaCheck } from "react-icons/fa";
 import { PropagateLoader } from "react-spinners";
 import useAuth from '../../shared/hooks/useAuth';
-import { validateGhanaPhone } from '../../shared/utils/helpers';
+import { validateGhanaPhone, sanitizeName } from '../../shared/utils/helpers';
 import { PATHS } from '../../routes/routePaths';
 import { ButtonSpinner } from '../../shared/components/ButtonSpinner';
 import { ErrorState } from '../../shared/components/ui/LoadingComponents';
@@ -52,6 +53,7 @@ const AuthPage = () => {
     location: "Nima", // Auto-select Nima as default
     network: phoneNetwork,
     contactNumber: "",
+    agreeToTerms: false,
   });
   // Field-level validation errors: { [fieldName]: errorMessage }
   const [fieldErrors, setFieldErrors] = useState({});
@@ -182,8 +184,9 @@ const AuthPage = () => {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    const valueToSet = type === "checkbox" ? checked : value;
+    setFormData((prev) => ({ ...prev, [name]: valueToSet }));
 
     // Clear field error when user starts typing
     if (fieldErrors[name]) {
@@ -385,6 +388,11 @@ const AuthPage = () => {
     
     if (!formData.name.trim()) {
       clientErrors.name = 'Name is required';
+    } else {
+      const sanitized = sanitizeName(formData.name);
+      if (sanitized !== formData.name.trim()) {
+        clientErrors.name = 'Invalid characters in name. Use letters, spaces, hyphens, and apostrophes only.';
+      }
     }
     
     if (!formData.email.trim()) {
@@ -415,12 +423,20 @@ const AuthPage = () => {
       clientErrors.password = 'Password is required';
     } else if (formData.password.length < 8) {
       clientErrors.password = 'Password must be at least 8 characters';
+    } else if (!/\d/.test(formData.password)) {
+      clientErrors.password = 'Almost there! Add at least one number (e.g. 1, 2, 3) to make your password stronger.';
+    } else if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(formData.password)) {
+      clientErrors.password = 'Almost there! Add a special character (e.g. ! @ # $ %) to make your password more secure.';
     }
     
     if (!formData.passwordConfirm) {
       clientErrors.passwordConfirm = 'Please confirm your password';
     } else if (formData.password !== formData.passwordConfirm) {
       clientErrors.passwordConfirm = 'Passwords do not match';
+    }
+
+    if (!formData.agreeToTerms) {
+      clientErrors.agreeToTerms = 'You must agree to the privacy policy & terms';
     }
     
     // If client-side validation fails, show errors and stop
@@ -439,7 +455,7 @@ const AuthPage = () => {
       };
 
       const registrationData = {
-        name: formData.name,
+        name: sanitizeName(formData.name),
         email: formData.email,
         phone: formData.contactNumber,
         password: formData.password,
@@ -647,8 +663,7 @@ const AuthPage = () => {
               ) : null}
 
               <SubmitButton
-                type="button"
-                onClick={handleLoginSubmit}
+                type="submit"
                 disabled={
                   loginStep === "credentials"
                     ? isLoggingIn || !loginState.email || !loginState.password
@@ -803,6 +818,35 @@ const AuthPage = () => {
                 />
                 {fieldErrors.passwordConfirm && <ErrorText>{fieldErrors.passwordConfirm}</ErrorText>}
               </InputGroup>
+
+              <TermsCheckboxGroup>
+                <TermsCheckboxLabel htmlFor="agreeToTerms">
+                  <TermsCheckboxContainer>
+                    <TermsCheckbox
+                      type="checkbox"
+                      id="agreeToTerms"
+                      name="agreeToTerms"
+                      checked={formData.agreeToTerms}
+                      onChange={handleChange}
+                    />
+                    <TermsCheckboxBox $checked={formData.agreeToTerms}>
+                      {formData.agreeToTerms && <FaCheck size={10} color="#667eea" />}
+                    </TermsCheckboxBox>
+                  </TermsCheckboxContainer>
+                  <TermsLabelText>
+                    I agree with the{" "}
+                    <Link
+                      to={PATHS.TERMS}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      privacy policy & terms
+                    </Link>
+                  </TermsLabelText>
+                </TermsCheckboxLabel>
+              </TermsCheckboxGroup>
+              {fieldErrors.agreeToTerms && <ErrorText>{fieldErrors.agreeToTerms}</ErrorText>}
 
               <SubmitButton type="button" onClick={handleRegisterSubmit} disabled={isRegistering}>
                 {isRegistering ? (
@@ -1413,6 +1457,72 @@ const ErrorText = styled.span`
   @media (max-width: 480px) {
     font-size: clamp(0.9375rem, 3.5vw, 1rem);
     margin-top: 0.5rem;
+  }
+`;
+
+const TermsCheckboxGroup = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 0.75rem;
+`;
+
+const TermsCheckboxLabel = styled.label`
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  user-select: none;
+`;
+
+const TermsCheckboxContainer = styled.div`
+  position: relative;
+  flex-shrink: 0;
+`;
+
+const TermsCheckbox = styled.input.attrs({ type: "checkbox" })`
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  cursor: pointer;
+  z-index: 2;
+`;
+
+const TermsCheckboxBox = styled.div`
+  width: 20px;
+  height: 20px;
+  background: white;
+  border: 2px solid ${(props) => (props.$checked ? "#667eea" : "#ddd")};
+  border-radius: 6px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.2s;
+  position: relative;
+  z-index: 1;
+
+  ${TermsCheckboxLabel}:hover > div > & {
+    border-color: #667eea;
+  }
+`;
+
+const TermsLabelText = styled.span`
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.5;
+
+  a {
+    color: var(--color-primary-600);
+    text-decoration: none;
+    font-weight: 500;
+
+    &:hover {
+      text-decoration: underline;
+    }
   }
 `;
 

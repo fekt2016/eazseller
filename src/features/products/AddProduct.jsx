@@ -36,19 +36,17 @@ const AddProductPage = () => {
 
     try {
       // Validate categories first
-      // const isValidObjectId = (id) => id && /^[0-9a-fA-F]{24}$/.test(id);
-      // const parentCategoryId = isValidObjectId(data.parentCategory)
-      //   ? data.category
-      //   : null;
-      // const subCategoryId = isValidObjectId(data.subCategory)
-      //   ? data.subCategory
-      //   : null;
+      if (!data.parentCategory) {
+        console.error("Invalid parent category ID");
+        alert("Please select a parent category");
+        return;
+      }
 
-      // if (!parentCategoryId) {
-      //   console.error("Invalid parent category ID");
-      //   alert("Please select a valid parent category");
-      //   return;
-      // }
+      if (!data.subCategory) {
+        console.error("Invalid sub category ID");
+        alert("Please select a sub category");
+        return;
+      }
 
       // Process cover image
       if (data.imageCover) {
@@ -87,11 +85,11 @@ const AddProductPage = () => {
       // Calculate total stock and price
       let totalStock = 0;
       let productPrice = 0;
-      
+
       if (data.productType === "simple") {
         totalStock = data.stock;
         productPrice = parseFloat(data.price) || 0;
-        
+
         // Validate simple product price
         if (productPrice <= 0) {
           toast.error('Product price must be greater than 0', {
@@ -110,7 +108,7 @@ const AddProductPage = () => {
         const variantPrices = data.variants
           .map((v) => parseFloat(v.price) || 0)
           .filter((p) => p > 0);
-        
+
         if (variantPrices.length === 0) {
           toast.error('At least one variant must have a price greater than 0', {
             position: 'top-right',
@@ -118,9 +116,9 @@ const AddProductPage = () => {
           });
           return;
         }
-        
+
         productPrice = Math.min(...variantPrices);
-        
+
         // Validate all variant prices
         const invalidVariants = data.variants.filter(
           (v) => !v.price || parseFloat(v.price) <= 0
@@ -133,7 +131,7 @@ const AddProductPage = () => {
           return;
         }
       }
-      
+
       // Always append price (required by backend) - ensure it's > 0
       if (productPrice <= 0) {
         toast.error('Product price must be greater than 0', {
@@ -142,7 +140,7 @@ const AddProductPage = () => {
         });
         return;
       }
-      
+
       formData.append("price", productPrice.toString());
       formData.append("totalStock", totalStock.toString());
 
@@ -216,7 +214,7 @@ const AddProductPage = () => {
           // Parse weight string (e.g., "0.5kg", "500g") into object
           const weightStr = String(data.specifications.weight).trim();
           if (!weightStr) return null;
-          
+
           const weightMatch = weightStr.match(/([\d.]+)\s*([a-z]+)/i);
           if (weightMatch) {
             return {
@@ -233,10 +231,10 @@ const AddProductPage = () => {
         })() : null,
         dimension: data.specifications?.dimension || "",
       };
-      
+
       formData.append("specifications", JSON.stringify(specifications));
       formData.append("manufacturer", data.manufacturer || "");
-      
+
       // Handle warranty - ensure it's ALWAYS sent as a plain string (backend will parse and convert to object)
       // This prevents validation errors from Mongoose trying to cast objects to strings
       let warrantyValue = "";
@@ -245,13 +243,13 @@ const AddProductPage = () => {
           // If it's already a string, use it directly
           if (typeof data.warranty === 'string') {
             warrantyValue = data.warranty.trim();
-          } 
+          }
           // If it's an object, extract the details string or create a readable string
           else if (typeof data.warranty === 'object') {
-            warrantyValue = data.warranty.details || 
-                          (data.warranty.duration && data.warranty.type 
-                            ? `${data.warranty.duration} ${data.warranty.type}`.trim()
-                            : "");
+            warrantyValue = data.warranty.details ||
+              (data.warranty.duration && data.warranty.type
+                ? `${data.warranty.duration} ${data.warranty.type}`.trim()
+                : "");
           }
           // If it's something else, convert to string
           else {

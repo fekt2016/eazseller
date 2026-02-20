@@ -15,9 +15,9 @@ import useDynamicPageTitle from '../../shared/hooks/useDynamicPageTitle';
 
 export default function ShippingInfoPage() {
   useDynamicPageTitle({
-    title: 'Shipping Information - EazSeller',
+    title: 'Shipping Information - Saiisai Seller',
     description: 'Learn about Saiisai shipping policies, delivery coverage, and seller responsibilities in Ghana',
-    defaultTitle: 'Shipping Information • EazSeller',
+    defaultTitle: 'Shipping Information • Saiisai Seller',
   });
 
   return (
@@ -38,9 +38,9 @@ export default function ShippingInfoPage() {
         </SectionHeader>
         <SectionContent>
           <InfoCard>
-            <InfoTitle>EazShop Logistics Handles All Deliveries</InfoTitle>
+            <InfoTitle>Saiisai Logistics Handles All Deliveries</InfoTitle>
             <InfoText>
-              Saiisai Logistics manages all deliveries nationwide in Ghana. As a seller, 
+              Saiisai Logistics manages all deliveries nationwide in Ghana. As a seller,
               you do <strong>NOT</strong> need to configure shipping fees, zones, or delivery methods.
             </InfoText>
             <InfoText>
@@ -71,7 +71,7 @@ export default function ShippingInfoPage() {
                 Accra, Tema, and surrounding areas
               </RegionDescription>
             </DeliveryRegion>
-            
+
             <DeliveryRegion>
               <RegionName>Ashanti Region</RegionName>
               <RegionTimeline>2–3 days</RegionTimeline>
@@ -79,7 +79,7 @@ export default function ShippingInfoPage() {
                 Kumasi and surrounding areas
               </RegionDescription>
             </DeliveryRegion>
-            
+
             <DeliveryRegion>
               <RegionName>Central, Eastern, Western</RegionName>
               <RegionTimeline>2–4 days</RegionTimeline>
@@ -87,7 +87,7 @@ export default function ShippingInfoPage() {
                 Cape Coast, Koforidua, Takoradi, and surrounding areas
               </RegionDescription>
             </DeliveryRegion>
-            
+
             <DeliveryRegion>
               <RegionName>Northern, Upper East, Upper West</RegionName>
               <RegionTimeline>3–5 days</RegionTimeline>
@@ -95,7 +95,7 @@ export default function ShippingInfoPage() {
                 Tamale, Bolgatanga, Wa, and surrounding areas
               </RegionDescription>
             </DeliveryRegion>
-            
+
             <DeliveryRegion>
               <RegionName>Rural Zones</RegionName>
               <RegionTimeline>5–7 days</RegionTimeline>
@@ -104,10 +104,10 @@ export default function ShippingInfoPage() {
               </RegionDescription>
             </DeliveryRegion>
           </DeliveryGrid>
-          
+
           <TimelineNote>
-            <FaExclamationTriangle /> Delivery timelines may vary due to weather, traffic, 
-            and courier availability. EazShop will notify you of any significant delays.
+            <FaExclamationTriangle /> Delivery timelines may vary due to weather, traffic,
+            and courier availability. Saiisai will notify you of any significant delays.
           </TimelineNote>
         </SectionContent>
       </Section>
@@ -140,7 +140,7 @@ export default function ShippingInfoPage() {
               </ResponsibilityItem>
             </ResponsibilityList>
             <LegalNote>
-              Failure to meet these responsibilities may result in order cancellation, 
+              Failure to meet these responsibilities may result in order cancellation,
               refund processing, or account restrictions per Saiisai seller policies.
             </LegalNote>
           </ResponsibilityCard>
@@ -167,7 +167,7 @@ export default function ShippingInfoPage() {
                   </StepDescription>
                 </StepContent>
               </PickupStep>
-              
+
               <PickupStep>
                 <StepNumber>2</StepNumber>
                 <StepContent>
@@ -177,7 +177,7 @@ export default function ShippingInfoPage() {
                   </StepDescription>
                 </StepContent>
               </PickupStep>
-              
+
               <PickupStep>
                 <StepNumber>3</StepNumber>
                 <StepContent>
@@ -187,7 +187,7 @@ export default function ShippingInfoPage() {
                   </StepDescription>
                 </StepContent>
               </PickupStep>
-              
+
               <PickupStep>
                 <StepNumber>4</StepNumber>
                 <StepContent>
@@ -232,7 +232,7 @@ export default function ShippingInfoPage() {
               <FeeItem>
                 <FeeLabel>Fee Determination:</FeeLabel>
                 <FeeValue>
-                  Saiisai determines shipping fees based on delivery region, package weight, 
+                  Saiisai determines shipping fees based on delivery region, package weight,
                   and shipping type (standard, same-day, or express)
                 </FeeValue>
               </FeeItem>
@@ -245,14 +245,14 @@ export default function ShippingInfoPage() {
               <FeeItem>
                 <FeeLabel>Seller Revenue:</FeeLabel>
                 <FeeValue>
-                  Your seller revenue is <strong>NOT</strong> affected by shipping costs. 
+                  Your seller revenue is <strong>NOT</strong> affected by shipping costs.
                   You receive the full product price (minus platform fees)
                 </FeeValue>
               </FeeItem>
               <FeeItem>
                 <FeeLabel>Failed Deliveries:</FeeLabel>
                 <FeeValue>
-                  Saiisai absorbs failed delivery costs based on internal policies. 
+                  Saiisai absorbs failed delivery costs based on internal policies.
                   You are not charged for delivery attempts
                 </FeeValue>
               </FeeItem>
@@ -307,49 +307,49 @@ export default function ShippingInfoPage() {
             <FAQItem>
               <FAQQuestion>Who pays for shipping?</FAQQuestion>
               <FAQAnswer>
-                The customer pays for shipping. Saiisai manages all shipping fees and logistics. 
+                The customer pays for shipping. Saiisai manages all shipping fees and logistics.
                 Your seller revenue is not affected by shipping costs.
               </FAQAnswer>
             </FAQItem>
-            
+
             <FAQItem>
               <FAQQuestion>Can I use my own courier service?</FAQQuestion>
               <FAQAnswer>
-                No. Saiisai requires all sellers to use Saiisai Logistics for consistency, 
-                tracking, and customer experience. Using external couriers may result in 
+                No. Saiisai requires all sellers to use Saiisai Logistics for consistency,
+                tracking, and customer experience. Using external couriers may result in
                 order cancellation or account restrictions.
               </FAQAnswer>
             </FAQItem>
-            
+
             <FAQItem>
               <FAQQuestion>What happens if a package is damaged during delivery?</FAQQuestion>
               <FAQAnswer>
-                Saiisai investigates all damage claims. If damage is due to inadequate packaging, 
-                the seller may be liable. If damage occurs during transit due to courier handling, 
+                Saiisai investigates all damage claims. If damage is due to inadequate packaging,
+                the seller may be liable. If damage occurs during transit due to courier handling,
                 Saiisai handles the resolution. Always package items securely to avoid liability.
               </FAQAnswer>
             </FAQItem>
-            
+
             <FAQItem>
               <FAQQuestion>How do I know when to prepare a package?</FAQQuestion>
               <FAQAnswer>
-                You will receive a notification when an order is confirmed and ready for pickup. 
+                You will receive a notification when an order is confirmed and ready for pickup.
                 Prepare the package within 24 hours and mark it as ready in your seller dashboard.
               </FAQAnswer>
             </FAQItem>
-            
+
             <FAQItem>
               <FAQQuestion>What if the courier doesn't show up for pickup?</FAQQuestion>
               <FAQAnswer>
-                Contact Saiisai support immediately. We will reschedule the pickup and ensure 
+                Contact Saiisai support immediately. We will reschedule the pickup and ensure
                 your order is not delayed. You can track pickup status in your orders dashboard.
               </FAQAnswer>
             </FAQItem>
-            
+
             <FAQItem>
               <FAQQuestion>Can I track my orders after pickup?</FAQQuestion>
               <FAQAnswer>
-                Yes. Once the package is picked up, you can track it through your seller dashboard 
+                Yes. Once the package is picked up, you can track it through your seller dashboard
                 using the order tracking number. Customers can also track their orders.
               </FAQAnswer>
             </FAQItem>

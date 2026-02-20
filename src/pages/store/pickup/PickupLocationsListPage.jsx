@@ -29,9 +29,9 @@ const PickupLocationsListPage = () => {
   const deleteMutation = deleteLocation();
 
   useDynamicPageTitle({
-    title: 'Pickup Locations - EazSeller',
+    title: 'Pickup Locations - Saiisai Seller',
     description: 'Manage your pickup locations for order dispatch',
-    defaultTitle: 'Pickup Locations - EazSeller',
+    defaultTitle: 'Pickup Locations - Saiisai Seller',
   });
 
   const handleDelete = (id) => {

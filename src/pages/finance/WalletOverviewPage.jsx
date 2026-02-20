@@ -35,9 +35,9 @@ const BalanceCardsGrid = styled(StatsGrid)`
 
 const WalletOverviewPage = () => {
   useDynamicPageTitle({
-    title: 'Wallet Overview - EazSeller',
+    title: 'Wallet Overview - Saiisai Seller',
     description: 'View your balance, earnings, and transaction history',
-    defaultTitle: 'Wallet • EazSeller',
+    defaultTitle: 'Wallet • Saiisai Seller',
   });
 
   const {

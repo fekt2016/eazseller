@@ -76,10 +76,10 @@ export const useUnreadCount = () => {
   const query = useQuery({
     queryKey: ['notifications', 'unread'],
     queryFn: async () => {
-      console.log('[EazSeller useUnreadCount] 🔄 Query function called');
+      console.log('[Saiisai Seller useUnreadCount] 🔄 Query function called');
       try {
         const data = await getUnreadCount();
-        console.log('[EazSeller useUnreadCount] ✅ Query function returned:', {
+        console.log('[Saiisai Seller useUnreadCount] ✅ Query function returned:', {
           data,
           unreadCount: data?.data?.unreadCount,
           status: data?.status,
@@ -89,7 +89,7 @@ export const useUnreadCount = () => {
       } catch (error) {
         // If 401, user is not authenticated - return zero count instead of throwing
         if (error?.response?.status === 401) {
-          console.warn('[EazSeller useUnreadCount] ⚠️ 401 error - seller not authenticated, returning zero count');
+          console.warn('[Saiisai Seller useUnreadCount] ⚠️ 401 error - seller not authenticated, returning zero count');
           return {
             status: 'success',
             data: {
@@ -99,7 +99,7 @@ export const useUnreadCount = () => {
         }
         // Handle network errors gracefully
         if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
-          console.warn('[EazSeller useUnreadCount] ⚠️ Network error - returning default response');
+          console.warn('[Saiisai Seller useUnreadCount] ⚠️ Network error - returning default response');
           return {
             status: 'success',
             data: {
@@ -127,7 +127,7 @@ export const useUnreadCount = () => {
 
   // Debug logging
   if (process.env.NODE_ENV === 'development') {
-    console.log('[EazSeller useUnreadCount] 📊 Query state:', {
+    console.log('[Saiisai Seller useUnreadCount] 📊 Query state:', {
       isLoading: query.isLoading,
       isError: query.isError,
       error: query.error,

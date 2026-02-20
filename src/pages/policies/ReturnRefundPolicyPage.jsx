@@ -82,7 +82,7 @@ const ReturnRefundPolicyPage = () => {
           <PolicyTitle>Return & Refund Policy</PolicyTitle>
           <LastUpdated>Last Updated: {lastUpdatedDate}</LastUpdated>
           <IntroText>
-            If you are not satisfied with an item purchased on EazShop, you may be eligible to return it and receive a refund. Please follow the procedure outlined in this Return and Refund Policy.
+            If you are not satisfied with an item purchased on Saiisai, you may be eligible to return it and receive a refund. Please follow the procedure outlined in this Return and Refund Policy.
           </IntroText>
         </PolicyHeader>
 
@@ -194,7 +194,7 @@ const ReturnRefundPolicyPage = () => {
                   <strong>Advanced Refunds</strong>
                 </Paragraph>
                 <Paragraph>
-                  In some cases, Saiisai may issue an advanced refund immediately after you drop off your return package. If the return is not completed or the item fails inspection, EazShop may charge your original payment method.
+                  In some cases, Saiisai may issue an advanced refund immediately after you drop off your return package. If the return is not completed or the item fails inspection, Saiisai may charge your original payment method.
                 </Paragraph>
               </li>
               <li>

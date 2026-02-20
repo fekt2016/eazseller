@@ -26,9 +26,9 @@ const PickupLocationCreatePage = () => {
   const setDefaultMutation = setDefaultLocation();
 
   useDynamicPageTitle({
-    title: 'Add Pickup Location - EazSeller',
+    title: 'Add Pickup Location - Saiisai Seller',
     description: 'Create a new pickup location for order dispatch',
-    defaultTitle: 'Add Pickup Location - EazSeller',
+    defaultTitle: 'Add Pickup Location - Saiisai Seller',
   });
 
   const handleSubmit = async (formData) => {

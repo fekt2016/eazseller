@@ -67,15 +67,15 @@ import {
 
 /**
  * Seller Education Center Page
- * Knowledge base and training hub for EazSeller sellers
+ * Knowledge base and training hub for Saiisai Seller sellers
  */
 const SellerEducationCenterPage = () => {
   // SEO
   useDynamicPageTitle({
-    title: 'Seller Education Center • EazSeller',
+    title: 'Seller Education Center • Saiisai Seller',
     description: 'Learn how to grow your business on Saiisai with tutorials, guides, training videos, and best practices.',
-    keywords: 'seller education, tutorials, guides, training, EazSeller, EazShop seller resources',
-    defaultTitle: 'Seller Education Center • EazSeller',
+    keywords: 'seller education, tutorials, guides, training, Saiisai Seller, Saiisai seller resources',
+    defaultTitle: 'Seller Education Center • Saiisai Seller',
     defaultDescription: 'Learn how to grow your business on Saiisai with tutorials, guides, training videos, and best practices.',
   });
 
@@ -159,7 +159,7 @@ const SellerEducationCenterPage = () => {
       duration: '4:45',
     },
     {
-      title: 'How Payouts Work on EazSeller',
+      title: 'How Payouts Work on Saiisai Seller',
       duration: '2:30',
     },
   ];
@@ -243,27 +243,27 @@ const SellerEducationCenterPage = () => {
     if (!searchQuery.trim()) {
       return; // Don't search if query is empty
     }
-    
+
     // Filter articles and categories based on search query
     const query = searchQuery.toLowerCase().trim();
-    const filteredArticles = articles.filter(article => 
+    const filteredArticles = articles.filter(article =>
       article.title.toLowerCase().includes(query) ||
       article.description?.toLowerCase().includes(query) ||
       article.category?.toLowerCase().includes(query)
     );
-    
+
     const filteredCategories = categories.filter(category =>
       category.title.toLowerCase().includes(query) ||
       category.description.toLowerCase().includes(query)
     );
-    
+
     // For now, just log results. In a full implementation, you'd update state to show filtered results
     console.log('Search results:', {
       query,
       articlesFound: filteredArticles.length,
       categoriesFound: filteredCategories.length,
     });
-    
+
     // TODO: Update UI to show filtered results
     // You could add state like: const [filteredArticles, setFilteredArticles] = useState(articles);
     // and update it here, then render filteredArticles instead of articles
@@ -281,7 +281,7 @@ const SellerEducationCenterPage = () => {
           <HeroIcon variants={fadeUp}>
             <FaGraduationCap />
           </HeroIcon>
-          <HeroTitle variants={fadeUp}>EazSeller Education Center</HeroTitle>
+          <HeroTitle variants={fadeUp}>Saiisai Seller Education Center</HeroTitle>
           <HeroSubtitle variants={fadeUp}>
             Learn how to succeed on Saiisai. Tutorials, guides, tools, and best practices for every seller.
           </HeroSubtitle>
@@ -340,7 +340,7 @@ const SellerEducationCenterPage = () => {
       >
         <SectionTitle>Featured Training Videos</SectionTitle>
         <SectionDescription>
-          Watch step-by-step tutorials to master EazSeller.
+          Watch step-by-step tutorials to master Saiisai Seller.
         </SectionDescription>
         <VideosGrid>
           {featuredVideos.map((video, index) => (

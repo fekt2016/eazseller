@@ -36,7 +36,7 @@ const TableRow = styled.tr`
 
 const TableHeader = styled.th`
   padding: var(--spacing-md);
-  text-align: ${({ align }) => align || 'left'};
+  text-align: ${({ $align }) => $align || 'left'};
   font-size: var(--font-size-sm);
   font-weight: var(--font-semibold);
   color: var(--color-grey-700);
@@ -50,7 +50,7 @@ const TableBody = styled.tbody``;
 
 const TableCell = styled.td`
   padding: var(--spacing-md);
-  text-align: ${({ align }) => align || 'left'};
+  text-align: ${({ $align }) => $align || 'left'};
   font-size: var(--font-size-md);
   color: var(--color-grey-700);
   font-family: var(--font-body);
@@ -171,7 +171,7 @@ export default function ResponsiveDataTable({
           <TableHead>
             <TableRow>
               {columns.map((column) => (
-                <TableHeader key={column.key} align={column.align}>
+                <TableHeader key={column.key} $align={column.align}>
                   {column.title}
                 </TableHeader>
               ))}
@@ -181,7 +181,7 @@ export default function ResponsiveDataTable({
             {data.map((item, index) => (
               <TableRow key={item.id || item._id || index}>
                 {columns.map((column) => (
-                  <TableCell key={column.key} align={column.align}>
+                  <TableCell key={column.key} $align={column.align}>
                     {column.render 
                       ? column.render(item, index) 
                       : item[column.key]}

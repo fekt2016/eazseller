@@ -29,9 +29,9 @@ const PickupLocationEditPage = () => {
   const setDefaultMutation = setDefaultLocation();
 
   useDynamicPageTitle({
-    title: location ? `Edit ${location.name} - EazSeller` : 'Edit Pickup Location - EazSeller',
+    title: location ? `Edit ${location.name} - Saiisai Seller` : 'Edit Pickup Location - Saiisai Seller',
     description: 'Update pickup location details',
-    defaultTitle: 'Edit Pickup Location - EazSeller',
+    defaultTitle: 'Edit Pickup Location - Saiisai Seller',
   });
 
   const handleSubmit = async (formData) => {

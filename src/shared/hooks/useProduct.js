@@ -107,9 +107,7 @@ const useProduct = () => {
   const deleteProduct = useMutation({
     mutationFn: (id) => productService.deleteProduct(id),
     onSuccess: () => {
-      // queryClient.getQueryData(["product"]);
-      queryClient.invalidateQueries(["product"]);
-      console.log("product deleted successfully!!!");
+      queryClient.invalidateQueries({ queryKey: ["products"] });
     },
   });
 
@@ -192,6 +190,7 @@ const useProduct = () => {
     },
     deleteProduct: {
       mutate: deleteProduct.mutate,
+      mutateAsync: deleteProduct.mutateAsync,
       isLoading: deleteProduct.isLoading,
       error: deleteProduct.error,
     },

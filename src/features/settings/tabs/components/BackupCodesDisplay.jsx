@@ -23,7 +23,7 @@ const BackupCodesDisplay = ({ backupCodes, onRegenerate }) => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'eazshop-2fa-backup-codes.txt';
+      a.download = 'saiisai-2fa-backup-codes.txt';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);

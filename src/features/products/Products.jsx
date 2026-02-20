@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { useQueryClient } from "@tanstack/react-query";
 import useAuth from '../../shared/hooks/useAuth';
 import { useMemo, useState } from "react";
 import useProduct from '../../shared/hooks/useProduct';
@@ -19,6 +20,7 @@ import Button from '../../shared/components/ui/Button';
 import SearchBox from '../../shared/components/ui/SearchBox';
 import { LoadingState, EmptyState } from '../../shared/components/ui/LoadingComponents';
 import { ButtonSpinner } from '../../shared/components/ButtonSpinner';
+import { toast } from 'react-toastify';
 
 export default function Products() {
   const [deletingId, setDeletingId] = useState(null);
@@ -27,6 +29,7 @@ export default function Products() {
   const { seller, isLoading: authLoading } = useAuth();
   const sellerId = seller?._id;
 
+  const queryClient = useQueryClient();
   const { useGetAllProductBySeller, deleteProduct } = useProduct();
   const { useGetSellerProductViews } = useAnalytics();
   const { data, isLoading: productsLoading } = useGetAllProductBySeller(sellerId);
@@ -79,10 +82,11 @@ export default function Products() {
     setDeletingId(stringId);
     try {
       await deleteProduct.mutateAsync(stringId);
-      queryClient.invalidateQueries("products");
+      await queryClient.invalidateQueries({ queryKey: ["products"] });
     } catch (error) {
       console.error("Delete failed:", error);
-      alert("Failed to delete product. Please try again.");
+      const msg = error?.response?.data?.message || error?.message || "Failed to delete product. Please try again.";
+      toast.error(msg);
     } finally {
       setDeletingId(null);
     }
@@ -133,7 +137,7 @@ export default function Products() {
       title: 'Stock',
       align: 'center',
       render: (product) => (
-        <StockIndicator stock={product.totalStock || product.stock || 0}>
+        <StockIndicator $stock={product.totalStock || product.stock || 0}>
           {product.totalStock || product.stock || 0}
           {(product.totalStock || product.stock || 0) === 0 && " (Out of Stock)"}
         </StockIndicator>
@@ -322,16 +326,16 @@ const StockIndicator = styled.div`
   font-weight: var(--font-semibold);
   font-size: var(--font-size-sm);
   font-family: var(--font-body);
-  background: ${({ stock }) =>
-    stock > 20 
+  background: ${({ $stock }) =>
+    $stock > 20 
       ? "var(--color-green-100)" 
-      : stock > 0 
+      : $stock > 0 
       ? "var(--color-yellow-100)" 
       : "var(--color-red-100)"};
-  color: ${({ stock }) =>
-    stock > 20 
+  color: ${({ $stock }) =>
+    $stock > 20 
       ? "var(--color-green-700)" 
-      : stock > 0 
+      : $stock > 0 
       ? "var(--color-yellow-700)" 
       : "var(--color-red-700)"};
 `;

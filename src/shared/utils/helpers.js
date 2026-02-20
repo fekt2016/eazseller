@@ -215,6 +215,17 @@ export const validateGhanaPhone = (phone) => {
     network,
   };
 };
+
+/** Sanitize name input: letters (including caps), spaces, hyphens, apostrophes only */
+export const sanitizeName = (name) => {
+  if (typeof name !== 'string') return '';
+  return name
+    .replace(/<[^>]*>/g, '')
+    .replace(/[^a-zA-Z\s\-']/g, '')
+    .trim()
+    .substring(0, 100);
+};
+
 export const validateGhanaPhoneNumberOnly = (phone) => {
   // Remove all non-digit characters except leading '+'
   const cleanedPhone = phone.replace(/\D/g, "");

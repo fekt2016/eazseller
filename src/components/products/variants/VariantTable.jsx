@@ -76,7 +76,7 @@ export default function VariantTable({
       title: 'Quantity',
       align: 'center',
       render: (variant) => (
-        <StockIndicator stock={variant.stock || 0}>
+        <StockIndicator $stock={variant.stock || 0}>
           {variant.stock || 0}
           {(variant.stock || 0) === 0 && " (Out of Stock)"}
         </StockIndicator>
@@ -182,16 +182,16 @@ const StockIndicator = styled.div`
   font-weight: var(--font-semibold);
   font-size: var(--font-size-sm);
   font-family: var(--font-body);
-  background: ${({ stock }) =>
-    stock > 20 
+  background: ${({ $stock }) =>
+    $stock > 20 
       ? "var(--color-green-100)" 
-      : stock > 0 
+      : $stock > 0 
       ? "var(--color-yellow-100)" 
       : "var(--color-red-100)"};
-  color: ${({ stock }) =>
-    stock > 20 
+  color: ${({ $stock }) =>
+    $stock > 20 
       ? "var(--color-green-700)" 
-      : stock > 0 
+      : $stock > 0 
       ? "var(--color-yellow-700)" 
       : "var(--color-red-700)"};
 `;

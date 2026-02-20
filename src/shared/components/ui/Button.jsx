@@ -182,7 +182,7 @@ const Spinner = styled.span`
 `;
 
 /**
- * Universal Button Component for EazSeller
+ * Universal Button Component for Saiisai Seller
  * 
  * @param {string} variant - Button style: 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost' | 'success' | 'link'
  * @param {string} size - Button size: 'xs' | 'sm' | 'md' | 'lg'

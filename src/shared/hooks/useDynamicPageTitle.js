@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 
 /**
- * Dynamic SEO and Meta Tag Management Hook for EazSeller
+ * Dynamic SEO and Meta Tag Management Hook for Saiisai Seller
  * Automatically manages document title, meta tags, Open Graph, and Twitter Cards
  * Updates dynamically when data becomes available
  * 
@@ -21,13 +21,13 @@ export const useDynamicPageTitle = (config = {}) => {
       title = '',
       dynamicTitle = '',
       description = '',
-      defaultTitle = 'EazSeller Dashboard',
+      defaultTitle = 'Saiisai Seller Dashboard',
       defaultDescription = 'Manage your products and orders',
     } = config;
 
     // Determine final title: dynamicTitle > title > defaultTitle
     const finalTitle = dynamicTitle || title || defaultTitle;
-    
+
     // Determine final description: description > defaultDescription
     const finalDescription = description || defaultDescription;
 
@@ -39,11 +39,11 @@ export const useDynamicPageTitle = (config = {}) => {
     // Helper function to update or create meta tags
     const updateOrCreateMeta = (selector, content, attr = 'name') => {
       if (!content) return;
-      
+
       // Try to find existing meta tag
       const existingTag = document.querySelector(
-        attr === 'property' 
-          ? `meta[property="${selector}"]` 
+        attr === 'property'
+          ? `meta[property="${selector}"]`
           : `meta[name="${selector}"]`
       );
 

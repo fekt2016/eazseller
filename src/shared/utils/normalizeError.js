@@ -1,4 +1,4 @@
-// Centralized error normalizer for seller-facing React app (EazSeller).
+// Centralized error normalizer for seller-facing React app (Saiisai Seller).
 // Maps Axios / fetch / unknown errors to a consistent, user-friendly shape:
 // { title: string, message: string, canRetry: boolean }
 

@@ -40,9 +40,9 @@ const SellerFundsPage = () => {
   const deleteWithdrawalMutation = deleteWithdrawal();
 
   useDynamicPageTitle({
-    title: 'Funds & Wallet - EazSeller',
+    title: 'Funds & Wallet - Saiisai Seller',
     description: 'Manage your earnings, transactions, and withdrawals',
-    defaultTitle: 'Funds & Wallet - EazSeller',
+    defaultTitle: 'Funds & Wallet - Saiisai Seller',
   });
 
   const {

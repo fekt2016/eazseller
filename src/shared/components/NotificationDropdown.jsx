@@ -202,7 +202,7 @@ const NotificationDropdown = ({ unreadCount }) => {
 
   // Debug: Log unreadCount to verify it's being passed correctly
   useEffect(() => {
-    console.log('[EazSeller NotificationDropdown] 🔔 unreadCount prop:', {
+    console.log('[Saiisai Seller NotificationDropdown] 🔔 unreadCount prop:', {
       unreadCount,
       type: typeof unreadCount,
       isNumber: typeof unreadCount === 'number',

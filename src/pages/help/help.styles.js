@@ -5,7 +5,7 @@ import { devicesMax } from '../../shared/styles/breakpoint';
 
 /**
  * Styled components for Help Center Page
- * Modern, elegant design following EazSeller design system
+ * Modern, elegant design following Saiisai Seller design system
  */
 
 // Main Container
@@ -490,9 +490,7 @@ export const VatPolicyList = styled.ul`
 
 export const VatFaqList = styled.div`
   margin-top: var(--spacing-xl);
-`;
-
-export const VatFaqItem = styled.div`
+`;export const VatFaqItem = styled.div`
   background: var(--color-white-0);
   border: 1px solid var(--color-grey-200);
   border-radius: 8px;

@@ -42,10 +42,10 @@ const TermsPage = () => {
 
   // SEO
   useDynamicPageTitle({
-    title: 'Terms & Service • EazSeller',
+    title: 'Terms & Service • Saiisai Seller',
     description: 'Review the terms and conditions for selling on Saiisai. Understand your rights and responsibilities as a seller.',
-    keywords: 'seller terms, conditions, terms of service, EazSeller terms, seller agreement, service agreement',
-    defaultTitle: 'Terms & Service • EazSeller',
+    keywords: 'seller terms, conditions, terms of service, Saiisai Seller terms, seller agreement, service agreement',
+    defaultTitle: 'Terms & Service • Saiisai Seller',
     defaultDescription: 'Review the terms and conditions for selling on Saiisai.',
   });
 
@@ -82,7 +82,7 @@ const TermsPage = () => {
           <PolicyTitle>Terms & Service</PolicyTitle>
           <LastUpdated>Last Updated: {lastUpdatedDate}</LastUpdated>
           <IntroText>
-            Please read these Terms and Conditions carefully before using EazSeller. By accessing or using our seller platform, you agree to be bound by these terms. If you do not agree with any part of these terms, you may not access the service.
+            Please read these Terms and Conditions carefully before using Saiisai Seller. By accessing or using our seller platform, you agree to be bound by these terms. If you do not agree with any part of these terms, you may not access the service.
           </IntroText>
         </PolicyHeader>
 
@@ -91,10 +91,10 @@ const TermsPage = () => {
           <SectionTitle>1. Acceptance of Terms</SectionTitle>
           <SectionContent>
             <Paragraph>
-              By registering as a seller on Saiisai and accessing the EazSeller platform, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
+              By registering as a seller on Saiisai and accessing the Saiisai Seller platform, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
             </Paragraph>
             <Paragraph>
-              These Terms apply to all sellers, vendors, and others who access or use the EazSeller Service.
+              These Terms apply to all sellers, vendors, and others who access or use the Saiisai Seller Service.
             </Paragraph>
           </SectionContent>
         </PolicySection>
@@ -341,7 +341,7 @@ const TermsPage = () => {
               We reserve the right to modify these Terms at any time. Material changes will be communicated to you via email or through your seller dashboard at least 30 days in advance.
             </Paragraph>
             <Paragraph>
-              Continued use of the EazSeller platform after changes become effective constitutes acceptance of the revised terms.
+              Continued use of the Saiisai Seller platform after changes become effective constitutes acceptance of the revised terms.
             </Paragraph>
           </SectionContent>
         </PolicySection>

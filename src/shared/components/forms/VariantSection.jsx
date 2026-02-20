@@ -79,7 +79,7 @@ export default function VariantSection({ variantAttributes = [], seller }) {
         .split(",")
         .map((v) => v.trim())
         .filter(Boolean);
-      
+
       return {
         key: attr.name,
         values: values,
@@ -263,7 +263,7 @@ function VariantRow({
     () => addTaxToBase(variantPrice),
     [variantPrice, addTaxToBase]
   );
-  
+
   const variantErrors = errors.variants?.[variantIndex];
 
   useEffect(() => {
@@ -304,6 +304,42 @@ function VariantRow({
     }
   }, [watchedAttrs, setValue, getValues, variantIndex, seller, subCategory]);
 
+  // Auto-add missing attributes and set default values (moved from render)
+  useEffect(() => {
+    if (!allAttributes || !allAttributes.length) return;
+
+    const currentAttrs = watchedAttrs || [];
+    const missingAttributes = allAttributes.filter(attr =>
+      // Only care about variant attributes
+      attr.isVariant !== false &&
+      // Check if it's already in the variant's attributes
+      !currentAttrs.some(a => a.key === attr.name)
+    );
+
+    if (missingAttributes.length > 0) {
+      const newAttributes = [...currentAttrs];
+
+      missingAttributes.forEach(attr => {
+        const defaultValue =
+          (attr.type === 'enum' || attr.type === 'color') &&
+            attr.values?.length === 1
+            ? attr.values[0]
+            : '';
+
+        newAttributes.push({
+          key: attr.name,
+          value: defaultValue
+        });
+      });
+
+      // Update form state with new attributes
+      setValue(`variants.${variantIndex}.attributes`, newAttributes, {
+        shouldDirty: true,
+        shouldValidate: false
+      });
+    }
+  }, [allAttributes, watchedAttrs, setValue, variantIndex]);
+
   return (
     <VariantFieldsGrid>
       {/* Attributes Section */}
@@ -311,17 +347,23 @@ function VariantRow({
         <FieldLabel>Attributes</FieldLabel>
         <VariantAttributes>
           {allAttributes.map((attr, ai) => {
+            // Filter out non-variant attributes (like Packaging)
+            if (attr.isVariant === false) return null;
+
             // Find the attribute index in the variant's attributes array
             const attrIndex = watchedAttrs.findIndex(
               (a) => a.key === attr.name
             );
 
-            // If not found, add it to the variant
+            // If not found, return null (logic moved to useEffect)
             if (attrIndex === -1) {
-              const newAttrs = [...watchedAttrs, { key: attr.name, value: "" }];
-              setValue(`variants.${variantIndex}.attributes`, newAttrs);
               return null;
             }
+
+            const hasEnumValues =
+              (attr.type === 'enum' || attr.type === 'color') &&
+              Array.isArray(attr.values) &&
+              attr.values.length > 0;
 
             return (
               <AttributeItem key={`${attr.name}-${ai}`}>
@@ -332,13 +374,51 @@ function VariantRow({
                   )}
                   value={attr.name}
                 />
-                <AttributeName>{attr.name}:</AttributeName>
-                <AttributeInput
-                  {...register(
-                    `variants.${variantIndex}.attributes.${attrIndex}.value`
-                  )}
-                  placeholder={`Enter ${attr.name}`}
-                />
+                <AttributeName>
+                  {attr.name}
+                  {attr.isRequired && <Required>*</Required>}:
+                </AttributeName>
+
+                {hasEnumValues ? (
+                  <Select
+                    {...register(
+                      `variants.${variantIndex}.attributes.${attrIndex}.value`,
+                      attr.isRequired
+                        ? { required: `${attr.name} is required` }
+                        : {}
+                    )}
+                  >
+                    {attr.values.length > 1 && (
+                      <option value="">Select {attr.name}</option>
+                    )}
+                    {attr.values.map((val) => (
+                      <option key={val} value={val}>
+                        {val}
+                      </option>
+                    ))}
+                  </Select>
+                ) : attr.type === 'number' ? (
+                  <AttributeInput
+                    type="number"
+                    {...register(
+                      `variants.${variantIndex}.attributes.${attrIndex}.value`,
+                      attr.isRequired
+                        ? { required: `${attr.name} is required` }
+                        : {}
+                    )}
+                    placeholder={`Enter ${attr.name}`}
+                  />
+                ) : (
+                  <AttributeInput
+                    {...register(
+                      `variants.${variantIndex}.attributes.${attrIndex}.value`,
+                      attr.isRequired
+                        ? { required: `${attr.name} is required` }
+                        : {}
+                    )}
+                    placeholder={`Enter ${attr.name}`}
+                  />
+                )}
               </AttributeItem>
             );
           })}
@@ -412,9 +492,9 @@ function VariantRow({
       {/* Condition */}
       <VariantFieldGroup>
         <FieldLabel>Condition <Required>*</Required></FieldLabel>
-        <Select 
-          {...register(`variants.${variantIndex}.condition`, { 
-            required: "Please select a condition for this variant" 
+        <Select
+          {...register(`variants.${variantIndex}.condition`, {
+            required: "Please select a condition for this variant"
           })}
           $hasError={!!variantErrors?.condition}
         >

@@ -1,7 +1,7 @@
 import api from '../api';
 
 /**
- * Notification API Service for EazSeller (Seller App)
+ * Notification API Service for Saiisai Seller (Seller App)
  * All endpoints use the shared backend notification API
  */
 
@@ -22,9 +22,9 @@ export const getNotifications = async (params = {}) => {
 // Get unread notification count
 export const getUnreadCount = async () => {
   try {
-    console.log('[EazSeller NotificationAPI] 🔍 Fetching unread count...');
+    console.log('[Saiisai Seller NotificationAPI] 🔍 Fetching unread count...');
     const response = await api.get('/notifications/unread');
-    console.log('[EazSeller NotificationAPI] ✅ getUnreadCount response:', {
+    console.log('[Saiisai Seller NotificationAPI] ✅ getUnreadCount response:', {
       fullResponse: response,
       responseData: response.data,
       unreadCount: response.data?.data?.unreadCount,
@@ -34,7 +34,7 @@ export const getUnreadCount = async () => {
   } catch (error) {
     // Handle network errors gracefully
     if (error.code === 'ERR_NETWORK' || error.message === 'Network Error') {
-      console.error('[EazSeller NotificationAPI] ❌ Network Error - Backend server may not be running:', {
+      console.error('[Saiisai Seller NotificationAPI] ❌ Network Error - Backend server may not be running:', {
         message: error.message,
         code: error.code,
         config: {
@@ -53,7 +53,7 @@ export const getUnreadCount = async () => {
       };
     }
     
-    console.error('[EazSeller NotificationAPI] ❌ Error fetching unread count:', {
+    console.error('[Saiisai Seller NotificationAPI] ❌ Error fetching unread count:', {
       error,
       message: error.message,
       code: error.code,

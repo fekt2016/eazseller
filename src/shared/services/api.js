@@ -120,7 +120,7 @@ const api = axios.create({
   },
 });
 
-  // Request interceptor
+// Request interceptor
 api.interceptors.request.use((config) => {
   // Strip trailing slashes from path so backend route matching works (e.g. GET /seller not GET /seller/)
   if (config.url && typeof config.url === 'string' && !config.url.startsWith('http')) {
@@ -131,7 +131,7 @@ api.interceptors.request.use((config) => {
   const relativePath = getRelativePath(config.url);
   const normalizedPath = normalizePath(relativePath);
   const method = config.method ? config.method.toLowerCase() : "get";
-  
+
   // SECURITY: Ensure Content-Type is set correctly
   // For FormData, let browser set Content-Type with boundary
   // For all other requests, explicitly set application/json
@@ -139,7 +139,7 @@ api.interceptors.request.use((config) => {
     config.headers = config.headers || {};
     // Always set Content-Type to application/json for non-FormData requests
     config.headers['Content-Type'] = 'application/json';
-    
+
     // SECURITY: Ensure data is a proper object/array, not a string
     // If data is a string, it might be double-encoded - try to parse it
     if (typeof config.data === 'string' && config.data.trim().length > 0) {
@@ -149,7 +149,7 @@ api.interceptors.request.use((config) => {
         console.error('[API] Expected an object like: {"email":"...","password":"..."}');
         throw new Error('Invalid request format: data must be a JSON object, not a plain string. Please check your request payload.');
       }
-      
+
       // Try to parse if it looks like JSON
       try {
         const parsed = JSON.parse(config.data);
@@ -162,7 +162,7 @@ api.interceptors.request.use((config) => {
         throw new Error('Invalid JSON format in request data. Please ensure your request body is valid JSON.');
       }
     }
-    
+
     // Log data type for debugging
     if (import.meta.env.DEV && config.data !== undefined && config.data !== null) {
       console.debug('[API] Request data type:', typeof config.data, Array.isArray(config.data) ? '(array)' : '');
@@ -171,7 +171,7 @@ api.interceptors.request.use((config) => {
       }
     }
   }
-  
+
   // SECURITY: Warn if seller is trying to access admin-only routes
   const adminOnlyRoutes = [
     // IMPORTANT: Be precise here to avoid flagging valid seller routes
@@ -181,7 +181,7 @@ api.interceptors.request.use((config) => {
     '/logs',
     '/eazshop',
   ];
-  
+
   const isAdminRoute = adminOnlyRoutes.some(route => {
     if (route === '/order') {
       // Only treat the bare /order or /order/ as admin-only.
@@ -191,7 +191,7 @@ api.interceptors.request.use((config) => {
         normalizedPath === '/order/'
       );
     }
-    
+
     if (route.endsWith('/')) {
       return (
         normalizedPath.startsWith(route) &&
@@ -199,10 +199,10 @@ api.interceptors.request.use((config) => {
         !normalizedPath.includes('/profile')
       );
     }
-    
+
     return normalizedPath === route || normalizedPath.startsWith(route);
   });
-  
+
   if (isAdminRoute && method === 'get') {
     console.error(`[API] ⚠️ SECURITY WARNING: Possible admin-only route: ${method.toUpperCase()} ${normalizedPath}`);
     console.error(`[API] ⚠️ If you see 403 errors here, confirm this route is intended for sellers.`);
@@ -214,7 +214,7 @@ api.interceptors.request.use((config) => {
     console.debug(`[API] ${method.toUpperCase()} ${normalizedPath} (Full URL: ${fullURL})`);
     console.debug(`[API] Content-Type: ${config.headers['Content-Type'] || 'not set'}`);
     console.debug(`[API] Request data:`, config.data);
-    
+
     // Special logging for send-otp requests
     if (normalizedPath.includes('send-otp')) {
       console.log('[API] 🔍 Send OTP Request Details:', {
@@ -235,7 +235,7 @@ api.interceptors.request.use((config) => {
   // SECURITY: Cookie-only authentication - JWT is automatically sent via withCredentials: true
   // Backend will read from req.cookies.seller_jwt (or req.cookies.main_jwt for buyer routes)
   // NO localStorage fallback - cookies are the only authentication method
-  
+
   // SECURITY: CSRF Protection - Read token from cookie and send in header
   // CSRF token is required for all state-changing operations (POST, PATCH, PUT, DELETE)
   if (['post', 'patch', 'put', 'delete'].includes(method)) {
@@ -246,9 +246,9 @@ api.interceptors.request.use((config) => {
       if (parts.length === 2) return parts.pop().split(';').shift();
       return null;
     };
-    
+
     const csrfToken = getCookie('csrf-token');
-    
+
     if (csrfToken) {
       config.headers['X-CSRF-Token'] = csrfToken;
       if (import.meta.env.DEV) {
@@ -261,11 +261,11 @@ api.interceptors.request.use((config) => {
       }
     }
   }
-  
+
   if (import.meta.env.DEV) {
     console.debug(`[API] Cookie will be sent automatically for ${method.toUpperCase()} ${normalizedPath}`);
   }
-  
+
   // Enhanced logging for verify-otp requests
   if (import.meta.env.DEV && normalizedPath.includes('verify-otp')) {
     console.log(`[API] 🔍 Verify OTP request details:`, {
@@ -287,19 +287,19 @@ api.interceptors.response.use(
     const isTimeout = error?.code === 'ECONNABORTED' || error?.message?.includes('timeout');
     if (isTimeout) {
       const url = error.config?.url || '';
-      const isAuthRequest = url.includes('/seller/login') || url.includes('/seller/signup') || 
-                           url.includes('/seller/verify') || url.includes('/auth/');
-      
+      const isAuthRequest = url.includes('/seller/login') || url.includes('/seller/signup') ||
+        url.includes('/seller/verify') || url.includes('/auth/');
+
       const timeoutMessage = isAuthRequest
         ? 'The server is taking too long to respond. Please check your internet connection and try again.'
         : 'Request timed out. Please try again.';
-      
+
       console.error(`[API] ⏱️ Timeout error: ${timeoutMessage}`, {
         url: error.config?.url,
         timeout: error.config?.timeout,
         code: error.code,
       });
-      
+
       // Create a more user-friendly error
       const timeoutError = new Error(timeoutMessage);
       timeoutError.code = 'ECONNABORTED';
@@ -307,10 +307,10 @@ api.interceptors.response.use(
       timeoutError.url = error.config?.url;
       return Promise.reject(timeoutError);
     }
-    
+
     // Enhanced logging for verify-otp errors
     const isVerifyOtpError = error.config?.url?.includes('verify-otp');
-    
+
     if (isVerifyOtpError && import.meta.env.DEV) {
       console.error('═══════════════════════════════════════════════════════════');
       console.error('[API Interceptor] ❌ FULL ERROR DETAILS FOR verify-otp');
@@ -330,12 +330,12 @@ api.interceptors.response.use(
       console.error('[API Interceptor] Full Error Object:', error);
       console.error('═══════════════════════════════════════════════════════════');
     }
-    
+
     // Handle session expiration
     if (error.response?.status === 401) {
       const url = error.config?.url || '';
       const isAuthEndpoint = url.includes('/seller/me') || url.includes('/auth/me');
-      
+
       if (isAuthEndpoint) {
         // 401 on auth endpoint = user not authenticated (normal state, not an error)
         if (import.meta.env.DEV) {
@@ -347,7 +347,7 @@ api.interceptors.response.use(
           console.debug("[API] 401 on non-auth endpoint - seller may need to re-authenticate");
         }
       }
-      
+
       // SECURITY: No token storage - cookies are managed by backend
       // Just clear React Query cache - backend cookie is cleared by logout endpoint
       if (import.meta.env.DEV) {
@@ -369,16 +369,23 @@ api.interceptors.response.use(
     if (isVerifyOtpError && import.meta.env.DEV) {
       console.error(`[API Interceptor] Error Message: ${errorMessage}`);
     } else if (isNetworkError) {
-      console.error(`[API] Network Error – request may not have reached the server`, {
+      // Enhanced logging for production debugging
+      console.error(`[API] 🚨 Network Error Details (Production Log):`, {
         url: fullUrl || error.config?.url,
+        method: error.config?.method,
         baseURL: error.config?.baseURL,
         message: error.message,
         code: error.code,
+        status: error.response?.status,
+        response: error.response,
+        request: error.request ? 'Request object exists' : 'No request object',
+        fullError: error // Log the full error object
       });
     } else {
       console.error(`[API] Error: ${errorMessage}`, {
         url: fullUrl || error.config?.url,
         status: error.response?.status,
+        details: error.response?.data
       });
     }
 

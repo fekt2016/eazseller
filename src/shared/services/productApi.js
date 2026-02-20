@@ -79,7 +79,7 @@ export const productService = {
 
   deleteProduct: async (id) => {
     try {
-      const response = await api.delete(`/product/${id}`);
+      const response = await api.delete(`/seller/me/products/${id}`);
 
       return response;
     } catch (err) {

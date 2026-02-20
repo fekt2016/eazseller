@@ -44,9 +44,9 @@ export default function UnifiedWalletPage() {
   const [error, setError] = useState("");
 
   useDynamicPageTitle({
-    title: 'Wallet & Withdrawals - EazSeller',
+    title: 'Wallet & Withdrawals - Saiisai Seller',
     description: 'Manage your earnings, transactions, and withdrawals',
-    defaultTitle: 'Wallet & Withdrawals - EazSeller',
+    defaultTitle: 'Wallet & Withdrawals - Saiisai Seller',
   });
 
   // Get balance using unified hook (includes payoutStatus)

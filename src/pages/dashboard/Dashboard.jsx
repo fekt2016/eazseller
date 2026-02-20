@@ -62,8 +62,8 @@ const StatLabel = styled.p`
 const Dashboard = () => {
   useDynamicPageTitle({
     title: "Seller Dashboard",
-    description: "Manage your EazSeller account and sales.",
-    defaultTitle: "Dashboard • EazSeller",
+    description: "Manage your Saiisai Seller account and sales.",
+    defaultTitle: "Dashboard • Saiisai Seller",
   });
 
   const { data: stats, isLoading } = useSellerStats();
@@ -93,26 +93,26 @@ const Dashboard = () => {
           <Logo to={PATHS.DASHBOARD} variant="default" />
         </LogoSection>
         <SectionTitle title="Dashboard Overview" subtitle="Your seller stats at a glance" />
-        
+
         <StatsGrid responsiveColumns columns={4}>
           <StatCard variant="elevated">
             <StatIcon size="lg"><FaBox /></StatIcon>
             <StatNumber>{stats?.totalOrders || 0}</StatNumber>
             <StatLabel>Total Orders</StatLabel>
           </StatCard>
-          
+
           <StatCard variant="elevated">
             <StatIcon size="lg"><FaDollarSign /></StatIcon>
             <StatNumber>{stats?.totalRevenue || 0}</StatNumber>
             <StatLabel>Revenue</StatLabel>
           </StatCard>
-          
+
           <StatCard variant="elevated">
             <StatIcon size="lg"><FaUsers /></StatIcon>
             <StatNumber>{stats?.totalCustomers || 0}</StatNumber>
             <StatLabel>Customers</StatLabel>
           </StatCard>
-          
+
           <StatCard variant="elevated">
             <StatIcon size="lg"><FaChartLine /></StatIcon>
             <StatNumber>{stats?.growthRate || 0}%</StatNumber>

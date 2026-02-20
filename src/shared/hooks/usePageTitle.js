@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 
 /**
- * Advanced SEO and Meta Tag Management Hook for EazSeller
+ * Advanced SEO and Meta Tag Management Hook for Saiisai Seller
  * Automatically manages document title, meta tags, Open Graph, Twitter Cards, and JSON-LD
  */
 export const usePageTitle = (config = {}) => {

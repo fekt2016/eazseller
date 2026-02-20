@@ -25,7 +25,7 @@ import {
 } from './sitemap.styles';
 
 /**
- * Sitemap Page for EazSeller
+ * Sitemap Page for Saiisai Seller
  * Displays all pages and resources in the seller portal
  */
 const SitemapPage = () => {
@@ -33,11 +33,11 @@ const SitemapPage = () => {
 
   // SEO
   useDynamicPageTitle({
-    title: 'Sitemap | EazSeller',
-    description: 'Explore all pages and resources in the EazSeller portal.',
-    keywords: 'sitemap, seller portal, navigation, EazSeller',
-    defaultTitle: 'Sitemap | EazSeller',
-    defaultDescription: 'Explore all pages and resources in the EazSeller portal.',
+    title: 'Sitemap | Saiisai Seller',
+    description: 'Explore all pages and resources in the Saiisai Seller portal.',
+    keywords: 'sitemap, seller portal, navigation, Saiisai Seller',
+    defaultTitle: 'Sitemap | Saiisai Seller',
+    defaultDescription: 'Explore all pages and resources in the Saiisai Seller portal.',
   });
 
   // Sitemap sections data

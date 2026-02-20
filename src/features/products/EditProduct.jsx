@@ -87,7 +87,7 @@ const EditProduct = () => {
     title: "Product Details",
     dynamicTitle: product?.name && `${product.name} — Manage Product`,
     description: "View and update your product.",
-    defaultTitle: "EazSeller Dashboard",
+    defaultTitle: "Saiisai Seller Dashboard",
   });
 
   const initialFormData = useMemo(() => {

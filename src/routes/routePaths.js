@@ -1,5 +1,5 @@
 /**
- * Route Paths Configuration for EazSeller (Seller Dashboard)
+ * Route Paths Configuration for Saiisai Seller (Seller Dashboard)
  * Centralized route definitions for seller dashboard
  */
 

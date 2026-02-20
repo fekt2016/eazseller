@@ -2,7 +2,7 @@ import styled from 'styled-components';
 import { motion } from 'framer-motion';
 
 /**
- * Styled components for EazSeller Landing Page
+ * Styled components for Saiisai Seller Landing Page
  * Clean, premium, conversion-focused design
  */
 

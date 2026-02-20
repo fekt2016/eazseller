@@ -69,7 +69,7 @@ import {
 
 
 /**
- * EazSeller Home Page
+ * Saiisai Seller Home Page
  * Pre-login homepage for sellers to learn about the platform
  */
 const EazSellerHomePage = () => {
@@ -78,9 +78,9 @@ const EazSellerHomePage = () => {
 
   // SEO
   usePageTitle({
-    title: 'Sell on Saiisai • EazSeller',
-    description: 'Join thousands of sellers on EazShop. Create your store, list products, and start selling.',
-    keywords: 'EazSeller, sell on Saiisai, seller portal, marketplace, online selling',
+    title: 'Sell on Saiisai • Saiisai Seller',
+    description: 'Join thousands of sellers on Saiisai. Create your store, list products, and start selling.',
+    keywords: 'Saiisai Seller, sell on Saiisai, seller portal, marketplace, online selling',
   });
 
   const toggleMobileMenu = () => {
@@ -127,7 +127,7 @@ const EazSellerHomePage = () => {
     {
       icon: <FaChartLine />,
       title: 'Reach More Customers',
-      description: 'Sell to thousands of buyers on EazShop daily.',
+      description: 'Sell to thousands of buyers on Saiisai daily.',
     },
     {
       icon: <FaTruck />,
@@ -197,7 +197,7 @@ const EazSellerHomePage = () => {
             }}>
               Education
             </MobileNavLink>
-            <MobileNavLink 
+            <MobileNavLink
               onClick={() => {
                 navigate(PATHS.HELP);
                 setIsMobileMenuOpen(false);
@@ -234,7 +234,7 @@ const EazSellerHomePage = () => {
               <FaStore />
             </HeroIcon>
             <HeroTitle variants={fadeUp}>
-              Grow Your Business with EazSeller
+              Grow Your Business with Saiisai Seller
             </HeroTitle>
             <HeroSubtitle variants={fadeUp}>
               Create your store, manage your orders, and reach thousands of customers on Saiisai.
@@ -269,7 +269,7 @@ const EazSellerHomePage = () => {
         viewport={{ once: true, amount: 0.2 }}
         variants={staggerContainer}
       >
-        <SectionTitle>Why Choose EazSeller?</SectionTitle>
+        <SectionTitle>Why Choose Saiisai Seller?</SectionTitle>
         <SectionDescription>
           Everything you need to grow your online business
         </SectionDescription>
@@ -392,14 +392,14 @@ const EazSellerHomePage = () => {
             <FooterLink as={Link} to={PATHS.EDUCATION}>
               Education
             </FooterLink>
-            <FooterLink 
+            <FooterLink
               as={Link}
               to={PATHS.HELP}
               aria-label="Help Center"
             >
               Help Center
             </FooterLink>
-            <FooterLink 
+            <FooterLink
               as={Link}
               to={PATHS.SHIPPING_INFO}
               aria-label="Shipping Information"

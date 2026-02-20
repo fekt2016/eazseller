@@ -35,10 +35,10 @@ const VatTaxPolicyPage = () => {
   });
 
   useDynamicPageTitle({
-    title: 'VAT & Tax Policy • EazSeller',
+    title: 'VAT & Tax Policy • Saiisai Seller',
     description: 'Seller VAT and tax obligations on Saiisai. Ghana GRA compliance, VAT registration, and platform tax handling.',
     keywords: 'VAT policy, seller tax, Ghana GRA, Saiisai VAT, seller tax obligations',
-    defaultTitle: 'VAT & Tax Policy • EazSeller',
+    defaultTitle: 'VAT & Tax Policy • Saiisai Seller',
     defaultDescription: 'VAT and tax policy for sellers on the Saiisai marketplace.',
   });
 

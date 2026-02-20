@@ -36,9 +36,9 @@ const SellerReturnAndFundsPage = () => {
   const rejectMutation = rejectReturn();
 
   useDynamicPageTitle({
-    title: 'Returns Management - EazSeller',
+    title: 'Returns Management - Saiisai Seller',
     description: 'Manage return requests from buyers',
-    defaultTitle: 'Returns Management - EazSeller',
+    defaultTitle: 'Returns Management - Saiisai Seller',
   });
 
   // Filter returns by status
