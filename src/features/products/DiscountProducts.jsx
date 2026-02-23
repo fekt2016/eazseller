@@ -478,9 +478,9 @@ const TabButton = styled.button`
   background: ${({ active }) => (active ? "white" : "transparent")};
   border: none;
   border-bottom: 3px solid
-    ${({ active }) => (active ? var(--color-primary-500) : "transparent")};
+    ${({ active }) => (active ? "var(--color-primary-500)" : "transparent")};
   font-weight: 500;
-  color: ${({ active }) => (active ? var(--color-primary-500) : var(--color-grey-500))};
+  color: ${({ active }) => (active ? "var(--color-primary-500)" : "var(--color-grey-500)")};
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -558,8 +558,8 @@ const StatusButton = styled.button`
   cursor: pointer;
   transition: all 0.2s;
   border: 1px solid transparent;
-  background-color: ${({ active }) => (active ? var(--color-primary-100) : var(--color-grey-100))};
-  color: ${({ active }) => (active ? var(--color-primary-700) : var(--color-grey-600))};
+    background-color: ${({ active }) => (active ? "var(--color-primary-100)" : "var(--color-grey-100)")};
+    color: ${({ active }) => (active ? "var(--color-primary-700)" : "var(--color-grey-600)")};
 
   &:hover {
     background-color: var(--color-grey-200);
@@ -661,8 +661,8 @@ const DiscountStatus = styled.div`
   padding: 4px 12px;
   border-radius: 20px;
   width: fit-content;
-  background-color: ${({ active }) => (active ? var(--color-green-100) : var(--color-red-100))};
-  color: ${({ active }) => (active ? var(--color-green-700) : var(--color-red-700))};
+  background-color: ${({ active }) => (active ? "var(--color-green-100)" : "var(--color-red-100)")};
+  color: ${({ active }) => (active ? "var(--color-green-700)" : "var(--color-red-700)")};
 
   @media (max-width: 1024px) {
     grid-area: status;
@@ -811,8 +811,8 @@ export const CouponsGrid = styled.div`
 `;
 
 export const CouponItem = styled.div`
-  border: 1px solid ${({ used }) => (used ? var(--color-grey-200) : var(--color-primary-100))};
-  background: ${({ used }) => (used ? var(--color-grey-50) : var(--color-primary-50))};
+  border: 1px solid ${({ used }) => (used ? "var(--color-grey-200)" : "var(--color-primary-100)")};
+  background: ${({ used }) => (used ? "var(--color-grey-50)" : "var(--color-primary-50)")};
   border-radius: 8px;
   padding: var(--spacing-md);
   display: flex;
@@ -834,8 +834,8 @@ export const CouponStatus = styled.div`
   font-size: 0.75rem;
   font-weight: 500;
   width: fit-content;
-  background: ${({ used }) => (used ? var(--color-red-100) : var(--color-green-100))};
-  color: ${({ used }) => (used ? var(--color-red-700) : var(--color-green-700))};
+  background: ${({ used }) => (used ? "var(--color-red-100)" : "var(--color-green-100)")};
+  color: ${({ used }) => (used ? "var(--color-red-700)" : "var(--color-green-700)")};
 `;
 
 export const CouponActions = styled.div`
