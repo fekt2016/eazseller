@@ -1,6 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
+import { devicesMax } from '../../shared/styles/breakpoint';
 import useDynamicPageTitle from '../../shared/hooks/useDynamicPageTitle';
 import Container from '../../components/ui/Container';
 import Grid from '../../components/ui/Grid';
@@ -24,7 +25,7 @@ const LogoSection = styled.div`
   margin-bottom: var(--space-2xl);
   padding: var(--space-lg) 0;
   
-  @media (max-width: 768px) {
+  @media ${devicesMax.md} {
     margin-bottom: var(--space-xl);
     padding: var(--space-md) 0;
   }

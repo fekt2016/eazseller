@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import styled, { keyframes } from "styled-components";
-import { FaCheck } from "react-icons/fa";
+import { FaCheck, FaEye, FaEyeSlash, FaFacebook } from "react-icons/fa";
 import { PropagateLoader } from "react-spinners";
 import useAuth from '../../shared/hooks/useAuth';
 import { validateGhanaPhone, sanitizeName } from '../../shared/utils/helpers';
@@ -9,24 +9,8 @@ import { PATHS } from '../../routes/routePaths';
 import { ButtonSpinner } from '../../shared/components/ButtonSpinner';
 import { ErrorState } from '../../shared/components/ui/LoadingComponents';
 import Logo from '../../shared/components/Logo';
-
-// Accra neighborhoods list
-const ACCRA_NEIGHBORHOODS = [
-  'Nima', 'Maamobi', 'Pig Farm', 'Kanda', 'Kawukudi', 'Alajo', 'Kotobabi',
-  'New Town', 'Kokomlemle', 'Roman Ridge', 'Dzorwulu', 'Airport Residential',
-  'Ridge', 'Asylum Down', 'Adabraka', 'Tudu', 'Osu', 'Labone', 'Cantonments',
-  'Accra Central', 'Arena', 'Okaishie', 'Agbogbloshie', 'Fadama', 'Dansoman',
-  'Mamprobi', 'Chorkor', 'Korle Gonno', 'Kaneshie', 'North Kaneshie',
-  'Abbosey Okai', 'Odorkor', 'Laterbiokoshie', 'La', 'Labadi', 'Trade Fair',
-  'Tse Addo', 'Burma Camp', 'Achimota', 'Circle', 'Taifa', 'Spintex',
-  'Airport Hills', 'East Legon', 'Adjiringanor', 'Trasacco Area', 'Westlands',
-  'Dome', 'Lapaz', 'Sowutuom', 'Ablekuma North', 'Abeka', 'Caprice',
-  'East Legon Hills', 'Ashaley Botwe', 'Lakeside Estate', 'Haatso', 'Kwabenya',
-  'Pokuase', 'Amasaman', 'Amrahia', 'Adenta', 'West Trassacco', 'Oyarifa',
-  'Oyibi', 'Dodowa Road', 'Spintex East', 'Teshie-Nungua Estates', 'Kokrobite',
-  'Weija', 'Kasoa', 'Kasoa Central', 'McCarthy Hill', 'Amansaman Outskirts',
-  'Shai Hills', 'Dodowa Township'
-].sort();
+import { getFacebookOAuthConfig } from '../../shared/config/oauthConfig';
+import GoogleLoginButton from "./GoogleLoginButton";
 
 // Auth Form Component
 const AuthPage = () => {
@@ -40,6 +24,9 @@ const AuthPage = () => {
     password: "",
   });
   const [loginStep, setLoginStep] = useState("credentials"); // 'credentials', '2fa'
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+  const [showRegisterPasswordConfirm, setShowRegisterPasswordConfirm] = useState(false);
   const [twoFactorCode, setTwoFactorCode] = useState("");
   const [loginSessionId, setLoginSessionId] = useState(null);
   
@@ -50,7 +37,7 @@ const AuthPage = () => {
     password: "",
     passwordConfirm: "",
     shopName: "",
-    location: "Nima", // Auto-select Nima as default
+    location: "",
     network: phoneNetwork,
     contactNumber: "",
     agreeToTerms: false,
@@ -65,6 +52,16 @@ const AuthPage = () => {
   
   const navigate = useNavigate();
 
+  const origin = typeof window !== "undefined" && window.location?.origin ? window.location.origin : "";
+  const { enabled: isFacebookEnabled, url: facebookAuthUrl } = getFacebookOAuthConfig(origin);
+
+  const handleFacebookAuth = () => {
+    if (!isFacebookEnabled || !facebookAuthUrl) {
+      setLoginClientError("Facebook sign-in is not configured for this app.");
+      return;
+    }
+    window.location.href = facebookAuthUrl;
+  };
 
   // Validate phone number in real-time
   useEffect(() => {
@@ -418,7 +415,11 @@ const AuthPage = () => {
     } else if (formData.shopName.trim().length < 3) {
       clientErrors.shopName = 'Shop name must be at least 3 characters';
     }
-    
+
+    if (!formData.location.trim()) {
+      clientErrors.location = 'Location is required';
+    }
+
     if (!formData.password) {
       clientErrors.password = 'Password is required';
     } else if (formData.password.length < 8) {
@@ -448,9 +449,9 @@ const AuthPage = () => {
     try {
       // Build shopLocation object - using location as town/neighborhood
       const shopLocation = {
-        town: formData.location,
-        city: 'Accra',
-        region: 'Greater Accra',
+        town: formData.location.trim(),
+        city: formData.location.trim(),
+        region: '',
         country: 'Ghana',
       };
 
@@ -596,22 +597,51 @@ const AuthPage = () => {
 
                   <InputGroup>
                     <Label>Password</Label>
-                    <Input
-                      type="password"
-                      name="password"
-                      value={loginState.password}
-                      onChange={(e) => {
-                        setLoginClientError("");
-                        setLoginState({ ...loginState, password: e.target.value });
-                      }}
-                      placeholder="Enter your password"
-                      required
-                      autoComplete="current-password"
-                    />
+                    <PasswordInputWrapper>
+                      <Input
+                        type={showLoginPassword ? "text" : "password"}
+                        name="password"
+                        value={loginState.password}
+                        onChange={(e) => {
+                          setLoginClientError("");
+                          setLoginState({ ...loginState, password: e.target.value });
+                        }}
+                        placeholder="Enter your password"
+                        required
+                        autoComplete="current-password"
+                        $hasToggle
+                      />
+                      <PasswordToggleBtn
+                        type="button"
+                        onClick={() => setShowLoginPassword((p) => !p)}
+                        aria-label={showLoginPassword ? "Hide password" : "Show password"}
+                      >
+                        {showLoginPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
+                      </PasswordToggleBtn>
+                    </PasswordInputWrapper>
                     <ForgotPasswordLink to={PATHS.FORGOT_PASSWORD}>
                       Forgot password?
                     </ForgotPasswordLink>
                   </InputGroup>
+
+                  <SocialDivider>
+                    <SocialDividerLine />
+                    <SocialDividerText>or continue with</SocialDividerText>
+                    <SocialDividerLine />
+                  </SocialDivider>
+                  <SocialButtons>
+                    <SocialButton
+                      type="button"
+                      $bg="#1877f2"
+                      $hover="#166fe5"
+                      onClick={handleFacebookAuth}
+                      aria-label="Continue with Facebook"
+                    >
+                      <FaFacebook color="white" size={18} />
+                      <span>Facebook</span>
+                    </SocialButton>
+                    <GoogleLoginButton appType="seller" />
+                  </SocialButtons>
                 </>
               ) : loginStep === "2fa" ? (
                 <OtpContainer>
@@ -761,20 +791,26 @@ const AuthPage = () => {
 
               <InputGroup>
                 <Label>
-                  Location (Neighborhood) <span>*</span>
+                  Location <span>*</span>
                 </Label>
-                <LocationSelect
+                <Input
+                  type="text"
                   name="location"
                   value={formData.location}
                   onChange={handleChange}
+                  placeholder="e.g. Accra, Kumasi, Lagos, or your city/area"
                   required
-                >
-                  {ACCRA_NEIGHBORHOODS.map((neighborhood) => (
-                    <option key={neighborhood} value={neighborhood}>
-                      {neighborhood}
-                    </option>
-                  ))}
-                </LocationSelect>
+                  minLength={2}
+                  maxLength={120}
+                  style={fieldErrors.location ? { borderColor: '#dc2626' } : {}}
+                />
+                {fieldErrors.location ? (
+                  <ErrorText>{fieldErrors.location}</ErrorText>
+                ) : (
+                  <HelpText>
+                    Enter your business location (city, region, or area). Anyone can register from any location.
+                  </HelpText>
+                )}
               </InputGroup>
 
               <InputGroup>
@@ -793,29 +829,49 @@ const AuthPage = () => {
 
               <InputGroup>
                 <Label>Password</Label>
-                <Input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="Enter your password"
-                  required
-                  style={fieldErrors.password ? { borderColor: '#dc2626' } : {}}
-                />
+                <PasswordInputWrapper>
+                  <Input
+                    type={showRegisterPassword ? "text" : "password"}
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    placeholder="Enter your password"
+                    required
+                    style={fieldErrors.password ? { borderColor: '#dc2626' } : {}}
+                    $hasToggle
+                  />
+                  <PasswordToggleBtn
+                    type="button"
+                    onClick={() => setShowRegisterPassword((p) => !p)}
+                    aria-label={showRegisterPassword ? "Hide password" : "Show password"}
+                  >
+                    {showRegisterPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
+                  </PasswordToggleBtn>
+                </PasswordInputWrapper>
                 {fieldErrors.password && <ErrorText>{fieldErrors.password}</ErrorText>}
               </InputGroup>
 
               <InputGroup>
                 <Label>Confirm Password</Label>
-                <Input
-                  type="password"
-                  name="passwordConfirm"
-                  value={formData.passwordConfirm}
-                  onChange={handleChange}
-                  placeholder="Confirm your password"
-                  required
-                  style={fieldErrors.passwordConfirm ? { borderColor: '#dc2626' } : {}}
-                />
+                <PasswordInputWrapper>
+                  <Input
+                    type={showRegisterPasswordConfirm ? "text" : "password"}
+                    name="passwordConfirm"
+                    value={formData.passwordConfirm}
+                    onChange={handleChange}
+                    placeholder="Confirm your password"
+                    required
+                    style={fieldErrors.passwordConfirm ? { borderColor: '#dc2626' } : {}}
+                    $hasToggle
+                  />
+                  <PasswordToggleBtn
+                    type="button"
+                    onClick={() => setShowRegisterPasswordConfirm((p) => !p)}
+                    aria-label={showRegisterPasswordConfirm ? "Hide password" : "Show password"}
+                  >
+                    {showRegisterPasswordConfirm ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
+                  </PasswordToggleBtn>
+                </PasswordInputWrapper>
                 {fieldErrors.passwordConfirm && <ErrorText>{fieldErrors.passwordConfirm}</ErrorText>}
               </InputGroup>
 
@@ -847,6 +903,25 @@ const AuthPage = () => {
                 </TermsCheckboxLabel>
               </TermsCheckboxGroup>
               {fieldErrors.agreeToTerms && <ErrorText>{fieldErrors.agreeToTerms}</ErrorText>}
+
+              <SocialDivider>
+                <SocialDividerLine />
+                <SocialDividerText>or sign up with</SocialDividerText>
+                <SocialDividerLine />
+              </SocialDivider>
+              <SocialButtons>
+                <SocialButton
+                  type="button"
+                  $bg="#1877f2"
+                  $hover="#166fe5"
+                  onClick={handleFacebookAuth}
+                  aria-label="Sign up with Facebook"
+                >
+                  <FaFacebook color="white" size={18} />
+                  <span>Facebook</span>
+                </SocialButton>
+                <GoogleLoginButton appType="seller" />
+              </SocialButtons>
 
               <SubmitButton type="button" onClick={handleRegisterSubmit} disabled={isRegistering}>
                 {isRegistering ? (
@@ -1146,6 +1221,43 @@ const InputGroup = styled.div`
   position: relative;
 `;
 
+const PasswordInputWrapper = styled.div`
+  position: relative;
+  width: 100%;
+`;
+
+const PasswordToggleBtn = styled.button`
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+
+  svg {
+    display: block;
+    width: 16px;
+    height: 16px;
+  }
+
+  &:hover {
+    color: var(--color-primary-600, #667eea);
+  }
+
+  &:focus {
+    outline: 2px solid var(--color-primary-500, #667eea);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+`;
+
 const Label = styled.label`
   font-size: clamp(0.875rem, 2.5vw, 0.9375rem);
   font-weight: 400;
@@ -1171,7 +1283,7 @@ const Label = styled.label`
 `;
 
 const Input = styled.input`
-  padding: 0.875rem 1rem;
+  padding: 0.875rem ${(props) => (props.$hasToggle ? "2.75rem" : "1rem")} 0.875rem 1rem;
   border: 1.5px solid #e2e8f0;
   border-radius: 12px;
   font-size: clamp(0.95rem, 2.5vw, 1rem);
@@ -1562,6 +1674,67 @@ const Divider = styled.div`
   }
 `;
 
+const SocialDivider = styled.div`
+  display: flex;
+  align-items: center;
+  margin: 24px 0 16px;
+`;
+
+const SocialDividerLine = styled.div`
+  flex: 1;
+  height: 1px;
+  background-color: #e2e8f0;
+`;
+
+const SocialDividerText = styled.span`
+  padding: 0 16px;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 500;
+`;
+
+const SocialButtons = styled.div`
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+`;
+
+const SocialButton = styled.button`
+  flex: 1;
+  min-width: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: ${(props) => (props.$border ? `1px solid ${props.$border}` : "none")};
+  background: ${(props) => props.$bg || "#fff"};
+  color: ${(props) => (props.$bg === "#1877f2" ? "white" : "#333")};
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    background: ${(props) => props.$hover || "#f5f5f5"};
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  }
+
+  &:focus {
+    outline: 2px solid var(--color-primary-500, #667eea);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+`;
+
 const FooterText = styled.p`
   text-align: center;
   color: #64748b;
@@ -1733,52 +1906,6 @@ const PhoneInput = styled.input`
   &::placeholder {
     color: #94a3b8;
     font-weight: 400;
-  }
-
-  /* Mobile phone optimizations */
-  @media (max-width: 640px) {
-    padding: 1rem 1.125rem;
-    font-size: clamp(1rem, 3vw, 1.0625rem);
-    min-height: 48px;
-    border-radius: 14px;
-  }
-
-  @media (max-width: 480px) {
-    padding: 1.125rem 1.25rem;
-    font-size: clamp(1.0625rem, 3.5vw, 1.125rem);
-    min-height: 52px;
-    border-radius: 16px;
-  }
-`;
-
-const LocationSelect = styled.select`
-  padding: 0.875rem 1rem;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 12px;
-  font-size: clamp(0.95rem, 2.5vw, 1rem);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  background-color: white;
-  color: #0f172a;
-  cursor: pointer;
-  font-weight: 400;
-  width: 100%;
-  min-height: 44px; /* Minimum touch target */
-
-  &:focus {
-    border-color: var(--color-primary-500);
-    box-shadow: 
-      0 0 0 4px rgba(255, 196, 0, 0.1),
-      0 2px 8px rgba(0, 0, 0, 0.04);
-    outline: none;
-  }
-
-  &:hover:not(:focus) {
-    border-color: #cbd5e1;
-  }
-
-  option {
-    padding: 0.5rem;
-    font-size: 1rem; /* Prevent zoom on iOS */
   }
 
   /* Mobile phone optimizations */

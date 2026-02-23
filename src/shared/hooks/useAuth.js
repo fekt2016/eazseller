@@ -24,11 +24,11 @@ const useAuth = () => {
         // Cookie is automatically sent by browser via withCredentials: true
         // No need to read from localStorage
         const response = await authApi.getCurrentUser();
-        
+
         // Backend returns: { status: 'success', data: { data: sellerData, isSetupComplete: ... } }
         // axios response structure: response.data = API response
         const apiResponse = response?.data || response;
-        
+
         // Extract seller from nested structure: apiResponse.data.data
         // Also handle alternative structures for backward compatibility
         const seller = apiResponse?.data?.data || apiResponse?.data?.seller || apiResponse?.data || apiResponse?.seller || apiResponse;
@@ -105,8 +105,8 @@ const useAuth = () => {
   const seller = sellerData || null;
 
   // CRITICAL: Verify the user is actually a seller, not a buyer
-  // Accept both 'seller' and 'eazshop_store' (platform store) as valid seller roles
-  const isSellerRole = seller?.role === 'seller' || seller?.role === 'eazshop_store';
+  // Accept both 'seller' and 'official_store' (platform store) as valid seller roles
+  const isSellerRole = seller?.role === 'seller' || seller?.role === 'official_store';
   let validSeller = seller;
   if (seller && seller.role && !isSellerRole) {
     console.error("[useAuth] SECURITY: Non-seller user detected in seller app", {
@@ -152,7 +152,7 @@ const useAuth = () => {
     onSuccess: (response) => {
       // Extract seller and redirectTo from response
       const responseData = response?.data || response;
-      
+
       if (import.meta.env.DEV) {
         console.debug("[useAuth] OTP verify response structure:", {
           responseData,
@@ -161,7 +161,7 @@ const useAuth = () => {
           sellerKeys: responseData?.data?.seller ? Object.keys(responseData.data.seller) : [],
         });
       }
-      
+
       const seller = responseData?.data?.seller || responseData?.data?.data || responseData?.seller || null;
       const redirectTo = responseData?.redirectTo || '/';
 
@@ -183,7 +183,7 @@ const useAuth = () => {
         if (import.meta.env.DEV) {
           console.debug("[useAuth] OTP verified - seller cached, cookie set by backend");
         }
-        
+
         // Refetch notifications after successful OTP login
         queryClient.invalidateQueries({ queryKey: ['notifications'] });
       } else {
@@ -253,28 +253,28 @@ const useAuth = () => {
       if (data?.success) {
         // Set the seller data immediately for instant UI update
         queryClient.setQueryData(["sellerAuth"], data.seller);
-        
+
         // Invalidate and refetch to get full seller data from /seller/me
         // This ensures we have the complete seller object with all fields
         await queryClient.invalidateQueries({ queryKey: ['sellerAuth'] });
         await queryClient.refetchQueries({ queryKey: ['sellerAuth'] });
-        
+
         // Invalidate notifications
         queryClient.invalidateQueries({ queryKey: ['notifications'] });
-        
+
         if (import.meta.env.DEV) {
           console.debug('✅ [Seller Login] Auth state updated and queries invalidated');
         }
       }
     },
     onError: (error) => {
-      const errorMessage = error?.response?.data?.message || 
-                          error?.message || 
-                          error?.toString() || 
-                          'Unknown login error';
+      const errorMessage = error?.response?.data?.message ||
+        error?.message ||
+        error?.toString() ||
+        'Unknown login error';
       const statusCode = error?.response?.status;
       const errorData = error?.response?.data;
-      
+
       if (import.meta.env.DEV) {
         console.error('❌ [Seller Login] Login error:', {
           message: errorMessage,
@@ -350,7 +350,7 @@ const useAuth = () => {
       // Axios response structure: response.data contains the API response
       const apiResponse = response?.data || response;
       const requiresVerification = apiResponse?.requiresVerification || apiResponse?.data?.requiresVerification;
-      
+
       if (import.meta.env.DEV) {
         console.debug('[Seller Register] Registration response:', {
           requiresVerification,
@@ -358,7 +358,7 @@ const useAuth = () => {
           message: apiResponse?.message,
         });
       }
-      
+
       // If verification is required, don't set auth data yet
       if (!requiresVerification) {
         const seller = apiResponse?.data?.seller || apiResponse?.data?.data || apiResponse?.seller || apiResponse?.data || null;
@@ -407,14 +407,14 @@ const useAuth = () => {
         console.debug("[useAuth] Update success:", response);
       }
       const updatedSeller = response?.data?.seller || response?.data?.data || response?.data || null;
-      
+
       if (updatedSeller) {
         queryClient.setQueryData(["sellerAuth"], (oldData) => ({
           ...oldData,
           ...updatedSeller,
         }));
       }
-      
+
       // ✅ CRITICAL: Invalidate sellerStatus after update (documents/payment methods may have changed)
       queryClient.invalidateQueries({ queryKey: ['sellerStatus'] });
       if (import.meta.env.DEV) {
@@ -439,7 +439,7 @@ const useAuth = () => {
         console.debug("[useAuth] Image update success:", response);
       }
       const updatedSeller = response?.data?.data || response?.data || response || null;
-      
+
       if (updatedSeller) {
         queryClient.setQueryData(["sellerAuth"], (oldData) => ({
           ...oldData,
@@ -455,7 +455,7 @@ const useAuth = () => {
   // ==================================================
   // UNIFIED EMAIL-ONLY PASSWORD RESET FLOW
   // ==================================================
-  
+
   /**
    * Request Password Reset (Email Only)
    * Sends reset link to seller's email
@@ -579,7 +579,7 @@ const useAuth = () => {
     verifyPasswordResetOtp,
     resetPassword,
     refetchAuth,
-    
+
     // Convenience functions for direct async calls
     loginAsync: async (email, password) => {
       return login.mutateAsync({ email, password });

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import styled, { createGlobalStyle } from "styled-components";
+import styled from "styled-components";
 import {
   FaChevronLeft,
   FaPrint,
@@ -96,7 +96,6 @@ function OrderDetails() {
 
   return (
     <>
-      <GlobalStyle />
       <Container>
         <Header>
           <HeaderLeft>
@@ -512,26 +511,7 @@ function OrderDetails() {
 
 export default OrderDetails;
 
-// Global styles
-const GlobalStyle = createGlobalStyle`
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: var(--font-body);
-  }
 
-  body {
-    background-color: #f8fafc;
-    color: #333;
-  }
-
-  #root {
-    min-height: 100vh;
-    padding: 20px;
-    background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
-  }
-`;
 
 // Theme variables removed - using CSS variables from GlobalStyles
 
@@ -599,24 +579,24 @@ const OrderStatus = styled.div`
   border-radius: 20px;
   background: ${(props) =>
     props.status === "completed"
-      ? "rgba(6, 214, 160, 0.1)"
+      ? "var(--success-light)"
       : props.status === "processing"
-        ? "rgba(255, 209, 102, 0.1)"
+        ? "var(--warning-light)"
         : props.status === "shipped"
-          ? "rgba(67, 97, 238, 0.1)"
+          ? "var(--info-light)"
           : props.status === "cancelled"
-            ? "rgba(239, 71, 111, 0.1)"
-            : "rgba(101, 119, 134, 0.1)"};
+            ? "var(--error-light)"
+            : "var(--neutral-100)"};
   color: ${(props) =>
     props.status === "completed"
-      ? "#06d6a0"
+      ? "var(--success)"
       : props.status === "processing"
-        ? "#ffd166"
+        ? "var(--warning)"
         : props.status === "shipped"
-          ? "#4361ee"
+          ? "var(--info)"
           : props.status === "cancelled"
-            ? "#ef476f"
-            : "#657786"};
+            ? "var(--error)"
+            : "var(--neutral-600)"};
   font-size: 14px;
   font-weight: 600;
   margin-left: 15px;
@@ -789,7 +769,7 @@ const ProductImage = styled.div`
   width: 50px;
   height: 50px;
   border-radius: 8px;
-  background: linear-gradient(45deg, #4361ee, #3a0ca3);
+  background: var(--color-primary-100);
   display: flex;
   align-items: center;
   justify-content: center;

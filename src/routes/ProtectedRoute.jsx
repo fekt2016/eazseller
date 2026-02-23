@@ -36,7 +36,7 @@ const ProtectedRoutes = ({ children, allowPending = false }) => {
       });
     }
   }, [isLoading, seller, error]);
-  
+
   // IMPORTANT: Don't redirect during mutations/API calls
   // Only check auth state when component first mounts or auth state changes
   // This prevents redirects during OTP verification or other mutations
@@ -60,7 +60,7 @@ const ProtectedRoutes = ({ children, allowPending = false }) => {
         isLoading
       });
     }
-    
+
     // In production, redirect to login on error
     // Network errors or 401s are expected when not authenticated
     return (
@@ -83,12 +83,12 @@ const ProtectedRoutes = ({ children, allowPending = false }) => {
         error: error
       });
     }
-    
+
     return <Navigate to={PATHS.LOGIN} replace />;
   }
 
-  // Double-check role - reject buyers; allow both 'seller' and 'eazshop_store' (platform store)
-  const isSellerRole = seller.role === 'seller' || seller.role === 'eazshop_store';
+  // Double-check role - reject buyers; allow both 'seller' and 'official_store' (platform store)
+  const isSellerRole = seller.role === 'seller' || seller.role === 'official_store';
   if (!isSellerRole) {
     if (import.meta.env.DEV) {
       console.error("[ProtectedRoute] SECURITY: Buyer detected in seller app - redirecting to login", {
@@ -98,10 +98,10 @@ const ProtectedRoutes = ({ children, allowPending = false }) => {
         phone: seller?.phone,
       });
     }
-    
+
     // Clear any stale auth data
     queryClient.setQueryData(["sellerAuth"], null);
-    
+
     return <Navigate to={PATHS.LOGIN} replace />;
   }
 
@@ -113,7 +113,7 @@ const ProtectedRoutes = ({ children, allowPending = false }) => {
       // Allow pending sellers to access this route (e.g., for adding payment methods during onboarding)
       return <Suspense fallback={<LoadingState message="Loading..." />}>{children}</Suspense>;
     }
-    
+
     console.warn("[ProtectedRoute] Seller status is not active - redirecting", {
       status: seller.status,
     });

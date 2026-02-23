@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
-import styled, { createGlobalStyle } from "styled-components";
+import styled from "styled-components";
+import { devicesMax } from "../styles/breakpoint";
 import Header from "./Header";
 import PublicHeader from "./PublicHeader";
 import Sidebar from "./Sidebar";
@@ -12,24 +13,20 @@ const SIDEBAR_WIDTH = "240px";
 const HEADER_HEIGHT = "64px";
 const BREAKPOINT_MD = "768px";
 
-// Create theme-based global styles specifically for this layout
-const DashboardGlobalStyle = createGlobalStyle`
-  .dashboard-layout {
-    --sidebar-width: ${SIDEBAR_WIDTH};
-    --header-height: ${HEADER_HEIGHT};
-    --breakpoint-md: ${BREAKPOINT_MD};
-    
-    display: flex;
-    min-height: 100vh;
-    background-color: var(--color-grey-50);
-    font-family: var(--font-body);
-    color: var(--color-grey-700);
-    
-    @media (max-width: ${BREAKPOINT_MD}) {
-      flex-direction: column;
-    }
-  }
+const DashboardWrapper = styled.div`
+  --sidebar-width: ${SIDEBAR_WIDTH};
+  --header-height: ${HEADER_HEIGHT};
   
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--color-grey-50);
+  font-family: var(--font-body);
+  color: var(--color-grey-700);
+  
+  @media ${devicesMax.md} {
+    flex-direction: column;
+  }
+
   .dashboard-content {
     flex: 1;
     display: flex;
@@ -37,7 +34,7 @@ const DashboardGlobalStyle = createGlobalStyle`
     margin-left: var(--sidebar-width);
     width: calc(100% - var(--sidebar-width));
     
-    @media (max-width: ${BREAKPOINT_MD}) {
+    @media ${devicesMax.md} {
       margin-left: 0;
       width: 100%;
     }
@@ -47,7 +44,7 @@ const DashboardGlobalStyle = createGlobalStyle`
       width: 100%;
     }
   }
-  
+
   .dashboard-main {
     flex: 1;
     padding: 2rem;
@@ -60,7 +57,7 @@ const DashboardGlobalStyle = createGlobalStyle`
       padding: 0;
     }
     
-    @media (max-width: ${BREAKPOINT_MD}) {
+    @media ${devicesMax.md} {
       padding: 1.5rem;
       max-height: calc(100vh - var(--header-height) - 60px);
       
@@ -96,33 +93,30 @@ export default function DashboardLayout({ showSidebar = true, showHeader = true 
   // Errors from useAuth are handled gracefully - seller will be null for unauthenticated users
 
   return (
-    <>
-      <DashboardGlobalStyle />
-      <div className="dashboard-layout">
-        {shouldShowSidebar && (
-          <>
-            <Sidebar role={seller?.role} isOpen={isSidebarOpen} onClose={closeSidebar} />
-            <Overlay $isOpen={isSidebarOpen} onClick={closeSidebar} />
-          </>
+    <DashboardWrapper>
+      {shouldShowSidebar && (
+        <>
+          <Sidebar role={seller?.role} isOpen={isSidebarOpen} onClose={closeSidebar} />
+          <Overlay $isOpen={isSidebarOpen} onClick={closeSidebar} />
+        </>
+      )}
+      <div className={`dashboard-content ${!shouldShowSidebar ? 'no-sidebar' : ''}`}>
+        {showHeader && (
+          shouldShowSidebar ? (
+            <Header
+              user={seller}
+              onToggleSidebar={toggleSidebar}
+              isSidebarOpen={isSidebarOpen}
+            />
+          ) : (
+            <PublicHeader />
+          )
         )}
-        <div className={`dashboard-content ${!shouldShowSidebar ? 'no-sidebar' : ''}`}>
-          {showHeader && (
-            shouldShowSidebar ? (
-              <Header 
-                user={seller} 
-                onToggleSidebar={toggleSidebar} 
-                isSidebarOpen={isSidebarOpen} 
-              />
-            ) : (
-              <PublicHeader />
-            )
-          )}
-          <main className={`dashboard-main ${!showHeader ? 'no-header' : ''}`}>
-            <Outlet />
-          </main>
-        </div>
+        <main className={`dashboard-main ${!showHeader ? 'no-header' : ''}`}>
+          <Outlet />
+        </main>
       </div>
-    </>
+    </DashboardWrapper>
   );
 }
 

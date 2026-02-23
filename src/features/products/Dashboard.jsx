@@ -20,9 +20,9 @@ import { useSellerBalance } from '../../shared/hooks/finance/useSellerBalance';
 import { formatDate } from '../../shared/utils/helpers';
 import useAnalytics from '../../shared/hooks/useAnalytics';
 import { PATHS } from '../../routes/routePaths';
-import { 
-  PageContainer, 
-  PageHeader, 
+import {
+  PageContainer,
+  PageHeader,
   TitleSection,
   Section,
   SectionHeader,
@@ -66,7 +66,7 @@ const Dashboard = () => {
   const { useGetSellerProductViews } = useAnalytics();
   const { seller, isLoading: isSellerLoading, error: sellerError } = useAuth();
   const sellerId = useMemo(() => seller?._id ?? seller?.id ?? null, [seller]);
-  
+
   // Get seller balance using unified hook
   const {
     availableBalance,
@@ -132,7 +132,7 @@ const Dashboard = () => {
     });
     return map;
   }, [viewData?.data?.views]);
-  
+
   // Calculate stats first to get totalRevenue
   const stats = useMemo(() => {
     const deliveredOrders = orders.filter(
@@ -212,8 +212,8 @@ const Dashboard = () => {
           ? 100
           : 0
         : ((currentPeriodOrders.length - previousPeriodOrders.length) /
-            previousPeriodOrders.length) *
-          100;
+          previousPeriodOrders.length) *
+        100;
 
     const currentPeriodRevenueOrders = deliveredOrders.filter(
       (order) =>
@@ -253,14 +253,14 @@ const Dashboard = () => {
         return ['pending', 'pending_payment', 'payment_completed', 'confirmed', 'processing', 'preparing', 'ready_for_dispatch'].includes(status.toLowerCase());
       }
     ).length;
-    
+
     const completedOrders = orders.filter(
       (order) => {
         const status = (order.currentStatus || order.status || order.orderStatus || 'pending').toString().toLowerCase();
         return status === 'delivered' || status === 'completed';
       }
     ).length;
-    
+
     const totalOrders = orders.length;
     const outOfStock = products.filter((p) => (p.stock || p.totalStock || 0) === 0).length;
 
@@ -278,7 +278,7 @@ const Dashboard = () => {
       currentPeriodOrders: currentPeriodOrders.length,
     };
   }, [orders, products, timeFilter, totalViewsCount, totalProductCount]);
-  
+
   // Total revenue from unified hook (already calculated)
   const totalRevenue = totalEarnings;
 
@@ -328,7 +328,7 @@ const Dashboard = () => {
       title: 'Status',
       render: (order) => {
         let status = order.orderStatus || order.currentStatus || order.status || 'pending';
-        
+
         if (status === 'delivered') {
           status = 'completed';
         } else if (status === 'out_for_delivery') {
@@ -340,7 +340,7 @@ const Dashboard = () => {
         } else if (status === 'pending_payment' || status === 'pending') {
           status = 'pending';
         }
-        
+
         return (
           <StatusBadge $status={status.toLowerCase()}>
             {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -392,7 +392,7 @@ const Dashboard = () => {
   return (
     <DashboardContainer>
       <VerificationBanner />
-      
+
       {/* Header Section */}
       <HeaderSection>
         <HeaderContent>
@@ -402,7 +402,7 @@ const Dashboard = () => {
             </WelcomeTitle>
             <WelcomeSubtitle>Here's what's happening with your store today</WelcomeSubtitle>
           </WelcomeSection>
-          
+
           <TimeFilterContainer>
             {['today', 'week', 'month', 'year'].map((period) => (
               <FilterButton
@@ -410,9 +410,9 @@ const Dashboard = () => {
                 $active={timeFilter === period}
                 onClick={() => setTimeFilter(period)}
               >
-                {period === 'today' ? 'Today' : 
-                 period === 'week' ? 'This Week' :
-                 period === 'month' ? 'This Month' : 'This Year'}
+                {period === 'today' ? 'Today' :
+                  period === 'week' ? 'This Week' :
+                    period === 'month' ? 'This Month' : 'This Year'}
               </FilterButton>
             ))}
           </TimeFilterContainer>
@@ -554,13 +554,13 @@ const Dashboard = () => {
             return (
               <ProductCard key={product._id || product.id} as={Link} to={PATHS.PRODUCTS}>
                 <ProductImageWrapper>
-                  <ProductImage 
-                    src={product.imageCover} 
+                  <ProductImage
+                    src={product.imageCover}
                     alt={product.name}
                     onError={(e) => {
                       if (e.target.dataset.fallbackAttempted !== 'true') {
                         e.target.dataset.fallbackAttempted = 'true';
-                        e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect width="200" height="200" fill="%23f0f0f0"/%3E%3Ctext x="50%25" y="50%25" font-family="Arial" font-size="16" fill="%23999" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E';
+                        e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%25" height="100%25"%3E%3Crect width="200" height="200" fill="%23f0f0f0"/%3E%3Ctext x="50%25" y="50%25" font-family="Arial" font-size="16" fill="%23999" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E';
                       }
                     }}
                   />
@@ -671,7 +671,7 @@ const TimeFilterContainer = styled.div`
 const FilterButton = styled.button`
   padding: 0.8rem 1.6rem;
   border: none;
-  background: ${({ $active }) => 
+  background: ${({ $active }) =>
     $active ? 'var(--color-white-0)' : 'transparent'};
   color: ${({ $active }) =>
     $active ? 'var(--color-primary-600)' : 'var(--color-grey-600)'};
@@ -682,12 +682,12 @@ const FilterButton = styled.button`
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   font-family: var(--font-body);
   text-transform: capitalize;
-  box-shadow: ${({ $active }) => 
+  box-shadow: ${({ $active }) =>
     $active ? '0 2px 4px rgba(0, 0, 0, 0.1)' : 'none'};
 
   &:hover {
     background: ${({ $active }) =>
-      $active ? 'var(--color-white-0)' : 'rgba(255, 255, 255, 0.5)'};
+    $active ? 'var(--color-white-0)' : 'rgba(255, 255, 255, 0.5)'};
     color: var(--color-primary-600);
   }
 `;
@@ -723,28 +723,28 @@ const EnhancedStatCard = styled.div`
     width: 4px;
     height: 100%;
     background: ${({ $variant }) => {
-      switch ($variant) {
-        case 'success': return 'var(--color-green-500)';
-        case 'primary': return 'var(--color-primary-500)';
-        case 'warning': return 'var(--color-yellow-700)';
-        case 'info': return 'var(--color-blue-700)';
-        default: return 'var(--color-grey-400)';
-      }
-    }};
+    switch ($variant) {
+      case 'success': return 'var(--color-green-500)';
+      case 'primary': return 'var(--color-primary-500)';
+      case 'warning': return 'var(--color-yellow-700)';
+      case 'info': return 'var(--color-blue-700)';
+      default: return 'var(--color-grey-400)';
+    }
+  }};
   }
 
   &:hover {
     transform: translateY(-4px);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
     border-color: ${({ $variant }) => {
-      switch ($variant) {
-        case 'success': return 'var(--color-green-500)';
-        case 'primary': return 'var(--color-primary-500)';
-        case 'warning': return 'var(--color-yellow-700)';
-        case 'info': return 'var(--color-blue-700)';
-        default: return 'var(--color-grey-400)';
-      }
-    }};
+    switch ($variant) {
+      case 'success': return 'var(--color-green-500)';
+      case 'primary': return 'var(--color-primary-500)';
+      case 'warning': return 'var(--color-yellow-700)';
+      case 'info': return 'var(--color-blue-700)';
+      default: return 'var(--color-grey-400)';
+    }
+  }};
   }
 `;
 
@@ -810,7 +810,7 @@ const StatChange = styled.div`
   gap: 0.6rem;
   font-size: 1.3rem;
   font-weight: 500;
-  color: ${({ $positive }) => 
+  color: ${({ $positive }) =>
     $positive ? 'var(--color-green-700)' : 'var(--color-red-600)'};
   
   svg {
@@ -913,19 +913,19 @@ const StatusBadge = styled.span`
     $status === "completed" || $status === "delivered"
       ? "var(--color-green-100)"
       : $status === "shipped" || $status === "confirmed"
-      ? "var(--color-blue-100)"
-      : $status === "processing"
-      ? "var(--color-yellow-100)"
-      : "var(--color-red-100)"};
+        ? "var(--color-blue-100)"
+        : $status === "processing"
+          ? "var(--color-yellow-100)"
+          : "var(--color-red-100)"};
 
   color: ${({ $status }) =>
     $status === "completed" || $status === "delivered"
       ? "var(--color-green-700)"
       : $status === "shipped" || $status === "confirmed"
-      ? "var(--color-blue-700)"
-      : $status === "processing"
-      ? "var(--color-yellow-700)"
-      : "var(--color-red-700)"};
+        ? "var(--color-blue-700)"
+        : $status === "processing"
+          ? "var(--color-yellow-700)"
+          : "var(--color-red-700)"};
 `;
 
 const ActionButton = styled(Link)`
@@ -982,14 +982,21 @@ const ProductImageWrapper = styled.div`
   position: relative;
   width: 100%;
   height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
   background: var(--color-grey-100);
+  padding: var(--spacing-sm);
 `;
 
 const ProductImage = styled.img`
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
   transition: transform 0.3s ease;
 
   ${ProductCard}:hover & {
@@ -1058,7 +1065,7 @@ const StockStatus = styled.div`
     height: 0.8rem;
     border-radius: 50%;
     background: ${({ $inStock }) =>
-      $inStock ? "var(--color-green-500)" : "var(--color-red-600)"};
+    $inStock ? "var(--color-green-500)" : "var(--color-red-600)"};
   }
 `;
 

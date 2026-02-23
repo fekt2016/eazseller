@@ -331,8 +331,8 @@ const AddProductPage = () => {
 export default AddProductPage;
 
 const PageContainer = styled.div`
-  padding: 1.2rem 1.6rem; /* reduced overall padding for a tighter layout */
-  background-color: #f8fafc;
+  padding: var(--spacing-md);
+  background-color: var(--color-grey-50);
   min-height: 100vh;
   max-width: 1200px;
   margin: 0 auto;
@@ -347,54 +347,52 @@ const BackButton = styled.button`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--color-white-0);
+  border: 1px solid var(--color-grey-200);
   border-radius: 6px;
-  padding: 0.6rem 1.2rem;
-  font-size: 1rem;
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--font-size-md);
   font-weight: 400;
-  color: #4a5568;
+  color: var(--color-grey-600);
   cursor: pointer;
   transition: all 0.2s;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 
   &:hover {
-    background: #f1f5f9;
-    border-color: #cbd5e0;
+    background: var(--color-grey-100);
+    border-color: var(--color-grey-300);
     transform: translateY(-1px);
   }
 
   svg {
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
   }
 `;
 
 const PageTitle = styled.h1`
-  font-size: 2rem;
+  font-size: var(--font-size-2xl);
   font-weight: 500;
-  color: #1a202c;
-  margin: 1.5rem 0 0.5rem;
+  color: var(--color-grey-900);
+  margin: var(--spacing-md) 0 var(--spacing-xs);
 `;
 
 const HeaderDescription = styled.p`
-  font-size: 1.125rem;
+  font-size: var(--font-size-lg);
   font-weight: 400;
-  color: #718096;
+  color: var(--color-grey-500);
   max-width: 700px;
   line-height: 1.5;
 `;
 
 const FormContainer = styled.div`
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  padding: 1.5rem; /* reduced inner padding within the form card */
+  background: var(--color-white-0);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--spacing-lg);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 
   &:hover {
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-      0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    box-shadow: var(--shadow-lg);
     transform: translateY(-2px);
   }
 

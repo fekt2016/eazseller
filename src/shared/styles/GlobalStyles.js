@@ -221,25 +221,36 @@ const GlobalStyles = createGlobalStyle`
   --gray-200: var(--color-grey-200);
   --gray-300: var(--color-grey-300);
   --gray-400: var(--color-grey-400);
+  
+  /* Semantic Colors */
   --error: var(--color-red-600);
   --error-light: var(--color-red-500);
   --success: var(--color-green-700);
+  --success-light: var(--color-green-500);
   --warning: var(--color-yellow-700);
+  --warning-light: var(--color-yellow-500);
+  --info: var(--color-blue-700);
+  --info-light: var(--color-blue-100);
 
   /* Additional shadows */
   --shadow-gold: 0 4px 20px rgba(255, 196, 0, 0.3);
 
   /* Font aliases */
-  --font-body: 'Open Sans', sans-serif;
-  --font-heading: 'Montserrat', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-heading: 'Inter', sans-serif;
+  --font-brand: 'Inter', sans-serif;
   --font-semibold: 600;
   --font-bold: 700;
 
-  /* Text size aliases */
-  --text-xs: var(--font-size-xs);
-  --text-sm: var(--font-size-sm);
-  --text-base: var(--font-size-md);
-  --text-lg: var(--font-size-lg);
+  /* Text size aliases with fluid typography (clamp) */
+  --text-xs: clamp(1rem, 0.95vw + 0.8rem, 1.2rem);
+  --text-sm: clamp(1.2rem, 1vw + 1rem, 1.4rem);
+  --text-base: clamp(1.4rem, 1.2vw + 1.2rem, 1.6rem);
+  --text-lg: clamp(1.6rem, 1.4vw + 1.4rem, 1.8rem);
+  --text-xl: clamp(1.8rem, 1.6vw + 1.6rem, 2rem);
+  --text-2xl: clamp(2rem, 1.8vw + 1.8rem, 2.4rem);
+  --text-3xl: clamp(2.4rem, 2vw + 2rem, 3.2rem);
+  --text-4xl: clamp(3.2rem, 2.5vw + 2.5rem, 4rem);
 
   /* Spacing aliases */
   --space-xs: var(--spacing-xs);
@@ -254,6 +265,18 @@ const GlobalStyles = createGlobalStyle`
   --radius-lg: var(--border-radius-lg);
   --radius-xl: var(--border-radius-xl);
   --radius-full: 50%;
+
+  /* Neutral aliases */
+  --neutral-50: var(--color-grey-50);
+  --neutral-100: var(--color-grey-100);
+  --neutral-200: var(--color-grey-200);
+  --neutral-300: var(--color-grey-300);
+  --neutral-400: var(--color-grey-400);
+  --neutral-500: var(--color-grey-500);
+  --neutral-600: var(--color-grey-600);
+  --neutral-700: var(--color-grey-700);
+  --neutral-800: var(--color-grey-800);
+  --neutral-900: var(--color-grey-900);
 
   /* Text color aliases */
   --text-muted: var(--color-grey-500);

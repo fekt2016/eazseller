@@ -1,9 +1,16 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 import { useFormContext, useFieldArray, useWatch } from "react-hook-form";
-import { generateSKU } from '../../utils/helpers';
-import { FiUploadCloud, FiX, FiImage } from "react-icons/fi";
-import usePlatformTaxRates from "../../hooks/usePlatformTaxRates";
+import { generateSKU } from "../../utils/helpers";
+import { FiImage, FiX } from "react-icons/fi";
+import { usePlatformTaxRates } from "../../hooks/usePlatformTaxRates";
+import { toast } from "react-toastify";
+
+// Helper to generate a unique signature for a file to prevent duplicates
+const generateFileSignature = (file) => {
+  if (!file || !(file instanceof File)) return null;
+  return `${file.name}_${file.size}_${file.lastModified}`;
+};
 
 export default function VariantSection({ variantAttributes = [], seller }) {
   const { control, register, setValue, getValues } = useFormContext();
@@ -26,21 +33,21 @@ export default function VariantSection({ variantAttributes = [], seller }) {
   const totalStock = useMemo(() => {
     return variantStocks.reduce(
       (sum, variant) => sum + (parseInt(variant?.stock || 0) || 0),
-      0
+      0,
     );
   }, [variantStocks]);
 
   // Combine predefined and custom attributes, excluding 'Brand'
   const allAttributes = useMemo(() => {
     const filteredPredefined = variantAttributes.filter(
-      (attr) => attr.name.toLowerCase() !== "brand"
+      (attr) => attr.name.toLowerCase() !== "brand",
     );
 
     return [
       ...filteredPredefined,
       ...customAttributes
         .filter((name) => name.toLowerCase() !== "brand")
-        .map((name) => ({ name, _id: `custom-${name}` })),
+        .map((name) => ({ name, _id: `custom - ${name} ` })),
     ];
   }, [variantAttributes, customAttributes]);
 
@@ -64,11 +71,13 @@ export default function VariantSection({ variantAttributes = [], seller }) {
 
     // Filter out attributes that have both name and value
     const validAttributes = attributes.filter(
-      (attr) => attr?.name && attr?.value && attr.value.trim()
+      (attr) => attr?.name && attr?.value && attr.value.trim(),
     );
 
     if (!validAttributes || validAttributes.length === 0) {
-      console.warn("No valid attributes found. Please add attributes with values first.");
+      console.warn(
+        "No valid attributes found.Please add attributes with values first.",
+      );
       // You could also show a toast notification here
       return;
     }
@@ -86,18 +95,20 @@ export default function VariantSection({ variantAttributes = [], seller }) {
       };
     });
 
-    // Create all possible combinations of option values (cartesian product)
+    //  Create all possible combinations of option values (cartesian product )
     const combinations = attributeOptions.reduce((acc, option) => {
       if (!acc.length) {
         return option.values.map((value) => ({ [option.key]: value }));
       }
       return acc.flatMap((combo) =>
-        option.values.map((value) => ({ ...combo, [option.key]: value }))
+        option.values.map((value) => ({ ...combo, [option.key]: value })),
       );
     }, []);
 
     if (combinations.length === 0) {
-      console.warn("No combinations generated. Please check your attribute values.");
+      console.warn(
+        "No combinations generated.Please check your attribute values.",
+      );
       return;
     }
 
@@ -119,20 +130,21 @@ export default function VariantSection({ variantAttributes = [], seller }) {
         attributes: variantAttributes,
         price: 0,
         stock: 0,
-        // Use shared SKU generator (same pattern as Add Product)
+        //  Use shared SKU generator (same pattern as Add Product )
         sku: generateSKU({
           seller,
           variants: variantObj,
           category: subCategory,
         }),
         status: "active",
-        condition: "new", // Default condition
+        condition: "new", //   Default condition
       };
     });
-
     // Replace existing variants with the new generated ones
     replace(newVariants);
-    console.log(`Generated ${newVariants.length} variants from ${validAttributes.length} attributes`);
+    console.log(
+      `Generated ${newVariants.length} variants from ${validAttributes.length} attributes`,
+    );
   };
 
   // Add a single variant manually
@@ -146,10 +158,9 @@ export default function VariantSection({ variantAttributes = [], seller }) {
       price: 0,
       stock: 0,
       status: "active",
-      condition: "new", // Default condition
+      condition: "new", //   Default condition
     });
   };
-
   return (
     <div>
       <VariantControls>
@@ -185,7 +196,7 @@ export default function VariantSection({ variantAttributes = [], seller }) {
                   type="button"
                   onClick={() =>
                     setCustomAttributes((prev) =>
-                      prev.filter((a) => a !== attr)
+                      prev.filter((a) => a !== attr),
                     )
                   }
                 >
@@ -234,15 +245,15 @@ export default function VariantSection({ variantAttributes = [], seller }) {
 function VariantRow({
   variantIndex,
   allAttributes = [],
-  canRemove,
-  remove,
   register,
   control,
   setValue,
   getValues,
   seller,
 }) {
-  const { formState: { errors } } = useFormContext();
+  const {
+    formState: { errors },
+  } = useFormContext();
   const firstRun = useRef(true);
   const prevAttrValues = useRef([]);
   const subCategory = useWatch({ name: "subCategory", control }) || "GENERAL";
@@ -261,7 +272,7 @@ function VariantRow({
   const { addTaxToBase } = usePlatformTaxRates();
   const variantTotalWithTax = useMemo(
     () => addTaxToBase(variantPrice),
-    [variantPrice, addTaxToBase]
+    [variantPrice, addTaxToBase],
   );
 
   const variantErrors = errors.variants?.[variantIndex];
@@ -304,38 +315,39 @@ function VariantRow({
     }
   }, [watchedAttrs, setValue, getValues, variantIndex, seller, subCategory]);
 
-  // Auto-add missing attributes and set default values (moved from render)
+  //  Auto-add missing attributes and set default values (moved from render )
   useEffect(() => {
     if (!allAttributes || !allAttributes.length) return;
 
     const currentAttrs = watchedAttrs || [];
-    const missingAttributes = allAttributes.filter(attr =>
-      // Only care about variant attributes
-      attr.isVariant !== false &&
-      // Check if it's already in the variant's attributes
-      !currentAttrs.some(a => a.key === attr.name)
+    const missingAttributes = allAttributes.filter(
+      (attr) =>
+        // Only care about variant attributes
+        attr.isVariant !== false &&
+        // Check if it's already in the variant's attributes
+        !currentAttrs.some((a) => a.key === attr.name),
     );
 
     if (missingAttributes.length > 0) {
       const newAttributes = [...currentAttrs];
 
-      missingAttributes.forEach(attr => {
+      missingAttributes.forEach((attr) => {
         const defaultValue =
-          (attr.type === 'enum' || attr.type === 'color') &&
+          (attr.type === "enum" || attr.type === "color") &&
             attr.values?.length === 1
             ? attr.values[0]
-            : '';
+            : "";
 
         newAttributes.push({
           key: attr.name,
-          value: defaultValue
+          value: defaultValue,
         });
       });
 
       // Update form state with new attributes
       setValue(`variants.${variantIndex}.attributes`, newAttributes, {
         shouldDirty: true,
-        shouldValidate: false
+        shouldValidate: false,
       });
     }
   }, [allAttributes, watchedAttrs, setValue, variantIndex]);
@@ -347,30 +359,30 @@ function VariantRow({
         <FieldLabel>Attributes</FieldLabel>
         <VariantAttributes>
           {allAttributes.map((attr, ai) => {
-            // Filter out non-variant attributes (like Packaging)
+            //  Filter out non-variant attributes (like Packaging )
             if (attr.isVariant === false) return null;
 
             // Find the attribute index in the variant's attributes array
             const attrIndex = watchedAttrs.findIndex(
-              (a) => a.key === attr.name
+              (a) => a.key === attr.name,
             );
 
-            // If not found, return null (logic moved to useEffect)
+            //  If not found, return null (logic moved to useEffect )
             if (attrIndex === -1) {
               return null;
             }
 
             const hasEnumValues =
-              (attr.type === 'enum' || attr.type === 'color') &&
+              (attr.type === "enum" || attr.type === "color") &&
               Array.isArray(attr.values) &&
               attr.values.length > 0;
 
             return (
-              <AttributeItem key={`${attr.name}-${ai}`}>
+              <AttributeItem key={`${attr.name} -${ai} `}>
                 <input
                   type="hidden"
                   {...register(
-                    `variants.${variantIndex}.attributes.${attrIndex}.key`
+                    `variants.${variantIndex}.attributes.${attrIndex}.key`,
                   )}
                   value={attr.name}
                 />
@@ -385,7 +397,7 @@ function VariantRow({
                       `variants.${variantIndex}.attributes.${attrIndex}.value`,
                       attr.isRequired
                         ? { required: `${attr.name} is required` }
-                        : {}
+                        : {},
                     )}
                   >
                     {attr.values.length > 1 && (
@@ -397,16 +409,16 @@ function VariantRow({
                       </option>
                     ))}
                   </Select>
-                ) : attr.type === 'number' ? (
+                ) : attr.type === "number" ? (
                   <AttributeInput
                     type="number"
                     {...register(
                       `variants.${variantIndex}.attributes.${attrIndex}.value`,
                       attr.isRequired
                         ? { required: `${attr.name} is required` }
-                        : {}
+                        : {},
                     )}
-                    placeholder={`Enter ${attr.name}`}
+                    placeholder={`Enter ${attr.name} `}
                   />
                 ) : (
                   <AttributeInput
@@ -414,9 +426,9 @@ function VariantRow({
                       `variants.${variantIndex}.attributes.${attrIndex}.value`,
                       attr.isRequired
                         ? { required: `${attr.name} is required` }
-                        : {}
+                        : {},
                     )}
-                    placeholder={`Enter ${attr.name}`}
+                    placeholder={`Enter ${attr.name} `}
                   />
                 )}
               </AttributeItem>
@@ -437,7 +449,9 @@ function VariantRow({
 
       {/* Price */}
       <VariantFieldGroup>
-        <FieldLabel>Price <Required>*</Required></FieldLabel>
+        <FieldLabel>
+          Price <Required>*</Required>
+        </FieldLabel>
         <VariantPriceRow>
           <Input
             type="number"
@@ -452,19 +466,27 @@ function VariantRow({
           />
           {variantTotalWithTax != null && (
             <VariantTotalWithTaxBox>
-              <VariantTotalWithTaxLabel>Customer price (incl. tax)</VariantTotalWithTaxLabel>
-              <VariantTotalWithTaxValue>GH₵{variantTotalWithTax.toFixed(2)}</VariantTotalWithTaxValue>
+              <VariantTotalWithTaxLabel>
+                Customer price (incl.tax)
+              </VariantTotalWithTaxLabel>
+              <VariantTotalWithTaxValue>
+                GH₵{variantTotalWithTax.toFixed(2)}
+              </VariantTotalWithTaxValue>
             </VariantTotalWithTaxBox>
           )}
         </VariantPriceRow>
         {variantErrors?.price && (
-          <VariantErrorMessage>{variantErrors.price.message}</VariantErrorMessage>
+          <VariantErrorMessage>
+            {variantErrors.price.message}
+          </VariantErrorMessage>
         )}
       </VariantFieldGroup>
 
       {/* Quantity */}
       <VariantFieldGroup>
-        <FieldLabel>Quantity <Required>*</Required></FieldLabel>
+        <FieldLabel>
+          Quantity <Required>*</Required>
+        </FieldLabel>
         <Input
           type="number"
           min="0"
@@ -476,7 +498,9 @@ function VariantRow({
           $hasError={!!variantErrors?.stock}
         />
         {variantErrors?.stock && (
-          <VariantErrorMessage>{variantErrors.stock.message}</VariantErrorMessage>
+          <VariantErrorMessage>
+            {variantErrors.stock.message}
+          </VariantErrorMessage>
         )}
       </VariantFieldGroup>
 
@@ -491,10 +515,12 @@ function VariantRow({
 
       {/* Condition */}
       <VariantFieldGroup>
-        <FieldLabel>Condition <Required>*</Required></FieldLabel>
+        <FieldLabel>
+          Condition <Required>*</Required>
+        </FieldLabel>
         <Select
           {...register(`variants.${variantIndex}.condition`, {
-            required: "Please select a condition for this variant"
+            required: "Please select a condition for this variant",
           })}
           $hasError={!!variantErrors?.condition}
         >
@@ -508,18 +534,19 @@ function VariantRow({
           <option value="poor">Poor</option>
         </Select>
         {variantErrors?.condition && (
-          <VariantErrorMessage>{variantErrors.condition.message}</VariantErrorMessage>
+          <VariantErrorMessage>
+            {variantErrors.condition.message}
+          </VariantErrorMessage>
         )}
       </VariantFieldGroup>
 
-      {/* Images - Full Width */}
+      {/* Images-Full Width */}
       <VariantFieldGroupFullWidth>
         <FieldLabel>Images</FieldLabel>
         <VariantImageUpload
           variantIndex={variantIndex}
           control={control}
           setValue={setValue}
-          register={register}
         />
       </VariantFieldGroupFullWidth>
     </VariantFieldsGrid>
@@ -644,13 +671,15 @@ const VariantCard = styled.div`
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  transition: box-shadow 0.2s ease, border-color 0.2s ease;
-  
+  transition:
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+
   &:hover {
     border-color: #cbd5e1;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
   }
-  
+
   @media (max-width: 768px) {
     padding: 1rem;
   }
@@ -685,12 +714,12 @@ const RemoveVariantButton = styled.button`
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
-  
+
   &:hover {
     background: #fecaca;
     border-color: #fca5a5;
   }
-  
+
   svg {
     width: 16px;
     height: 16px;
@@ -705,7 +734,7 @@ const VariantFieldsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1.5rem;
-  
+
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
     gap: 1rem;
@@ -791,18 +820,20 @@ const AttributeName = styled.span`
 const Input = styled.input`
   width: 100%;
   padding: 0.5rem;
-  border: 1px solid ${props => props.$hasError ? '#e53e3e' : '#cbd5e0'};
+  border: 1px solid ${(props) => (props.$hasError ? "#e53e3e" : "#cbd5e0")};
   border-radius: 4px;
   font-size: 0.9rem;
   transition: border-color 0.2s;
-  
+
   &:focus {
     outline: none;
-    border-color: ${props => props.$hasError ? '#e53e3e' : '#3182ce'};
-    box-shadow: 0 0 0 2px ${props => props.$hasError ? 'rgba(229, 62, 62, 0.1)' : 'rgba(49, 130, 206, 0.1)'};
+    border-color: ${(props) => (props.$hasError ? "#e53e3e" : "#3182ce")};
+    box-shadow: 0 0 0 2px
+      ${(props) =>
+    props.$hasError ? "rgba(229, 62, 62, 0.1)" : "rgba(49, 130, 206, 0.1)"};
   }
-  
-  &[readonly] {
+
+  & [readonly] {
     background: #f7fafc;
     cursor: not-allowed;
   }
@@ -810,15 +841,17 @@ const Input = styled.input`
 const Select = styled.select`
   width: 100%;
   padding: 0.5rem;
-  border: 1px solid ${props => props.$hasError ? '#e53e3e' : '#cbd5e0'};
+  border: 1px solid ${(props) => (props.$hasError ? "#e53e3e" : "#cbd5e0")};
   border-radius: 4px;
   font-size: 0.9rem;
   transition: border-color 0.2s;
-  
+
   &:focus {
     outline: none;
-    border-color: ${props => props.$hasError ? '#e53e3e' : '#3182ce'};
-    box-shadow: 0 0 0 2px ${props => props.$hasError ? 'rgba(229, 62, 62, 0.1)' : 'rgba(49, 130, 206, 0.1)'};
+    border-color: ${(props) => (props.$hasError ? "#e53e3e" : "#3182ce")};
+    box-shadow: 0 0 0 2px
+      ${(props) =>
+    props.$hasError ? "rgba(229, 62, 62, 0.1)" : "rgba(49, 130, 206, 0.1)"};
   }
 `;
 
@@ -841,7 +874,7 @@ const TotalQuantityCard = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-top: 0.5rem;
-  
+
   @media (max-width: 768px) {
     flex-direction: column;
     gap: 0.5rem;
@@ -862,21 +895,35 @@ const TotalQuantityValue = styled.div`
 `;
 
 // Variant Image Upload Component
-function VariantImageUpload({ variantIndex, control, setValue, register }) {
+function VariantImageUpload({ variantIndex, control, setValue }) {
   const [imagePreviews, setImagePreviews] = useState([]);
+
+  // Track signatures of currently selected files to prevent duplicates in the same session
+  const [existingSignatures, setExistingSignatures] = useState(new Set());
+
   const watchedImages = useWatch({
     control,
     name: `variants.${variantIndex}.images`,
     defaultValue: [],
   });
 
-  // Sync image previews
+  // Sync image previews and update existing signatures
   useEffect(() => {
     const previews = (watchedImages || []).map((img) => {
       if (typeof img === "string") return img;
       if (img instanceof File) return URL.createObjectURL(img);
       return "";
     });
+
+    // Update the set of existing signatures
+    const newSignatures = new Set();
+    (watchedImages || []).forEach((img) => {
+      if (img instanceof File) {
+        newSignatures.add(generateFileSignature(img));
+      }
+    });
+    setExistingSignatures(newSignatures);
+
     setImagePreviews(previews);
 
     // Cleanup object URLs
@@ -893,10 +940,37 @@ function VariantImageUpload({ variantIndex, control, setValue, register }) {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
 
-    const currentImages = watchedImages || [];
-    setValue(`variants.${variantIndex}.images`, [...currentImages, ...files], {
-      shouldDirty: true,
+    let duplicateCount = 0;
+    const uniqueFiles = files.filter((file) => {
+      const signature = generateFileSignature(file);
+      if (existingSignatures.has(signature)) {
+        duplicateCount++;
+        return false;
+      }
+      // Add the new signature immediately to prevent duplicates within the same batch
+      existingSignatures.add(signature);
+      return true;
     });
+
+    if (duplicateCount > 0) {
+      toast.warning(`${duplicateCount} duplicate variant image(s) ignored.`);
+    }
+
+    if (uniqueFiles.length === 0) {
+      e.target.value = "";
+      return;
+    }
+
+    const currentImages = watchedImages || [];
+    setValue(
+      `variants.${variantIndex}.images`,
+      [...currentImages, ...uniqueFiles],
+      {
+        shouldDirty: true,
+      },
+    );
+
+    e.target.value = "";
   };
 
   const handleRemoveImage = (index) => {
@@ -926,7 +1000,10 @@ function VariantImageUpload({ variantIndex, control, setValue, register }) {
         <VariantImagePreviewGrid>
           {imagePreviews.map((preview, index) => (
             <VariantImagePreview key={index}>
-              <VariantPreviewImage src={preview} alt={`Variant ${index + 1}`} />
+              <VariantPreviewImage
+                src={preview}
+                alt={`Variant ${index + 1} `}
+              />
               <VariantImageRemoveButton
                 type="button"
                 onClick={() => handleRemoveImage(index)}
@@ -996,14 +1073,15 @@ const VariantImagePreview = styled.div`
   position: relative;
   border-radius: 4px;
   overflow: hidden;
-  aspect-ratio: 1/1;
+  aspect-ratio: 1 / 1;
   border: 1px solid #e2e8f0;
 `;
 
 const VariantPreviewImage = styled.img`
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  background-color: #f8fafc;
 `;
 
 const VariantImageRemoveButton = styled.button`

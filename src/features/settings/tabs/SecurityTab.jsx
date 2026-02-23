@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { FaShieldAlt, FaKey, FaDesktop, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
+import { FcGoogle } from 'react-icons/fc';
+import useAuth from '../../../shared/hooks/useAuth';
 import { use2FA, usePasswordChange, useSessions } from '../../../shared/hooks/useSecurity';
 import Button from '../../../shared/components/ui/Button';
 import { LoadingState, ErrorState } from '../../../shared/components/ui/LoadingComponents';
@@ -11,6 +13,9 @@ import PasswordStrengthIndicator from './components/PasswordStrengthIndicator';
 import { toast } from 'react-toastify';
 
 const SecurityTab = () => {
+  const { seller } = useAuth();
+  const connectedAccounts = seller?.connectedAccounts || {};
+  const googleConnected = !!connectedAccounts.google;
   const [verificationCode, setVerificationCode] = useState('');
   const [showBackupCodes, setShowBackupCodes] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
@@ -180,6 +185,32 @@ const SecurityTab = () => {
 
   return (
     <Container>
+      {/* Connected accounts */}
+      <Section>
+        <SectionHeader>
+          <SectionIcon>
+            <FaKey />
+          </SectionIcon>
+          <SectionTitle>Connected accounts</SectionTitle>
+        </SectionHeader>
+        <SectionContent>
+          <SignInMethodList>
+            <SignInMethodItem>
+              <FcGoogle size={20} />
+              <span>Google</span>
+              {googleConnected ? (
+                <ConnectedBadge $connected>Connected</ConnectedBadge>
+              ) : (
+                <ConnectedBadge>Not connected</ConnectedBadge>
+              )}
+            </SignInMethodItem>
+          </SignInMethodList>
+          <SignInMethodNote>
+            Sign in with Google on the login page to link your account. You can then use Google to sign in.
+          </SignInMethodNote>
+        </SectionContent>
+      </Section>
+
       {/* Two-Factor Authentication Section */}
       <Section>
         <SectionHeader>
@@ -439,6 +470,44 @@ const SectionContent = styled.div`
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
+`;
+
+const SignInMethodList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+`;
+
+const SignInMethodItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--color-grey-50);
+  border-radius: var(--border-radius-md);
+
+  > span:first-of-type {
+    flex: 1;
+    font-weight: var(--font-medium);
+    color: var(--color-grey-900);
+  }
+`;
+
+const SignInMethodNote = styled.span`
+  width: 100%;
+  font-size: var(--font-size-sm);
+  color: var(--color-grey-600);
+  font-weight: normal;
+  margin-top: var(--spacing-xs);
+`;
+
+const ConnectedBadge = styled.span`
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-semibold);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-md);
+  background: ${(p) => (p.$connected ? 'var(--color-green-600)' : 'var(--color-grey-200)')};
+  color: ${(p) => (p.$connected ? 'var(--color-white-0)' : 'var(--color-grey-600)')};
 `;
 
 const StatusBadge = styled.div`
