@@ -386,6 +386,9 @@ const EazSellerHomePage = () => {
             <FooterLink as={Link} to={PATHS.TERMS}>
               Terms of Service
             </FooterLink>
+            <FooterLink as={Link} to={PATHS.DATA_DELETION}>
+              Data Deletion
+            </FooterLink>
             <FooterLink as={Link} to={PATHS.VAT_TAX_POLICY}>
               VAT & Tax Policy
             </FooterLink>

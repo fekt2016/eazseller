@@ -88,7 +88,10 @@ export const PATHS = {
   // Privacy Policy (Public)
   PRIVACY: "/privacy",
   PRIVACY_DASHBOARD: "/dashboard/privacy", // Alias for backward compatibility
-  
+
+  // Data Deletion (Public – Facebook App Review)
+  DATA_DELETION: "/data-deletion",
+
   // Education (Public)
   EDUCATION: "/education",
   EDUCATION_DASHBOARD: "/dashboard/education",

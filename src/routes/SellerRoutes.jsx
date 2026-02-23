@@ -43,6 +43,7 @@ const ReturnRefundPolicyPage = lazy(() => import("../pages/policies/ReturnRefund
 const TermsPage = lazy(() => import("../pages/policies/TermsPage"));
 const VatTaxPolicyPage = lazy(() => import("../pages/policies/VatTaxPolicyPage"));
 const SellerPrivacyPolicyPage = lazy(() => import("../pages/policies/SellerPrivacyPolicyPage"));
+const DataDeletionPage = lazy(() => import("../pages/policies/DataDeletionPage"));
 const SellerEducationCenterPage = lazy(() => import("../pages/education/SellerEducationCenterPage"));
 const HelpCenterPage = lazy(() => import("../pages/help/HelpCenterPage"));
 const PickupLocationsListPage = lazy(() => import("../pages/store/pickup/PickupLocationsListPage"));
@@ -246,6 +247,25 @@ export default function SellerRoutes() {
           element={
             <Suspense fallback={<LoadingSpinner fullScreen />}>
               <TermsPage />
+            </Suspense>
+          }
+        />
+      </Route>
+
+      {/* Public Data Deletion Page - Public with Header, No Sidebar */}
+      <Route
+        path={PATHS.DATA_DELETION}
+        element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <DashboardLayout showSidebar={false} />
+          </Suspense>
+        }
+      >
+        <Route
+          index
+          element={
+            <Suspense fallback={<LoadingSpinner fullScreen />}>
+              <DataDeletionPage />
             </Suspense>
           }
         />
