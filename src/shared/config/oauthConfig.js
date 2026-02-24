@@ -13,27 +13,14 @@ const warnMissingEnv = (provider, envKey) => {
 
 const getSafeOrigin = (explicitOrigin) => {
   if (explicitOrigin) return explicitOrigin;
+  const envOrigin = import.meta.env.VITE_FRONTEND_URL;
+  if (envOrigin && typeof envOrigin === "string" && envOrigin.trim()) {
+    return envOrigin.trim().replace(/\/$/, "");
+  }
   if (typeof window !== "undefined" && window.location?.origin) {
     return window.location.origin;
   }
   return "";
-};
-
-export const getFacebookOAuthConfig = (origin) => {
-  const clientId = import.meta.env.VITE_FACEBOOK_CLIENT_ID;
-  if (!clientId || clientId.trim() === "") {
-    // Facebook is optional for seller app; no console warning
-    return { enabled: false, url: null };
-  }
-  const safeOrigin = getSafeOrigin(origin);
-  if (!safeOrigin) return { enabled: false, url: null };
-  const redirectUri = `${safeOrigin}/facebook-callback`;
-  const url =
-    `https://www.facebook.com/v17.0/dialog/oauth` +
-    `?client_id=${encodeURIComponent(clientId)}` +
-    `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-    `&scope=email,public_profile`;
-  return { enabled: true, url };
 };
 
 export const getGoogleOAuthConfig = (origin) => {

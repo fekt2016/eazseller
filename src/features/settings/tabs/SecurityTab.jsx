@@ -13,10 +13,15 @@ import PasswordStrengthIndicator from './components/PasswordStrengthIndicator';
 import { toast } from 'react-toastify';
 
 const SecurityTab = () => {
-  const { seller } = useAuth();
+  const { seller, refetchAuth } = useAuth();
   const connectedAccounts = seller?.connectedAccounts || {};
   const googleConnected = !!connectedAccounts.google;
   const [verificationCode, setVerificationCode] = useState('');
+
+  // Refetch auth when Security tab mounts so connectedAccounts (e.g. after Google login) is up to date
+  useEffect(() => {
+    refetchAuth();
+  }, [refetchAuth]);
   const [showBackupCodes, setShowBackupCodes] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');

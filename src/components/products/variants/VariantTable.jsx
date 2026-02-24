@@ -5,12 +5,48 @@ import Button from '../../../shared/components/ui/Button';
 import { ButtonSpinner } from '../../../shared/components/ui/LoadingComponents';
 import { FaEdit, FaTrash, FaBoxOpen } from "react-icons/fa";
 
-export default function VariantTable({ 
-  variants = [], 
-  productId, 
-  onDelete, 
-  deletingId 
+export default function VariantTable({
+  variants = [],
+  productId,
+  productImage = null,
+  onDelete,
+  deletingId,
 }) {
+  const getVariantImageUrl = (variant) => {
+    const images = variant.images;
+
+    // If images is an array, flatten one level and pick the first truthy entry
+    if (Array.isArray(images) && images.length > 0) {
+      const flat = [];
+      images.forEach((img) => {
+        if (Array.isArray(img)) {
+          img.forEach((inner) => flat.push(inner));
+        } else {
+          flat.push(img);
+        }
+      });
+
+      const first = flat.find((img) => img);
+      if (!first) return null;
+
+      if (typeof first === "object" && first?.url) return first.url;
+      if (typeof first === "string") return first;
+      return null;
+    }
+
+    // If images is a single string
+    if (typeof images === "string" && images.trim() !== "") {
+      return images;
+    }
+
+    // If images is a single object with url
+    if (images && typeof images === "object" && images.url) {
+      return images.url;
+    }
+
+    return null;
+  };
+
   const formatAttributes = (attributes) => {
     if (!attributes || !Array.isArray(attributes)) return "N/A";
     return attributes
@@ -30,9 +66,7 @@ export default function VariantTable({
       title: 'Image',
       align: 'center',
       render: (variant) => {
-        const images = variant.images || [];
-        const firstImage = Array.isArray(images) ? images[0] : (typeof images === 'string' ? images : null);
-        const imageUrl = typeof firstImage === 'object' && firstImage?.url ? firstImage.url : firstImage;
+        const imageUrl = getVariantImageUrl(variant) || productImage;
         
         return (
           <VariantImageContainer>

@@ -1,11 +1,12 @@
 import { GoogleLogin } from "@react-oauth/google";
 import { FcGoogle } from "react-icons/fc";
 import api from "../../shared/services/api";
+import { PATHS } from "../../routes/routePaths";
 import styled from "styled-components";
 
 /**
  * Google OAuth login/signup button for the seller app.
- * Renders a visible "Google" button (same row as Facebook). Uses SDK when clientId is set;
+ * Renders a visible "Google" button. Uses SDK when clientId is set;
  * otherwise shows a disabled placeholder so the UI is clear.
  */
 export default function GoogleLoginButton({ appType = "seller", onComplete, className }) {
@@ -36,7 +37,8 @@ export default function GoogleLoginButton({ appType = "seller", onComplete, clas
       if (onComplete) {
         onComplete(response.data);
       } else {
-        window.location.href = "/";
+        // Full page load so cookie is sent; redirect to dashboard so seller is signed in there
+        window.location.href = PATHS.DASHBOARD;
       }
     } catch (error) {
       console.error("[Seller GoogleLogin] Google login failed", {

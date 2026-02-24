@@ -33,6 +33,16 @@ export default function VariantsListPage() {
     return variantsData?.data || variantsData || [];
   }, [variantsData]);
 
+  const product = useMemo(() => {
+    // Normalize product shape from API response
+    return (
+      productData?.data?.product ||
+      productData?.data ||
+      productData ||
+      null
+    );
+  }, [productData]);
+
   const filteredVariants = useMemo(() => {
     if (!searchTerm) return variants;
     
@@ -76,7 +86,11 @@ export default function VariantsListPage() {
     );
   }
 
-  const productName = productData?.name || "Product";
+  const productName = product?.name || "Product";
+  const productImage =
+    (product?.imageCover && typeof product.imageCover === "object"
+      ? product.imageCover.url
+      : product?.imageCover) || null;
 
   return (
     <PageContainer>
@@ -133,6 +147,7 @@ export default function VariantsListPage() {
           <VariantTable
             variants={filteredVariants}
             productId={productId}
+            productImage={productImage}
             onDelete={handleDelete}
             deletingId={deletingId}
           />

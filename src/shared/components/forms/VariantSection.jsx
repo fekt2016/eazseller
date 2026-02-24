@@ -127,6 +127,7 @@ export default function VariantSection({ variantAttributes = [], seller }) {
       }, {});
 
       return {
+        name: Object.values(combo).join(" / "),
         attributes: variantAttributes,
         price: 0,
         stock: 0,
@@ -150,6 +151,7 @@ export default function VariantSection({ variantAttributes = [], seller }) {
   // Add a single variant manually
   const addVariantManually = () => {
     append({
+      name: "",
       attributes: allAttributes.map((attr) => ({
         key: attr.name,
         value: "",
@@ -354,6 +356,24 @@ function VariantRow({
 
   return (
     <VariantFieldsGrid>
+      {/* Variant Name */}
+      <VariantFieldGroup>
+        <FieldLabel>
+          Variant Name <Required>*</Required>
+        </FieldLabel>
+        <Input
+          type="text"
+          {...register(`variants.${variantIndex}.name`, {
+            required: "Please enter a name for this variant",
+          })}
+          placeholder="e.g. Small / Red"
+          $hasError={!!variantErrors?.name}
+        />
+        {variantErrors?.name && (
+          <VariantErrorMessage>{variantErrors.name.message}</VariantErrorMessage>
+        )}
+      </VariantFieldGroup>
+
       {/* Attributes Section */}
       <VariantFieldGroup>
         <FieldLabel>Attributes</FieldLabel>

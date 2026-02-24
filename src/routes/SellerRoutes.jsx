@@ -55,7 +55,6 @@ const SellerNotificationsPage = lazy(() => import("../pages/notifications/Seller
 const ForgotPasswordPage = lazy(() => import("../features/auth/ForgotPasswordPage"));
 const ResetPasswordPage = lazy(() => import("../features/auth/ResetPasswordPage"));
 const VerifyAccountPage = lazy(() => import("../features/auth/VerifyAccountPage"));
-
 // Redirect component for /dashboard/tracking/* to /tracking/*
 const TrackingRedirect = () => {
   const { trackingNumber } = useParams();

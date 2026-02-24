@@ -103,6 +103,20 @@ export default function VariantEditPage() {
     );
   }
 
+  // Derive a primary image URL from the variant data (supports string or object shapes)
+  const rawImages = variantData?.images || [];
+  const firstImage = Array.isArray(rawImages)
+    ? rawImages[0]
+    : typeof rawImages === "string"
+      ? rawImages
+      : null;
+  const primaryImage =
+    firstImage && typeof firstImage === "object" && firstImage.url
+      ? firstImage.url
+      : firstImage || null;
+
+  const variantName = variantData?.name || "Variant";
+
   return (
     <PageContainer>
       <PageHeader $padding="lg" $marginBottom="lg">
@@ -110,8 +124,18 @@ export default function VariantEditPage() {
           <BackButton onClick={() => navigate(-1)}>
             <FaArrowLeft /> Back
           </BackButton>
-          <h1>Edit Variant</h1>
-          <p>Update variant information</p>
+          <HeaderContent>
+            {primaryImage && (
+              <VariantThumbWrapper>
+                <VariantThumb src={primaryImage} alt={variantName} />
+              </VariantThumbWrapper>
+            )}
+            <HeaderTextGroup>
+              <h1>Edit Variant</h1>
+              <VariantTitle>{variantName}</VariantTitle>
+              <p>Update variant information and media</p>
+            </HeaderTextGroup>
+          </HeaderContent>
         </TitleSection>
       </PageHeader>
 
@@ -145,5 +169,43 @@ const BackButton = styled.button`
     background: var(--color-grey-50);
     border-color: var(--color-grey-400);
   }
+`;
+
+const HeaderContent = styled.div`
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+`;
+
+const HeaderTextGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+
+  h1 {
+    margin: 0;
+  }
+`;
+
+const VariantTitle = styled.span`
+  font-size: var(--font-size-md);
+  font-weight: var(--font-semibold);
+  color: var(--color-grey-700);
+`;
+
+const VariantThumbWrapper = styled.div`
+  width: 64px;
+  height: 64px;
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  border: 1px solid var(--color-grey-200);
+  background: var(--color-grey-50);
+`;
+
+const VariantThumb = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 `;
 

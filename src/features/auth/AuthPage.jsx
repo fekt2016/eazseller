@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import styled, { keyframes } from "styled-components";
-import { FaCheck, FaEye, FaEyeSlash, FaFacebook } from "react-icons/fa";
+import { FaCheck, FaEye, FaEyeSlash } from "react-icons/fa";
 import { PropagateLoader } from "react-spinners";
 import useAuth from '../../shared/hooks/useAuth';
 import { validateGhanaPhone, sanitizeName } from '../../shared/utils/helpers';
@@ -9,7 +9,6 @@ import { PATHS } from '../../routes/routePaths';
 import { ButtonSpinner } from '../../shared/components/ButtonSpinner';
 import { ErrorState } from '../../shared/components/ui/LoadingComponents';
 import Logo from '../../shared/components/Logo';
-import { getFacebookOAuthConfig } from '../../shared/config/oauthConfig';
 import GoogleLoginButton from "./GoogleLoginButton";
 
 // Auth Form Component
@@ -51,17 +50,6 @@ const AuthPage = () => {
   const { mutateAsync: registerMutation, isPending: isRegistering, error: registerError } = register;
   
   const navigate = useNavigate();
-
-  const origin = typeof window !== "undefined" && window.location?.origin ? window.location.origin : "";
-  const { enabled: isFacebookEnabled, url: facebookAuthUrl } = getFacebookOAuthConfig(origin);
-
-  const handleFacebookAuth = () => {
-    if (!isFacebookEnabled || !facebookAuthUrl) {
-      setLoginClientError("Facebook sign-in is not configured for this app.");
-      return;
-    }
-    window.location.href = facebookAuthUrl;
-  };
 
   // Validate phone number in real-time
   useEffect(() => {
@@ -630,16 +618,6 @@ const AuthPage = () => {
                     <SocialDividerLine />
                   </SocialDivider>
                   <SocialButtons>
-                    <SocialButton
-                      type="button"
-                      $bg="#1877f2"
-                      $hover="#166fe5"
-                      onClick={handleFacebookAuth}
-                      aria-label="Continue with Facebook"
-                    >
-                      <FaFacebook color="white" size={18} />
-                      <span>Facebook</span>
-                    </SocialButton>
                     <GoogleLoginButton appType="seller" />
                   </SocialButtons>
                 </>
@@ -910,16 +888,6 @@ const AuthPage = () => {
                 <SocialDividerLine />
               </SocialDivider>
               <SocialButtons>
-                <SocialButton
-                  type="button"
-                  $bg="#1877f2"
-                  $hover="#166fe5"
-                  onClick={handleFacebookAuth}
-                  aria-label="Sign up with Facebook"
-                >
-                  <FaFacebook color="white" size={18} />
-                  <span>Facebook</span>
-                </SocialButton>
                 <GoogleLoginButton appType="seller" />
               </SocialButtons>
 

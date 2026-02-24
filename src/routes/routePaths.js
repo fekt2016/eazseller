@@ -89,7 +89,7 @@ export const PATHS = {
   PRIVACY: "/privacy",
   PRIVACY_DASHBOARD: "/dashboard/privacy", // Alias for backward compatibility
 
-  // Data Deletion (Public – Facebook App Review)
+  // Data Deletion (Public)
   DATA_DELETION: "/data-deletion",
 
   // Education (Public)
@@ -105,7 +105,6 @@ export const PATHS = {
   FORGOT_PASSWORD: "/forgot-password",
   RESET_PASSWORD: "/reset-password/:token",
   VERIFY_ACCOUNT: "/verify-account",
-
   // Onboarding & Setup
   SETUP: "/dashboard/setup",
   ONBOARDING: "/dashboard/onboarding",

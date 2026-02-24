@@ -19,7 +19,7 @@ import styled from 'styled-components';
 import { devicesMax } from '../../shared/styles/breakpoint';
 
 const CONTACT_EMAIL = 'support@saiisai.com';
-const SUBJECT_LINE = 'Facebook Data Deletion Request';
+const SUBJECT_LINE = 'Data Deletion Request';
 const MAILTO_URL = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(SUBJECT_LINE)}`;
 
 const PageWrapper = styled.div`
@@ -142,15 +142,13 @@ const ConfirmationStatement = styled.div`
 `;
 
 /**
- * Facebook Data Deletion Instructions – Saiisai Seller
- * Same content as buyer app; compliant with Facebook App Review data deletion requirements.
+ * Data Deletion Instructions – Saiisai Seller
  */
 const DataDeletionPage = () => {
   usePageTitle({
-    title: 'Facebook Data Deletion Instructions • Saiisai Seller',
-    description:
-      'Request deletion of your Saiisai data if you signed up or logged in using Facebook. Learn how to submit a data deletion request.',
-    keywords: 'Facebook data deletion, delete account, data removal, Saiisai, privacy',
+    title: 'Data Deletion Instructions • Saiisai Seller',
+    description: 'Request deletion of your Saiisai Seller account data. Learn how to submit a data deletion request.',
+    keywords: 'data deletion, delete account, data removal, Saiisai, privacy',
   });
 
   const staggerContainer = {
@@ -171,11 +169,10 @@ const DataDeletionPage = () => {
       <PolicyContent initial="hidden" animate="visible" variants={staggerContainer}>
         <PageWrapper>
           <PolicyHeader>
-            <PageTitle>Facebook Data Deletion Instructions</PageTitle>
+            <PageTitle>Data Deletion Instructions</PageTitle>
             <IntroText>
-              If you signed up for or logged into Saiisai or Saiisai Seller using Facebook, you can
-              request deletion of the data we hold that is associated with your Facebook-linked
-              account. This page explains what we delete, how to request it, and what to expect.
+              You can request deletion of the data we hold that is associated with your Saiisai
+              Seller account. This page explains what we delete, how to request it, and what to expect.
             </IntroText>
           </PolicyHeader>
 
@@ -183,10 +180,9 @@ const DataDeletionPage = () => {
             <SectionTitlePrimary>Who can request deletion</SectionTitlePrimary>
             <SectionContent>
               <Paragraph>
-                This process applies to users who created an account or signed in to Saiisai or
-                Saiisai Seller using Facebook Login. If you have never used Facebook to access
-                Saiisai, this data deletion flow does not apply to your account; you can still
-                contact us for general account or data requests.
+                This process applies to any Saiisai Seller account holder. You can request deletion of
+                your account and associated data by following the steps below. For general account
+                or data requests, you can also contact us.
               </Paragraph>
             </SectionContent>
           </PolicySection>
@@ -194,10 +190,10 @@ const DataDeletionPage = () => {
           <PolicySection variants={staggerItem}>
             <SectionTitlePrimary>What data will be deleted</SectionTitlePrimary>
             <SectionContent>
-              <Paragraph>When you submit a valid Facebook data deletion request, we will delete:</Paragraph>
+              <Paragraph>When you submit a valid data deletion request, we will delete:</Paragraph>
               <BulletList>
-                <li>Profile information linked to your Facebook account (name, email, profile data we received from Facebook)</li>
-                <li>Account data associated with that Facebook-linked account</li>
+                <li>Profile information (name, email, contact details)</li>
+                <li>Account data associated with your seller account</li>
                 <li>Order history and related transaction data, if you request full account deletion</li>
               </BulletList>
               <Paragraph>
@@ -212,18 +208,18 @@ const DataDeletionPage = () => {
           <PolicySection variants={staggerItem}>
             <SectionTitlePrimary>How to request deletion</SectionTitlePrimary>
             <SectionContent>
-              <Paragraph>To request deletion of your Facebook-related data from Saiisai:</Paragraph>
+              <Paragraph>To request deletion of your data from Saiisai Seller:</Paragraph>
               <NumberedList>
                 <li>
-                  Send an email to <strong>{CONTACT_EMAIL}</strong> from the email address associated with your Saiisai account (or the one linked to your Facebook account).
+                  Send an email to <strong>{CONTACT_EMAIL}</strong> from the email address associated with your Saiisai Seller account.
                 </li>
                 <li>
                   Use the subject line: <strong>{SUBJECT_LINE}</strong>
                 </li>
                 <li>
                   In the body of the email, clearly state that you are requesting deletion of your
-                  data in connection with your Facebook login to Saiisai. You may include your
-                  registered email or phone if it helps us identify your account.
+                  seller account and associated data. You may include your registered email or phone
+                  if it helps us identify your account.
                 </li>
                 <li>
                   We will confirm receipt and process your request in accordance with our Privacy
@@ -255,7 +251,7 @@ const DataDeletionPage = () => {
             <SectionTitlePrimary>Processing timeline</SectionTitlePrimary>
             <SectionContent>
               <Paragraph>
-                We aim to complete Facebook data deletion requests within <strong>7 working days</strong> of
+                We aim to complete data deletion requests within <strong>7 working days</strong> of
                 receiving a valid request. You will receive a confirmation email once the process
                 has been completed. If we need more information to identify your account, we will
                 contact you at the email address you provided.
@@ -264,27 +260,12 @@ const DataDeletionPage = () => {
           </PolicySection>
 
           <PolicySection variants={staggerItem}>
-            <SectionTitlePrimary>If you log in again using Facebook</SectionTitlePrimary>
-            <SectionContent>
-              <Paragraph>
-                If you have requested and completed deletion of your Facebook-linked data, and you
-                later sign in to Saiisai again using Facebook, we will create a new account or
-                re-associate your Facebook profile with our platform. That new or re-linked data will
-                be subject to our Privacy Policy and Terms of Service. To remove it again, you would
-                need to submit a new data deletion request.
-              </Paragraph>
-            </SectionContent>
-          </PolicySection>
-
-          <PolicySection variants={staggerItem}>
             <SectionTitlePrimary>Confirmation</SectionTitlePrimary>
             <SectionContent>
               <ConfirmationStatement>
-                Saiisai provides this Facebook Data Deletion Instructions page in compliance with
-                Facebook’s platform terms and data deletion requirements. We are committed to
-                handling your data responsibly and to processing deletion requests in a timely
-                manner. For more detail on how we collect, use, and protect your information,
-                please see our Privacy Policy and Terms of Service.
+                Saiisai is committed to handling your data responsibly and to processing deletion
+                requests in a timely manner. For more detail on how we collect, use, and protect
+                your information, please see our Privacy Policy and Terms of Service.
               </ConfirmationStatement>
             </SectionContent>
           </PolicySection>
