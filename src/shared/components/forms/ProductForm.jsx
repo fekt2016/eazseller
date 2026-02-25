@@ -72,6 +72,7 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
       subCategory: "",
       variants: [
         {
+          images: [],
           attributes: [],
           price: 0,
           stock: 0,
@@ -120,6 +121,7 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
           (initialData.variants && Array.isArray(initialData.variants) && initialData.variants.length > 0)
             ? initialData.variants.map((variant) => ({
               ...variant,
+              images: Array.isArray(variant.images) ? variant.images : [],
               price:
                 typeof variant.price === "number"
                   ? variant.price
@@ -466,6 +468,7 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
                 <VariantSection
                   variantAttributes={variantAttributes}
                   seller={seller}
+                  categoryNameForSku={getCategoryName(subCategory) || "GENERAL"}
                 />
               </SectionContainer>
             </Step1Content>

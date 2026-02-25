@@ -12,7 +12,7 @@ const generateFileSignature = (file) => {
   return `${file.name}_${file.size}_${file.lastModified}`;
 };
 
-export default function VariantSection({ variantAttributes = [], seller }) {
+export default function VariantSection({ variantAttributes = [], seller, singleVariantMode = false, categoryNameForSku }) {
   const { control, register, setValue, getValues } = useFormContext();
   const { fields, append, remove, replace } = useFieldArray({
     control,
@@ -39,9 +39,9 @@ export default function VariantSection({ variantAttributes = [], seller }) {
 
   // Combine predefined and custom attributes, excluding 'Brand'
   const allAttributes = useMemo(() => {
-    const filteredPredefined = variantAttributes.filter(
-      (attr) => attr.name.toLowerCase() !== "brand",
-    );
+    const filteredPredefined = (variantAttributes || []).filter(
+      (attr) => attr && (attr.name || attr.key) && String(attr.name || attr.key).toLowerCase() !== "brand",
+    ).map((attr) => ({ ...attr, name: attr.name || attr.key }));
 
     return [
       ...filteredPredefined,
@@ -64,90 +64,6 @@ export default function VariantSection({ variantAttributes = [], seller }) {
     }
   };
 
-  // Generate variants from options
-  const generateVariants = () => {
-    const attributes = getValues("attributes") || [];
-    const subCategory = getValues("subCategory") || "GENERAL";
-
-    // Filter out attributes that have both name and value
-    const validAttributes = attributes.filter(
-      (attr) => attr?.name && attr?.value && attr.value.trim(),
-    );
-
-    if (!validAttributes || validAttributes.length === 0) {
-      console.warn(
-        "No valid attributes found.Please add attributes with values first.",
-      );
-      // You could also show a toast notification here
-      return;
-    }
-
-    // Parse comma-separated values from each attribute
-    const attributeOptions = validAttributes.map((attr) => {
-      const values = attr.value
-        .split(",")
-        .map((v) => v.trim())
-        .filter(Boolean);
-
-      return {
-        key: attr.name,
-        values: values,
-      };
-    });
-
-    //  Create all possible combinations of option values (cartesian product )
-    const combinations = attributeOptions.reduce((acc, option) => {
-      if (!acc.length) {
-        return option.values.map((value) => ({ [option.key]: value }));
-      }
-      return acc.flatMap((combo) =>
-        option.values.map((value) => ({ ...combo, [option.key]: value })),
-      );
-    }, []);
-
-    if (combinations.length === 0) {
-      console.warn(
-        "No combinations generated.Please check your attribute values.",
-      );
-      return;
-    }
-
-    // Create variant objects from combinations
-    const newVariants = combinations.map((combo) => {
-      // Map combination values to attribute format
-      const variantAttributes = Object.keys(combo).map((key) => ({
-        key: key,
-        value: combo[key],
-      }));
-
-      // Create variant object for SKU generation
-      const variantObj = variantAttributes.reduce((acc, attr) => {
-        if (attr.value) acc[attr.key] = attr.value;
-        return acc;
-      }, {});
-
-      return {
-        name: Object.values(combo).join(" / "),
-        attributes: variantAttributes,
-        price: 0,
-        stock: 0,
-        //  Use shared SKU generator (same pattern as Add Product )
-        sku: generateSKU({
-          seller,
-          variants: variantObj,
-          category: subCategory,
-        }),
-        status: "active",
-        condition: "new", //   Default condition
-      };
-    });
-    // Replace existing variants with the new generated ones
-    replace(newVariants);
-    console.log(
-      `Generated ${newVariants.length} variants from ${validAttributes.length} attributes`,
-    );
-  };
-
   // Add a single variant manually
   const addVariantManually = () => {
     append({
@@ -165,15 +81,15 @@ export default function VariantSection({ variantAttributes = [], seller }) {
   };
   return (
     <div>
-      <VariantControls>
-        <GenerateButton type="button" onClick={generateVariants}>
-          Generate Variants from Options
-        </GenerateButton>
-        <AddVariantButton type="button" onClick={addVariantManually}>
-          + Add Variant Manually
-        </AddVariantButton>
-      </VariantControls>
+      {!singleVariantMode && (
+        <VariantControls>
+          <AddVariantButton type="button" onClick={addVariantManually}>
+            + Add Variant Manually
+          </AddVariantButton>
+        </VariantControls>
+      )}
 
+      {!singleVariantMode && (
       <AttributeManagement>
         <h4>Additional Attributes:</h4>
         <AttributeInputGroup>
@@ -208,13 +124,14 @@ export default function VariantSection({ variantAttributes = [], seller }) {
             ))}
         </AttributeList>
       </AttributeManagement>
+      )}
 
       <VariantCardsContainer>
         {fields.map((field, idx) => (
           <VariantCard key={field.id}>
             <VariantCardHeader>
               <VariantCardTitle>Variant {idx + 1}</VariantCardTitle>
-              {fields.length > 1 && (
+              {!singleVariantMode && fields.length > 1 && (
                 <RemoveVariantButton type="button" onClick={() => remove(idx)}>
                   <FiX /> Remove
                 </RemoveVariantButton>
@@ -231,14 +148,17 @@ export default function VariantSection({ variantAttributes = [], seller }) {
                 setValue={setValue}
                 getValues={getValues}
                 seller={seller}
+                categoryNameForSku={categoryNameForSku}
               />
             </VariantCardBody>
           </VariantCard>
         ))}
-        <TotalQuantityCard>
-          <TotalQuantityLabel>Total Quantity:</TotalQuantityLabel>
-          <TotalQuantityValue>{totalStock}</TotalQuantityValue>
-        </TotalQuantityCard>
+        {!singleVariantMode && (
+          <TotalQuantityCard>
+            <TotalQuantityLabel>Total Quantity:</TotalQuantityLabel>
+            <TotalQuantityValue>{totalStock}</TotalQuantityValue>
+          </TotalQuantityCard>
+        )}
       </VariantCardsContainer>
     </div>
   );
@@ -252,6 +172,7 @@ function VariantRow({
   setValue,
   getValues,
   seller,
+  categoryNameForSku,
 }) {
   const {
     formState: { errors },
@@ -259,6 +180,8 @@ function VariantRow({
   const firstRun = useRef(true);
   const prevAttrValues = useRef([]);
   const subCategory = useWatch({ name: "subCategory", control }) || "GENERAL";
+  // Use category name for SKU when provided (matches Add Product / backend); otherwise fall back to form subCategory
+  const categoryForSku = categoryNameForSku ?? subCategory ?? "GENERAL";
 
   const watchedAttrs = useWatch({
     control,
@@ -305,7 +228,7 @@ function VariantRow({
     const newSku = generateSKU({
       seller,
       variants: variantsObj,
-      category: subCategory,
+      category: categoryForSku,
     });
     const currentSku = getValues(`variants.${variantIndex}.sku`);
 

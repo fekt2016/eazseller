@@ -22,6 +22,7 @@ const AuthPage = () => {
     email: "",
     password: "",
   });
+  const [rememberMe, setRememberMe] = useState(false);
   const [loginStep, setLoginStep] = useState("credentials"); // 'credentials', '2fa'
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
@@ -50,6 +51,22 @@ const AuthPage = () => {
   const { mutateAsync: registerMutation, isPending: isRegistering, error: registerError } = register;
   
   const navigate = useNavigate();
+
+  // Load remembered email (if any)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem("sellerRememberMe");
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (parsed?.email) {
+        setLoginState((prev) => ({ ...prev, email: parsed.email }));
+        setRememberMe(true);
+      }
+    } catch {
+      // ignore malformed data
+    }
+  }, []);
 
   // Validate phone number in real-time
   useEffect(() => {
@@ -252,6 +269,18 @@ const AuthPage = () => {
                 });
               }
               
+              // Remember-me: store or clear saved email
+              if (typeof window !== "undefined") {
+                if (rememberMe) {
+                  window.localStorage.setItem(
+                    "sellerRememberMe",
+                    JSON.stringify({ email: trimmedEmail })
+                  );
+                } else {
+                  window.localStorage.removeItem("sellerRememberMe");
+                }
+              }
+              
               // Wait a moment for auth state to update, then navigate
               // This ensures ProtectedRoute has the seller data
               setTimeout(() => {
@@ -340,6 +369,18 @@ const AuthPage = () => {
                 name: seller.name || seller.shopName,
                 role: seller.role,
               });
+              
+              // Remember-me after successful 2FA
+              if (typeof window !== "undefined") {
+                if (rememberMe && loginState.email) {
+                  window.localStorage.setItem(
+                    "sellerRememberMe",
+                    JSON.stringify({ email: loginState.email.trim().toLowerCase() })
+                  );
+                } else {
+                  window.localStorage.removeItem("sellerRememberMe");
+                }
+              }
               
               navigate(PATHS.DASHBOARD);
               setLoginState({ email: "", password: "" });
@@ -607,9 +648,19 @@ const AuthPage = () => {
                         {showLoginPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
                       </PasswordToggleBtn>
                     </PasswordInputWrapper>
-                    <ForgotPasswordLink to={PATHS.FORGOT_PASSWORD}>
-                      Forgot password?
-                    </ForgotPasswordLink>
+                    <LoginMetaRow>
+                      <RememberMeLabel>
+                        <input
+                          type="checkbox"
+                          checked={rememberMe}
+                          onChange={(e) => setRememberMe(e.target.checked)}
+                        />
+                        <span>Remember me</span>
+                      </RememberMeLabel>
+                      <ForgotPasswordLink to={PATHS.FORGOT_PASSWORD}>
+                        Forgot password?
+                      </ForgotPasswordLink>
+                    </LoginMetaRow>
                   </InputGroup>
 
                   <SocialDivider>
@@ -1223,6 +1274,27 @@ const PasswordToggleBtn = styled.button`
     outline: 2px solid var(--color-primary-500, #667eea);
     outline-offset: 2px;
     border-radius: 4px;
+  }
+`;
+
+const LoginMetaRow = styled.div`
+  margin-top: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+`;
+
+const RememberMeLabel = styled.label`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  color: #4a5568;
+
+  input {
+    width: 14px;
+    height: 14px;
   }
 `;
 

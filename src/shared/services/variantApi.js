@@ -34,7 +34,10 @@ export const variantService = {
       formData.append("stock", variantData.stock?.toString() || "0");
       formData.append("sku", variantData.sku || "");
       formData.append("status", variantData.status || "active");
-      
+      if (variantData.condition) {
+        formData.append("condition", variantData.condition);
+      }
+
       if (variantData.discount) {
         formData.append("discount", variantData.discount.toString());
       }
@@ -90,6 +93,9 @@ export const variantService = {
       }
       if (variantData.status !== undefined) {
         formData.append("status", variantData.status);
+      }
+      if (variantData.condition !== undefined) {
+        formData.append("condition", variantData.condition);
       }
       if (variantData.discount !== undefined) {
         formData.append("discount", variantData.discount.toString());

@@ -1,14 +1,8 @@
 import styled from "styled-components";
 import { useEffect, useState, useRef } from "react";
 import { useFormContext } from "react-hook-form";
-import { FiUploadCloud, FiX } from "react-icons/fi";
+import { FiUploadCloud } from "react-icons/fi";
 import { toast } from "react-toastify";
-
-// Helper to generate a unique signature for a file to prevent duplicates
-const generateFileSignature = (file) => {
-  if (!file || !(file instanceof File)) return null;
-  return `${file.name}_${file.size}_${file.lastModified}`;
-};
 
 // Styled components - defined before component to ensure they're available
 const ImageSectionContainer = styled.div`
@@ -234,18 +228,12 @@ const CoverImage = styled.img`
 export default function ImageSection({ isSubmitting }) {
   const { watch, setValue, register, trigger, formState: { errors } } = useFormContext();
   const [coverPreview, setCoverPreview] = useState("");
-  const [imagePreviews, setImagePreviews] = useState([]);
-
-  // Track signatures of currently selected files to prevent duplicates in the same session
-  const [existingSignatures, setExistingSignatures] = useState(new Set());
 
   // Use ref to track cover image to prevent it from being cleared
   const coverImageRef = useRef(null);
 
-  // Watch form values for images
+  // Watch form value only for cover image (product-level)
   const imageCover = watch("imageCover");
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const images = watch("images") || [];
 
   // Update ref when imageCover changes
   useEffect(() => {
@@ -279,57 +267,18 @@ export default function ImageSection({ isSubmitting }) {
     }
   }, [imageCover]);
 
-  // Sync images previews and signatures
-  useEffect(() => {
-    const previews = images.map((img) => {
-      if (typeof img === "string") return img;
-      if (img instanceof File) return URL.createObjectURL(img);
-      return "";
-    });
-
-    // Update the set of existing signatures
-    const newSignatures = new Set();
-    images.forEach(img => {
-      if (img instanceof File) {
-        newSignatures.add(generateFileSignature(img));
-      }
-    });
-
-    // Also add the cover image signature if it's a file
-    if (coverImageRef.current instanceof File) {
-      newSignatures.add(generateFileSignature(coverImageRef.current));
-    }
-
-    setExistingSignatures(newSignatures);
-    setImagePreviews(previews);
-  }, [images]);
-
   // Cleanup object URLs
   useEffect(() => {
     return () => {
       if (coverPreview.startsWith("blob:")) {
         URL.revokeObjectURL(coverPreview);
       }
-      imagePreviews.forEach((preview) => {
-        if (preview.startsWith("blob:")) {
-          URL.revokeObjectURL(preview);
-        }
-      });
     };
-  }, [coverPreview, imagePreviews]);
+  }, [coverPreview]);
 
   const handleCoverImage = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const signature = generateFileSignature(file);
-
-      // Check if this exact file is already in the additional images
-      if (existingSignatures.has(signature)) {
-        toast.warning("This image is already selected as an additional image.");
-        e.target.value = '';
-        return;
-      }
-
       setValue("imageCover", file, { shouldValidate: true, shouldDirty: true });
       // Update ref to track the cover image
       coverImageRef.current = file;
@@ -341,78 +290,6 @@ export default function ImageSection({ isSubmitting }) {
       // If no file selected, don't clear the existing value
       // This prevents accidental clearing when clicking cancel
     }
-  };
-
-  const handleAdditionalImages = (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length === 0) return;
-
-    let duplicateCount = 0;
-    const uniqueFiles = files.filter(file => {
-      const signature = generateFileSignature(file);
-      if (existingSignatures.has(signature)) {
-        duplicateCount++;
-        return false;
-      }
-      // Also prevent adding an image if it's already the cover image
-      if (coverImageRef.current instanceof File && generateFileSignature(coverImageRef.current) === signature) {
-        duplicateCount++;
-        return false;
-      }
-
-      // Add the new signature immediately to prevent duplicates within the same batch
-      existingSignatures.add(signature);
-      return true;
-    });
-
-    if (duplicateCount > 0) {
-      toast.warning(`${duplicateCount} duplicate image(s) ignored.`);
-    }
-
-    if (uniqueFiles.length === 0) {
-      e.target.value = '';
-      return;
-    }
-
-    // Get current images to preserve them - use the watched value directly
-    const currentImages = images || [];
-
-    // Get the cover image from ref (most reliable) or current value
-    const currentImageCover = coverImageRef.current || imageCover;
-
-    // Set the new images array
-    setValue("images", [...currentImages, ...uniqueFiles], {
-      shouldDirty: true,
-      shouldValidate: false
-    });
-
-    // Ensure imageCover is preserved - restore it immediately if needed
-    if (currentImageCover) {
-      // Check if imageCover was cleared and restore it
-      const checkAndRestore = () => {
-        const currentCover = watch("imageCover");
-        if (!currentCover && currentImageCover) {
-          setValue("imageCover", currentImageCover, {
-            shouldValidate: true,
-            shouldDirty: true
-          });
-          coverImageRef.current = currentImageCover;
-        }
-      };
-
-      // Check immediately and also after a brief delay to catch any async clearing
-      checkAndRestore();
-      setTimeout(checkAndRestore, 10);
-    }
-
-    // Clear the input value to allow re-selecting the same files
-    e.target.value = '';
-  };
-
-  const handleRemoveImage = (index) => {
-    const newImages = [...images];
-    newImages.splice(index, 1);
-    setValue("images", newImages);
   };
 
   return (
@@ -450,51 +327,6 @@ export default function ImageSection({ isSubmitting }) {
             <CoverPreview>
               <CoverImage src={coverPreview} alt="Cover preview" />
             </CoverPreview>
-          </PreviewContainer>
-        )}
-      </ImageUploadCard>
-
-      {/* Additional Images Upload */}
-      <ImageUploadCard>
-        <UploadLabel>
-          Additional Images
-          <Optional>(Optional)</Optional>
-          <HelperText>Add more images to showcase different angles and features</HelperText>
-        </UploadLabel>
-        <UploadArea>
-          <UploadIcon>
-            <FiUploadCloud />
-          </UploadIcon>
-          <UploadText>
-            <strong>Click to upload</strong> or drag and drop
-          </UploadText>
-          <UploadText>You can select multiple images (up to 10)</UploadText>
-          <FileInput
-            type="file"
-            multiple
-            accept="image/*"
-            onChange={handleAdditionalImages}
-            disabled={isSubmitting}
-          />
-        </UploadArea>
-
-        {imagePreviews.length > 0 && (
-          <PreviewContainer>
-            <PreviewTitle>Additional Images Preview</PreviewTitle>
-            <PreviewGrid>
-              {imagePreviews.map((preview, index) => (
-                <ImagePreview key={index}>
-                  <PreviewImage src={preview} alt={`Product ${index + 1}`} />
-                  <RemoveButton
-                    type="button"
-                    onClick={() => handleRemoveImage(index)}
-                    disabled={isSubmitting}
-                  >
-                    <FiX />
-                  </RemoveButton>
-                </ImagePreview>
-              ))}
-            </PreviewGrid>
           </PreviewContainer>
         )}
       </ImageUploadCard>

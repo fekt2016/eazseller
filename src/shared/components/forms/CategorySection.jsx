@@ -2,7 +2,7 @@ import { useEffect, useMemo } from "react";
 import { Controller, useFormContext, useWatch } from "react-hook-form";
 import styled from "styled-components";
 
-const CategorySection = ({ categories, parentCategories: parentCategoriesProp }) => {
+const CategorySection = ({ categories, parentCategories: parentCategoriesProp, readOnly = false }) => {
   const { control, setValue } = useFormContext();
   const parentCategory = useWatch({ control, name: "parentCategory" });
   const subCategory = useWatch({ control, name: "subCategory" });
@@ -313,11 +313,11 @@ const CategorySection = ({ categories, parentCategories: parentCategoriesProp })
           name="parentCategory"
           defaultValue={""}
           control={control}
-          rules={{ required: "Please select a parent category" }}
+          rules={{ required: readOnly ? false : "Please select a parent category" }}
           render={({ field, fieldState: { error } }) => (
             <div>
               <SelectContainer>
-                <Select {...field} value={field.value || ""} $hasError={!!error}>
+                <Select {...field} value={field.value || ""} $hasError={!!error} disabled={readOnly}>
                   <option value="">Select a category</option>
                   {parentCategories.length === 0 ? (
                     <option value="" disabled>
@@ -350,18 +350,16 @@ const CategorySection = ({ categories, parentCategories: parentCategoriesProp })
             name="subCategory"
             defaultValue={""}
             control={control}
-            rules={{ 
-              required: "Please select a subcategory",
-              validate: (value) => {
-                if (!value || value === "") {
-                  return "Please select a subcategory";
-                }
+            rules={{
+              required: readOnly ? false : "Please select a subcategory",
+              validate: readOnly ? undefined : (value) => {
+                if (!value || value === "") return "Please select a subcategory";
                 return true;
-              }
+              },
             }}
             render={({ field, fieldState: { error } }) => (
               <div>
-                <Select {...field} value={field.value || ""} $hasError={!!error}>
+                <Select {...field} value={field.value || ""} $hasError={!!error} disabled={readOnly}>
                   <option value="">Select a subcategory</option>
                   {subCategories.length === 0 ? (
                     <option value="" disabled>
