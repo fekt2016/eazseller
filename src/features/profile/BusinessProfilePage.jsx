@@ -11,6 +11,8 @@ import { PageContainer, PageHeader, TitleSection, Section, SectionHeader } from 
 import { compressImage } from '../../shared/utils/imageCompressor';
 import { COUNTRIES } from '../../shared/constants/countries';
 import { toast } from 'react-toastify';
+import { detectGhanaNetwork, isValidGhanaPhone, normalizeGhanaPhone } from '../../shared/utils/detectGhanaNetwork';
+import NetworkBadge from '../../shared/components/ui/NetworkBadge';
 
 const BusinessProfilePage = ({ embedded = false }) => {
   const { seller, update, isUpdateLoading } = useAuth();
@@ -79,7 +81,11 @@ const BusinessProfilePage = ({ embedded = false }) => {
           twitter: seller.socialMediaLinks?.twitter ?? '',
           TikTok: seller.socialMediaLinks?.TikTok ?? seller.socialMediaLinks?.tiktok ?? '',
         },
-        phone: seller.phone ?? seller.phoneNumber ?? '',
+        phone: (() => {
+          const raw = seller.phone ?? seller.phoneNumber ?? '';
+          const normalized = normalizeGhanaPhone(raw);
+          return normalized || raw;
+        })(),
       });
 
       // Set previews for existing documents (from Cloudinary URLs)
@@ -155,6 +161,29 @@ const BusinessProfilePage = ({ embedded = false }) => {
     }
     return cleaned;
   };
+
+  const formatPhoneDisplay = (stripped) => {
+    const d = normalizeGhanaPhone(stripped || '');
+    if (d.length <= 3) return d;
+    if (d.length <= 6) return `${d.slice(0, 3)} ${d.slice(3)}`;
+    return `${d.slice(0, 3)} ${d.slice(3, 6)} ${d.slice(6, 10)}`;
+  };
+
+  const handlePhoneChange = (e) => {
+    const raw = e.target.value;
+    const stripped = normalizeGhanaPhone(raw);
+    let limited = stripped;
+    if (!stripped) limited = '';
+    else if (stripped.startsWith('0')) limited = stripped.slice(0, 10);
+    else limited = ('0' + stripped).slice(0, 10);
+    setFormData((prev) => ({ ...prev, phone: limited }));
+    if (error) setError(null);
+  };
+
+  const phoneNetworkResult = formData.phone ? detectGhanaNetwork(formData.phone) : null;
+  const phoneDigits = normalizeGhanaPhone(formData.phone);
+  const phoneLengthError = phoneDigits.length >= 3 && phoneDigits.length !== 10;
+  const phoneUnknownError = phoneDigits.length === 10 && phoneNetworkResult && !phoneNetworkResult.isValid;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -362,6 +391,17 @@ const BusinessProfilePage = ({ embedded = false }) => {
         throw new Error('Shop name is required');
       }
 
+      if (!formData.phone.trim()) {
+        throw new Error('Phone number is required');
+      }
+      const phoneDigits = normalizeGhanaPhone(formData.phone);
+      if (phoneDigits.length !== 10) {
+        throw new Error('Phone number must be 10 digits');
+      }
+      if (!isValidGhanaPhone(formData.phone)) {
+        throw new Error('Please enter a valid Ghana mobile number');
+      }
+
       // Validate mandatory ID Proof (Ghana Card)
       if (!idProof && !idProofPreview) {
         throw new Error('Identity Proof (Ghana Card) is required for verification');
@@ -560,16 +600,31 @@ const BusinessProfilePage = ({ embedded = false }) => {
               <Label htmlFor="phone">
                 Phone Number <Required>*</Required>
               </Label>
-              <Input
-                id="phone"
-                name="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={handleChange}
-                placeholder="Enter your phone number"
-                required
-                disabled={isSubmitting || isUpdateLoading}
-              />
+              <PhoneInputWrapper>
+                <PhoneInputContainer $hasError={!!(phoneLengthError || phoneUnknownError)}>
+                  <PhonePrefix>🇬🇭</PhonePrefix>
+                  <PhoneInput
+                    id="phone"
+                    name="phone"
+                    type="text"
+                    inputMode="tel"
+                    value={formatPhoneDisplay(formData.phone)}
+                    onChange={handlePhoneChange}
+                    placeholder="024 123 4567"
+                    required
+                    disabled={isSubmitting || isUpdateLoading}
+                  />
+                  {phoneNetworkResult && (
+                    <PhoneBadgeSlot>
+                      <NetworkBadge network={phoneNetworkResult} />
+                    </PhoneBadgeSlot>
+                  )}
+                </PhoneInputContainer>
+                {phoneLengthError && <ErrorText>Phone number must be 10 digits</ErrorText>}
+                {!phoneLengthError && phoneUnknownError && (
+                  <ErrorText>Please enter a valid Ghana mobile number</ErrorText>
+                )}
+              </PhoneInputWrapper>
             </FormGroup>
 
             <FormGroup>
@@ -1466,6 +1521,59 @@ const ErrorText = styled.span`
   font-size: var(--font-size-xs);
   margin-top: var(--spacing-xs);
   display: block;
+`;
+
+const PhoneInputWrapper = styled.div`
+  margin-top: var(--spacing-xs);
+`;
+
+const PhoneInputContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.75rem 0 0;
+  border: 2px solid ${(p) => (p.$hasError ? 'var(--color-red-500)' : 'var(--color-grey-300)')};
+  border-radius: var(--border-radius-md);
+  background: #fff;
+  min-height: 44px;
+  &:focus-within {
+    border-color: ${(p) => (p.$hasError ? 'var(--color-red-500)' : 'var(--color-primary-500)')};
+    box-shadow: 0 0 0 3px var(--color-primary-100);
+  }
+`;
+
+const PhoneBadgeSlot = styled.span`
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+`;
+
+const PhonePrefix = styled.span`
+  color: var(--color-grey-700);
+  font-size: var(--font-size-md);
+  padding-left: var(--spacing-md);
+  flex-shrink: 0;
+`;
+
+const PhoneInput = styled.input`
+  padding: var(--spacing-md) 0.5rem var(--spacing-md) 0;
+  border: none;
+  font-size: var(--font-size-md);
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  color: var(--color-grey-900);
+  &:focus {
+    outline: none;
+  }
+  &::placeholder {
+    color: var(--color-grey-400);
+  }
+  &:disabled {
+    background: transparent;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
 `;
 
 const VerificationStatusCard = styled.div`
