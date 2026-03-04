@@ -16,6 +16,8 @@ import { formatDate } from '../utils/helpers';
 import { useGetSellerCoupon, useDeleteCoupon } from '../hooks/useCoupon';
 import CouponBatchModal from "./modal/CouponBatchModal";
 import SendCouponModal from "./modal/SendCouponModal";
+import { toast } from 'react-toastify';
+import { ConfirmationModal } from './modal/ConfirmationModal';
 
 const CouponTab = ({
   couponSearchTerm,
@@ -73,18 +75,20 @@ const CouponTab = ({
     setTimeout(() => setCopiedBatchId(null), 2000);
   };
 
+  const [batchToDelete, setBatchToDelete] = useState(null);
+
   const handleDeleteBatch = async (batchId) => {
-    if (
-      window.confirm(
-        "Are you sure you want to delete this coupon batch? This action cannot be undone."
-      )
-    ) {
-      try {
-        couponDeleteMutation(batchId);
-      } catch (error) {
-        console.error("Failed to delete batch:", error);
-        alert("Failed to delete batch. Please try again.");
-      }
+    setBatchToDelete(batchId);
+  };
+
+  const handleConfirmDeleteBatch = async () => {
+    const batchId = batchToDelete;
+    setBatchToDelete(null);
+    try {
+      couponDeleteMutation(batchId);
+    } catch (error) {
+      console.error("Failed to delete batch:", error);
+      toast.error("Failed to delete batch. Please try again.");
     }
   };
 
@@ -307,23 +311,23 @@ const CouponTab = ({
                           >
                             <FaCopy />
                             {copiedCode === coupon.code &&
-                            copiedBatchId === batch._id
+                              copiedBatchId === batch._id
                               ? "Copied!"
                               : "Copy"}
                           </ActionButton>
 
                           {/* Hide share button if coupon is used (single-use) or has reached maxUsage */}
-                          {!(coupon.used && batch.maxUsage === 1) && 
-                           !(coupon.usageCount >= batch.maxUsage) && (
-                            <ActionButton
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openSendCouponModal(coupon.code, batch._id);
-                              }}
-                            >
-                              <FaEnvelope /> Share
-                            </ActionButton>
-                          )}
+                          {!(coupon.used && batch.maxUsage === 1) &&
+                            !(coupon.usageCount >= batch.maxUsage) && (
+                              <ActionButton
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openSendCouponModal(coupon.code, batch._id);
+                                }}
+                              >
+                                <FaEnvelope /> Share
+                              </ActionButton>
+                            )}
                         </CouponActions>
                       </CouponCard>
                     ))}
@@ -350,6 +354,16 @@ const CouponTab = ({
           onClose={() => setSendCouponModal(null)}
         />
       )}
+
+      <ConfirmationModal
+        isOpen={!!batchToDelete}
+        onClose={() => setBatchToDelete(null)}
+        onConfirm={handleConfirmDeleteBatch}
+        title="Delete Coupon Batch"
+        message="Are you sure you want to delete this coupon batch? This action cannot be undone."
+        confirmText="Delete"
+        confirmColor="#ef4444"
+      />
     </Container>
   );
 };
@@ -721,9 +735,9 @@ const CouponsGrid = styled.div`
 `;
 
 const CouponCard = styled.div`
-  border: 1px solid ${({ used, sent }) => 
+  border: 1px solid ${({ used, sent }) =>
     used ? "#fecaca" : sent ? "#a7f3d0" : "#bfdbfe"};
-  background: ${({ used, sent }) => 
+  background: ${({ used, sent }) =>
     used ? "#fef2f2" : sent ? "#f0fdf4" : "#f0f9ff"};
   border-radius: 10px;
   padding: 20px;

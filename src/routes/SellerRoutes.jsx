@@ -65,7 +65,7 @@ export default function SellerRoutes() {
   return (
     <Routes>
       {/* Home Page - Root Route - Public with Header, No Sidebar */}
-      <Route 
+      <Route
         path={PATHS.LANDING}
         element={
           <Suspense fallback={<LoadingSpinner />}>
@@ -82,9 +82,9 @@ export default function SellerRoutes() {
           }
         />
       </Route>
-      
+
       {/* Auth Routes - Public without Header, No Sidebar */}
-      <Route 
+      <Route
         path={PATHS.LOGIN}
         element={
           <Suspense fallback={<LoadingSpinner />}>
@@ -101,8 +101,8 @@ export default function SellerRoutes() {
           }
         />
       </Route>
-      
-      <Route 
+
+      <Route
         path={PATHS.SIGNUP}
         element={
           <Suspense fallback={<LoadingSpinner />}>
@@ -119,8 +119,8 @@ export default function SellerRoutes() {
           }
         />
       </Route>
-      
-      <Route 
+
+      <Route
         path={PATHS.FORGOT_PASSWORD}
         element={
           <Suspense fallback={<LoadingSpinner />}>
@@ -137,7 +137,7 @@ export default function SellerRoutes() {
           }
         />
       </Route>
-      
+
       {/* Email Verification Page - Public with Header, No Sidebar */}
       <Route
         path={PATHS.VERIFY_ACCOUNT}
@@ -156,8 +156,8 @@ export default function SellerRoutes() {
           }
         />
       </Route>
-      
-      <Route 
+
+      <Route
         path="/reset-password"
         element={
           <Suspense fallback={<LoadingSpinner />}>
@@ -174,9 +174,9 @@ export default function SellerRoutes() {
           }
         />
       </Route>
-      
+
       {/* Public Education Page - Public with Header, No Sidebar */}
-      <Route 
+      <Route
         path={PATHS.EDUCATION}
         element={
           <Suspense fallback={<LoadingSpinner />}>
@@ -193,9 +193,9 @@ export default function SellerRoutes() {
           }
         />
       </Route>
-      
+
       {/* Public Privacy Policy Page - Public with Header, No Sidebar */}
-      <Route 
+      <Route
         path={PATHS.PRIVACY}
         element={
           <Suspense fallback={<LoadingSpinner />}>
@@ -212,7 +212,7 @@ export default function SellerRoutes() {
           }
         />
       </Route>
-      
+
       {/* Public Shipping Info Page - Public with Header, No Sidebar */}
       <Route
         path={PATHS.SHIPPING_INFO}
@@ -231,7 +231,7 @@ export default function SellerRoutes() {
           }
         />
       </Route>
-      
+
       {/* Public Terms Page - Public with Header, No Sidebar */}
       <Route
         path={PATHS.TERMS}
@@ -288,7 +288,7 @@ export default function SellerRoutes() {
           }
         />
       </Route>
-      
+
       {/* Public Help Center Page - Public with Header, No Sidebar */}
       <Route
         path={PATHS.HELP}
@@ -307,7 +307,7 @@ export default function SellerRoutes() {
           }
         />
       </Route>
-      
+
       {/* Redirect /auth/login to /login for backward compatibility */}
       <Route path="/auth/login" element={<Navigate to={PATHS.LOGIN} replace />} />
       {/* Dashboard Routes - All under /dashboard */}
@@ -347,9 +347,11 @@ export default function SellerRoutes() {
           path="products/add"
           element={
             <ProtectedRoute>
-              <Suspense fallback={<LoadingSpinner fullScreen />}>
-                <AddProduct />
-              </Suspense>
+              <SellerProtectedRoute allowedStage="verified">
+                <Suspense fallback={<LoadingSpinner fullScreen />}>
+                  <AddProduct />
+                </Suspense>
+              </SellerProtectedRoute>
             </ProtectedRoute>
           }
         />
@@ -357,9 +359,11 @@ export default function SellerRoutes() {
           path="products/:id/edit"
           element={
             <ProtectedRoute>
-              <Suspense fallback={<LoadingSpinner fullScreen />}>
-                <EditProduct />
-              </Suspense>
+              <SellerProtectedRoute allowedStage="verified">
+                <Suspense fallback={<LoadingSpinner fullScreen />}>
+                  <EditProduct />
+                </Suspense>
+              </SellerProtectedRoute>
             </ProtectedRoute>
           }
         />
@@ -390,9 +394,11 @@ export default function SellerRoutes() {
           path="products/:productId/variants/create"
           element={
             <ProtectedRoute>
-              <Suspense fallback={<LoadingSpinner fullScreen />}>
-                <VariantCreatePage />
-              </Suspense>
+              <SellerProtectedRoute allowedStage="verified">
+                <Suspense fallback={<LoadingSpinner fullScreen />}>
+                  <VariantCreatePage />
+                </Suspense>
+              </SellerProtectedRoute>
             </ProtectedRoute>
           }
         />
@@ -400,9 +406,11 @@ export default function SellerRoutes() {
           path="products/:productId/variants/:variantId/edit"
           element={
             <ProtectedRoute>
-              <Suspense fallback={<LoadingSpinner fullScreen />}>
-                <VariantEditPage />
-              </Suspense>
+              <SellerProtectedRoute allowedStage="verified">
+                <Suspense fallback={<LoadingSpinner fullScreen />}>
+                  <VariantEditPage />
+                </Suspense>
+              </SellerProtectedRoute>
             </ProtectedRoute>
           }
         />

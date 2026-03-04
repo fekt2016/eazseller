@@ -70,7 +70,7 @@ export default function UnifiedWalletPage() {
   } = useGetPaymentRequests();
 
   const requests = requestsData?.paymentRequests || [];
-  
+
   // Get recent payment requests (last 5) for display below form
   const recentRequests = requests.slice(0, 5);
 
@@ -85,10 +85,11 @@ export default function UnifiedWalletPage() {
   const deletePaymentRequest = useDeletePaymentRequest();
   const requestReversal = useRequestReversal();
   const submitPin = useSubmitPinForWithdrawal();
-  
+
   // Track which request is being deleted (for individual loading state)
   const [deletingRequestId, setDeletingRequestId] = useState(null);
-  
+  const [pendingCancelId, setPendingCancelId] = useState(null);
+
   // State for reversal modal
   const [reversalModal, setReversalModal] = useState({
     isOpen: false,
@@ -155,14 +156,14 @@ export default function UnifiedWalletPage() {
 
   // Check if withdrawal is allowed
   const canWithdraw = payoutStatus === 'verified' && withdrawableBalance > 0;
-  const withdrawDisabledReason = 
-    payoutStatus === 'rejected' 
+  const withdrawDisabledReason =
+    payoutStatus === 'rejected'
       ? payoutRejectionReason || 'Payout details were rejected. Please update your payment details and resubmit for verification.'
       : payoutStatus === 'pending'
-      ? 'Your payout details must be verified by an admin before you can withdraw funds.'
-      : withdrawableBalance <= 0
-      ? 'Insufficient balance for withdrawal.'
-      : null;
+        ? 'Your payout details must be verified by an admin before you can withdraw funds.'
+        : withdrawableBalance <= 0
+          ? 'Insufficient balance for withdrawal.'
+          : null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -185,7 +186,7 @@ export default function UnifiedWalletPage() {
     }
 
     let paymentDetailsToSend = {};
-    
+
     if (useSavedPaymentMethod) {
       // Map payment method to PaymentMethod model type and provider
       const paymentMethodToType = {
@@ -194,19 +195,19 @@ export default function UnifiedWalletPage() {
         'vodafone_cash': 'mobile_money',
         'airtel_tigo_money': 'mobile_money',
       };
-      
+
       const paymentMethodToProvider = {
         'mtn_momo': 'MTN',
         'vodafone_cash': 'Vodafone',
         'airtel_tigo_money': 'AirtelTigo',
       };
-      
+
       // First, try to get from PaymentMethod model
       if (paymentMethod === "bank") {
-        const bankMethod = paymentMethods.find(pm => 
+        const bankMethod = paymentMethods.find(pm =>
           pm.type === 'bank_transfer' && pm.isDefault
         ) || paymentMethods.find(pm => pm.type === 'bank_transfer');
-        
+
         if (bankMethod && bankMethod.accountNumber && bankMethod.accountName && bankMethod.bankName) {
           paymentDetailsToSend = {
             accountName: bankMethod.accountName || "",
@@ -217,15 +218,15 @@ export default function UnifiedWalletPage() {
         }
       } else if (["mtn_momo", "vodafone_cash", "airtel_tigo_money"].includes(paymentMethod)) {
         const provider = paymentMethodToProvider[paymentMethod];
-        const mobileMethod = paymentMethods.find(pm => 
-          pm.type === 'mobile_money' && 
-          pm.provider === provider && 
+        const mobileMethod = paymentMethods.find(pm =>
+          pm.type === 'mobile_money' &&
+          pm.provider === provider &&
           pm.isDefault
-        ) || paymentMethods.find(pm => 
-          pm.type === 'mobile_money' && 
+        ) || paymentMethods.find(pm =>
+          pm.type === 'mobile_money' &&
           pm.provider === provider
         );
-        
+
         if (mobileMethod && mobileMethod.mobileNumber) {
           paymentDetailsToSend = {
             phone: mobileMethod.mobileNumber || "",
@@ -234,7 +235,7 @@ export default function UnifiedWalletPage() {
           };
         }
       }
-      
+
       // Fallback to seller's saved payment methods
       if (!paymentDetailsToSend.accountNumber && !paymentDetailsToSend.phone) {
         if (paymentMethod === "bank" && seller?.paymentMethods?.bankAccount) {
@@ -254,7 +255,7 @@ export default function UnifiedWalletPage() {
           };
         }
       }
-      
+
       if (!paymentDetailsToSend.accountNumber && !paymentDetailsToSend.phone) {
         setError("Please add payment method details in your account settings");
         return;
@@ -631,7 +632,7 @@ export default function UnifiedWalletPage() {
                 disabled={
                   !canWithdraw ||
                   createPaymentRequest.isPending ||
-                  !amount || 
+                  !amount ||
                   amount.trim() === "" ||
                   isNaN(parseFloat(amount)) ||
                   parseFloat(amount) <= 0
@@ -671,15 +672,22 @@ export default function UnifiedWalletPage() {
                       {request.status === "pending" && (
                         <RequestActions>
                           <DeleteButton
+                            $isConfirming={pendingCancelId === (request._id || request.id)}
                             onClick={() => {
-                              if (window.confirm("Are you sure you want to cancel this withdrawal request?")) {
-                                const requestId = request._id || request.id;
+                              const requestId = request._id || request.id;
+                              if (pendingCancelId === requestId) {
+                                // Second click - confirmed
+                                setPendingCancelId(null);
                                 setDeletingRequestId(requestId);
                                 deletePaymentRequest.mutate(requestId, {
                                   onSettled: () => {
                                     setDeletingRequestId(null);
                                   }
                                 });
+                              } else {
+                                // First click - arm confirm
+                                setPendingCancelId(requestId);
+                                setTimeout(() => setPendingCancelId(cur => cur === requestId ? null : cur), 4000);
                               }
                             }}
                             disabled={deletingRequestId === (request._id || request.id)}
@@ -687,6 +695,10 @@ export default function UnifiedWalletPage() {
                             {deletingRequestId === (request._id || request.id) ? (
                               <>
                                 <FaSpinner className="spinner" /> Cancelling...
+                              </>
+                            ) : pendingCancelId === (request._id || request.id) ? (
+                              <>
+                                <FaCheck /> Click to confirm
                               </>
                             ) : (
                               <>
@@ -787,7 +799,7 @@ export default function UnifiedWalletPage() {
                         </DetailItem>
                       )}
                     </RequestDetails>
-                    
+
                     {/* Action buttons */}
                     {(() => {
                       const needsOTP =
@@ -797,31 +809,38 @@ export default function UnifiedWalletPage() {
 
                       return needsOTP;
                     })() && (
-                      <RequestActions>
-                        <VerifyOTPButton
-                          onClick={() => {
-                            const requestId = request._id || request.id;
-                            const verifyOtpPath = PATHS.WITHDRAWAL_VERIFY_OTP.replace(':withdrawalId', requestId);
-                            navigate(verifyOtpPath);
-                          }}
-                        >
-                          <FaCheckCircle /> Verify OTP
-                        </VerifyOTPButton>
-                      </RequestActions>
-                    )}
-                    
+                        <RequestActions>
+                          <VerifyOTPButton
+                            onClick={() => {
+                              const requestId = request._id || request.id;
+                              const verifyOtpPath = PATHS.WITHDRAWAL_VERIFY_OTP.replace(':withdrawalId', requestId);
+                              navigate(verifyOtpPath);
+                            }}
+                          >
+                            <FaCheckCircle /> Verify OTP
+                          </VerifyOTPButton>
+                        </RequestActions>
+                      )}
+
                     {request.status === "pending" && (
                       <RequestActions>
                         <DeleteButton
+                          $isConfirming={pendingCancelId === (request._id || request.id)}
                           onClick={() => {
-                            if (window.confirm("Are you sure you want to cancel this withdrawal request?")) {
-                              const requestId = request._id || request.id;
+                            const requestId = request._id || request.id;
+                            if (pendingCancelId === requestId) {
+                              // Second click
+                              setPendingCancelId(null);
                               setDeletingRequestId(requestId);
                               deletePaymentRequest.mutate(requestId, {
                                 onSettled: () => {
                                   setDeletingRequestId(null);
                                 }
                               });
+                            } else {
+                              // First click
+                              setPendingCancelId(requestId);
+                              setTimeout(() => setPendingCancelId(cur => cur === requestId ? null : cur), 4000);
                             }
                           }}
                           disabled={deletingRequestId === (request._id || request.id)}
@@ -829,6 +848,10 @@ export default function UnifiedWalletPage() {
                           {deletingRequestId === (request._id || request.id) ? (
                             <>
                               <FaSpinner className="spinner" /> Cancelling...
+                            </>
+                          ) : pendingCancelId === (request._id || request.id) ? (
+                            <>
+                              <FaCheck /> Click to confirm
                             </>
                           ) : (
                             <>
@@ -838,7 +861,7 @@ export default function UnifiedWalletPage() {
                         </DeleteButton>
                       </RequestActions>
                     )}
-                    
+
                     {canReverse(request) && (
                       <RequestActions>
                         <ReversalButton
@@ -850,7 +873,7 @@ export default function UnifiedWalletPage() {
                         </ReversalButton>
                       </RequestActions>
                     )}
-                    
+
                     {request.reversed && (
                       <ReversalInfo>
                         <FaUndo /> This withdrawal has been reversed

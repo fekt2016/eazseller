@@ -245,17 +245,17 @@ const getWithdrawalRequest = async (withdrawalId) => {
  */
 const verifyOTP = async (withdrawalId, otp) => {
   console.log('[VERIFY OTP] Request sent:', { withdrawalId, otp: '***' + otp.slice(-2) });
-  
+
   // SECURITY: Cookie-only authentication - no token storage
   // Cookies are automatically sent via withCredentials: true in api.js
   // Backend reads from req.cookies.seller_jwt
-  
+
   try {
     const response = await api.post(
       `/seller/payout/request/${withdrawalId}/verify-otp`,
       { otp }
     );
-    
+
     console.log('[VERIFY OTP] RESPONSE:', JSON.stringify(response.data, null, 2));
     return response.data;
   } catch (error) {
@@ -266,19 +266,19 @@ const verifyOTP = async (withdrawalId, otp) => {
       data: error.response?.data,
       paystackError: error.response?.data?.paystack,
       headers: error.response?.headers,
-        config: {
-          url: error.config?.url,
-          method: error.config?.method,
-          withCredentials: error.config?.withCredentials
-        }
+      config: {
+        url: error.config?.url,
+        method: error.config?.method,
+        withCredentials: error.config?.withCredentials
+      }
     })));
-    
+
     // Log Paystack error from backend if available
     if (error.response?.data?.paystack) {
       console.error('[VERIFY OTP] 🔥 PAYSTACK ERROR FROM BACKEND:', error.response.data.paystack);
       console.error('[VERIFY OTP] 🔥 PAYSTACK ERROR (STRINGIFIED):', JSON.stringify(error.response.data.paystack, null, 2));
     }
-    
+
     throw error;
   }
 };
@@ -287,8 +287,8 @@ const verifyOTP = async (withdrawalId, otp) => {
  * Resend OTP for withdrawal
  */
 const resendOTP = async (withdrawalId) => {
-  const response = await api.post(`/seller/payout/request/${withdrawalId}/resend-otp`, { 
-    reason: 'transfer' 
+  const response = await api.post(`/seller/payout/request/${withdrawalId}/resend-otp`, {
+    reason: 'transfer'
   });
   return response.data;
 };
@@ -304,7 +304,7 @@ const formatPaymentMethod = (method) => {
 
 const formatPaymentDetails = (details, method) => {
   if (!details) return 'N/A';
-  
+
   if (method === 'bank') {
     return `${details.accountName || 'N/A'} - ${details.accountNumber || 'N/A'} (${details.bankName || 'N/A'})`;
   } else if (['mtn_momo', 'vodafone_cash', 'airtel_tigo_money'].includes(method)) {
@@ -321,7 +321,7 @@ const isTrueAuthError = (error) => {
   if (!error.response || error.response.status !== 401) {
     return false;
   }
-  
+
   const errorMessage = (error.response?.data?.message || '').toLowerCase();
   const authErrorKeywords = [
     'not authenticated',
@@ -331,12 +331,12 @@ const isTrueAuthError = (error) => {
     'session expired',
     'unauthorized'
   ];
-  
+
   // Only consider it auth error if message contains auth keywords
   // AND doesn't contain OTP-related keywords
   const hasAuthKeyword = authErrorKeywords.some(keyword => errorMessage.includes(keyword));
   const hasOtpKeyword = errorMessage.includes('otp') || errorMessage.includes('pin');
-  
+
   return hasAuthKeyword && !hasOtpKeyword;
 };
 
@@ -346,31 +346,24 @@ const isTrueAuthError = (error) => {
  */
 const extractAuthorizationUrl = (data) => {
   return data?.data?.authorization_url ||
-         data?.data?.redirect_url ||
-         data?.authorization_url ||
-         data?.redirect_url ||
-         null;
+    data?.data?.redirect_url ||
+    data?.authorization_url ||
+    data?.redirect_url ||
+    null;
 };
 
-/**
- * Handle Paystack redirect
- * DISABLED: All redirects disabled for debugging
- */
 const handlePaystackRedirect = (authorizationUrl) => {
   console.log('[VERIFY OTP] Paystack redirect URL:', authorizationUrl);
-  
+
   if (!authorizationUrl) {
     console.warn('[VERIFY OTP] ⚠️ No authorization URL found');
     return false;
   }
-  
-  // DISABLED: All redirects disabled for debugging
-  console.warn('[VERIFY OTP] 🛑 PAYSTACK REDIRECT DISABLED FOR DEBUGGING');
-  console.warn('[VERIFY OTP] Authorization URL that would be used:', authorizationUrl);
-  toast.info('Paystack redirect URL detected (redirect disabled for debugging)');
-  
-  // Return false to indicate redirect was not performed
-  return false;
+
+  toast.info('Redirecting to Paystack for authorization...');
+  window.location.href = authorizationUrl;
+
+  return true;
 };
 
 // ============================================
@@ -384,7 +377,7 @@ export default function SellerWithdrawalVerifyOTP() {
   const { withdrawalId } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  
+
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [isOtpExpired, setIsOtpExpired] = useState(false);
@@ -404,46 +397,46 @@ export default function SellerWithdrawalVerifyOTP() {
   // ============================================
   const verifyMutation = useMutation({
     mutationFn: (otpValue) => verifyOTP(withdrawalId, otpValue),
-    
+
     onSuccess: (data) => {
       console.log('═══════════════════════════════════════════════════════════');
       console.log('✅ VERIFY OTP SUCCESS RESPONSE:');
       console.log('═══════════════════════════════════════════════════════════');
       console.log(JSON.parse(JSON.stringify(data)));
       console.log('═══════════════════════════════════════════════════════════');
-      
+
       // Check for Paystack redirect
       const authorizationUrl = extractAuthorizationUrl(data);
-      
+
       if (authorizationUrl) {
         console.log('[VERIFY OTP] Paystack redirect URL detected:', authorizationUrl);
         console.log('[VERIFY OTP] ⚠️ Redirect DISABLED - will show URL in console instead');
         const redirected = handlePaystackRedirect(authorizationUrl);
         console.log('[VERIFY OTP] Paystack redirect was requested but disabled - continuing to show success state');
       }
-      
+
       // No redirect required - success
       toast.success('OTP verified successfully! Your withdrawal is being processed.');
-      
+
       // Invalidate caches
       queryClient.invalidateQueries({ queryKey: ['withdrawalRequest', withdrawalId] });
       queryClient.invalidateQueries({ queryKey: ['withdrawalRequests'] });
       queryClient.invalidateQueries({ queryKey: ['payoutBalance'] });
-      
-      // COMMENTED OUT: Don't redirect so we can see the success state
-      // setTimeout(() => {
-      //   navigate(PATHS.WITHDRAWALS);
-      // }, 2000);
-      console.log('[VERIFY OTP] ✅ Success - redirect DISABLED for debugging');
+
+      // Redirect to withdrawals page so we can see the success state
+      setTimeout(() => {
+        navigate(PATHS.WITHDRAWALS);
+      }, 2000);
+      console.log('[VERIFY OTP] ✅ Success - redirecting...');
     },
-    
+
     onError: (error) => {
       console.error('═══════════════════════════════════════════════════════════');
       console.error('❌ FULL OTP ERROR OBJECT:');
       console.error('═══════════════════════════════════════════════════════════');
       console.error(JSON.parse(JSON.stringify(error)));
       console.error('═══════════════════════════════════════════════════════════');
-      
+
       console.error('❌ RESPONSE STATUS:', error.response?.status);
       console.error('❌ RESPONSE DATA:', error.response?.data);
       console.error('❌ RESPONSE DATA (STRINGIFIED):', JSON.stringify(error.response?.data, null, 2));
@@ -454,7 +447,7 @@ export default function SellerWithdrawalVerifyOTP() {
       console.error('❌ REQUEST BASE URL:', error.config?.baseURL);
       console.error('❌ FULL ERROR MESSAGE:', error.message);
       console.error('❌ ERROR STACK:', error.stack);
-      
+
       // Log backend error message if available
       if (error.response?.data?.message) {
         console.error('❌ BACKEND ERROR MESSAGE:', error.response.data.message);
@@ -462,10 +455,10 @@ export default function SellerWithdrawalVerifyOTP() {
       if (error.response?.data?.paystack) {
         console.error('❌ PAYSTACK ERROR DETAILS:', JSON.stringify(error.response.data.paystack, null, 2));
       }
-      
+
       const errorMessage = error.response?.data?.message || error.message || 'Failed to verify OTP';
       const statusCode = error.response?.status;
-      
+
       // Check if it's a true authentication error
       if (isTrueAuthError(error)) {
         console.error('═══════════════════════════════════════════════════════════');
@@ -479,44 +472,41 @@ export default function SellerWithdrawalVerifyOTP() {
         const authError = 'Your session has expired. Please log in again.';
         setError(authError);
         toast.error(authError);
-        
-        // COMMENTED OUT: Don't redirect so we can see the error
-        // ALL REDIRECTS TO LOGIN ARE DISABLED FOR DEBUGGING
-        // setTimeout(() => {
-        //   navigate(PATHS.LOGIN);
-        // }, 2000);
-        console.warn('[VERIFY OTP] ⚠️ Redirect to login DISABLED for debugging - error will remain visible');
-        console.warn('[VERIFY OTP] ⚠️ NO REDIRECT WILL OCCUR - You can inspect the error on this page');
+
+        // Redirect to login
+        setTimeout(() => {
+          navigate(PATHS.LOGIN);
+        }, 2000);
         return;
       }
-      
+
       // Handle OTP-specific errors
       const errorData = error.response?.data || {};
       const paystackError = errorData.paystack || {};
       const errorCode = errorData.errorCode || errorData.code;
-      
+
       // Check for OTP session expired (abandoned transfer)
       const isSessionExpired = errorCode === 'OTP_SESSION_EXPIRED' ||
-                               errorCode === 'TRANSFER_ABANDONED' ||
-                               errorMessage.toLowerCase().includes('session has expired') ||
-                               errorMessage.toLowerCase().includes('transfer was abandoned');
-      
+        errorCode === 'TRANSFER_ABANDONED' ||
+        errorMessage.toLowerCase().includes('session has expired') ||
+        errorMessage.toLowerCase().includes('transfer was abandoned');
+
       // Check for "Transfer is not currently awaiting OTP" error
       const isNotAwaitingOtp = errorMessage.toLowerCase().includes('not currently awaiting otp') ||
-                               errorMessage.toLowerCase().includes('not awaiting otp') ||
-                               errorCode === 'TRANSFER_NOT_AWAITING_OTP' ||
-                               paystackError.message?.toLowerCase().includes('not currently awaiting otp');
-      
+        errorMessage.toLowerCase().includes('not awaiting otp') ||
+        errorCode === 'TRANSFER_NOT_AWAITING_OTP' ||
+        paystackError.message?.toLowerCase().includes('not currently awaiting otp');
+
       const isExpired = errorMessage.toLowerCase().includes('expired') ||
-                       errorMessage.toLowerCase().includes('expire') ||
-                       errorCode === 'OTP_EXPIRED' ||
-                       errorData.isExpired === true;
-      
+        errorMessage.toLowerCase().includes('expire') ||
+        errorCode === 'OTP_EXPIRED' ||
+        errorData.isExpired === true;
+
       const isInvalid = errorMessage.toLowerCase().includes('invalid') ||
-                       errorMessage.toLowerCase().includes('incorrect') ||
-                       errorCode === 'OTP_INVALID' ||
-                       errorData.isInvalid === true;
-      
+        errorMessage.toLowerCase().includes('incorrect') ||
+        errorCode === 'OTP_INVALID' ||
+        errorData.isInvalid === true;
+
       // If session expired, mark as expired and disable verify button
       if (isSessionExpired) {
         setIsOtpExpired(true);
@@ -527,11 +517,11 @@ export default function SellerWithdrawalVerifyOTP() {
         setOtp(''); // Clear OTP on error
         return; // Early return - don't process other errors
       }
-      
+
       setIsOtpExpired(isExpired || isNotAwaitingOtp);
       setError(errorMessage);
       setOtp(''); // Clear OTP on error
-      
+
       if (isNotAwaitingOtp) {
         const suggestion = errorData.suggestion || 'Please try clicking "Resend PIN" to get a new OTP.';
         toast.error('This OTP is no longer valid. ' + suggestion);
@@ -551,24 +541,24 @@ export default function SellerWithdrawalVerifyOTP() {
   // ============================================
   const resendMutation = useMutation({
     mutationFn: () => resendOTP(withdrawalId),
-    
+
     onSuccess: (data) => {
       console.log('[RESEND OTP] ✅ Success:', data);
       toast.success('PIN has been resent to your phone/email. Please check and enter the new PIN.');
-      
+
       // Clear all error states
       setError('');
       setOtp('');
       setIsOtpExpired(false);
-      
+
       // Reset verify mutation state
       verifyMutation.reset();
-      
+
       // Invalidate queries to refresh withdrawal data
       queryClient.invalidateQueries({ queryKey: ['withdrawalRequest', withdrawalId] });
       queryClient.invalidateQueries({ queryKey: ['withdrawalRequests'] });
     },
-    
+
     onError: (error) => {
       console.error('[RESEND OTP] ❌ Error:', error);
       const errorMessage = error.response?.data?.message || error.message || 'Failed to resend OTP';
@@ -588,28 +578,28 @@ export default function SellerWithdrawalVerifyOTP() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (otp.length !== 6) {
       setError('Please enter a 6-digit OTP');
       return;
     }
-    
+
     // Clear previous errors
     setError('');
     setIsOtpExpired(false);
-    
+
     // ADD DIAGNOSTIC LOGGING BEFORE MUTATION
     console.log('═══════════════════════════════════════════════════════════');
     console.log('🔎 VERIFY OTP STARTED:');
     console.log('═══════════════════════════════════════════════════════════');
-    console.log({ 
-      withdrawalId, 
+    console.log({
+      withdrawalId,
       otp: '***' + otp.slice(-2),
       otpLength: otp.length,
       timestamp: new Date().toISOString()
     });
     console.log('═══════════════════════════════════════════════════════════');
-    
+
     // Trigger mutation
     verifyMutation.mutate(otp);
   };
@@ -692,7 +682,7 @@ export default function SellerWithdrawalVerifyOTP() {
               GH₵{(withdrawal.amountRequested || withdrawal.amount)?.toFixed(2) || '0.00'}
             </AmountValue>
           </InfoRow>
-          
+
           {withdrawal.withholdingTax > 0 && (
             <>
               <InfoRow>
@@ -704,20 +694,20 @@ export default function SellerWithdrawalVerifyOTP() {
               <InfoRow style={{ borderTop: '1px solid #e2e8f0', paddingTop: '0.75rem', marginTop: '0.5rem' }}>
                 <InfoLabel style={{ fontWeight: 600 }}>Amount You'll Receive</InfoLabel>
                 <AmountValue style={{ color: '#10b981', fontWeight: 700, fontSize: '1.25rem' }}>
-                  GH₵{(withdrawal.amountPaidToSeller || 
+                  GH₵{(withdrawal.amountPaidToSeller ||
                     (withdrawal.amountRequested || withdrawal.amount) - withdrawal.withholdingTax).toFixed(2)}
                 </AmountValue>
               </InfoRow>
             </>
           )}
-          
+
           <InfoRow>
             <InfoLabel>Payment Method</InfoLabel>
             <InfoValue>
               {formatPaymentMethod(withdrawal.paymentMethod || withdrawal.payoutMethod)}
             </InfoValue>
           </InfoRow>
-          
+
           <InfoRow>
             <InfoLabel>Payment Details</InfoLabel>
             <InfoValue>
@@ -731,7 +721,7 @@ export default function SellerWithdrawalVerifyOTP() {
 
         {/* Instructions */}
         <Instructions>
-          <strong>Instructions:</strong> Paystack has sent a 6-digit PIN to your phone number or email address. 
+          <strong>Instructions:</strong> Paystack has sent a 6-digit PIN to your phone number or email address.
           Please enter the PIN below to complete the withdrawal transfer.
           {isOtpExpired && !resendMutation.isSuccess && (
             <div style={{ marginTop: 'var(--spacing-sm)', fontWeight: '600', color: 'var(--color-orange-700)' }}>
@@ -793,10 +783,10 @@ export default function SellerWithdrawalVerifyOTP() {
               type="submit"
               disabled={otp.length !== 6 || verifyMutation.isPending || verifyMutation.isSuccess || isOtpExpired}
               title={
-                isOtpExpired 
-                  ? 'OTP session expired. Click Resend PIN to restart.' 
-                  : otp.length !== 6 
-                    ? 'Please enter a 6-digit PIN' 
+                isOtpExpired
+                  ? 'OTP session expired. Click Resend PIN to restart.'
+                  : otp.length !== 6
+                    ? 'Please enter a 6-digit PIN'
                     : 'Click to verify OTP'
               }
               style={isOtpExpired ? {
@@ -814,7 +804,7 @@ export default function SellerWithdrawalVerifyOTP() {
                 </>
               )}
             </PrimaryButton>
-            
+
             <SecondaryButton
               type="button"
               onClick={() => resendMutation.mutate()}

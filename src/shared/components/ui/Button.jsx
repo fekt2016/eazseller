@@ -107,6 +107,19 @@ const variantStyles = {
       color: var(--color-primary-600);
     }
   `,
+  accent: css`
+    background-color: var(--color-accent-50);
+    color: var(--color-white-0);
+    border: none;
+    &:hover:not(:disabled) {
+      background-color: var(--color-accent-100);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(255, 87, 51, 0.3);
+    }
+    &:active:not(:disabled) {
+      transform: translateY(0);
+    }
+  `,
 };
 
 const ButtonStyled = styled.button`
@@ -160,15 +173,15 @@ const ButtonStyled = styled.button`
   
   @media ${devicesMax.sm} {
     font-size: ${({ $size }) => {
-      if ($size === "lg") return "var(--font-size-md)";
-      if ($size === "md") return "var(--font-size-sm)";
-      return "var(--font-size-xs)";
-    }};
+    if ($size === "lg") return "var(--font-size-md)";
+    if ($size === "md") return "var(--font-size-sm)";
+    return "var(--font-size-xs)";
+  }};
     padding: ${({ $size, $iconOnly }) => {
-      if ($iconOnly) return "0";
-      if ($size === "lg") return "var(--spacing-sm) var(--spacing-md)";
-      return "var(--spacing-xs) var(--spacing-sm)";
-    }};
+    if ($iconOnly) return "0";
+    if ($size === "lg") return "var(--spacing-sm) var(--spacing-md)";
+    return "var(--spacing-xs) var(--spacing-sm)";
+  }};
   }
 `;
 

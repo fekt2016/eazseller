@@ -1,0 +1,28 @@
+export const COUNTRIES = [
+    'Ghana',
+    'Nigeria',
+    'Kenya',
+    'South Africa',
+    'Ivory Coast',
+    'Senegal',
+    'Cameroon',
+    'Uganda',
+    'Tanzania',
+    'Zambia',
+    'Rwanda',
+    'Ethiopia',
+    'Egypt',
+    'Morocco',
+    'Algeria',
+    'Tunisia',
+    'United Kingdom',
+    'United States',
+    'Canada',
+    'Germany',
+    'France',
+    'China',
+    'India',
+    'United Arab Emirates',
+].sort();
+
+export const DEFAULT_COUNTRY = 'Ghana';

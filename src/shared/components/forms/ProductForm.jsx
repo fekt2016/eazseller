@@ -11,6 +11,7 @@ import { FaArrowLeft } from "react-icons/fa";
 import { LoadingSpinner } from "../LoadingSpinner";
 import { generateSKU } from '../../utils/helpers';
 import useAuth from '../../hooks/useAuth';
+import { toast } from 'react-toastify';
 
 const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onFormChange }) => {
   console.log("Initial data:", initialData);
@@ -250,8 +251,8 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
     // Validate all variants exist and have required fields
     const currentVariants = watch('variants') || [];
     if (!currentVariants || currentVariants.length === 0) {
-      // Show alert if no variants
-      alert('Please add at least one product variant before proceeding');
+      // Show toast if no variants
+      toast.error('Please add at least one product variant before proceeding');
       return false;
     }
 
@@ -401,7 +402,7 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
                 // Scroll back to step 1 and show error
                 setStep(1);
                 setTimeout(() => {
-                  alert('Please add at least one product variant');
+                  toast.error('Please add at least one product variant');
                   window.scrollTo({ top: 0, behavior: 'smooth' });
                 }, 100);
                 return;

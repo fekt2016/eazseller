@@ -21,10 +21,12 @@ import { PATHS } from '../../routes/routePaths';
 import { devicesMax } from '../styles/breakpoint';
 import Logo from '../components/Logo';
 import { useSellerBalance } from '../hooks/finance/useSellerBalance';
+import useMediaQuery from '../hooks/useMediaQuery';
 
 export default function Sidebar({ role, isOpen, onClose }) {
   const { logout, seller } = useAuth();
-  
+  const isMobile = useMediaQuery(devicesMax.md);
+
   // Get seller balance using the same hook as other pages for consistency
   const { availableBalance, isLoading: isBalanceLoading } = useSellerBalance();
 
@@ -36,7 +38,7 @@ export default function Sidebar({ role, isOpen, onClose }) {
     { path: PATHS.VAT_TAX_POLICY, label: "VAT & Tax Policy", icon: <FaFileAlt /> },
     { path: PATHS.HELP, label: "Help Center", icon: <FaHeadset /> },
   ];
-  
+
   const menuItems = [
     { path: PATHS.DASHBOARD, label: "Dashboard", icon: <FaStore /> },
     {
@@ -101,7 +103,7 @@ export default function Sidebar({ role, isOpen, onClose }) {
 
   // Close sidebar when clicking on a nav item on mobile
   const handleNavClick = () => {
-    if (window.innerWidth <= 768 && onClose) {
+    if (isMobile && onClose) {
       onClose();
     }
   };
@@ -111,7 +113,7 @@ export default function Sidebar({ role, isOpen, onClose }) {
       <SidebarHeader>
         <Logo variant="compact" />
       </SidebarHeader>
-      
+
       {/* Balance Display */}
       {seller && (
         <BalanceSection>
@@ -125,7 +127,7 @@ export default function Sidebar({ role, isOpen, onClose }) {
           </BalanceAmount>
         </BalanceSection>
       )}
-      
+
       <MenuList>
         {/* Show public menu items for unauthenticated users, full menu for authenticated */}
         {(seller ? menuItems : publicMenuItems).map((item) => (
@@ -153,18 +155,6 @@ export default function Sidebar({ role, isOpen, onClose }) {
     </Container>
   );
 }
-
-// Header Component
-
-export const NavItems = styled.nav`
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-
-  @media (max-width: 768px) {
-    gap: 1rem;
-  }
-`;
 
 // Sidebar Component
 const Container = styled.aside`

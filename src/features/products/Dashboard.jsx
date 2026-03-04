@@ -99,16 +99,19 @@ const Dashboard = () => {
   });
 
   const orders = useMemo(() => {
-    return ordersData?.data?.data?.orders || [];
+    // Simplify data access
+    return ordersData?.orders || ordersData?.data?.orders || [];
   }, [ordersData]);
 
   const products = useMemo(() => {
-    const list = productData?.data?.data ?? productData?.data?.products ?? productData?.products;
+    // Simplify data access
+    const list = productData?.products || productData?.data || [];
     return Array.isArray(list) ? list : [];
   }, [productData]);
 
   const totalProductCount = useMemo(() => {
-    const total = productData?.data?.total ?? productData?.total ?? productData?.result;
+    // Simplify access
+    const total = productData?.total || productData?.count || productData?.data?.total;
     if (typeof total === 'number' && total >= 0) return total;
     return products.length;
   }, [productData, products.length]);
@@ -119,19 +122,20 @@ const Dashboard = () => {
 
   // Total view count from API (number); API returns data.totalViews, not views.length
   const totalViewsCount = useMemo(() => {
-    const count = viewData?.data?.totalViews;
+    const count = viewData?.totalViews || viewData?.data?.totalViews;
     return typeof count === 'number' && count >= 0 ? count : 0;
-  }, [viewData?.data?.totalViews]);
+  }, [viewData]);
 
   // Map productId -> view count for product cards (API returns data.views per product)
   const viewsByProductId = useMemo(() => {
     const map = {};
-    (viewData?.data?.views || []).forEach((item) => {
+    const views = viewData?.views || viewData?.data?.views || [];
+    views.forEach((item) => {
       const id = item.productId?.toString?.() ?? item.productId;
       if (id) map[id] = (item.views || 0) + (map[id] || 0);
     });
     return map;
-  }, [viewData?.data?.views]);
+  }, [viewData]);
 
   // Calculate stats first to get totalRevenue
   const stats = useMemo(() => {

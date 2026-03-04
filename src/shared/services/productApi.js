@@ -56,7 +56,7 @@ export const productService = {
     try {
       // Check if productData is FormData (for image uploads)
       const isFormData = productData instanceof FormData;
-      
+
       const response = await api.patch(`/product/${id}`, productData, {
         timeout: isFormData ? 120000 : 30000, // 2 minutes for FormData (images), 30s for regular updates
         headers: isFormData ? {
@@ -90,12 +90,14 @@ export const productService = {
 
   searchProducts: async (query) => {
     try {
-      const response = await fetch(
-        `/api/products/search?q=${encodeURIComponent(query)}`
-      );
-      if (!response.ok)
-        throw new Error(`HTTP error! status: ${response.status}`);
-      return await response.json();
+      const response = await api.get(`/product/search?q=${encodeURIComponent(query)}`, {
+        headers: {
+          "Cache-Control": "no-cache",
+          "Pragma": "no-cache",
+          "Expires": "0",
+        },
+      });
+      return response.data;
     } catch (err) {
       console.error("Error searching products:", err);
       throw err;

@@ -17,6 +17,7 @@ import useCategory from '../../../shared/hooks/useCategory';
 import useVariants from '../../../shared/hooks/variants/useVariants';
 import { compressImage } from '../../../shared/utils/imageCompressor';
 import Button from '../../../shared/components/ui/Button';
+import { toast } from 'react-toastify';
 
 // Normalize variant images to URL strings for form and comparison
 function variantImageUrls(images) {
@@ -153,7 +154,7 @@ export default function VariantEditPage() {
     try {
       const v = data.variants?.[0];
       if (!v) {
-        alert('Variant data is missing.');
+        toast.error('Variant data is missing.');
         return;
       }
 
@@ -202,11 +203,11 @@ export default function VariantEditPage() {
       navigate(`/dashboard/products/${productId}/variants`);
     } catch (error) {
       console.error('Failed to update variant:', error);
-      alert(
+      toast.error(
         error.response?.data?.message ||
-          error.details?.message ||
-          error.message ||
-          'Failed to update variant. Please try again.'
+        error.details?.message ||
+        error.message ||
+        'Failed to update variant. Please try again.'
       );
     }
   };

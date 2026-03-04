@@ -39,19 +39,19 @@ const EditProduct = () => {
     isLoading,
     error,
   } = useGetProductById(productId);
-  
+
   const product = productResponse?.data?.product || {};
 
   // Fetch variants from API
   const { getVariants } = useVariants();
   const { data: variantsData, isLoading: variantsLoading } = getVariants(productId);
-  
+
   const variants = useMemo(() => {
     const rawVariants = variantsData?.data || variantsData || [];
-    
+
     // Deduplicate variants by _id to prevent showing duplicates
     if (!Array.isArray(rawVariants)) return [];
-    
+
     const seen = new Set();
     const uniqueVariants = rawVariants.filter((variant) => {
       const id = variant._id || variant.id || JSON.stringify(variant);
@@ -64,7 +64,7 @@ const EditProduct = () => {
       seen.add(id);
       return true;
     });
-    
+
     if (process.env.NODE_ENV === 'development' && rawVariants.length !== uniqueVariants.length) {
       console.log('[EditProduct] Variants deduplication:', {
         original: rawVariants.length,
@@ -72,7 +72,7 @@ const EditProduct = () => {
         removed: rawVariants.length - uniqueVariants.length,
       });
     }
-    
+
     return uniqueVariants;
   }, [variantsData]);
 
@@ -112,10 +112,10 @@ const EditProduct = () => {
         if (typeof product.warranty === 'string') return product.warranty.trim();
         if (typeof product.warranty === 'object' && product.warranty !== null) {
           // Extract details or create readable string from object
-          return product.warranty.details || 
-                 (product.warranty.duration && product.warranty.type 
-                   ? `${product.warranty.duration} ${product.warranty.type}`.trim()
-                   : "");
+          return product.warranty.details ||
+            (product.warranty.duration && product.warranty.type
+              ? `${product.warranty.duration} ${product.warranty.type}`.trim()
+              : "");
         }
         return String(product.warranty).trim();
       })(),
@@ -146,15 +146,15 @@ const EditProduct = () => {
 
       // Specifications handling - convert objects to strings for form inputs
       specifications: {
-        weight: product.specifications?.weight 
+        weight: product.specifications?.weight
           ? (typeof product.specifications.weight === 'object' && product.specifications.weight !== null
-              ? `${product.specifications.weight.value || ''}${product.specifications.weight.unit || ''}`.trim()
-              : String(product.specifications.weight).trim())
+            ? `${product.specifications.weight.value || ''}${product.specifications.weight.unit || ''}`.trim()
+            : String(product.specifications.weight).trim())
           : "",
-        dimension: product.specifications?.dimensions 
+        dimension: product.specifications?.dimensions
           ? (typeof product.specifications.dimensions === 'object' && product.specifications.dimensions !== null
-              ? `${product.specifications.dimensions.length || ''}x${product.specifications.dimensions.width || ''}x${product.specifications.dimensions.height || ''}${product.specifications.dimensions.unit || ''}`.trim()
-              : String(product.specifications.dimensions).trim())
+            ? `${product.specifications.dimensions.length || ''}x${product.specifications.dimensions.width || ''}x${product.specifications.dimensions.height || ''}${product.specifications.dimensions.unit || ''}`.trim()
+            : String(product.specifications.dimensions).trim())
           : "",
         material: (product.specifications?.material || []).map((m) => ({
           hexCode: m.hexCode || "",
@@ -184,23 +184,23 @@ const EditProduct = () => {
     setIsSubmitting(true);
     setHasUnsavedChanges(false);
     const formData = new FormData();
-    
+
     // CRITICAL: Ensure warranty is a plain string before processing
     // Convert any object/JSON to a plain string immediately
     if (data.warranty && typeof data.warranty === 'object') {
-      data.warranty = data.warranty.details || 
-                     (data.warranty.duration && data.warranty.type 
-                       ? `${data.warranty.duration} ${data.warranty.type}`.trim()
-                       : "");
+      data.warranty = data.warranty.details ||
+        (data.warranty.duration && data.warranty.type
+          ? `${data.warranty.duration} ${data.warranty.type}`.trim()
+          : "");
     } else if (data.warranty && typeof data.warranty === 'string' && data.warranty.trim().startsWith('{')) {
       // If it's a JSON string, parse and extract
       try {
         const parsed = JSON.parse(data.warranty);
         if (typeof parsed === 'object' && parsed !== null) {
-          data.warranty = parsed.details || 
-                        (parsed.duration && parsed.type 
-                          ? `${parsed.duration} ${parsed.type}`.trim()
-                          : "");
+          data.warranty = parsed.details ||
+            (parsed.duration && parsed.type
+              ? `${parsed.duration} ${parsed.type}`.trim()
+              : "");
         }
       } catch (e) {
         // If parsing fails, use as-is but ensure it's a string
@@ -244,7 +244,7 @@ const EditProduct = () => {
       // Other fields - ensure required fields are always sent
       formData.append("name", data.name || "");
       formData.append("description", data.description || "");
-      
+
       // Price is required - ensure it's always sent and valid
       const productPrice = parseFloat(data.price) || 0;
       if (productPrice <= 0) {
@@ -257,7 +257,7 @@ const EditProduct = () => {
         return;
       }
       formData.append("price", productPrice.toString());
-      
+
       // Categories are required
       if (!data.parentCategory) {
         toast.error('Parent category is required', {
@@ -269,7 +269,7 @@ const EditProduct = () => {
         return;
       }
       formData.append("parentCategory", data.parentCategory);
-      
+
       if (!data.subCategory) {
         toast.error('Sub category is required', {
           position: 'top-right',
@@ -280,7 +280,7 @@ const EditProduct = () => {
         return;
       }
       formData.append("subCategory", data.subCategory);
-      
+
       formData.append("brand", data.brand || "");
       formData.append("manufacturer", data.manufacturer);
       if (data.promotionKey) {
@@ -291,7 +291,7 @@ const EditProduct = () => {
 
       // IMPORTANT: Do NOT send warranty from EditProduct to avoid casting issues.
       // The existing warranty stored in the product will be preserved on update.
-      
+
       formData.append("condition", data.condition);
 
       // Return window
@@ -375,11 +375,11 @@ const EditProduct = () => {
 
       // Wait for all variant image processing to complete
       await Promise.all(variantImagePromises);
-      
+
       // Handle specifications - send as JSON string
       // Only include fields that have values (don't send null/empty fields)
       const specifications = {};
-      
+
       // Material array
       const materials = (data.specifications?.material || [])
         .map((mat) => ({
@@ -387,11 +387,11 @@ const EditProduct = () => {
           hexCode: mat.hexCode || "",
         }))
         .filter((mat) => mat.value || mat.hexCode); // Filter out empty materials
-      
+
       if (materials.length > 0) {
         specifications.material = materials;
       }
-      
+
       // Weight object
       if (data.specifications?.weight) {
         const weightStr = String(data.specifications.weight).trim();
@@ -414,7 +414,7 @@ const EditProduct = () => {
           }
         }
       }
-      
+
       // Dimensions object (note: form field is 'dimension' but schema expects 'dimensions')
       if (data.specifications?.dimension) {
         const dimStr = String(data.specifications.dimension).trim();
@@ -426,10 +426,10 @@ const EditProduct = () => {
             const width = parseFloat(dimMatch[2]) || 0;
             const height = parseFloat(dimMatch[3]) || 0;
             const unit = dimMatch[4]?.toLowerCase() || 'cm';
-            
+
             // Validate unit is in enum ['cm', 'in']
             const validUnit = (unit === 'cm' || unit === 'in') ? unit : 'cm';
-            
+
             // Only add if we have valid dimensions
             if (length > 0 && width > 0 && height > 0) {
               specifications.dimensions = {
@@ -442,7 +442,7 @@ const EditProduct = () => {
           }
         }
       }
-      
+
       // Only append specifications if it has at least one field
       if (Object.keys(specifications).length > 0) {
         formData.append("specifications", JSON.stringify(specifications));
@@ -489,14 +489,14 @@ const EditProduct = () => {
               request: error?.request,
               config: error?.config,
             });
-            
+
             // Extract error message - check multiple possible locations
             let errorMessage = 'Failed to update product. Please try again.';
             let errorDetails = null;
-            
+
             if (error?.response?.data) {
               const responseData = error.response.data;
-              
+
               // Check for validation errors object
               if (responseData.errors && typeof responseData.errors === 'object') {
                 const validationErrors = Object.entries(responseData.errors)
@@ -510,8 +510,8 @@ const EditProduct = () => {
               }
               // Check for message field (could be a string or object)
               else if (responseData.message) {
-                errorMessage = typeof responseData.message === 'string' 
-                  ? responseData.message 
+                errorMessage = typeof responseData.message === 'string'
+                  ? responseData.message
                   : JSON.stringify(responseData.message);
               }
               // Check for error field
@@ -527,13 +527,13 @@ const EditProduct = () => {
             } else if (error?.message) {
               errorMessage = error.message;
             }
-            
+
             // Log the extracted error message
             console.error('[EditProduct] Extracted error message:', errorMessage);
             if (errorDetails) {
               console.error('[EditProduct] Error details:', errorDetails);
             }
-            
+
             // Show error in toast with full message
             toast.error(errorMessage, {
               position: 'top-right',
@@ -623,7 +623,7 @@ const EditProduct = () => {
             </StatusBadges>
           </HeaderRight>
         </HeaderContent>
-        
+
         {hasUnsavedChanges && (
           <UnsavedWarning>
             <FaExclamationTriangle />
@@ -641,7 +641,7 @@ const EditProduct = () => {
               <div>
                 <h3>Product Variants</h3>
                 <VariantsSubtitle>
-                  {hasVariants 
+                  {hasVariants
                     ? `${variantCount} variant${variantCount !== 1 ? 's' : ''} configured`
                     : 'No variants configured'}
                 </VariantsSubtitle>
@@ -692,22 +692,22 @@ const EditProduct = () => {
                     // Use a more unique key to prevent React from creating duplicates
                     const uniqueKey = variant._id || variant.id || `variant-${idx}-${variant.sku || Date.now()}`;
                     return (
-                    <VariantPreviewItem key={uniqueKey}>
-                      <VariantAttributes>
-                        {variant.attributes?.map((attr, ai) => (
-                          <AttributeBadge key={ai}>
-                            {attr.key}: {attr.value}
-                          </AttributeBadge>
-                        )) || <span>No attributes</span>}
-                      </VariantAttributes>
-                      <VariantDetails>
-                        <span>Price: GH₵{parseFloat(variant.price || 0).toFixed(2)}</span>
-                        <span>Stock: {variant.stock || 0}</span>
-                        <VariantStatusBadge $status={variant.status || 'active'}>
-                          {variant.status || 'active'}
-                        </VariantStatusBadge>
-                      </VariantDetails>
-                    </VariantPreviewItem>
+                      <VariantPreviewItem key={uniqueKey}>
+                        <VariantAttributes>
+                          {variant.attributes?.map((attr, ai) => (
+                            <AttributeBadge key={ai}>
+                              {attr.key}: {attr.value}
+                            </AttributeBadge>
+                          )) || <span>No attributes</span>}
+                        </VariantAttributes>
+                        <VariantDetails>
+                          <span>Price: GH₵{parseFloat(variant.price || 0).toFixed(2)}</span>
+                          <span>Stock: {variant.stock || 0}</span>
+                          <VariantStatusBadge $status={variant.status || 'active'}>
+                            {variant.status || 'active'}
+                          </VariantStatusBadge>
+                        </VariantDetails>
+                      </VariantPreviewItem>
                     );
                   })}
                 </VariantsList>
@@ -1187,13 +1187,13 @@ const VariantStatusBadge = styled.span`
   font-weight: var(--font-semibold);
   text-transform: capitalize;
   
-  background-color: ${({ $status }) => 
-    $status === 'active' 
-      ? 'var(--color-green-100)' 
+  background-color: ${({ $status }) =>
+    $status === 'active'
+      ? 'var(--color-green-100)'
       : 'var(--color-grey-100)'};
-  color: ${({ $status }) => 
-    $status === 'active' 
-      ? 'var(--color-green-700)' 
+  color: ${({ $status }) =>
+    $status === 'active'
+      ? 'var(--color-green-700)'
       : 'var(--color-grey-700)'};
 `;
 

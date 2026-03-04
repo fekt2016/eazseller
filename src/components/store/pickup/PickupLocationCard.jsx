@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { FaMapMarkerAlt, FaUser, FaPhone, FaEdit, FaTrash, FaCheckCircle, FaStickyNote, FaCompass } from 'react-icons/fa';
 import Button from '../../../shared/components/ui/Button';
 import Card from '../../ui/Card';
 import { PATHS } from '../../../routes/routePaths';
+import { ConfirmationModal } from '../../../shared/components/modal/ConfirmationModal';
 
 /**
  * Pickup Location Card Component
@@ -14,12 +15,17 @@ import { PATHS } from '../../../routes/routePaths';
  * @param {Function} onDelete - Delete handler
  */
 const PickupLocationCard = ({ location, onDelete }) => {
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
   const handleDelete = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    if (window.confirm(`Are you sure you want to delete "${location.name}"?`)) {
-      onDelete(location._id);
-    }
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = () => {
+    setShowDeleteModal(false);
+    onDelete(location._id);
   };
 
   return (
@@ -123,6 +129,16 @@ const PickupLocationCard = ({ location, onDelete }) => {
           </DefaultNotice>
         </CardFooter>
       )}
+
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleConfirmDelete}
+        title="Delete Pickup Location"
+        message={`Are you sure you want to delete "${location.name}"? This action cannot be undone.`}
+        confirmText="Delete"
+        confirmColor="#ef4444"
+      />
     </StyledCard>
   );
 };

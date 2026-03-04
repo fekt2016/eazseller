@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
-import { 
-  FaStore, 
-  FaCreditCard, 
-  FaCog, 
-  FaArrowLeft, 
-  FaShieldAlt, 
-  FaLock, 
-  FaBell, 
+import {
+  FaStore,
+  FaCreditCard,
+  FaCog,
+  FaArrowLeft,
+  FaShieldAlt,
+  FaLock,
+  FaBell,
   FaUser,
   FaChevronRight
 } from 'react-icons/fa';
@@ -30,13 +30,13 @@ const SettingsPage = () => {
     // Check query parameter first, then hash
     const searchParams = new URLSearchParams(location.search);
     const tabParam = searchParams.get('tab');
-    
+
     if (tabParam) {
       if (['profile', 'payment', 'verification', 'security', 'notifications', 'account'].includes(tabParam)) {
         return tabParam;
       }
     }
-    
+
     // Fallback to hash
     const hash = location.hash.replace('#', '');
     if (hash === 'payment' || hash === 'payment-methods') {
@@ -117,12 +117,12 @@ const SettingsPage = () => {
     // Check query parameter first
     const searchParams = new URLSearchParams(location.search);
     const tabParam = searchParams.get('tab');
-    
+
     if (tabParam && ['profile', 'payment', 'verification', 'security', 'notifications', 'account'].includes(tabParam)) {
       setActiveTab(tabParam);
       return;
     }
-    
+
     // Fallback to hash
     const hash = location.hash.replace('#', '');
     if (hash === 'payment' || hash === 'payment-methods') {
@@ -144,39 +144,23 @@ const SettingsPage = () => {
 
   return (
     <SettingsContainer>
-      {/* Modern Header */}
-      <ModernHeader>
-        <HeaderContent>
-          <HeaderLeft>
-            <BackButton
-              onClick={() => navigate(PATHS.DASHBOARD)}
-              aria-label="Back to Dashboard"
-            >
-              <FaArrowLeft />
-            </BackButton>
-            <HeaderText>
-              <Breadcrumb>
-                <BreadcrumbLink onClick={() => navigate(PATHS.DASHBOARD)}>
-                  Dashboard
-                </BreadcrumbLink>
-                <BreadcrumbSeparator>
-                  <FaChevronRight />
-                </BreadcrumbSeparator>
-                <BreadcrumbCurrent>Settings</BreadcrumbCurrent>
-              </Breadcrumb>
-              <Title>Settings</Title>
-              <Subtitle>Manage your account, security, and preferences</Subtitle>
-            </HeaderText>
-          </HeaderLeft>
-        </HeaderContent>
-      </ModernHeader>
+
 
       {/* Settings Layout */}
       <SettingsLayout>
         {/* Sidebar Navigation */}
         <Sidebar>
           <SidebarHeader>
-            <SidebarTitle>Settings</SidebarTitle>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 'var(--spacing-xs)' }}>
+              <BackButton
+                onClick={() => navigate(PATHS.DASHBOARD)}
+                aria-label="Back to Dashboard"
+                style={{ width: '30px', height: '30px', marginRight: 'var(--spacing-sm)' }}
+              >
+                <FaArrowLeft style={{ fontSize: '1.2rem' }} />
+              </BackButton>
+              <SidebarTitle style={{ margin: 0 }}>Settings</SidebarTitle>
+            </div>
             <SidebarSubtitle>Configure your account</SidebarSubtitle>
           </SidebarHeader>
           <NavList>
@@ -204,18 +188,6 @@ const SettingsPage = () => {
 
         {/* Main Content Area */}
         <MainContent>
-          <ContentHeader>
-            <ContentTitle>
-              <ContentIcon $color={activeTabData?.color}>
-                {activeTabData?.icon}
-              </ContentIcon>
-              <div>
-                <ContentTitleText>{activeTabData?.label}</ContentTitleText>
-                <ContentSubtitle>{activeTabData?.description}</ContentSubtitle>
-              </div>
-            </ContentTitle>
-          </ContentHeader>
-
           <ContentCard>
             <TabContent>
               {activeTab === 'profile' && <BusinessProfilePage embedded />}
@@ -360,13 +332,12 @@ const Subtitle = styled.p`
 const SettingsLayout = styled.div`
   max-width: 1400px;
   margin: 0 auto;
-  display: grid;
-  grid-template-columns: 280px 1fr;
+  display: flex;
+  flex-direction: column;
   gap: var(--spacing-xl);
   padding: var(--spacing-xl);
   
   @media ${devicesMax.md} {
-    grid-template-columns: 1fr;
     gap: var(--spacing-lg);
     padding: var(--spacing-lg);
   }
@@ -377,18 +348,17 @@ const SettingsLayout = styled.div`
   }
 `;
 
-const Sidebar = styled.aside`
+const Sidebar = styled.div`
   background: var(--color-white-0);
   border-radius: var(--border-radius-xl);
   border: 1px solid var(--color-grey-200);
   box-shadow: var(--shadow-sm);
   padding: var(--spacing-lg);
-  height: fit-content;
-  position: sticky;
-  top: calc(80px + var(--spacing-xl));
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
   
   @media ${devicesMax.md} {
-    position: static;
     border-radius: var(--border-radius-lg);
   }
 `;
@@ -415,31 +385,35 @@ const SidebarSubtitle = styled.p`
 const NavList = styled.ul`
   list-style: none;
   display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
+  flex-direction: row;
+  overflow-x: auto;
+  gap: var(--spacing-md);
+  padding-bottom: var(--spacing-xs);
+  
+  /* Hide scrollbar for styling */
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  scrollbar-width: none;
 `;
 
 const NavItem = styled.li`
   position: relative;
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md);
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
   border-radius: var(--border-radius-lg);
   cursor: pointer;
   transition: all 0.2s ease;
-  background: ${props => props.$active ? `${props.$color}15` : 'transparent'};
-  border: 1px solid ${props => props.$active ? `${props.$color}30` : 'transparent'};
+  background: ${props => props.$active ? props.$color : 'var(--color-white-0)'};
+  border: 1px solid ${props => props.$active ? props.$color : 'var(--color-grey-200)'};
+  white-space: nowrap;
+  box-shadow: ${props => props.$active ? `0 4px 12px ${props.$color}40` : 'none'};
 
   &:hover {
-    background: ${props => props.$active ? `${props.$color}20` : 'var(--color-grey-50)'};
-    transform: translateX(4px);
-  }
-
-  @media ${devicesMax.md} {
-    &:hover {
-      transform: none;
-    }
+    background: ${props => props.$active ? props.$color : 'var(--color-grey-50)'};
+    border-color: ${props => props.$active ? props.$color : 'var(--color-grey-300)'};
   }
 `;
 
@@ -447,12 +421,10 @@ const NavIcon = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--border-radius-md);
-  background: ${props => props.$active ? props.$color : 'var(--color-grey-100)'};
-  color: ${props => props.$active ? 'white' : 'var(--color-grey-600)'};
-  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--border-radius-sm);
+  color: ${props => props.$active ? 'var(--color-white-0)' : 'var(--color-grey-500)'};
   transition: all 0.2s ease;
   
   svg {
@@ -461,50 +433,23 @@ const NavIcon = styled.div`
 `;
 
 const NavContent = styled.div`
-  flex: 1;
-  min-width: 0;
+  display: flex;
+  align-items: center;
 `;
 
 const NavLabel = styled.div`
   font-size: var(--font-size-md);
   font-weight: ${props => props.$active ? 'var(--font-semibold)' : 'var(--font-medium)'};
-  color: ${props => props.$active ? 'var(--color-grey-900)' : 'var(--color-grey-700)'};
-  margin-bottom: var(--spacing-xs);
+  color: ${props => props.$active ? 'var(--color-white-0)' : 'var(--color-grey-700)'};
   transition: all 0.2s ease;
 `;
 
 const NavDescription = styled.div`
-  font-size: var(--font-size-xs);
-  color: var(--color-grey-500);
-  line-height: 1.4;
   display: none;
-  
-  @media ${devicesMin.md} {
-    display: block;
-  }
 `;
 
 const NavIndicator = styled.div`
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 4px;
-  height: 60%;
-  background: ${props => props.$color};
-  border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
-  animation: slideIn 0.3s ease;
-  
-  @keyframes slideIn {
-    from {
-      opacity: 0;
-      transform: translateY(-50%) translateX(-10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(-50%);
-    }
-  }
+  display: none;
 `;
 
 const MainContent = styled.main`

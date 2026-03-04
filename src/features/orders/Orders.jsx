@@ -33,8 +33,6 @@ export default function OrdersPage() {
     refetch,
   } = useGetSellerOrders();
 
-  console.log("Orders data:", ordersData);
-
   // Refetch data when parameters change
   useEffect(() => {
     refetch();
@@ -343,7 +341,7 @@ export default function OrdersPage() {
                 <TableCell>{formatDate(order.createdAt)}</TableCell>
                 <TableCell>
                   {order.trackingNumber ? (
-                    <TrackingLink 
+                    <TrackingLink
                       onClick={() => navigate(PATHS.TRACKING.replace(':trackingNumber', order.trackingNumber))}
                       title="Track Order"
                     >

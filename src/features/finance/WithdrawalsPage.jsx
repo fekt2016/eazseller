@@ -56,7 +56,7 @@ export default function WithdrawalsPage() {
   } = useGetPaymentRequests();
 
   const requests = requestsData?.paymentRequests || [];
-  
+
   // Get recent payment requests (last 5) for display below form
   const recentRequests = requests.slice(0, 5);
 
@@ -71,13 +71,14 @@ export default function WithdrawalsPage() {
   const deletePaymentRequest = useDeletePaymentRequest();
   const requestReversal = useRequestReversal();
   const submitPin = useSubmitPinForWithdrawal();
-  
+
   // State for PIN submission
   const [pinInputs, setPinInputs] = useState({});
-  
+
   // Track which request is being deleted (for individual loading state)
   const [deletingRequestId, setDeletingRequestId] = useState(null);
-  
+  const [pendingCancelId, setPendingCancelId] = useState(null);
+
   // State for reversal modal
   const [reversalModal, setReversalModal] = useState({
     isOpen: false,
@@ -160,7 +161,7 @@ export default function WithdrawalsPage() {
     }
 
     let paymentDetailsToSend = {};
-    
+
     if (useSavedPaymentMethod) {
       // Map payment method to PaymentMethod model type and provider
       const paymentMethodToType = {
@@ -169,20 +170,20 @@ export default function WithdrawalsPage() {
         'vodafone_cash': 'mobile_money',
         'airtel_tigo_money': 'mobile_money',
       };
-      
+
       const paymentMethodToProvider = {
         'mtn_momo': 'MTN',
         'vodafone_cash': 'Vodafone',
         'airtel_tigo_money': 'AirtelTigo',
       };
-      
+
       // First, try to get from PaymentMethod model
       if (paymentMethod === "bank") {
         // Find default bank transfer method, or any bank transfer method
-        const bankMethod = paymentMethods.find(pm => 
+        const bankMethod = paymentMethods.find(pm =>
           pm.type === 'bank_transfer' && pm.isDefault
         ) || paymentMethods.find(pm => pm.type === 'bank_transfer');
-        
+
         if (bankMethod && bankMethod.accountNumber && bankMethod.accountName && bankMethod.bankName) {
           paymentDetailsToSend = {
             accountName: bankMethod.accountName || "",
@@ -194,15 +195,15 @@ export default function WithdrawalsPage() {
       } else if (["mtn_momo", "vodafone_cash", "airtel_tigo_money"].includes(paymentMethod)) {
         const provider = paymentMethodToProvider[paymentMethod];
         // Find default mobile money method with matching provider, or any matching provider
-        const mobileMethod = paymentMethods.find(pm => 
-          pm.type === 'mobile_money' && 
-          pm.provider === provider && 
+        const mobileMethod = paymentMethods.find(pm =>
+          pm.type === 'mobile_money' &&
+          pm.provider === provider &&
           pm.isDefault
-        ) || paymentMethods.find(pm => 
-          pm.type === 'mobile_money' && 
+        ) || paymentMethods.find(pm =>
+          pm.type === 'mobile_money' &&
           pm.provider === provider
         );
-        
+
         if (mobileMethod && mobileMethod.mobileNumber) {
           paymentDetailsToSend = {
             phone: mobileMethod.mobileNumber || "",
@@ -211,7 +212,7 @@ export default function WithdrawalsPage() {
           };
         }
       }
-      
+
       // Fallback to seller's saved payment methods if PaymentMethod model doesn't have it
       if (!paymentDetailsToSend.accountNumber && !paymentDetailsToSend.phone) {
         if (paymentMethod === "bank" && seller?.paymentMethods?.bankAccount) {
@@ -231,7 +232,7 @@ export default function WithdrawalsPage() {
           };
         }
       }
-      
+
       // If still no payment details, show error
       if (!paymentDetailsToSend.accountNumber && !paymentDetailsToSend.phone) {
         setError("Please add payment method details in your account settings");
@@ -334,16 +335,7 @@ export default function WithdrawalsPage() {
     // Cannot reverse if already reversed or if it's completed/paid (admin only)
     const reversibleStatuses = ['pending', 'processing', 'awaiting_paystack_otp'];
     const canReverseResult = reversibleStatuses.includes(request.status) && !request.reversed;
-    
-    // Debug logging
-    console.log('[WithdrawalsPage] canReverse check:', {
-      requestId: request._id || request.id,
-      status: request.status,
-      reversed: request.reversed,
-      isReversibleStatus: reversibleStatuses.includes(request.status),
-      canReverse: canReverseResult
-    });
-    
+
     return canReverseResult;
   };
 
@@ -542,7 +534,7 @@ export default function WithdrawalsPage() {
                 type="submit"
                 disabled={
                   createPaymentRequest.isPending ||
-                  !amount || 
+                  !amount ||
                   amount.trim() === "" ||
                   isNaN(parseFloat(amount)) ||
                   parseFloat(amount) <= 0
@@ -585,7 +577,7 @@ export default function WithdrawalsPage() {
                           <NetAmount>GH₵{(request.amountPaidToSeller || (request.amountRequested || request.amount) - request.withholdingTax).toFixed(2)}</NetAmount>
                         </WithholdingTaxInfo>
                       )}
-                      
+
                       {/* Payment Details Section */}
                       {request.paymentDetails && (
                         <RequestDetails style={{ margin: '0.75rem 1rem', padding: '0.75rem', background: 'var(--color-grey-50)', borderRadius: 'var(--border-radius-md)' }}>
@@ -638,19 +630,26 @@ export default function WithdrawalsPage() {
                           )}
                         </RequestDetails>
                       )}
-                      
+
                       {request.status === "pending" && (
                         <RequestActions>
                           <DeleteButton
+                            $isConfirming={pendingCancelId === (request._id || request.id)}
                             onClick={() => {
-                              if (window.confirm("Are you sure you want to cancel this withdrawal request? The amount will be refunded to your balance.")) {
-                                const requestId = request._id || request.id;
+                              const requestId = request._id || request.id;
+                              if (pendingCancelId === requestId) {
+                                // Second click - confirmed
+                                setPendingCancelId(null);
                                 setDeletingRequestId(requestId);
                                 deletePaymentRequest.mutate(requestId, {
                                   onSettled: () => {
                                     setDeletingRequestId(null);
                                   }
                                 });
+                              } else {
+                                // First click - arm confirm
+                                setPendingCancelId(requestId);
+                                setTimeout(() => setPendingCancelId(cur => cur === requestId ? null : cur), 4000);
                               }
                             }}
                             disabled={deletingRequestId === (request._id || request.id)}
@@ -658,6 +657,10 @@ export default function WithdrawalsPage() {
                             {deletingRequestId === (request._id || request.id) ? (
                               <>
                                 <FaSpinner className="spinner" /> Cancelling...
+                              </>
+                            ) : pendingCancelId === (request._id || request.id) ? (
+                              <>
+                                <FaCheck /> Click to confirm
                               </>
                             ) : (
                               <>
@@ -672,7 +675,6 @@ export default function WithdrawalsPage() {
                         <RequestActions>
                           <ReversalButton
                             onClick={() => {
-                              console.log('[WithdrawalsPage] Reversal button clicked for request:', request._id || request.id, 'Status:', request.status);
                               setReversalModal({ isOpen: true, request });
                             }}
                           >
@@ -735,7 +737,7 @@ export default function WithdrawalsPage() {
                           {new Date(request.createdAt).toLocaleDateString()}
                         </DetailValue>
                       </DetailItem>
-                      
+
                       {/* Payment Method Details */}
                       {request.paymentDetails && (
                         <>
@@ -785,7 +787,7 @@ export default function WithdrawalsPage() {
                           )}
                         </>
                       )}
-                      
+
                       {request.paystackReference && (
                         <DetailItem>
                           <DetailLabel>Reference:</DetailLabel>
@@ -799,20 +801,27 @@ export default function WithdrawalsPage() {
                         </DetailItem>
                       )}
                     </RequestDetails>
-                    
+
                     {/* Show cancel button for pending requests */}
                     {request.status === "pending" && (
                       <RequestActions>
                         <DeleteButton
+                          $isConfirming={pendingCancelId === (request._id || request.id)}
                           onClick={() => {
-                            if (window.confirm("Are you sure you want to cancel this withdrawal request? The amount will be refunded to your balance.")) {
-                              const requestId = request._id || request.id;
+                            const requestId = request._id || request.id;
+                            if (pendingCancelId === requestId) {
+                              // Second click
+                              setPendingCancelId(null);
                               setDeletingRequestId(requestId);
                               deletePaymentRequest.mutate(requestId, {
                                 onSettled: () => {
                                   setDeletingRequestId(null);
                                 }
                               });
+                            } else {
+                              // First click
+                              setPendingCancelId(requestId);
+                              setTimeout(() => setPendingCancelId(cur => cur === requestId ? null : cur), 4000);
                             }
                           }}
                           disabled={deletingRequestId === (request._id || request.id)}
@@ -820,6 +829,10 @@ export default function WithdrawalsPage() {
                           {deletingRequestId === (request._id || request.id) ? (
                             <>
                               <FaSpinner className="spinner" /> Cancelling...
+                            </>
+                          ) : pendingCancelId === (request._id || request.id) ? (
+                            <>
+                              <FaCheck /> Click to confirm
                             </>
                           ) : (
                             <>
@@ -834,7 +847,6 @@ export default function WithdrawalsPage() {
                       <RequestActions>
                         <ReversalButton
                           onClick={() => {
-                            console.log('[WithdrawalsPage] Reversal button clicked for request:', request._id || request.id, 'Status:', request.status);
                             setReversalModal({ isOpen: true, request });
                           }}
                         >
@@ -1235,7 +1247,7 @@ const RequestActions = styled.div`
   flex-wrap: wrap;
 `;
 
-const  VerifyOTPButton = styled.button`
+const VerifyOTPButton = styled.button`
   padding: var(--spacing-sm) var(--spacing-md);
   background: var(--color-primary-600);
   color: white;

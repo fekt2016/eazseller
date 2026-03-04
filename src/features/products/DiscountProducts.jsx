@@ -68,7 +68,7 @@ export const SellerDiscountPage = () => {
     isOpen: false,
     title: "",
     message: "",
-    onConfirm: () => {},
+    onConfirm: () => { },
   });
 
   const { seller } = useAuth();
@@ -106,8 +106,8 @@ export const SellerDiscountPage = () => {
     () =>
       selectedCategory
         ? sellerProducts.filter(
-            (p) => p.parentCategory?._id === selectedCategory?._id
-          )
+          (p) => p.parentCategory?._id === selectedCategory?._id
+        )
         : [],
     [selectedCategory, sellerProducts]
   );
@@ -170,14 +170,14 @@ export const SellerDiscountPage = () => {
     e.preventDefault();
 
     if (selectedProducts.length === 0) {
-      alert("Please select at least one product");
+      toast.error("Please select at least one product");
       return;
     }
     const start = new Date(formData.startDate);
     const end = new Date(formData.endDate);
 
     if (end <= start) {
-      alert("End date must be after start date");
+      toast.error("End date must be after start date");
       return;
     }
 

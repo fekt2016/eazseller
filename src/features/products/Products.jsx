@@ -5,12 +5,13 @@ import useAuth from '../../shared/hooks/useAuth';
 import { useMemo, useState } from "react";
 import useProduct from '../../shared/hooks/useProduct';
 import useAnalytics from '../../shared/hooks/useAnalytics';
-import { FaEdit, FaTrash, FaPlus, FaBoxOpen, FaLayerGroup, FaEye } from "react-icons/fa";
+import useCategory from '../../shared/hooks/useCategory';
+import { FaEdit, FaTrash, FaPlus, FaBoxOpen, FaLayerGroup, FaEye, FaCheck, FaTimes } from "react-icons/fa";
 import { PATHS } from '../../routes/routePaths';
-import { 
-  PageContainer, 
-  PageHeader, 
-  TitleSection, 
+import {
+  PageContainer,
+  PageHeader,
+  TitleSection,
   ActionSection,
   Toolbar,
   FilterGroup,
@@ -24,6 +25,7 @@ import { toast } from 'react-toastify';
 
 export default function Products() {
   const [deletingId, setDeletingId] = useState(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const { seller, isLoading: authLoading } = useAuth();
@@ -32,15 +34,14 @@ export default function Products() {
   const queryClient = useQueryClient();
   const { useGetAllProductBySeller, deleteProduct } = useProduct();
   const { useGetSellerProductViews } = useAnalytics();
+  const { getCategories } = useCategory();
   const { data, isLoading: productsLoading } = useGetAllProductBySeller(sellerId);
   const { data: viewData } = useGetSellerProductViews(sellerId, { enabled: !!sellerId });
+  const categories = getCategories?.data?.data?.results || getCategories?.data?.data || [];
 
   const products = useMemo(() => {
     const raw = data?.data?.data ?? data?.data?.products ?? data?.products ?? data?.data;
     const list = Array.isArray(raw) ? raw : [];
-    if (import.meta.env.DEV && list.length > 0) {
-      console.debug('[Products] loaded', list.length, 'products from API (total in response:', data?.data?.total ?? data?.total ?? '—', ')');
-    }
     return list;
   }, [data]);
 
@@ -55,36 +56,44 @@ export default function Products() {
 
   const filteredProducts = useMemo(() => {
     let filtered = products;
-    
+
     if (searchTerm) {
       filtered = filtered.filter(product =>
         product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.description?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-    
+
     if (categoryFilter !== "all") {
-      filtered = filtered.filter(product => 
-        product.category?._id === categoryFilter || 
+      filtered = filtered.filter(product =>
+        product.category?._id === categoryFilter ||
         product.category?.name === categoryFilter
       );
     }
-    
+
     return filtered;
   }, [products, searchTerm, categoryFilter]);
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this product?")) {
-      return;
-    }
-    
+  const handleDeleteClick = (id) => {
     const stringId = id.toString();
+    if (pendingDeleteId === stringId) {
+      // Second click — confirmed
+      setPendingDeleteId(null);
+      handleDeleteConfirmed(stringId);
+    } else {
+      // First click — arm the confirm
+      setPendingDeleteId(stringId);
+      // Auto-reset after 4 seconds
+      setTimeout(() => setPendingDeleteId((cur) => cur === stringId ? null : cur), 4000);
+    }
+  };
+
+  const handleDeleteConfirmed = async (stringId) => {
     setDeletingId(stringId);
     try {
       await deleteProduct.mutateAsync(stringId);
       await queryClient.invalidateQueries({ queryKey: ["products"] });
     } catch (error) {
-      console.error("Delete failed:", error);
       const msg = error?.response?.data?.message || error?.message || "Failed to delete product. Please try again.";
       toast.error(msg);
     } finally {
@@ -99,8 +108,8 @@ export default function Products() {
       title: 'Product',
       render: (product) => (
         <ProductCellContent>
-          <ProductImage 
-            src={product.imageCover} 
+          <ProductImage
+            src={product.imageCover}
             alt={product.name}
             onError={(e) => {
               // Prevent infinite loop
@@ -188,16 +197,18 @@ export default function Products() {
             <FaEdit />
           </Button>
           <Button
-            variant="ghost"
+            variant={pendingDeleteId === product._id?.toString() ? "danger" : "ghost"}
             size="sm"
             iconOnly
             round
-            onClick={() => handleDelete(product._id)}
+            onClick={() => handleDeleteClick(product._id)}
             disabled={deletingId === product._id?.toString()}
-            title="Delete Product"
+            title={pendingDeleteId === product._id?.toString() ? "Click again to confirm delete" : "Delete Product"}
           >
             {deletingId === product._id?.toString() ? (
               <ButtonSpinner size="14px" />
+            ) : pendingDeleteId === product._id?.toString() ? (
+              <FaCheck />
             ) : (
               <FaTrash />
             )}
@@ -258,7 +269,9 @@ export default function Products() {
             onChange={(e) => setCategoryFilter(e.target.value)}
           >
             <option value="all">All Categories</option>
-            {/* Add category options here if available */}
+            {categories.map((cat) => (
+              <option key={cat._id} value={cat._id}>{cat.name}</option>
+            ))}
           </Select>
         </FilterGroup>
       </Toolbar>
@@ -327,17 +340,17 @@ const StockIndicator = styled.div`
   font-size: var(--font-size-sm);
   font-family: var(--font-body);
   background: ${({ $stock }) =>
-    $stock > 20 
-      ? "var(--color-green-100)" 
-      : $stock > 0 
-      ? "var(--color-yellow-100)" 
-      : "var(--color-red-100)"};
+    $stock > 20
+      ? "var(--color-green-100)"
+      : $stock > 0
+        ? "var(--color-yellow-100)"
+        : "var(--color-red-100)"};
   color: ${({ $stock }) =>
-    $stock > 20 
-      ? "var(--color-green-700)" 
-      : $stock > 0 
-      ? "var(--color-yellow-700)" 
-      : "var(--color-red-700)"};
+    $stock > 20
+      ? "var(--color-green-700)"
+      : $stock > 0
+        ? "var(--color-yellow-700)"
+        : "var(--color-red-700)"};
 `;
 
 const TableViewCount = styled.div`

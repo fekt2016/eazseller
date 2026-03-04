@@ -10,13 +10,14 @@ import { ButtonSpinner } from '../../shared/components/ButtonSpinner';
 import { ErrorState } from '../../shared/components/ui/LoadingComponents';
 import Logo from '../../shared/components/Logo';
 import GoogleLoginButton from "./GoogleLoginButton";
+import { toast } from 'react-toastify';
 
 // Auth Form Component
 const AuthPage = () => {
   const [phoneNetwork, setPhoneNetwork] = useState("");
   const [activeTab, setActiveTab] = useState("login");
   const [loginClientError, setLoginClientError] = useState("");
-  
+
   // Login state
   const [loginState, setLoginState] = useState({
     email: "",
@@ -29,7 +30,7 @@ const AuthPage = () => {
   const [showRegisterPasswordConfirm, setShowRegisterPasswordConfirm] = useState(false);
   const [twoFactorCode, setTwoFactorCode] = useState("");
   const [loginSessionId, setLoginSessionId] = useState(null);
-  
+
   // Register state
   const [formData, setFormData] = useState({
     name: "",
@@ -49,7 +50,7 @@ const AuthPage = () => {
   const { mutate: loginMutation, isPending: isLoggingIn, error: loginError } = login;
   const { mutate: verify2FALoginMutation, isPending: isVerifying2FA, error: verify2FAError } = verify2FALogin;
   const { mutateAsync: registerMutation, isPending: isRegistering, error: registerError } = register;
-  
+
   const navigate = useNavigate();
 
   // Load remembered email (if any)
@@ -83,13 +84,13 @@ const AuthPage = () => {
   // Normalize backend validation errors to field-level errors
   const normalizeFieldErrors = (error) => {
     const errors = {};
-    
+
     if (!error) return errors;
-    
+
     // Check for fieldErrors in response (from AppError.fieldErrors)
     const responseData = error?.response?.data || error?.data || {};
     const fieldErrorsFromResponse = responseData.details || responseData.fieldErrors || responseData.errors;
-    
+
     if (fieldErrorsFromResponse && typeof fieldErrorsFromResponse === 'object') {
       // Direct field errors object: { name: "Name is required", email: "Invalid email" }
       Object.keys(fieldErrorsFromResponse).forEach((field) => {
@@ -101,13 +102,13 @@ const AuthPage = () => {
         }
       });
     }
-    
+
     // Check error message for field-specific patterns
     const errorMessage = responseData.message || error.message || '';
     if (errorMessage && !Object.keys(errors).length) {
       // Infer field from error message patterns
       const messageLower = errorMessage.toLowerCase();
-      
+
       // Email errors
       if (messageLower.includes('email') && (messageLower.includes('invalid') || messageLower.includes('valid'))) {
         errors.email = 'Please enter a valid email address';
@@ -116,24 +117,24 @@ const AuthPage = () => {
       } else if (messageLower.includes('email') && (messageLower.includes('exists') || messageLower.includes('taken') || messageLower.includes('duplicate'))) {
         errors.email = 'This email address is already registered';
       }
-      
+
       // Password errors
       if (messageLower.includes('password') && messageLower.includes('required')) {
         errors.password = 'Password is required';
       } else if (messageLower.includes('password') && (messageLower.includes('short') || messageLower.includes('8'))) {
         errors.password = 'Password must be at least 8 characters';
       }
-      
+
       // Name errors
       if (messageLower.includes('name') && messageLower.includes('required')) {
         errors.name = 'Name is required';
       }
-      
+
       // Shop name errors
       if ((messageLower.includes('shop') || messageLower.includes('store')) && messageLower.includes('required')) {
         errors.shopName = 'Shop name is required';
       }
-      
+
       // Phone errors
       if ((messageLower.includes('phone') || messageLower.includes('contact')) && messageLower.includes('required')) {
         errors.contactNumber = 'Phone number is required';
@@ -141,7 +142,7 @@ const AuthPage = () => {
         errors.contactNumber = 'Please enter a valid phone number';
       }
     }
-    
+
     return errors;
   };
 
@@ -203,7 +204,7 @@ const AuthPage = () => {
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     e.stopPropagation(); // Prevent any form submission bubbling
-    
+
     // SECURITY: Ensure form doesn't submit normally
     if (e.defaultPrevented === false) {
       e.preventDefault();
@@ -214,23 +215,23 @@ const AuthPage = () => {
       setLoginClientError("");
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       const trimmedEmail = loginState.email.trim().toLowerCase();
-      
+
       if (!trimmedEmail || !emailRegex.test(trimmedEmail)) {
         setLoginClientError("Please enter a valid email address.");
         return false; // Explicitly return false to prevent form submission
       }
-      
+
       if (!loginState.password) {
         setLoginClientError("Please enter your password.");
         return false; // Explicitly return false to prevent form submission
       }
 
       // SECURITY: Ensure we're sending a proper object, not a string
-      const loginData = { 
-        email: trimmedEmail, 
-        password: loginState.password 
+      const loginData = {
+        email: trimmedEmail,
+        password: loginState.password
       };
-      
+
       if (import.meta.env.DEV) {
         console.log('[AuthPage] Sending login request with data:', {
           email: loginData.email,
@@ -254,12 +255,12 @@ const AuthPage = () => {
             } else if (result?.success) {
               // Login successful
               const seller = result.seller;
-              
+
               if (!seller || (!seller.id && !seller._id)) {
                 console.error("❌ [AuthPage] Login successful but no seller data received:", result);
                 return;
               }
-              
+
               if (import.meta.env.DEV) {
                 console.log('👤 [AuthPage] Seller logged in:', {
                   id: seller.id || seller._id,
@@ -268,7 +269,7 @@ const AuthPage = () => {
                   role: seller.role,
                 });
               }
-              
+
               // Remember-me: store or clear saved email
               if (typeof window !== "undefined") {
                 if (rememberMe) {
@@ -280,13 +281,13 @@ const AuthPage = () => {
                   window.localStorage.removeItem("sellerRememberMe");
                 }
               }
-              
+
               // Wait a moment for auth state to update, then navigate
               // This ensures ProtectedRoute has the seller data
               setTimeout(() => {
                 navigate(PATHS.DASHBOARD);
               }, 100);
-              
+
               // Reset form
               setLoginState({ email: "", password: "" });
             }
@@ -295,7 +296,7 @@ const AuthPage = () => {
             const errorMessage = err.response?.data?.message || err.message;
             const statusCode = err.response?.status;
             const isTimeout = err?.code === 'ECONNABORTED' || err?.isTimeout || err?.message?.includes('timeout');
-            
+
             console.error("[AuthPage] Login failed:", {
               message: errorMessage,
               response: err.response?.data,
@@ -303,7 +304,7 @@ const AuthPage = () => {
               isTimeout,
               code: err.code,
             });
-            
+
             // Handle timeout errors
             if (isTimeout) {
               console.error("❌ [Seller Login] Login error: ", {
@@ -315,14 +316,14 @@ const AuthPage = () => {
               // Error will be displayed via loginError from the mutation
               return;
             }
-            
+
             // Handle unverified account (403)
             if (statusCode === 403) {
               const messageLower = errorMessage.toLowerCase();
-              if (messageLower.includes('not verified') || 
-                  messageLower.includes('verify') || 
-                  messageLower.includes('verification') ||
-                  messageLower.includes('unverified')) {
+              if (messageLower.includes('not verified') ||
+                messageLower.includes('verify') ||
+                messageLower.includes('verification') ||
+                messageLower.includes('unverified')) {
                 // Redirect to verification page with email as query parameter
                 if (import.meta.env.DEV) {
                   console.log("[AuthPage] Account not verified - redirecting to verification page");
@@ -331,7 +332,7 @@ const AuthPage = () => {
                 return;
               }
             }
-            
+
             // Error will be displayed via loginError from the mutation
           },
         }
@@ -357,19 +358,19 @@ const AuthPage = () => {
             // Result from mutationFn is { success: true, seller: sellerData }
             if (result?.success) {
               const seller = result.seller;
-              
+
               if (!seller || (!seller.id && !seller._id)) {
                 console.error("❌ [AuthPage] 2FA verified but no seller data received:", result);
                 return;
               }
-              
+
               console.log('👤 [AuthPage] Seller logged in via 2FA:', {
                 id: seller.id || seller._id,
                 email: seller.email,
                 name: seller.name || seller.shopName,
                 role: seller.role,
               });
-              
+
               // Remember-me after successful 2FA
               if (typeof window !== "undefined") {
                 if (rememberMe && loginState.email) {
@@ -381,7 +382,7 @@ const AuthPage = () => {
                   window.localStorage.removeItem("sellerRememberMe");
                 }
               }
-              
+
               navigate(PATHS.DASHBOARD);
               setLoginState({ email: "", password: "" });
               setTwoFactorCode("");
@@ -411,7 +412,7 @@ const AuthPage = () => {
 
     // Client-side validation before API call
     const clientErrors = {};
-    
+
     if (!formData.name.trim()) {
       clientErrors.name = 'Name is required';
     } else {
@@ -420,7 +421,7 @@ const AuthPage = () => {
         clientErrors.name = 'Invalid characters in name. Use letters, spaces, hyphens, and apostrophes only.';
       }
     }
-    
+
     if (!formData.email.trim()) {
       clientErrors.email = 'Email address is required';
     } else {
@@ -429,7 +430,7 @@ const AuthPage = () => {
         clientErrors.email = 'Please enter a valid email address';
       }
     }
-    
+
     if (!formData.contactNumber.trim()) {
       clientErrors.contactNumber = 'Phone number is required';
     } else {
@@ -438,7 +439,7 @@ const AuthPage = () => {
         clientErrors.contactNumber = 'Please enter a valid Ghanaian phone number';
       }
     }
-    
+
     if (!formData.shopName.trim()) {
       clientErrors.shopName = 'Shop name is required';
     } else if (formData.shopName.trim().length < 3) {
@@ -458,7 +459,7 @@ const AuthPage = () => {
     } else if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(formData.password)) {
       clientErrors.password = 'Almost there! Add a special character (e.g. ! @ # $ %) to make your password more secure.';
     }
-    
+
     if (!formData.passwordConfirm) {
       clientErrors.passwordConfirm = 'Please confirm your password';
     } else if (formData.password !== formData.passwordConfirm) {
@@ -468,7 +469,7 @@ const AuthPage = () => {
     if (!formData.agreeToTerms) {
       clientErrors.agreeToTerms = 'You must agree to the privacy policy & terms';
     }
-    
+
     // If client-side validation fails, show errors and stop
     if (Object.keys(clientErrors).length > 0) {
       setFieldErrors(clientErrors);
@@ -496,14 +497,14 @@ const AuthPage = () => {
       };
 
       const response = await registerMutation(registrationData);
-      
+
       // Check if email verification is required
       const apiResponse = response?.data || response;
       const requiresVerification = apiResponse?.requiresVerification || apiResponse?.data?.requiresVerification;
-      
+
       if (requiresVerification) {
         console.log("[AuthPage] Registration successful - email verification required");
-        alert('Registration successful! Please check your email for the verification code we sent to your email.');
+        toast.success('Registration successful! Please check your email for the verification code we sent to your email.');
         // Redirect seller to dedicated verification page with email pre-filled
         navigate(`${PATHS.VERIFY_ACCOUNT}?email=${encodeURIComponent(formData.email)}`);
       } else {
@@ -512,10 +513,10 @@ const AuthPage = () => {
       }
     } catch (error) {
       console.error("[AuthPage] Registration error:", error);
-      
+
       // Extract field-level errors from backend response
       const backendFieldErrors = normalizeFieldErrors(error);
-      
+
       if (Object.keys(backendFieldErrors).length > 0) {
         // Show field-level errors
         setFieldErrors(backendFieldErrors);
@@ -529,456 +530,456 @@ const AuthPage = () => {
 
   return (
     <Container>
-        <AuthCard>
-          <LogoContainer>
-            <LogoLink to={PATHS.LANDING}>
-              <Logo />
-            </LogoLink>
-          </LogoContainer>
+      <AuthCard>
+        <LogoContainer>
+          <LogoLink to={PATHS.LANDING}>
+            <Logo />
+          </LogoLink>
+        </LogoContainer>
 
-          <Tabs>
-            <Tab
-              $active={activeTab === "login"}
-              onClick={() => {
-                setActiveTab("login");
-                setLoginStep("credentials");
-                setTwoFactorCode("");
-                setLoginSessionId(null);
-                setLoginState({ email: "", password: "" });
-                setLoginClientError("");
-              }}
-            >
-              Login
-            </Tab>
-            <Tab
-              $active={activeTab === "register"}
-              onClick={() => {
-                setActiveTab("register");
-                setFieldErrors({}); // Clear field errors when switching to register tab
-                setLoginClientError("");
-              }}
-            >
-              Register
-            </Tab>
-          </Tabs>
+        <Tabs>
+          <Tab
+            $active={activeTab === "login"}
+            onClick={() => {
+              setActiveTab("login");
+              setLoginStep("credentials");
+              setTwoFactorCode("");
+              setLoginSessionId(null);
+              setLoginState({ email: "", password: "" });
+              setLoginClientError("");
+            }}
+          >
+            Login
+          </Tab>
+          <Tab
+            $active={activeTab === "register"}
+            onClick={() => {
+              setActiveTab("register");
+              setFieldErrors({}); // Clear field errors when switching to register tab
+              setLoginClientError("");
+            }}
+          >
+            Register
+          </Tab>
+        </Tabs>
 
-          <Title>
-            {activeTab === "login"
-              ? loginStep === "2fa"
-                ? "Two-Factor Authentication"
-                : "Welcome Back"
-              : "Create Your Seller Account"}
-          </Title>
+        <Title>
+          {activeTab === "login"
+            ? loginStep === "2fa"
+              ? "Two-Factor Authentication"
+              : "Welcome Back"
+            : "Create Your Seller Account"}
+        </Title>
 
-          <Subtitle>
-            {activeTab === "login" && loginStep === "2fa"
-              ? "Enter the 6-digit code from your authenticator app (Google Authenticator, Authy, etc.)"
-              : activeTab === "login"
+        <Subtitle>
+          {activeTab === "login" && loginStep === "2fa"
+            ? "Enter the 6-digit code from your authenticator app (Google Authenticator, Authy, etc.)"
+            : activeTab === "login"
               ? "Enter your email and password to access your account"
               : "Fill in your details to get started"}
-          </Subtitle>
+        </Subtitle>
 
-          {/* Simple, user-friendly auth error message */}
-          {(loginClientError || loginError || verify2FAError || (registerError && Object.keys(fieldErrors).length === 0)) && (
-            <ErrorBanner>
-              {(() => {
-                if (loginClientError) return loginClientError;
-                if (loginStep === "2fa") {
-                  return getSimpleAuthErrorMessage(verify2FAError || loginError, "2fa");
-                }
-                // For register, keep existing behavior (out of scope for “seller login”)
-                if (registerError && Object.keys(fieldErrors).length === 0) {
-                  return registerError?.response?.data?.message || registerError?.message || "Registration failed. Please try again.";
-                }
-                return getSimpleAuthErrorMessage(loginError || verify2FAError, "login");
-              })()}
-            </ErrorBanner>
-          )}
+        {/* Simple, user-friendly auth error message */}
+        {(loginClientError || loginError || verify2FAError || (registerError && Object.keys(fieldErrors).length === 0)) && (
+          <ErrorBanner>
+            {(() => {
+              if (loginClientError) return loginClientError;
+              if (loginStep === "2fa") {
+                return getSimpleAuthErrorMessage(verify2FAError || loginError, "2fa");
+              }
+              // For register, keep existing behavior (out of scope for “seller login”)
+              if (registerError && Object.keys(fieldErrors).length === 0) {
+                return registerError?.response?.data?.message || registerError?.message || "Registration failed. Please try again.";
+              }
+              return getSimpleAuthErrorMessage(loginError || verify2FAError, "login");
+            })()}
+          </ErrorBanner>
+        )}
 
-          {/* Login errors are shown via the simple ErrorBanner above */}
-          {/* Only show ErrorState for non-field errors (when no fieldErrors exist) */}
-          {registerError && activeTab === "register" && Object.keys(fieldErrors).length === 0 && (
-            <ErrorState
-              title="Registration Failed"
-              message={registerError?.response?.data?.message || registerError?.message || "Registration failed. Please try again."}
-            />
-          )}
+        {/* Login errors are shown via the simple ErrorBanner above */}
+        {/* Only show ErrorState for non-field errors (when no fieldErrors exist) */}
+        {registerError && activeTab === "register" && Object.keys(fieldErrors).length === 0 && (
+          <ErrorState
+            title="Registration Failed"
+            message={registerError?.response?.data?.message || registerError?.message || "Registration failed. Please try again."}
+          />
+        )}
 
-          {activeTab === "login" ? (
-            <Form onSubmit={handleLoginSubmit} noValidate>
-              {loginStep === "credentials" ? (
-                <>
-                  <InputGroup>
-                    <Label>Email Address</Label>
+        {activeTab === "login" ? (
+          <Form onSubmit={handleLoginSubmit} noValidate>
+            {loginStep === "credentials" ? (
+              <>
+                <InputGroup>
+                  <Label>Email Address</Label>
+                  <Input
+                    type="email"
+                    name="email"
+                    value={loginState.email}
+                    onChange={(e) => {
+                      setLoginClientError("");
+                      setLoginState({ ...loginState, email: e.target.value });
+                    }}
+                    placeholder="your.email@example.com"
+                    required
+                    autoComplete="email"
+                  />
+                </InputGroup>
+
+                <InputGroup>
+                  <Label>Password</Label>
+                  <PasswordInputWrapper>
                     <Input
-                      type="email"
-                      name="email"
-                      value={loginState.email}
+                      type={showLoginPassword ? "text" : "password"}
+                      name="password"
+                      value={loginState.password}
                       onChange={(e) => {
                         setLoginClientError("");
-                        setLoginState({ ...loginState, email: e.target.value });
+                        setLoginState({ ...loginState, password: e.target.value });
                       }}
-                      placeholder="your.email@example.com"
+                      placeholder="Enter your password"
                       required
-                      autoComplete="email"
+                      autoComplete="current-password"
+                      $hasToggle
                     />
-                  </InputGroup>
-
-                  <InputGroup>
-                    <Label>Password</Label>
-                    <PasswordInputWrapper>
-                      <Input
-                        type={showLoginPassword ? "text" : "password"}
-                        name="password"
-                        value={loginState.password}
-                        onChange={(e) => {
-                          setLoginClientError("");
-                          setLoginState({ ...loginState, password: e.target.value });
-                        }}
-                        placeholder="Enter your password"
-                        required
-                        autoComplete="current-password"
-                        $hasToggle
+                    <PasswordToggleBtn
+                      type="button"
+                      onClick={() => setShowLoginPassword((p) => !p)}
+                      aria-label={showLoginPassword ? "Hide password" : "Show password"}
+                    >
+                      {showLoginPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
+                    </PasswordToggleBtn>
+                  </PasswordInputWrapper>
+                  <LoginMetaRow>
+                    <RememberMeLabel>
+                      <input
+                        type="checkbox"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
                       />
-                      <PasswordToggleBtn
-                        type="button"
-                        onClick={() => setShowLoginPassword((p) => !p)}
-                        aria-label={showLoginPassword ? "Hide password" : "Show password"}
-                      >
-                        {showLoginPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
-                      </PasswordToggleBtn>
-                    </PasswordInputWrapper>
-                    <LoginMetaRow>
-                      <RememberMeLabel>
-                        <input
-                          type="checkbox"
-                          checked={rememberMe}
-                          onChange={(e) => setRememberMe(e.target.checked)}
-                        />
-                        <span>Remember me</span>
-                      </RememberMeLabel>
-                      <ForgotPasswordLink to={PATHS.FORGOT_PASSWORD}>
-                        Forgot password?
-                      </ForgotPasswordLink>
-                    </LoginMetaRow>
-                  </InputGroup>
+                      <span>Remember me</span>
+                    </RememberMeLabel>
+                    <ForgotPasswordLink to={PATHS.FORGOT_PASSWORD}>
+                      Forgot password?
+                    </ForgotPasswordLink>
+                  </LoginMetaRow>
+                </InputGroup>
 
-                  <SocialDivider>
-                    <SocialDividerLine />
-                    <SocialDividerText>or continue with</SocialDividerText>
-                    <SocialDividerLine />
-                  </SocialDivider>
-                  <SocialButtons>
-                    <GoogleLoginButton appType="seller" />
-                  </SocialButtons>
-                </>
-              ) : loginStep === "2fa" ? (
-                <OtpContainer>
-                  <OtpInputs>
-                    {[...Array(6)].map((_, index) => {
-                      const codeArray = twoFactorCode.split('').slice(0, 6);
-                      return (
-                        <OtpInput
-                          key={index}
-                          type="text"
-                          maxLength={1}
-                          value={codeArray[index] || ""}
-                          onChange={(e) => {
-                            const value = e.target.value.replace(/[^0-9]/g, '');
-                            if (value.length > 1) return;
-                            setLoginClientError("");
-                            
-                            const newCodeArray = [...codeArray];
-                            newCodeArray[index] = value;
-                            const newCode = newCodeArray.join('');
-                            setTwoFactorCode(newCode);
-                            
-                            if (value && index < 5) {
-                              const nextInput = document.getElementById(`2fa-${index + 1}`);
-                              if (nextInput) nextInput.focus();
-                            }
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Backspace' && !codeArray[index] && index > 0) {
-                              const prevInput = document.getElementById(`2fa-${index - 1}`);
-                              if (prevInput) prevInput.focus();
-                            }
-                          }}
-                          id={`2fa-${index}`}
-                          autoFocus={index === 0}
-                        />
-                      );
-                    })}
-                  </OtpInputs>
-                  
-                  <BackButton type="button" onClick={() => {
-                    setLoginStep("credentials");
-                    setTwoFactorCode("");
-                    setLoginSessionId(null);
-                  }}>
-                    ← Back to Login
-                  </BackButton>
-                </OtpContainer>
-              ) : null}
+                <SocialDivider>
+                  <SocialDividerLine />
+                  <SocialDividerText>or continue with</SocialDividerText>
+                  <SocialDividerLine />
+                </SocialDivider>
+                <SocialButtons>
+                  <GoogleLoginButton appType="seller" />
+                </SocialButtons>
+              </>
+            ) : loginStep === "2fa" ? (
+              <OtpContainer>
+                <OtpInputs>
+                  {[...Array(6)].map((_, index) => {
+                    const codeArray = twoFactorCode.split('').slice(0, 6);
+                    return (
+                      <OtpInput
+                        key={index}
+                        type="text"
+                        maxLength={1}
+                        value={codeArray[index] || ""}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/[^0-9]/g, '');
+                          if (value.length > 1) return;
+                          setLoginClientError("");
 
-              <SubmitButton
-                type="submit"
-                disabled={
-                  loginStep === "credentials"
-                    ? isLoggingIn || !loginState.email || !loginState.password
-                    : loginStep === "2fa"
+                          const newCodeArray = [...codeArray];
+                          newCodeArray[index] = value;
+                          const newCode = newCodeArray.join('');
+                          setTwoFactorCode(newCode);
+
+                          if (value && index < 5) {
+                            const nextInput = document.getElementById(`2fa-${index + 1}`);
+                            if (nextInput) nextInput.focus();
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Backspace' && !codeArray[index] && index > 0) {
+                            const prevInput = document.getElementById(`2fa-${index - 1}`);
+                            if (prevInput) prevInput.focus();
+                          }
+                        }}
+                        id={`2fa-${index}`}
+                        autoFocus={index === 0}
+                      />
+                    );
+                  })}
+                </OtpInputs>
+
+                <BackButton type="button" onClick={() => {
+                  setLoginStep("credentials");
+                  setTwoFactorCode("");
+                  setLoginSessionId(null);
+                }}>
+                  ← Back to Login
+                </BackButton>
+              </OtpContainer>
+            ) : null}
+
+            <SubmitButton
+              type="submit"
+              disabled={
+                loginStep === "credentials"
+                  ? isLoggingIn || !loginState.email || !loginState.password
+                  : loginStep === "2fa"
                     ? isVerifying2FA || twoFactorCode.length < 6
                     : false
-                }
-              >
-                {isLoggingIn || isVerifying2FA ? (
-                  <PropagateLoader color="#ffffff" size={10} />
-                ) : loginStep === "2fa" ? (
-                  "Verify 2FA & Login"
-                ) : (
-                  "Sign In"
-                )}
-              </SubmitButton>
-            </Form>
-          ) : (
-            <Form onSubmit={handleRegisterSubmit}>
-              <InputGroup>
-                <Label>
-                  Full Name <span>*</span>
-                </Label>
-                <Input
+              }
+            >
+              {isLoggingIn || isVerifying2FA ? (
+                <PropagateLoader color="#ffffff" size={10} />
+              ) : loginStep === "2fa" ? (
+                "Verify 2FA & Login"
+              ) : (
+                "Sign In"
+              )}
+            </SubmitButton>
+          </Form>
+        ) : (
+          <Form onSubmit={handleRegisterSubmit}>
+            <InputGroup>
+              <Label>
+                Full Name <span>*</span>
+              </Label>
+              <Input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="Enter your full name"
+                required
+                style={fieldErrors.name ? { borderColor: '#dc2626' } : {}}
+              />
+              {fieldErrors.name && <ErrorText>{fieldErrors.name}</ErrorText>}
+            </InputGroup>
+
+            <InputGroup>
+              <Label>
+                Contact Number <span>*</span>
+              </Label>
+              <PhoneInputContainer>
+                <PhonePrefix>+233</PhonePrefix>
+                <PhoneInput
                   type="text"
-                  name="name"
-                  value={formData.name}
+                  name="contactNumber"
+                  value={formData.contactNumber}
                   onChange={handleChange}
-                  placeholder="Enter your full name"
+                  placeholder="Enter your phone number"
                   required
-                  style={fieldErrors.name ? { borderColor: '#dc2626' } : {}}
+                  style={fieldErrors.contactNumber ? { borderColor: '#dc2626' } : {}}
                 />
-                {fieldErrors.name && <ErrorText>{fieldErrors.name}</ErrorText>}
-              </InputGroup>
 
-              <InputGroup>
-                <Label>
-                  Contact Number <span>*</span>
-                </Label>
-                <PhoneInputContainer>
-                  <PhonePrefix>+233</PhonePrefix>
-                  <PhoneInput
-                    type="text"
-                    name="contactNumber"
-                    value={formData.contactNumber}
-                    onChange={handleChange}
-                    placeholder="Enter your phone number"
-                    required
-                    style={fieldErrors.contactNumber ? { borderColor: '#dc2626' } : {}}
-                  />
-
-                  {phoneNetwork && (
-                    <NetworkIndicator className={phoneNetwork}>
-                      <NetworkIcon>
-                        {phoneNetwork === "mtn"
-                          ? "📶"
-                          : phoneNetwork === "telecel"
+                {phoneNetwork && (
+                  <NetworkIndicator className={phoneNetwork}>
+                    <NetworkIcon>
+                      {phoneNetwork === "mtn"
+                        ? "📶"
+                        : phoneNetwork === "telecel"
                           ? "📱"
                           : "📞"}
-                      </NetworkIcon>
-                      {phoneNetwork === "mtn"
-                        ? "MTN"
-                        : phoneNetwork === "telecel"
+                    </NetworkIcon>
+                    {phoneNetwork === "mtn"
+                      ? "MTN"
+                      : phoneNetwork === "telecel"
                         ? "Telecel"
                         : "AirtelTigo"}
-                    </NetworkIndicator>
-                  )}
-                </PhoneInputContainer>
-                {fieldErrors.contactNumber ? (
-                  <ErrorText>{fieldErrors.contactNumber}</ErrorText>
-                ) : (
-                  <HelpText>
-                    Enter Ghanaian number (MTN, Telecel, or AirtelTigo)
-                  </HelpText>
+                  </NetworkIndicator>
                 )}
-              </InputGroup>
+              </PhoneInputContainer>
+              {fieldErrors.contactNumber ? (
+                <ErrorText>{fieldErrors.contactNumber}</ErrorText>
+              ) : (
+                <HelpText>
+                  Enter Ghanaian number (MTN, Telecel, or AirtelTigo)
+                </HelpText>
+              )}
+            </InputGroup>
 
-              <InputGroup>
-                <Label>
-                  Business/Shop Name <span>*</span>
-                </Label>
+            <InputGroup>
+              <Label>
+                Business/Shop Name <span>*</span>
+              </Label>
+              <Input
+                type="text"
+                name="shopName"
+                value={formData.shopName}
+                onChange={handleChange}
+                placeholder="Enter your shop name"
+                required
+                minLength={3}
+                maxLength={50}
+                style={fieldErrors.shopName ? { borderColor: '#dc2626' } : {}}
+              />
+              {fieldErrors.shopName && <ErrorText>{fieldErrors.shopName}</ErrorText>}
+            </InputGroup>
+
+            <InputGroup>
+              <Label>
+                Location <span>*</span>
+              </Label>
+              <Input
+                type="text"
+                name="location"
+                value={formData.location}
+                onChange={handleChange}
+                placeholder="e.g. Accra, Kumasi, Lagos, or your city/area"
+                required
+                minLength={2}
+                maxLength={120}
+                style={fieldErrors.location ? { borderColor: '#dc2626' } : {}}
+              />
+              {fieldErrors.location ? (
+                <ErrorText>{fieldErrors.location}</ErrorText>
+              ) : (
+                <HelpText>
+                  Enter your business location (city, region, or area). Anyone can register from any location.
+                </HelpText>
+              )}
+            </InputGroup>
+
+            <InputGroup>
+              <Label>Email Address</Label>
+              <Input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Enter your email"
+                required
+                style={fieldErrors.email ? { borderColor: '#dc2626' } : {}}
+              />
+              {fieldErrors.email && <ErrorText>{fieldErrors.email}</ErrorText>}
+            </InputGroup>
+
+            <InputGroup>
+              <Label>Password</Label>
+              <PasswordInputWrapper>
                 <Input
-                  type="text"
-                  name="shopName"
-                  value={formData.shopName}
+                  type={showRegisterPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
                   onChange={handleChange}
-                  placeholder="Enter your shop name"
+                  placeholder="Enter your password"
                   required
-                  minLength={3}
-                  maxLength={50}
-                  style={fieldErrors.shopName ? { borderColor: '#dc2626' } : {}}
+                  style={fieldErrors.password ? { borderColor: '#dc2626' } : {}}
+                  $hasToggle
                 />
-                {fieldErrors.shopName && <ErrorText>{fieldErrors.shopName}</ErrorText>}
-              </InputGroup>
+                <PasswordToggleBtn
+                  type="button"
+                  onClick={() => setShowRegisterPassword((p) => !p)}
+                  aria-label={showRegisterPassword ? "Hide password" : "Show password"}
+                >
+                  {showRegisterPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
+                </PasswordToggleBtn>
+              </PasswordInputWrapper>
+              {fieldErrors.password && <ErrorText>{fieldErrors.password}</ErrorText>}
+            </InputGroup>
 
-              <InputGroup>
-                <Label>
-                  Location <span>*</span>
-                </Label>
+            <InputGroup>
+              <Label>Confirm Password</Label>
+              <PasswordInputWrapper>
                 <Input
-                  type="text"
-                  name="location"
-                  value={formData.location}
+                  type={showRegisterPasswordConfirm ? "text" : "password"}
+                  name="passwordConfirm"
+                  value={formData.passwordConfirm}
                   onChange={handleChange}
-                  placeholder="e.g. Accra, Kumasi, Lagos, or your city/area"
+                  placeholder="Confirm your password"
                   required
-                  minLength={2}
-                  maxLength={120}
-                  style={fieldErrors.location ? { borderColor: '#dc2626' } : {}}
+                  style={fieldErrors.passwordConfirm ? { borderColor: '#dc2626' } : {}}
+                  $hasToggle
                 />
-                {fieldErrors.location ? (
-                  <ErrorText>{fieldErrors.location}</ErrorText>
-                ) : (
-                  <HelpText>
-                    Enter your business location (city, region, or area). Anyone can register from any location.
-                  </HelpText>
-                )}
-              </InputGroup>
+                <PasswordToggleBtn
+                  type="button"
+                  onClick={() => setShowRegisterPasswordConfirm((p) => !p)}
+                  aria-label={showRegisterPasswordConfirm ? "Hide password" : "Show password"}
+                >
+                  {showRegisterPasswordConfirm ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
+                </PasswordToggleBtn>
+              </PasswordInputWrapper>
+              {fieldErrors.passwordConfirm && <ErrorText>{fieldErrors.passwordConfirm}</ErrorText>}
+            </InputGroup>
 
-              <InputGroup>
-                <Label>Email Address</Label>
-                <Input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="Enter your email"
-                  required
-                  style={fieldErrors.email ? { borderColor: '#dc2626' } : {}}
-                />
-                {fieldErrors.email && <ErrorText>{fieldErrors.email}</ErrorText>}
-              </InputGroup>
-
-              <InputGroup>
-                <Label>Password</Label>
-                <PasswordInputWrapper>
-                  <Input
-                    type={showRegisterPassword ? "text" : "password"}
-                    name="password"
-                    value={formData.password}
+            <TermsCheckboxGroup>
+              <TermsCheckboxLabel htmlFor="agreeToTerms">
+                <TermsCheckboxContainer>
+                  <TermsCheckbox
+                    type="checkbox"
+                    id="agreeToTerms"
+                    name="agreeToTerms"
+                    checked={formData.agreeToTerms}
                     onChange={handleChange}
-                    placeholder="Enter your password"
-                    required
-                    style={fieldErrors.password ? { borderColor: '#dc2626' } : {}}
-                    $hasToggle
                   />
-                  <PasswordToggleBtn
-                    type="button"
-                    onClick={() => setShowRegisterPassword((p) => !p)}
-                    aria-label={showRegisterPassword ? "Hide password" : "Show password"}
+                  <TermsCheckboxBox $checked={formData.agreeToTerms}>
+                    {formData.agreeToTerms && <FaCheck size={10} color="#667eea" />}
+                  </TermsCheckboxBox>
+                </TermsCheckboxContainer>
+                <TermsLabelText>
+                  I agree with the{" "}
+                  <Link
+                    to={PATHS.TERMS}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    {showRegisterPassword ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
-                  </PasswordToggleBtn>
-                </PasswordInputWrapper>
-                {fieldErrors.password && <ErrorText>{fieldErrors.password}</ErrorText>}
-              </InputGroup>
+                    privacy policy & terms
+                  </Link>
+                </TermsLabelText>
+              </TermsCheckboxLabel>
+            </TermsCheckboxGroup>
+            {fieldErrors.agreeToTerms && <ErrorText>{fieldErrors.agreeToTerms}</ErrorText>}
 
-              <InputGroup>
-                <Label>Confirm Password</Label>
-                <PasswordInputWrapper>
-                  <Input
-                    type={showRegisterPasswordConfirm ? "text" : "password"}
-                    name="passwordConfirm"
-                    value={formData.passwordConfirm}
-                    onChange={handleChange}
-                    placeholder="Confirm your password"
-                    required
-                    style={fieldErrors.passwordConfirm ? { borderColor: '#dc2626' } : {}}
-                    $hasToggle
-                  />
-                  <PasswordToggleBtn
-                    type="button"
-                    onClick={() => setShowRegisterPasswordConfirm((p) => !p)}
-                    aria-label={showRegisterPasswordConfirm ? "Hide password" : "Show password"}
-                  >
-                    {showRegisterPasswordConfirm ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
-                  </PasswordToggleBtn>
-                </PasswordInputWrapper>
-                {fieldErrors.passwordConfirm && <ErrorText>{fieldErrors.passwordConfirm}</ErrorText>}
-              </InputGroup>
+            <SocialDivider>
+              <SocialDividerLine />
+              <SocialDividerText>or sign up with</SocialDividerText>
+              <SocialDividerLine />
+            </SocialDivider>
+            <SocialButtons>
+              <GoogleLoginButton appType="seller" />
+            </SocialButtons>
 
-              <TermsCheckboxGroup>
-                <TermsCheckboxLabel htmlFor="agreeToTerms">
-                  <TermsCheckboxContainer>
-                    <TermsCheckbox
-                      type="checkbox"
-                      id="agreeToTerms"
-                      name="agreeToTerms"
-                      checked={formData.agreeToTerms}
-                      onChange={handleChange}
-                    />
-                    <TermsCheckboxBox $checked={formData.agreeToTerms}>
-                      {formData.agreeToTerms && <FaCheck size={10} color="#667eea" />}
-                    </TermsCheckboxBox>
-                  </TermsCheckboxContainer>
-                  <TermsLabelText>
-                    I agree with the{" "}
-                    <Link
-                      to={PATHS.TERMS}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      privacy policy & terms
-                    </Link>
-                  </TermsLabelText>
-                </TermsCheckboxLabel>
-              </TermsCheckboxGroup>
-              {fieldErrors.agreeToTerms && <ErrorText>{fieldErrors.agreeToTerms}</ErrorText>}
+            <SubmitButton type="button" onClick={handleRegisterSubmit} disabled={isRegistering}>
+              {isRegistering ? (
+                <PropagateLoader color="#ffffff" size={10} />
+              ) : (
+                "Create Account"
+              )}
+            </SubmitButton>
+          </Form>
+        )}
 
-              <SocialDivider>
-                <SocialDividerLine />
-                <SocialDividerText>or sign up with</SocialDividerText>
-                <SocialDividerLine />
-              </SocialDivider>
-              <SocialButtons>
-                <GoogleLoginButton appType="seller" />
-              </SocialButtons>
+        <Divider>or</Divider>
 
-              <SubmitButton type="button" onClick={handleRegisterSubmit} disabled={isRegistering}>
-                {isRegistering ? (
-                  <PropagateLoader color="#ffffff" size={10} />
-                ) : (
-                  "Create Account"
-                )}
-              </SubmitButton>
-            </Form>
+        <FooterText>
+          {activeTab === "login" ? (
+            <>
+              Don't have an account?{" "}
+              <a href="#" onClick={(e) => {
+                e.preventDefault();
+                setActiveTab("register");
+              }}>
+                Sign up now
+              </a>
+            </>
+          ) : (
+            <>
+              Already have an account?{" "}
+              <a href="#" onClick={(e) => {
+                e.preventDefault();
+                setActiveTab("login");
+                setLoginStep("credentials");
+              }}>
+                Sign in
+              </a>
+            </>
           )}
-
-          <Divider>or</Divider>
-
-          <FooterText>
-            {activeTab === "login" ? (
-              <>
-                Don't have an account?{" "}
-                <a href="#" onClick={(e) => {
-                  e.preventDefault();
-                  setActiveTab("register");
-                }}>
-                  Sign up now
-                </a>
-              </>
-            ) : (
-              <>
-                Already have an account?{" "}
-                <a href="#" onClick={(e) => {
-                  e.preventDefault();
-                  setActiveTab("login");
-                  setLoginStep("credentials");
-                }}>
-                  Sign in
-                </a>
-              </>
-            )}
-          </FooterText>
-        </AuthCard>
+        </FooterText>
+      </AuthCard>
     </Container>
   );
 };

@@ -16,6 +16,7 @@ import useCategory from '../../../shared/hooks/useCategory';
 import useVariants from '../../../shared/hooks/variants/useVariants';
 import { compressImage } from '../../../shared/utils/imageCompressor';
 import Button from '../../../shared/components/ui/Button';
+import { toast } from 'react-toastify';
 
 export default function VariantCreatePage() {
   const { productId } = useParams();
@@ -113,11 +114,11 @@ export default function VariantCreatePage() {
       categoryAttrs.length > 0 ? categoryAttrs : inferredAttributesFromVariants;
     const initialVariantAttributes = Array.isArray(attrsSource)
       ? attrsSource
-          .filter((attr) => attr && (attr.name || attr.key))
-          .map((attr) => ({
-            key: attr.name || attr.key || '',
-            value: attr.values?.length === 1 ? attr.values[0] : '',
-          }))
+        .filter((attr) => attr && (attr.name || attr.key))
+        .map((attr) => ({
+          key: attr.name || attr.key || '',
+          value: attr.values?.length === 1 ? attr.values[0] : '',
+        }))
       : [];
 
     return {
@@ -153,7 +154,7 @@ export default function VariantCreatePage() {
     try {
       const v = data.variants?.[0];
       if (!v) {
-        alert('Variant data is missing.');
+        toast.error('Variant data is missing.');
         return;
       }
 
@@ -197,11 +198,11 @@ export default function VariantCreatePage() {
       navigate(`/dashboard/products/${productId}/variants`);
     } catch (error) {
       console.error('Failed to create variant:', error);
-      alert(
+      toast.error(
         error.response?.data?.message ||
-          error.details?.message ||
-          error.message ||
-          'Failed to create variant. Please try again.'
+        error.details?.message ||
+        error.message ||
+        'Failed to create variant. Please try again.'
       );
     }
   };

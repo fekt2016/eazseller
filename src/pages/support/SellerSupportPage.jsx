@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'react-toastify';
 import { motion } from 'framer-motion';
 import {
   FaHeadset,
@@ -126,7 +127,7 @@ const SellerSupportPage = () => {
       window.chatWidget.open();
     } else {
       // Fallback: show alert or redirect
-      alert('Chat support will be available soon. Please use the contact form.');
+      toast.info('Chat support will be available soon. Please use the contact form.');
     }
   };
 

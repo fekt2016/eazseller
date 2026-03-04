@@ -16,6 +16,7 @@ import { LoadingState, EmptyState } from '../../../shared/components/ui/LoadingC
 import VariantTable from '../../../components/products/variants/VariantTable';
 import useVariants from '../../../shared/hooks/variants/useVariants';
 import useProduct from '../../../shared/hooks/useProduct';
+import { toast } from 'react-toastify';
 
 export default function VariantsListPage() {
   const { productId } = useParams();
@@ -45,14 +46,14 @@ export default function VariantsListPage() {
 
   const filteredVariants = useMemo(() => {
     if (!searchTerm) return variants;
-    
+
     return variants.filter((variant) => {
       const name = variant.name || "";
       const attributes = variant.attributes
         ?.map((attr) => `${attr.key}: ${attr.value}`)
         .join(" ") || "";
       const searchLower = searchTerm.toLowerCase();
-      
+
       return (
         name.toLowerCase().includes(searchLower) ||
         attributes.toLowerCase().includes(searchLower) ||
@@ -72,7 +73,7 @@ export default function VariantsListPage() {
       queryClient.invalidateQueries(["variants", productId]);
     } catch (error) {
       console.error("Delete failed:", error);
-      alert("Failed to delete variant. Please try again.");
+      toast.error("Failed to delete variant. Please try again.");
     } finally {
       setDeletingId(null);
     }

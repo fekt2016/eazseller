@@ -4,6 +4,8 @@ import styled from "styled-components";
 import { FaTimes, FaPercentage, FaDollarSign } from "react-icons/fa";
 import { useCreateCoupon, useUpdateCoupon } from '../../hooks/useCoupon';
 import LoadingSpinner from '../LoadingSpinner';
+import { toast } from 'react-toastify';
+import { ConfirmationModal } from './ConfirmationModal';
 
 const CouponBatchModal = ({ batch, onClose }) => {
   // Initialize form data based on whether we're creating or editing
@@ -27,6 +29,7 @@ const CouponBatchModal = ({ batch, onClose }) => {
   });
   const [showHighDiscountWarning, setShowHighDiscountWarning] = useState(false);
   const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [pendingHighDiscountSubmit, setPendingHighDiscountSubmit] = useState(false);
 
   // Update form data when batch changes (edit mode)
   useEffect(() => {
@@ -80,39 +83,38 @@ const CouponBatchModal = ({ batch, onClose }) => {
 
   const { createMutation, isLoading: isCreating } = useCreateCoupon();
   const { updateMutation, isLoading: isUpdating } = useUpdateCoupon();
-  
+
   const isLoading = isCreating || isUpdating;
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    const newValue = type === "checkbox" ? checked : 
-                     (name === "quantity" || name === "discountValue" || name === "maxUsage" || 
-                      name === "maxDiscountAmount" || name === "minOrderAmount" || name === "maxUsagePerUser")
-                      ? Number(value) : value;
-    
+    const newValue = type === "checkbox" ? checked :
+      (name === "quantity" || name === "discountValue" || name === "maxUsage" ||
+        name === "maxDiscountAmount" || name === "minOrderAmount" || name === "maxUsagePerUser")
+        ? Number(value) : value;
+
     setFormData((prev) => {
       const updated = { ...prev, [name]: newValue };
-      
+
       // Show warning for high discounts
       if (name === "discountValue" && updated.discountType === "percentage") {
         if (newValue > 50 && newValue <= 90) {
           setShowHighDiscountWarning(true);
         } else if (newValue > 90) {
-          // Require confirmation for > 90%
-          if (!window.confirm(`Warning: You are creating a ${newValue}% discount coupon. This is very high and may result in significant revenue loss. Continue?`)) {
-            return prev; // Cancel the change
-          }
+          // Show toast warning for extreme discounts (> 90%)
+          toast.warning(`Warning: You are creating a ${newValue}% discount coupon. This is very high and may result in significant revenue loss.`);
+          setShowHighDiscountWarning(true);
         } else {
           setShowHighDiscountWarning(false);
         }
       }
-      
+
       // Validate max discount amount for percentage
       if (name === "discountType" && value === "percentage") {
         // Reset maxDiscountAmount if switching to percentage
         updated.maxDiscountAmount = "";
       }
-      
+
       return updated;
     });
   };
@@ -125,26 +127,25 @@ const CouponBatchModal = ({ batch, onClose }) => {
 
     // Validate dates
     if (new Date(formData.expiresAt) <= new Date(formData.validFrom)) {
-      alert("Expiration date must be after valid from date");
+      toast.error("Expiration date must be after valid from date");
       return;
     }
 
     // Validate discount value
     if (formData.discountType === "percentage" && formData.discountValue > 100) {
-      alert("Percentage discount cannot exceed 100%");
+      toast.error("Percentage discount cannot exceed 100%");
       return;
     }
 
     if (formData.discountType === "fixed" && formData.discountValue > 1000) {
-      alert("Fixed discount cannot exceed GH₵1000");
+      toast.error("Fixed discount cannot exceed GH₵1000");
       return;
     }
 
-    // Show warning for high discounts
+    // Show warning for high discounts — require explicit confirmation via modal
     if (formData.discountType === "percentage" && formData.discountValue > 50) {
-      if (!window.confirm(`You are creating a ${formData.discountValue}% discount coupon. This is a high discount. Continue?`)) {
-        return;
-      }
+      setPendingHighDiscountSubmit(true);
+      return;
     }
 
     setHasSubmitted(true);
@@ -182,166 +183,192 @@ const CouponBatchModal = ({ batch, onClose }) => {
   };
 
   return (
-    <Overlay>
-      <Modal>
-        <Header>
-          <Title>{batch ? "Edit Coupon Batch" : "Create Coupon Batch"}</Title>
-          <CloseButton onClick={onClose}>
-            <FaTimes />
-          </CloseButton>
-        </Header>
+    <>
+      <Overlay>
+        <Modal>
+          <Header>
+            <Title>{batch ? "Edit Coupon Batch" : "Create Coupon Batch"}</Title>
+            <CloseButton onClick={onClose}>
+              <FaTimes />
+            </CloseButton>
+          </Header>
 
-        <FormContainer>
-          <Form onSubmit={handleSubmit}>
-            <Label>Batch Name</Label>
-          <Input
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            placeholder="Enter batch name"
-            required
-          />
-
-          <Label>Discount Type</Label>
-          <Select
-            name="discountType"
-            value={formData.discountType}
-            onChange={handleChange}
-          >
-            <option value="percentage">Percentage</option>
-            <option value="fixed">Fixed Amount</option>
-          </Select>
-
-          <Label>Discount Value</Label>
-          <Input
-            name="discountValue"
-            type="number"
-            value={formData.discountValue}
-            onChange={handleChange}
-            placeholder={
-              formData.discountType === "percentage" ? "e.g. 10" : "e.g. 5"
-            }
-            required
-          />
-
-          <Label>Quantity</Label>
-          <Input
-            name="quantity"
-            type="number"
-            value={formData.quantity}
-            onChange={handleChange}
-            min={1}
-            required
-            disabled={!!batch} // Disable for edits
-          />
-
-          <Label>Valid From</Label>
-          <Input
-            name="validFrom"
-            type="date"
-            value={formData.validFrom}
-            onChange={handleChange}
-            required
-          />
-
-          <Label>Expires At</Label>
-          <Input
-            name="expiresAt"
-            type="date"
-            value={formData.expiresAt}
-            onChange={handleChange}
-            required
-          />
-
-          <Label>Max Usage Per Coupon</Label>
-          <Input
-            name="maxUsage"
-            type="number"
-            value={formData.maxUsage}
-            onChange={handleChange}
-            placeholder="e.g. 1"
-            min={1}
-          />
-
-          <Label>Max Usage Per User</Label>
-          <Input
-            name="maxUsagePerUser"
-            type="number"
-            value={formData.maxUsagePerUser}
-            onChange={handleChange}
-            placeholder="e.g. 1"
-            min={1}
-          />
-
-          <Label>Minimum Order Amount (GH₵)</Label>
-          <Input
-            name="minOrderAmount"
-            type="number"
-            value={formData.minOrderAmount}
-            onChange={handleChange}
-            placeholder="0"
-            min={0}
-            step="0.01"
-          />
-
-          {formData.discountType === "percentage" && (
-            <>
-              <Label>Max Discount Amount (GH₵) - Optional</Label>
+          <FormContainer>
+            <Form onSubmit={handleSubmit}>
+              <Label>Batch Name</Label>
               <Input
-                name="maxDiscountAmount"
-                type="number"
-                value={formData.maxDiscountAmount}
+                name="name"
+                value={formData.name}
                 onChange={handleChange}
-                placeholder="No limit"
+                placeholder="Enter batch name"
+                required
+              />
+
+              <Label>Discount Type</Label>
+              <Select
+                name="discountType"
+                value={formData.discountType}
+                onChange={handleChange}
+              >
+                <option value="percentage">Percentage</option>
+                <option value="fixed">Fixed Amount</option>
+              </Select>
+
+              <Label>Discount Value</Label>
+              <Input
+                name="discountValue"
+                type="number"
+                value={formData.discountValue}
+                onChange={handleChange}
+                placeholder={
+                  formData.discountType === "percentage" ? "e.g. 10" : "e.g. 5"
+                }
+                required
+              />
+
+              <Label>Quantity</Label>
+              <Input
+                name="quantity"
+                type="number"
+                value={formData.quantity}
+                onChange={handleChange}
+                min={1}
+                required
+                disabled={!!batch} // Disable for edits
+              />
+
+              <Label>Valid From</Label>
+              <Input
+                name="validFrom"
+                type="date"
+                value={formData.validFrom}
+                onChange={handleChange}
+                required
+              />
+
+              <Label>Expires At</Label>
+              <Input
+                name="expiresAt"
+                type="date"
+                value={formData.expiresAt}
+                onChange={handleChange}
+                required
+              />
+
+              <Label>Max Usage Per Coupon</Label>
+              <Input
+                name="maxUsage"
+                type="number"
+                value={formData.maxUsage}
+                onChange={handleChange}
+                placeholder="e.g. 1"
+                min={1}
+              />
+
+              <Label>Max Usage Per User</Label>
+              <Input
+                name="maxUsagePerUser"
+                type="number"
+                value={formData.maxUsagePerUser}
+                onChange={handleChange}
+                placeholder="e.g. 1"
+                min={1}
+              />
+
+              <Label>Minimum Order Amount (GH₵)</Label>
+              <Input
+                name="minOrderAmount"
+                type="number"
+                value={formData.minOrderAmount}
+                onChange={handleChange}
+                placeholder="0"
                 min={0}
                 step="0.01"
               />
-              <HelperText>
-                Caps the maximum discount for percentage coupons
-              </HelperText>
-            </>
-          )}
 
-          {showHighDiscountWarning && (
-            <WarningBox>
-              ⚠️ High discount detected. This may result in significant revenue loss.
-            </WarningBox>
-          )}
-
-          <CheckboxContainer>
-            <Checkbox
-              type="checkbox"
-              name="sellerFunded"
-              checked={formData.sellerFunded}
-              onChange={handleChange}
-            />
-            <CheckboxLabel>Seller pays for discount</CheckboxLabel>
-          </CheckboxContainer>
-
-          <CheckboxContainer>
-            <Checkbox
-              type="checkbox"
-              name="stackingAllowed"
-              checked={formData.stackingAllowed}
-              onChange={handleChange}
-            />
-            <CheckboxLabel>Allow stacking with other coupons</CheckboxLabel>
-          </CheckboxContainer>
-
-            <SubmitButton type="submit" disabled={isLoading || hasSubmitted}>
-              {isLoading ? (
+              {formData.discountType === "percentage" && (
                 <>
-                  <LoadingSpinner size="small" />
-                  {batch ? "Updating..." : "Creating..."}
+                  <Label>Max Discount Amount (GH₵) - Optional</Label>
+                  <Input
+                    name="maxDiscountAmount"
+                    type="number"
+                    value={formData.maxDiscountAmount}
+                    onChange={handleChange}
+                    placeholder="No limit"
+                    min={0}
+                    step="0.01"
+                  />
+                  <HelperText>
+                    Caps the maximum discount for percentage coupons
+                  </HelperText>
                 </>
-              ) : (
-                batch ? "Update Batch" : "Create Batch"
               )}
-            </SubmitButton>
-          </Form>
-        </FormContainer>
-      </Modal>
-    </Overlay>
+
+              {showHighDiscountWarning && (
+                <WarningBox>
+                  ⚠️ High discount detected. This may result in significant revenue loss.
+                </WarningBox>
+              )}
+
+              <CheckboxContainer>
+                <Checkbox
+                  type="checkbox"
+                  name="sellerFunded"
+                  checked={formData.sellerFunded}
+                  onChange={handleChange}
+                />
+                <CheckboxLabel>Seller pays for discount</CheckboxLabel>
+              </CheckboxContainer>
+
+              <CheckboxContainer>
+                <Checkbox
+                  type="checkbox"
+                  name="stackingAllowed"
+                  checked={formData.stackingAllowed}
+                  onChange={handleChange}
+                />
+                <CheckboxLabel>Allow stacking with other coupons</CheckboxLabel>
+              </CheckboxContainer>
+
+              <SubmitButton type="submit" disabled={isLoading || hasSubmitted}>
+                {isLoading ? (
+                  <>
+                    <LoadingSpinner size="small" />
+                    {batch ? "Updating..." : "Creating..."}
+                  </>
+                ) : (
+                  batch ? "Update Batch" : "Create Batch"
+                )}
+              </SubmitButton>
+            </Form>
+          </FormContainer>
+        </Modal>
+      </Overlay>
+
+      <ConfirmationModal
+        isOpen={pendingHighDiscountSubmit}
+        onClose={() => setPendingHighDiscountSubmit(false)}
+        onConfirm={() => {
+          setPendingHighDiscountSubmit(false);
+          setHasSubmitted(true);
+          if (batch) {
+            updateMutation(
+              { id: batch._id, ...formData },
+              { onSuccess: () => { onClose(); } }
+            );
+          } else {
+            createMutation(
+              formData,
+              { onSuccess: () => { onClose(); } }
+            );
+          }
+        }}
+        title="High Discount Warning"
+        message={`You are creating a ${formData.discountValue}% discount coupon. This is a high discount and may result in significant revenue loss. Are you sure you want to continue?`}
+        confirmText="Yes, Create"
+        confirmColor="#f59e0b"
+      />
+    </>
   );
 };
 

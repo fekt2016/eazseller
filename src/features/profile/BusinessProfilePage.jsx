@@ -9,6 +9,8 @@ import Button from '../../shared/components/ui/Button';
 import { LoadingState } from '../../shared/components/ui/LoadingComponents';
 import { PageContainer, PageHeader, TitleSection, Section, SectionHeader } from '../../shared/components/ui/SpacingSystem';
 import { compressImage } from '../../shared/utils/imageCompressor';
+import { COUNTRIES } from '../../shared/constants/countries';
+import { toast } from 'react-toastify';
 
 const BusinessProfilePage = ({ embedded = false }) => {
   const { seller, update, isUpdateLoading } = useAuth();
@@ -25,10 +27,10 @@ const BusinessProfilePage = ({ embedded = false }) => {
   // File states
   const [businessCert, setBusinessCert] = useState(null);
   const [businessCertPreview, setBusinessCertPreview] = useState(null);
+  const [businessCertFormA, setBusinessCertFormA] = useState(null);
+  const [businessCertFormAPreview, setBusinessCertFormAPreview] = useState(null);
   const [idProof, setIdProof] = useState(null);
   const [idProofPreview, setIdProofPreview] = useState(null);
-  const [addressProof, setAddressProof] = useState(null);
-  const [addressProofPreview, setAddressProofPreview] = useState(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -49,6 +51,7 @@ const BusinessProfilePage = ({ embedded = false }) => {
       twitter: '',
       TikTok: '',
     },
+    phone: '',
   });
 
   // Load existing seller data
@@ -76,22 +79,23 @@ const BusinessProfilePage = ({ embedded = false }) => {
           twitter: seller.socialMediaLinks?.twitter ?? '',
           TikTok: seller.socialMediaLinks?.TikTok ?? seller.socialMediaLinks?.tiktok ?? '',
         },
+        phone: seller.phone ?? seller.phoneNumber ?? '',
       });
 
-          // Set previews for existing documents (from Cloudinary URLs)
-          // Handle both old format (string) and new format (object with url property)
-          if (seller.verificationDocuments?.businessCert) {
-            const businessCert = seller.verificationDocuments.businessCert;
-            setBusinessCertPreview(typeof businessCert === 'string' ? businessCert : businessCert.url || businessCert);
-          }
-          if (seller.verificationDocuments?.idProof) {
-            const idProof = seller.verificationDocuments.idProof;
-            setIdProofPreview(typeof idProof === 'string' ? idProof : idProof.url || idProof);
-          }
-          if (seller.verificationDocuments?.addresProof) {
-            const addressProof = seller.verificationDocuments.addresProof;
-            setAddressProofPreview(typeof addressProof === 'string' ? addressProof : addressProof.url || addressProof);
-          }
+      // Set previews for existing documents (from Cloudinary URLs)
+      // Handle both old format (string) and new format (object with url property)
+      if (seller.verificationDocuments?.businessCert) {
+        const businessCert = seller.verificationDocuments.businessCert;
+        setBusinessCertPreview(typeof businessCert === 'string' ? businessCert : businessCert.url || businessCert);
+      }
+      if (seller.verificationDocuments?.businessCertFormA) {
+        const businessCertFormA = seller.verificationDocuments.businessCertFormA;
+        setBusinessCertFormAPreview(typeof businessCertFormA === 'string' ? businessCertFormA : businessCertFormA.url || businessCertFormA);
+      }
+      if (seller.verificationDocuments?.idProof) {
+        const idProof = seller.verificationDocuments.idProof;
+        setIdProofPreview(typeof idProof === 'string' ? idProof : idProof.url || idProof);
+      }
     }
   }, [seller]);
 
@@ -102,20 +106,20 @@ const BusinessProfilePage = ({ embedded = false }) => {
       if (typeof businessCertPreview === 'string' && businessCertPreview.startsWith('blob:')) {
         URL.revokeObjectURL(businessCertPreview);
       }
+      if (typeof businessCertFormAPreview === 'string' && businessCertFormAPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(businessCertFormAPreview);
+      }
       if (typeof idProofPreview === 'string' && idProofPreview.startsWith('blob:')) {
         URL.revokeObjectURL(idProofPreview);
       }
-      if (typeof addressProofPreview === 'string' && addressProofPreview.startsWith('blob:')) {
-        URL.revokeObjectURL(addressProofPreview);
-      }
     };
-  }, [businessCertPreview, idProofPreview, addressProofPreview]);
+  }, [businessCertPreview, businessCertFormAPreview, idProofPreview]);
 
   // Scroll to verification documents section when query parameter is present
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const scrollTo = searchParams.get('scrollTo');
-    
+
     if (scrollTo === 'verification-documents') {
       // Small delay to ensure the component is rendered
       setTimeout(() => {
@@ -154,12 +158,12 @@ const BusinessProfilePage = ({ embedded = false }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     // Clear digital address error when user starts typing
     if (name === 'digitalAddress' && digitalAddressError) {
       setDigitalAddressError('');
     }
-    
+
     if (name === 'digitalAddress') {
       // Format and validate digital address
       const formatted = formatDigitalAddress(value);
@@ -167,7 +171,7 @@ const BusinessProfilePage = ({ embedded = false }) => {
         ...prev,
         [name]: formatted,
       }));
-      
+
       // Validate if value is provided
       if (formatted && !validateDigitalAddress(formatted)) {
         setDigitalAddressError('Please use format: GA-123-4567');
@@ -242,7 +246,7 @@ const BusinessProfilePage = ({ embedded = false }) => {
               country: prev.shopLocation.country || 'Ghana',
               postalCode: prev.shopLocation.postalCode || '',
             },
-            digitalAddress: generateGhanaDigitalAddress(latitude, longitude),
+            digitalAddress: '', // Manual entry required or keep as is if no real API
           }));
         } catch (error) {
           console.error('Reverse geocoding error:', error);
@@ -254,7 +258,7 @@ const BusinessProfilePage = ({ embedded = false }) => {
       (error) => {
         // Handle different geolocation error codes
         let errorMessage = 'Unable to get your location. ';
-        
+
         switch (error.code) {
           case error.PERMISSION_DENIED:
             errorMessage += 'Location access was denied. Please enable location permissions in your browser settings.';
@@ -269,10 +273,10 @@ const BusinessProfilePage = ({ embedded = false }) => {
             errorMessage += 'Please enter your address manually.';
             break;
         }
-        
+
         setLocationError(errorMessage);
         setIsFetchingLocation(false);
-        
+
         // Only log to console in development
         if (process.env.NODE_ENV === 'development') {
           console.warn('Geolocation error:', error.message || error);
@@ -286,20 +290,6 @@ const BusinessProfilePage = ({ embedded = false }) => {
     );
   };
 
-  // Generate Ghana digital address from coordinates (mock implementation)
-  const generateGhanaDigitalAddress = (lat, lng) => {
-    // In a real app, you would use an actual Ghana Post GPS API here
-    // This is a simplified mock implementation
-    
-    // Convert latitude to letters (GA for Ghana)
-    const latSuffix = Math.floor((Math.abs(lat) % 1) * 10000);
-    
-    // Convert longitude to numbers
-    const lngPrefix = Math.abs(Math.floor(lng));
-    
-    // Format as GA-XXX-YYYY
-    return `GA-${String(lngPrefix).padStart(3, '0')}-${String(latSuffix).padStart(4, '0')}`;
-  };
 
   const handleFileChange = (e, type) => {
     const file = e.target.files[0];
@@ -322,15 +312,15 @@ const BusinessProfilePage = ({ embedded = false }) => {
       if (file.type.startsWith('image/')) {
         setBusinessCertPreview(URL.createObjectURL(file));
       }
+    } else if (type === 'businessCertFormA') {
+      setBusinessCertFormA(file);
+      if (file.type.startsWith('image/')) {
+        setBusinessCertFormAPreview(URL.createObjectURL(file));
+      }
     } else if (type === 'idProof') {
       setIdProof(file);
       if (file.type.startsWith('image/')) {
         setIdProofPreview(URL.createObjectURL(file));
-      }
-    } else if (type === 'addressProof') {
-      setAddressProof(file);
-      if (file.type.startsWith('image/')) {
-        setAddressProofPreview(URL.createObjectURL(file));
       }
     }
   };
@@ -342,18 +332,18 @@ const BusinessProfilePage = ({ embedded = false }) => {
         URL.revokeObjectURL(businessCertPreview);
       }
       setBusinessCertPreview(null);
+    } else if (type === 'businessCertFormA') {
+      setBusinessCertFormA(null);
+      if (businessCertFormAPreview?.startsWith('blob:')) {
+        URL.revokeObjectURL(businessCertFormAPreview);
+      }
+      setBusinessCertFormAPreview(null);
     } else if (type === 'idProof') {
       setIdProof(null);
       if (idProofPreview?.startsWith('blob:')) {
         URL.revokeObjectURL(idProofPreview);
       }
       setIdProofPreview(null);
-    } else if (type === 'addressProof') {
-      setAddressProof(null);
-      if (addressProofPreview?.startsWith('blob:')) {
-        URL.revokeObjectURL(addressProofPreview);
-      }
-      setAddressProofPreview(null);
     }
   };
 
@@ -372,6 +362,11 @@ const BusinessProfilePage = ({ embedded = false }) => {
         throw new Error('Shop name is required');
       }
 
+      // Validate mandatory ID Proof (Ghana Card)
+      if (!idProof && !idProofPreview) {
+        throw new Error('Identity Proof (Ghana Card) is required for verification');
+      }
+
       // Validate digital address if provided
       if (formData.digitalAddress && formData.shopLocation.country === 'Ghana') {
         if (!validateDigitalAddress(formData.digitalAddress)) {
@@ -381,7 +376,7 @@ const BusinessProfilePage = ({ embedded = false }) => {
       }
 
       // Check if we have files to upload
-      const hasFiles = businessCert || idProof || addressProof;
+      const hasFiles = businessCert || businessCertFormA || idProof;
 
       if (hasFiles) {
         // Use FormData for file uploads
@@ -413,6 +408,20 @@ const BusinessProfilePage = ({ embedded = false }) => {
           }
         }
 
+        if (businessCertFormA) {
+          if (businessCertFormA.type.startsWith('image/')) {
+            try {
+              const compressed = await compressImage(businessCertFormA, { quality: 0.8, maxWidth: 1920, maxHeight: 1920 });
+              submitFormData.append('businessCertFormA', compressed);
+            } catch (compressionError) {
+              console.warn('Compression failed, using original:', compressionError);
+              submitFormData.append('businessCertFormA', businessCertFormA);
+            }
+          } else {
+            submitFormData.append('businessCertFormA', businessCertFormA);
+          }
+        }
+
         if (idProof) {
           if (idProof.type.startsWith('image/')) {
             try {
@@ -427,36 +436,22 @@ const BusinessProfilePage = ({ embedded = false }) => {
           }
         }
 
-        if (addressProof) {
-          if (addressProof.type.startsWith('image/')) {
-            try {
-              const compressed = await compressImage(addressProof, { quality: 0.8, maxWidth: 1920, maxHeight: 1920 });
-              submitFormData.append('addressProof', compressed);
-            } catch (compressionError) {
-              console.warn('Compression failed, using original:', compressionError);
-              submitFormData.append('addressProof', addressProof);
-            }
-          } else {
-            submitFormData.append('addressProof', addressProof);
-          }
-        }
-
         // Update seller profile with files
         await update.mutate(submitFormData);
       } else {
         // No files, use regular JSON update
         await update.mutate(formData);
       }
-      
       // Update onboarding status
       try {
         await updateOnboardingAsync();
       } catch (onboardingError) {
         console.warn('Failed to update onboarding status:', onboardingError);
+        toast.error('Profile saved, but failed to update status. Please refresh or contact support.');
       }
 
       setSuccess(true);
-      
+
       // Redirect to payment method tab after a short delay
       setTimeout(() => {
         if (embedded) {
@@ -558,6 +553,22 @@ const BusinessProfilePage = ({ embedded = false }) => {
                 onChange={handleChange}
                 placeholder="Enter your shop name"
                 required
+              />
+            </FormGroup>
+
+            <FormGroup>
+              <Label htmlFor="phone">
+                Phone Number <Required>*</Required>
+              </Label>
+              <Input
+                id="phone"
+                name="phone"
+                type="tel"
+                value={formData.phone}
+                onChange={handleChange}
+                placeholder="Enter your phone number"
+                required
+                disabled={isSubmitting || isUpdateLoading}
               />
             </FormGroup>
 
@@ -679,10 +690,11 @@ const BusinessProfilePage = ({ embedded = false }) => {
                   value={formData.shopLocation.country}
                   onChange={handleChange}
                 >
-                  <option value="Ghana">Ghana</option>
-                  <option value="Nigeria">Nigeria</option>
-                  <option value="Kenya">Kenya</option>
-                  <option value="South Africa">South Africa</option>
+                  {COUNTRIES.map((country) => (
+                    <option key={country} value={country}>
+                      {country}
+                    </option>
+                  ))}
                 </Select>
               </FormGroup>
 
@@ -773,7 +785,7 @@ const BusinessProfilePage = ({ embedded = false }) => {
               Upload documents for account verification (Images or PDF, max 5MB each)
             </HelperText>
           </SectionHeader>
-          
+
           {/* Check if documents are submitted (only show status when seller has actually uploaded at least one document with a URL) */}
           {(() => {
             const hasDocumentWithUrl = (doc) => {
@@ -781,18 +793,20 @@ const BusinessProfilePage = ({ embedded = false }) => {
               if (typeof doc === 'string') return String(doc).trim() !== '';
               return !!(doc.url && String(doc.url).trim() !== '');
             };
-            const hasDocuments =
-              hasDocumentWithUrl(seller?.verificationDocuments?.businessCert) ||
-              hasDocumentWithUrl(seller?.verificationDocuments?.idProof) ||
-              hasDocumentWithUrl(seller?.verificationDocuments?.addresProof);
-            const isVerified = businessDocumentsStatus?.isVerified || false;
-            const isPending = hasDocuments && !isVerified;
 
-            // Show status only when seller has uploaded documents for verification
-            if (hasDocuments) {
-              return (
-                <FormContent>
-                  <VerificationStatusCard $verified={isVerified}>
+            const hasIdProof = hasDocumentWithUrl(seller?.verificationDocuments?.idProof);
+            const hasBusinessCert = hasDocumentWithUrl(seller?.verificationDocuments?.businessCert);
+            const hasBusinessCertFormA = hasDocumentWithUrl(seller?.verificationDocuments?.businessCertFormA);
+
+            const hasAnyDocument = hasIdProof || hasBusinessCert || hasBusinessCertFormA;
+            const isVerified = businessDocumentsStatus?.isVerified || false;
+            const isPending = hasAnyDocument && !isVerified;
+
+            return (
+              <FormContent>
+                {/* Status Card: Show if any document has been submitted */}
+                {hasAnyDocument && (
+                  <VerificationStatusCard $verified={isVerified} style={{ marginBottom: 'var(--spacing-lg)' }}>
                     <StatusIcon $verified={isVerified}>
                       {isVerified ? <FaCheckCircle /> : <FaClock />}
                     </StatusIcon>
@@ -801,8 +815,8 @@ const BusinessProfilePage = ({ embedded = false }) => {
                         {isVerified ? 'Documents Verified' : 'Waiting for Admin Verification'}
                       </StatusTitle>
                       <StatusMessage>
-                        {isVerified 
-                          ? 'Your business documents have been verified by our admin team. You can now proceed with your seller account setup.'
+                        {isVerified
+                          ? 'Your identity (and business documents if provided) have been verified by our admin team. You can now proceed with your seller account setup.'
                           : 'Your documents have been submitted and are currently under review by our admin team. We will notify you once the verification is complete.'}
                       </StatusMessage>
                       {isPending && (
@@ -812,204 +826,204 @@ const BusinessProfilePage = ({ embedded = false }) => {
                       )}
                     </StatusContent>
                   </VerificationStatusCard>
-                </FormContent>
-              );
-            }
-            
-            // Show form if no documents are submitted
-            return (
-              <FormContent>
-            {/* Business Certificate */}
-            <FormGroup>
-              <Label htmlFor="businessCert">
-                <FaFile /> Business Certificate / Registration Document
-              </Label>
-              <FileUploadContainer>
-                <FileInputWrapper>
-                  <HiddenFileInput
-                    id="businessCert"
-                    type="file"
-                    accept="image/*,application/pdf"
-                    onChange={(e) => handleFileChange(e, 'businessCert')}
-                    disabled={isSubmitting || isUpdateLoading}
-                  />
-                  <FileUploadButton
-                    type="button"
-                    onClick={() => document.getElementById('businessCert')?.click()}
-                    disabled={isSubmitting || isUpdateLoading}
-                  >
-                    <FaFileUpload /> {businessCert ? 'Change File' : 'Upload File'}
-                  </FileUploadButton>
-                </FileInputWrapper>
-                {businessCert && (
-                  <FileInfo>
-                    <FileIcon>
-                      <FaFile />
-                    </FileIcon>
-                    <FileDetails>
-                      <FileName>{businessCert.name}</FileName>
-                      <FileSize>{(businessCert.size / 1024 / 1024).toFixed(2)} MB</FileSize>
-                    </FileDetails>
-                    <RemoveFileButton
-                      type="button"
-                      onClick={() => handleRemoveFile('businessCert')}
-                      disabled={isSubmitting || isUpdateLoading}
-                    >
-                      <FaTimes />
-                    </RemoveFileButton>
-                  </FileInfo>
                 )}
-                {businessCertPreview && (
-                  <DocumentPreviewWrapper>
-                    {typeof businessCertPreview === 'string' && (businessCertPreview.endsWith('.pdf') || businessCertPreview.includes('/pdf')) ? (
-                      <PDFPreview>
-                        <FaFileAlt size={48} />
-                        <PDFText>PDF Document</PDFText>
-                        <PreviewLink href={businessCertPreview} target="_blank" rel="noopener noreferrer">
-                          <FaEye /> View PDF
-                        </PreviewLink>
-                      </PDFPreview>
-                    ) : (
-                      <>
-                        <PreviewImage src={businessCertPreview} alt="Business certificate preview" />
-                        <PreviewLink href={businessCertPreview} target="_blank" rel="noopener noreferrer">
-                          <FaEye /> View Full Size
-                        </PreviewLink>
-                      </>
-                    )}
-                  </DocumentPreviewWrapper>
-                )}
-              </FileUploadContainer>
-            </FormGroup>
 
-            {/* ID Proof */}
-            <FormGroup>
-              <Label htmlFor="idProof">
-                <FaFile /> ID Proof (National ID, Passport, etc.)
-              </Label>
-              <FileUploadContainer>
-                <FileInputWrapper>
-                  <HiddenFileInput
-                    id="idProof"
-                    type="file"
-                    accept="image/*,application/pdf"
-                    onChange={(e) => handleFileChange(e, 'idProof')}
-                    disabled={isSubmitting || isUpdateLoading}
-                  />
-                  <FileUploadButton
-                    type="button"
-                    onClick={() => document.getElementById('idProof')?.click()}
-                    disabled={isSubmitting || isUpdateLoading}
-                  >
-                    <FaFileUpload /> {idProof ? 'Change File' : 'Upload File'}
-                  </FileUploadButton>
-                </FileInputWrapper>
-                {idProof && (
-                  <FileInfo>
-                    <FileIcon>
-                      <FaFile />
-                    </FileIcon>
-                    <FileDetails>
-                      <FileName>{idProof.name}</FileName>
-                      <FileSize>{(idProof.size / 1024 / 1024).toFixed(2)} MB</FileSize>
-                    </FileDetails>
-                    <RemoveFileButton
-                      type="button"
-                      onClick={() => handleRemoveFile('idProof')}
-                      disabled={isSubmitting || isUpdateLoading}
-                    >
-                      <FaTimes />
-                    </RemoveFileButton>
-                  </FileInfo>
-                )}
-                {idProofPreview && (
-                  <DocumentPreviewWrapper>
-                    {typeof idProofPreview === 'string' && (idProofPreview.endsWith('.pdf') || idProofPreview.includes('/pdf')) ? (
-                      <PDFPreview>
-                        <FaFileAlt size={48} />
-                        <PDFText>PDF Document</PDFText>
-                        <PreviewLink href={idProofPreview} target="_blank" rel="noopener noreferrer">
-                          <FaEye /> View PDF
-                        </PreviewLink>
-                      </PDFPreview>
-                    ) : (
-                      <>
-                        <PreviewImage src={idProofPreview} alt="ID proof preview" />
-                        <PreviewLink href={idProofPreview} target="_blank" rel="noopener noreferrer">
-                          <FaEye /> View Full Size
-                        </PreviewLink>
-                      </>
+                {/* ID Proof Section */}
+                <h4 style={{ marginTop: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)', color: 'var(--color-grey-800)' }}>Verify the seller id</h4>
+                <FormGroup>
+                  <Label htmlFor="idProof">
+                    <FaFileAlt /> Identity Proof (Ghana Card) <Required>*</Required>
+                  </Label>
+                  <FileUploadContainer>
+                    <FileInputWrapper>
+                      <HiddenFileInput
+                        id="idProof"
+                        type="file"
+                        accept="image/*,application/pdf"
+                        onChange={(e) => handleFileChange(e, 'idProof')}
+                        disabled={isSubmitting || isUpdateLoading}
+                      />
+                      <FileUploadButton
+                        type="button"
+                        onClick={() => document.getElementById('idProof')?.click()}
+                        disabled={isSubmitting || isUpdateLoading}
+                      >
+                        <FaFileUpload /> {idProof || hasIdProof ? 'Change File' : 'Upload File'}
+                      </FileUploadButton>
+                    </FileInputWrapper>
+                    {idProof && (
+                      <FileInfo>
+                        <FileIcon>
+                          <FaFile />
+                        </FileIcon>
+                        <FileDetails>
+                          <FileName>{idProof.name}</FileName>
+                          <FileSize>{(idProof.size / 1024 / 1024).toFixed(2)} MB</FileSize>
+                        </FileDetails>
+                        <RemoveFileButton
+                          type="button"
+                          onClick={() => handleRemoveFile('idProof')}
+                          disabled={isSubmitting || isUpdateLoading}
+                        >
+                          <FaTimes />
+                        </RemoveFileButton>
+                      </FileInfo>
                     )}
-                  </DocumentPreviewWrapper>
-                )}
-              </FileUploadContainer>
-            </FormGroup>
+                    {idProofPreview && (
+                      <DocumentPreviewWrapper>
+                        {typeof idProofPreview === 'string' && (idProofPreview.endsWith('.pdf') || idProofPreview.includes('/pdf')) ? (
+                          <PDFPreview>
+                            <FaFileAlt size={48} />
+                            <PDFText>PDF Document</PDFText>
+                            <PreviewLink href={idProofPreview} target="_blank" rel="noopener noreferrer">
+                              <FaEye /> View PDF
+                            </PreviewLink>
+                          </PDFPreview>
+                        ) : (
+                          <>
+                            <PreviewImage src={idProofPreview} alt="ID proof preview" />
+                            <PreviewLink href={idProofPreview} target="_blank" rel="noopener noreferrer">
+                              <FaEye /> View Full Size
+                            </PreviewLink>
+                          </>
+                        )}
+                      </DocumentPreviewWrapper>
+                    )}
+                  </FileUploadContainer>
+                </FormGroup>
 
-            {/* Address Proof */}
-            <FormGroup>
-              <Label htmlFor="addressProof">
-                <FaFile /> Address Proof (Utility Bill, Bank Statement, etc.)
-              </Label>
-              <FileUploadContainer>
-                <FileInputWrapper>
-                  <HiddenFileInput
-                    id="addressProof"
-                    type="file"
-                    accept="image/*,application/pdf"
-                    onChange={(e) => handleFileChange(e, 'addressProof')}
-                    disabled={isSubmitting || isUpdateLoading}
-                  />
-                  <FileUploadButton
-                    type="button"
-                    onClick={() => document.getElementById('addressProof')?.click()}
-                    disabled={isSubmitting || isUpdateLoading}
-                  >
-                    <FaFileUpload /> {addressProof ? 'Change File' : 'Upload File'}
-                  </FileUploadButton>
-                </FileInputWrapper>
-                {addressProof && (
-                  <FileInfo>
-                    <FileIcon>
-                      <FaFile />
-                    </FileIcon>
-                    <FileDetails>
-                      <FileName>{addressProof.name}</FileName>
-                      <FileSize>{(addressProof.size / 1024 / 1024).toFixed(2)} MB</FileSize>
-                    </FileDetails>
-                    <RemoveFileButton
-                      type="button"
-                      onClick={() => handleRemoveFile('addressProof')}
-                      disabled={isSubmitting || isUpdateLoading}
-                    >
-                      <FaTimes />
-                    </RemoveFileButton>
-                  </FileInfo>
-                )}
-                {addressProofPreview && (
-                  <DocumentPreviewWrapper>
-                    {typeof addressProofPreview === 'string' && (addressProofPreview.endsWith('.pdf') || addressProofPreview.includes('/pdf')) ? (
-                      <PDFPreview>
-                        <FaFileAlt size={48} />
-                        <PDFText>PDF Document</PDFText>
-                        <PreviewLink href={addressProofPreview} target="_blank" rel="noopener noreferrer">
-                          <FaEye /> View PDF
-                        </PreviewLink>
-                      </PDFPreview>
-                    ) : (
-                      <>
-                        <PreviewImage src={addressProofPreview} alt="Address proof preview" />
-                        <PreviewLink href={addressProofPreview} target="_blank" rel="noopener noreferrer">
-                          <FaEye /> View Full Size
-                        </PreviewLink>
-                      </>
+                {/* Business Section */}
+                <h4 style={{ marginTop: 'var(--spacing-lg)', marginBottom: 'var(--spacing-sm)', color: 'var(--color-grey-800)' }}>Verify the seller business</h4>
+
+                {/* Business Certificate */}
+                <FormGroup>
+                  <Label htmlFor="businessCert">
+                    <FaFile /> Business Certificate / Registration Document (Optional)
+                  </Label>
+                  <FileUploadContainer>
+                    <FileInputWrapper>
+                      <HiddenFileInput
+                        id="businessCert"
+                        type="file"
+                        accept="image/*,application/pdf"
+                        onChange={(e) => handleFileChange(e, 'businessCert')}
+                        disabled={isSubmitting || isUpdateLoading}
+                      />
+                      <FileUploadButton
+                        type="button"
+                        onClick={() => document.getElementById('businessCert')?.click()}
+                        disabled={isSubmitting || isUpdateLoading}
+                      >
+                        <FaFileUpload /> {businessCert || hasBusinessCert ? 'Change File' : 'Upload File'}
+                      </FileUploadButton>
+                    </FileInputWrapper>
+                    {businessCert && (
+                      <FileInfo>
+                        <FileIcon>
+                          <FaFile />
+                        </FileIcon>
+                        <FileDetails>
+                          <FileName>{businessCert.name}</FileName>
+                          <FileSize>{(businessCert.size / 1024 / 1024).toFixed(2)} MB</FileSize>
+                        </FileDetails>
+                        <RemoveFileButton
+                          type="button"
+                          onClick={() => handleRemoveFile('businessCert')}
+                          disabled={isSubmitting || isUpdateLoading}
+                        >
+                          <FaTimes />
+                        </RemoveFileButton>
+                      </FileInfo>
                     )}
-                  </DocumentPreviewWrapper>
-                )}
-              </FileUploadContainer>
-            </FormGroup>
+                    {businessCertPreview && (
+                      <DocumentPreviewWrapper>
+                        {typeof businessCertPreview === 'string' && (businessCertPreview.endsWith('.pdf') || businessCertPreview.includes('/pdf')) ? (
+                          <PDFPreview>
+                            <FaFileAlt size={48} />
+                            <PDFText>PDF Document</PDFText>
+                            <PreviewLink href={businessCertPreview} target="_blank" rel="noopener noreferrer">
+                              <FaEye /> View PDF
+                            </PreviewLink>
+                          </PDFPreview>
+                        ) : (
+                          <>
+                            <PreviewImage src={businessCertPreview} alt="Business certificate preview" />
+                            <PreviewLink href={businessCertPreview} target="_blank" rel="noopener noreferrer">
+                              <FaEye /> View Full Size
+                            </PreviewLink>
+                          </>
+                        )}
+                      </DocumentPreviewWrapper>
+                    )}
+                  </FileUploadContainer>
+                </FormGroup>
+
+                {/* Business Certificate Form A */}
+                <FormGroup style={{ marginTop: 'var(--spacing-md)' }}>
+                  <Label htmlFor="businessCertFormA">
+                    <FaFile /> Business Certificate (Form A) (Optional)
+                  </Label>
+                  <FileUploadContainer>
+                    <FileInputWrapper>
+                      <HiddenFileInput
+                        id="businessCertFormA"
+                        type="file"
+                        accept="image/*,application/pdf"
+                        onChange={(e) => handleFileChange(e, 'businessCertFormA')}
+                        disabled={isSubmitting || isUpdateLoading}
+                      />
+                      <FileUploadButton
+                        type="button"
+                        onClick={() => document.getElementById('businessCertFormA')?.click()}
+                        disabled={isSubmitting || isUpdateLoading}
+                      >
+                        <FaFileUpload /> {businessCertFormA || hasBusinessCertFormA ? 'Change File' : 'Upload File'}
+                      </FileUploadButton>
+                    </FileInputWrapper>
+                    {businessCertFormA && (
+                      <FileInfo>
+                        <FileIcon>
+                          <FaFile />
+                        </FileIcon>
+                        <FileDetails>
+                          <FileName>{businessCertFormA.name}</FileName>
+                          <FileSize>{(businessCertFormA.size / 1024 / 1024).toFixed(2)} MB</FileSize>
+                        </FileDetails>
+                        <RemoveFileButton
+                          type="button"
+                          onClick={() => handleRemoveFile('businessCertFormA')}
+                          disabled={isSubmitting || isUpdateLoading}
+                        >
+                          <FaTimes />
+                        </RemoveFileButton>
+                      </FileInfo>
+                    )}
+                    {businessCertFormAPreview && (
+                      <DocumentPreviewWrapper>
+                        {typeof businessCertFormAPreview === 'string' && (businessCertFormAPreview.endsWith('.pdf') || businessCertFormAPreview.includes('/pdf')) ? (
+                          <PDFPreview>
+                            <FaFileAlt size={48} />
+                            <PDFText>PDF Document</PDFText>
+                            <PreviewLink href={businessCertFormAPreview} target="_blank" rel="noopener noreferrer">
+                              <FaEye /> View PDF
+                            </PreviewLink>
+                          </PDFPreview>
+                        ) : (
+                          <>
+                            <PreviewImage src={businessCertFormAPreview} alt="Business certificate form A preview" />
+                            <PreviewLink href={businessCertFormAPreview} target="_blank" rel="noopener noreferrer">
+                              <FaEye /> View Full Size
+                            </PreviewLink>
+                          </>
+                        )}
+                      </DocumentPreviewWrapper>
+                    )}
+                  </FileUploadContainer>
+                </FormGroup>
               </FormContent>
             );
           })()}
+
         </Section>
 
         {/* Submit Button */}
@@ -1397,7 +1411,7 @@ const PreviewLink = styled.a`
   align-items: center;
   gap: var(--spacing-xs);
   padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--color-primary-500);
+  background: var(--color-accent-50);
   color: white;
   text-decoration: none;
   font-size: var(--font-size-sm);
@@ -1407,9 +1421,9 @@ const PreviewLink = styled.a`
   width: fit-content;
 
   &:hover {
-    background: var(--color-primary-600);
+    background: var(--color-accent-100);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+    box-shadow: 0 4px 12px rgba(255, 87, 51, 0.3);
   }
 
   svg {
@@ -1459,11 +1473,11 @@ const VerificationStatusCard = styled.div`
   align-items: flex-start;
   gap: var(--spacing-lg);
   padding: var(--spacing-xl);
-  background: ${props => props.$verified 
-    ? 'linear-gradient(135deg, var(--color-green-50) 0%, var(--color-green-100) 100%)' 
+  background: ${props => props.$verified
+    ? 'linear-gradient(135deg, var(--color-green-50) 0%, var(--color-green-100) 100%)'
     : 'linear-gradient(135deg, var(--color-blue-50) 0%, var(--color-blue-100) 100%)'};
-  border: 2px solid ${props => props.$verified 
-    ? 'var(--color-green-300)' 
+  border: 2px solid ${props => props.$verified
+    ? 'var(--color-green-300)'
     : 'var(--color-blue-300)'};
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-sm);
@@ -1480,16 +1494,16 @@ const StatusIcon = styled.div`
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: ${props => props.$verified 
-    ? 'var(--color-green-500)' 
+  background: ${props => props.$verified
+    ? 'var(--color-green-500)'
     : 'var(--color-blue-500)'};
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
-  box-shadow: 0 4px 12px ${props => props.$verified 
-    ? 'rgba(34, 197, 94, 0.3)' 
+  box-shadow: 0 4px 12px ${props => props.$verified
+    ? 'rgba(34, 197, 94, 0.3)'
     : 'rgba(59, 130, 246, 0.3)'};
 `;
 
@@ -1504,16 +1518,16 @@ const StatusTitle = styled.h4`
   margin: 0;
   font-size: var(--font-size-lg);
   font-weight: var(--font-bold);
-  color: ${props => props.$verified 
-    ? 'var(--color-green-700)' 
+  color: ${props => props.$verified
+    ? 'var(--color-green-700)'
     : 'var(--color-blue-700)'};
 `;
 
 const StatusMessage = styled.p`
   margin: 0;
   font-size: var(--font-size-md);
-  color: ${props => props.$verified 
-    ? 'var(--color-green-800)' 
+  color: ${props => props.$verified
+    ? 'var(--color-green-800)'
     : 'var(--color-blue-800)'};
   line-height: 1.6;
 `;
@@ -1521,8 +1535,8 @@ const StatusMessage = styled.p`
 const StatusNote = styled.p`
   margin: var(--spacing-sm) 0 0 0;
   font-size: var(--font-size-sm);
-  color: ${props => props.$verified 
-    ? 'var(--color-green-700)' 
+  color: ${props => props.$verified
+    ? 'var(--color-green-700)'
     : 'var(--color-blue-700)'};
   font-style: italic;
   opacity: 0.8;

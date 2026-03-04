@@ -6,6 +6,7 @@ import { generateSKU } from '../../shared/utils/helpers';
 import styled from "styled-components";
 import { FaArrowLeft } from "react-icons/fa";
 import { compressImage } from '../../shared/utils/imageCompressor';
+import { toast } from 'react-toastify';
 
 const AddProductPage = () => {
   const navigate = useNavigate();
@@ -27,7 +28,7 @@ const AddProductPage = () => {
     }
     if (!sellerId) {
       console.error("AddProduct: No seller loaded. Please log in again.");
-      alert("Session expired or seller not loaded. Please refresh the page or log in again.");
+      toast.error("Session expired or seller not loaded. Please refresh the page or log in again.");
       return;
     }
 
@@ -38,13 +39,13 @@ const AddProductPage = () => {
       // Validate categories first
       if (!data.parentCategory) {
         console.error("Invalid parent category ID");
-        alert("Please select a parent category");
+        toast.error("Please select a parent category");
         return;
       }
 
       if (!data.subCategory) {
         console.error("Invalid sub category ID");
-        alert("Please select a sub category");
+        toast.error("Please select a sub category");
         return;
       }
 
@@ -295,12 +296,12 @@ const AddProductPage = () => {
         },
         onError: (error) => {
           console.error("Creation error:", error);
-          alert(`Error: ${error.message}`);
+          toast.error(error?.response?.data?.message || error.message || 'Failed to create product');
         },
       });
     } catch (error) {
       console.error("Form submission error:", error);
-      alert("Form submission failed. Please check the console for details.");
+      toast.error("Form submission failed. Please check the console for details.");
     }
   };
 

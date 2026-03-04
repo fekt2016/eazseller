@@ -12,6 +12,8 @@ import { getUserFriendlyErrorMessage } from '../../shared/utils/helpers';
 import { PageContainer, PageHeader, TitleSection, Section, SectionHeader } from '../../shared/components/ui/SpacingSystem';
 import { detectGhanaPhoneNetwork } from '../../shared/utils/phoneNetworkDetector';
 import { toast } from 'react-toastify';
+import { GHANA_BANKS, MOBILE_NETWORKS } from '../../shared/constants/banksList';
+import { ConfirmationModal } from '../../shared/components/modal/ConfirmationModal';
 
 const PaymentMethodPage = ({ embedded = false }) => {
   const { seller, update, isUpdateLoading } = useAuth();
@@ -21,31 +23,33 @@ const PaymentMethodPage = ({ embedded = false }) => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [activeTab, setActiveTab] = useState('bank'); // 'bank' or 'mobile'
-  
+
   // Fetch payment methods from PaymentMethod model
-  const { 
-    data: paymentMethods = [], 
-    isLoading: isLoadingPaymentMethods, 
+  const {
+    data: paymentMethods = [],
+    isLoading: isLoadingPaymentMethods,
     error: paymentMethodsError,
-    refetch: refetchPaymentMethods 
+    refetch: refetchPaymentMethods
   } = useGetPaymentMethods();
+
+  const hasPaymentMethod = paymentMethods.length > 0;
   const deletePaymentMethod = useDeletePaymentMethod();
   const setDefaultPaymentMethod = useSetDefaultPaymentMethod();
   const createPaymentMethod = useCreatePaymentMethod();
   const updatePaymentMethod = useUpdatePaymentMethod();
-  
+
   // State for editing mode
   const [editingMethodId, setEditingMethodId] = useState(null);
-  
+
   // State for reactivation
   const [requestReactivation, setRequestReactivation] = useState(false);
-  
+
   // Get payout status from seller
   const payoutStatus = seller?.payoutStatus || 'pending';
   const payoutRejectionReason = seller?.payoutRejectionReason || null;
   const isPayoutRejected = payoutStatus === 'rejected';
   const isPayoutPending = payoutStatus === 'pending';
-  
+
   // Check if any payment method needs activation/reactivation
   const hasPaymentMethodNeedingActivation = paymentMethods.some(method => {
     const methodStatus = method.verificationStatus || 'pending';
@@ -54,7 +58,7 @@ const PaymentMethodPage = ({ embedded = false }) => {
 
   // Check if there's a default payment method (used only when rendering default indicators)
   const hasDefaultPaymentMethod = paymentMethods.some(method => method.isDefault);
-  
+
   // Handle set default payment method - invoked explicitly by user action.
   const handleSetDefault = async (id) => {
     try {
@@ -70,7 +74,7 @@ const PaymentMethodPage = ({ embedded = false }) => {
       toast.error(message);
     }
   };
-  
+
   const [bankDetails, setBankDetails] = useState({
     accountName: '',
     accountNumber: '',
@@ -84,23 +88,6 @@ const PaymentMethodPage = ({ embedded = false }) => {
     network: '',
   });
 
-  // Ghanaian banks
-  const ghanaBanks = [
-    'GCB Bank',
-    'Absa Ghana',
-    'Stanbic Bank',
-    'Ecobank Ghana',
-    'Fidelity Bank',
-    'CalBank',
-    'Zenith Bank',
-    'GT Bank',
-    'Republic Bank',
-    'Standard Chartered',
-    'First National Bank',
-  ];
-
-  // Mobile networks
-  const mobileNetworks = ['MTN', 'Vodafone', 'AirtelTigo'];
 
   // Load existing seller data (from seller.paymentMethods or verified PaymentMethod records)
   useEffect(() => {
@@ -164,7 +151,7 @@ const PaymentMethodPage = ({ embedded = false }) => {
 
   const handleMobileMoneyChange = (e) => {
     const { name, value } = e.target;
-    
+
     // Auto-detect network when phone number changes
     if (name === 'phone' && value) {
       const networkDetection = detectGhanaPhoneNetwork(value);
@@ -173,9 +160,9 @@ const PaymentMethodPage = ({ embedded = false }) => {
         setMobileMoneyDetails((prev) => ({
           ...prev,
           phone: value,
-          network: networkDetection.network === 'Telecel' ? 'vodafone' : 
-                   networkDetection.network === 'AirtelTigo' ? 'airteltigo' : 
-                   networkDetection.network.toLowerCase(),
+          network: networkDetection.network === 'Telecel' ? 'vodafone' :
+            networkDetection.network === 'AirtelTigo' ? 'airteltigo' :
+              networkDetection.network.toLowerCase(),
         }));
       } else {
         // Clear network if phone is invalid or network can't be detected
@@ -199,14 +186,20 @@ const PaymentMethodPage = ({ embedded = false }) => {
   };
 
   // Handle delete payment method
+  const [paymentMethodToDelete, setPaymentMethodToDelete] = useState(null);
+
   const handleDeletePaymentMethod = async (id) => {
-    if (window.confirm('Are you sure you want to delete this payment method?')) {
-      try {
-        await deletePaymentMethod.mutateAsync(id);
-        refetchPaymentMethods();
-      } catch (error) {
-        console.error('Error deleting payment method:', error);
-      }
+    setPaymentMethodToDelete(id);
+  };
+
+  const handleConfirmDeletePaymentMethod = async () => {
+    const id = paymentMethodToDelete;
+    setPaymentMethodToDelete(null);
+    try {
+      await deletePaymentMethod.mutateAsync(id);
+      refetchPaymentMethods();
+    } catch (error) {
+      console.error('Error deleting payment method:', error);
     }
   };
 
@@ -254,12 +247,12 @@ const PaymentMethodPage = ({ embedded = false }) => {
     const methodId = method._id || method.id;
     console.log('Setting editingMethodId to:', methodId);
     setEditingMethodId(methodId);
-    
+
     // Check if payout is rejected and enable reactivation by default
     if (isPayoutRejected) {
       setRequestReactivation(true);
     }
-    
+
     // Populate form based on payment method type
     if (method.type === 'bank_transfer') {
       setActiveTab('bank');
@@ -283,7 +276,7 @@ const PaymentMethodPage = ({ embedded = false }) => {
       } else if (network.toLowerCase() === 'mtn') {
         network = 'MTN';
       }
-      
+
       const mobileData = {
         accountName: method.accountName || method.name || '',
         phone: method.mobileNumber || method.phone || '',
@@ -292,11 +285,11 @@ const PaymentMethodPage = ({ embedded = false }) => {
       console.log('Setting mobile money details:', mobileData);
       setMobileMoneyDetails(mobileData);
     }
-    
+
     // Clear any previous error/success messages
     setError(null);
     setSuccess(false);
-    
+
     // Scroll to form after a small delay to ensure state is updated
     setTimeout(() => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -363,33 +356,33 @@ const PaymentMethodPage = ({ embedded = false }) => {
           id: editingMethodId,
           data: paymentMethodData,
         });
-        
+
         // If reactivation is requested and payout is rejected, update seller payment methods
         // This will trigger backend to reset payoutStatus from 'rejected' to 'pending'
         if (requestReactivation && isPayoutRejected) {
           try {
             // Update seller payment methods to trigger reactivation
-            const paymentMethodsUpdate = activeTab === 'bank' 
+            const paymentMethodsUpdate = activeTab === 'bank'
               ? {
-                  paymentMethods: {
-                    bankAccount: {
-                      accountName: bankDetails.accountName.trim(),
-                      accountNumber: bankDetails.accountNumber.trim(),
-                      bankName: bankDetails.bankName,
-                      branch: bankDetails.branch.trim() || '',
-                    }
+                paymentMethods: {
+                  bankAccount: {
+                    accountName: bankDetails.accountName.trim(),
+                    accountNumber: bankDetails.accountNumber.trim(),
+                    bankName: bankDetails.bankName,
+                    branch: bankDetails.branch.trim() || '',
                   }
                 }
+              }
               : {
-                  paymentMethods: {
-                    mobileMoney: {
-                      accountName: mobileMoneyDetails.accountName.trim(),
-                      phone: mobileMoneyDetails.phone.replace(/\D/g, ''),
-                      network: mobileMoneyDetails.network,
-                    }
+                paymentMethods: {
+                  mobileMoney: {
+                    accountName: mobileMoneyDetails.accountName.trim(),
+                    phone: mobileMoneyDetails.phone.replace(/\D/g, ''),
+                    network: mobileMoneyDetails.network,
                   }
-                };
-            
+                }
+              };
+
             await update(paymentMethodsUpdate);
             toast.success('Payment method updated and reactivation requested! Your payment status will be reviewed by admin.');
           } catch (reactivationError) {
@@ -399,17 +392,13 @@ const PaymentMethodPage = ({ embedded = false }) => {
         } else {
           toast.success('Payment method updated successfully!');
         }
-        
+
         setEditingMethodId(null); // Exit edit mode
         setRequestReactivation(false); // Reset reactivation flag
       } else {
-        // Limit: only 1 bank + 1 mobile money per seller
-        if (activeTab === 'bank' && hasBankLimitReached) {
-          setError('You can only have one bank account. Please edit or delete your existing bank account.');
-          return;
-        }
-        if (activeTab === 'mobile' && hasMobileLimitReached) {
-          setError('You can only have one mobile money number. Please edit or delete your existing mobile money.');
+        // Limit: only ONE payment method total per seller
+        if (hasPaymentMethod) {
+          setError('You can only have one payment method. Please edit or delete your existing payment method.');
           return;
         }
 
@@ -423,10 +412,10 @@ const PaymentMethodPage = ({ embedded = false }) => {
         await createPaymentMethod.mutateAsync(paymentMethodData);
         toast.success('Payment method saved successfully!');
       }
-      
+
       // Refetch payment methods to show updated list
       await refetchPaymentMethods();
-      
+
       // Reset form
       if (activeTab === 'bank') {
         setBankDetails({
@@ -458,13 +447,8 @@ const PaymentMethodPage = ({ embedded = false }) => {
     return <LoadingState message="Loading seller information..." />;
   }
 
-  // One bank + one mobile money limit: check both seller.paymentMethods and paymentMethods
-  const hasBankDetails =
-    seller.paymentMethods?.bankAccount?.accountNumber ||
-    paymentMethods.some((pm) => pm.type === 'bank_transfer');
-  const hasMobileMoneyDetails =
-    seller.paymentMethods?.mobileMoney?.phone ||
-    paymentMethods.some((pm) => pm.type === 'mobile_money');
+  // Single payment method limit: check if any method exists
+  const hasAnyPaymentMethod = paymentMethods.length > 0;
   const hasBankLimitReached = paymentMethods.some((pm) => pm.type === 'bank_transfer');
   const hasMobileLimitReached = paymentMethods.some((pm) => pm.type === 'mobile_money');
 
@@ -473,8 +457,8 @@ const PaymentMethodPage = ({ embedded = false }) => {
       {!embedded && (
         <PageHeader $padding="lg" $marginBottom="lg">
           <TitleSection>
-            <h1>Payment Methods</h1>
-            <p>Add one bank account and one mobile money number to receive payments</p>
+            <h1>Payment Method</h1>
+            <p>Add your preferred payment method to receive payments. You can only have one active method.</p>
           </TitleSection>
           <Button
             variant="ghost"
@@ -510,8 +494,8 @@ const PaymentMethodPage = ({ embedded = false }) => {
       {/* Payment Methods Table */}
       <Section $marginBottom="lg">
         <SectionHeader $padding="md">
-          <h3>Saved Payment Methods</h3>
-          <p>You can have one bank account and one mobile money number. Verified methods are used for withdrawals.</p>
+          <h3>Current Payment Method</h3>
+          <p>You can only have one payment method at a time. To change your method, edit the existing one. Changes require admin approval.</p>
         </SectionHeader>
         {isLoadingPaymentMethods ? (
           <LoadingState message="Loading payment methods..." />
@@ -696,9 +680,9 @@ const PaymentMethodPage = ({ embedded = false }) => {
           <Section $marginBottom="lg">
             <SectionHeader $padding="md">
               <h3>{editingMethodId ? 'Edit Bank Account Details' : 'Bank Account Details'}</h3>
-              {hasBankLimitReached && !editingMethodId && (
+              {hasAnyPaymentMethod && !editingMethodId && (
                 <InfoBanner style={{ marginTop: 'var(--spacing-sm)' }}>
-                  <FaCheckCircle /> You can have only one bank account. Click Edit above to update your existing bank account.
+                  <FaCheckCircle /> You already have a payment method. To use a bank account instead, please edit your existing method.
                 </InfoBanner>
               )}
               {editingMethodId && (
@@ -756,7 +740,7 @@ const PaymentMethodPage = ({ embedded = false }) => {
                   required
                 >
                   <option value="">Select a bank</option>
-                  {ghanaBanks.map((bank) => (
+                  {GHANA_BANKS.map((bank) => (
                     <option key={bank} value={bank}>
                       {bank}
                     </option>
@@ -781,7 +765,7 @@ const PaymentMethodPage = ({ embedded = false }) => {
                 const currentMethod = paymentMethods.find(m => (m._id || m.id) === editingMethodId);
                 const isMethodRejected = currentMethod?.verificationStatus === 'rejected';
                 const shouldShowReactivation = isPayoutRejected || isMethodRejected;
-                
+
                 return shouldShowReactivation ? (
                   <FormGroup>
                     <ReactivationCheckboxContainer>
@@ -796,11 +780,11 @@ const PaymentMethodPage = ({ embedded = false }) => {
                           <FaCheckCircle /> Request Payment Status Reactivation
                         </ReactivationTitle>
                         <ReactivationDescription>
-                          {isPayoutRejected && isMethodRejected 
+                          {isPayoutRejected && isMethodRejected
                             ? 'Both your seller payout status and this payment method were rejected. Check this box to request reactivation after updating your payment details.'
                             : isPayoutRejected
-                            ? 'Your seller payout status was rejected. Check this box to request reactivation after updating your payment details.'
-                            : 'This payment method was rejected. Check this box to request reactivation after updating your payment details.'
+                              ? 'Your seller payout status was rejected. Check this box to request reactivation after updating your payment details.'
+                              : 'This payment method was rejected. Check this box to request reactivation after updating your payment details.'
                           }
                           {(payoutRejectionReason || currentMethod?.rejectionReason) && (
                             <RejectionReason>
@@ -822,9 +806,9 @@ const PaymentMethodPage = ({ embedded = false }) => {
           <Section $marginBottom="lg">
             <SectionHeader $padding="md">
               <h3>{editingMethodId ? 'Edit Mobile Money Details' : 'Mobile Money Details'}</h3>
-              {hasMobileLimitReached && !editingMethodId && (
+              {hasAnyPaymentMethod && !editingMethodId && (
                 <InfoBanner style={{ marginTop: 'var(--spacing-sm)' }}>
-                  <FaCheckCircle /> You can have only one mobile money number. Click Edit above to update your existing mobile money.
+                  <FaCheckCircle /> You already have a payment method. To use mobile money instead, please edit your existing method.
                 </InfoBanner>
               )}
               {editingMethodId && (
@@ -888,7 +872,7 @@ const PaymentMethodPage = ({ embedded = false }) => {
                   required
                 >
                   <option value="">Select network</option>
-                  {mobileNetworks.map((network) => (
+                  {MOBILE_NETWORKS.map((network) => (
                     <option key={network} value={network}>
                       {network}
                     </option>
@@ -901,7 +885,7 @@ const PaymentMethodPage = ({ embedded = false }) => {
                 const currentMethod = paymentMethods.find(m => (m._id || m.id) === editingMethodId);
                 const isMethodRejected = currentMethod?.verificationStatus === 'rejected';
                 const shouldShowReactivation = isPayoutRejected || isMethodRejected;
-                
+
                 return shouldShowReactivation ? (
                   <FormGroup>
                     <ReactivationCheckboxContainer>
@@ -916,11 +900,11 @@ const PaymentMethodPage = ({ embedded = false }) => {
                           <FaCheckCircle /> Request Payment Status Reactivation
                         </ReactivationTitle>
                         <ReactivationDescription>
-                          {isPayoutRejected && isMethodRejected 
+                          {isPayoutRejected && isMethodRejected
                             ? 'Both your seller payout status and this payment method were rejected. Check this box to request reactivation after updating your payment details.'
                             : isPayoutRejected
-                            ? 'Your seller payout status was rejected. Check this box to request reactivation after updating your payment details.'
-                            : 'This payment method was rejected. Check this box to request reactivation after updating your payment details.'
+                              ? 'Your seller payout status was rejected. Check this box to request reactivation after updating your payment details.'
+                              : 'This payment method was rejected. Check this box to request reactivation after updating your payment details.'
                           }
                           {(payoutRejectionReason || currentMethod?.rejectionReason) && (
                             <RejectionReason>
@@ -937,72 +921,83 @@ const PaymentMethodPage = ({ embedded = false }) => {
           </Section>
         )}
 
-        {/* Submit Button */}
-        <ActionSection>
-          <Button
-            type="submit"
-            variant="primary"
-            size="lg"
-            isLoading={isSubmitting || isUpdateLoading}
-            disabled={
-              isSubmitting ||
-              isUpdateLoading ||
-              (activeTab === 'bank' && hasBankLimitReached && !editingMethodId) ||
-              (activeTab === 'mobile' && hasMobileLimitReached && !editingMethodId)
-            }
-          >
-            <FaSave /> {editingMethodId ? 'Update Payment Method' : 'Save Payment Method'}
-          </Button>
-          {editingMethodId && (
+        {/* Form Actions */}
+        {!hasAnyPaymentMethod || editingMethodId ? (
+          <FormActions>
             <Button
-              type="button"
-              variant="ghost"
+              type="submit"
+              variant="primary"
               size="lg"
-              onClick={() => {
-                setEditingMethodId(null);
-                setRequestReactivation(false);
-                setError(null);
-                setSuccess(false);
-                // Reset form
-                if (activeTab === 'bank') {
-                  setBankDetails({
-                    accountName: '',
-                    accountNumber: '',
-                    bankName: '',
-                    branch: '',
-                  });
-                } else {
-                  setMobileMoneyDetails({
-                    accountName: '',
-                    phone: '',
-                    network: '',
-                  });
-                }
-              }}
+              $fullWidth
               disabled={isSubmitting || isUpdateLoading}
             >
-              Cancel Edit
+              {isSubmitting ? (
+                'Saving...'
+              ) : (
+                <>
+                  <FaSave /> {editingMethodId ? 'Update Payment Method' : 'Save Payment Method'}
+                </>
+              )}
             </Button>
-          )}
-          <Button
-            type="button"
-            variant="ghost"
-            size="lg"
-            onClick={() => navigate(PATHS.DASHBOARD)}
-            disabled={isSubmitting || isUpdateLoading}
-          >
-            {editingMethodId ? 'Back' : 'Cancel'}
-          </Button>
-        </ActionSection>
+            {editingMethodId && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="md"
+                onClick={() => {
+                  setEditingMethodId(null);
+                  setError(null);
+                  setSuccess(false);
+                }}
+                disabled={isSubmitting || isUpdateLoading}
+                style={{ marginTop: 'var(--spacing-md)' }}
+              >
+                Cancel Editing
+              </Button>
+            )}
+          </FormActions>
+        ) : (
+          <Section $marginBottom="lg">
+            <InfoBanner>
+              <FaEdit /> To change your payment method or update details, click the <strong>Edit</strong> button in the table above.
+            </InfoBanner>
+          </Section>
+        )}
       </Form>
     </>
   );
 
   if (embedded) {
-    return content;
+    return (
+      <>
+        {content}
+        <ConfirmationModal
+          isOpen={!!paymentMethodToDelete}
+          onClose={() => setPaymentMethodToDelete(null)}
+          onConfirm={handleConfirmDeletePaymentMethod}
+          title="Delete Payment Method"
+          message="Are you sure you want to delete this payment method? This action cannot be undone."
+          confirmText="Delete"
+          confirmColor="#ef4444"
+        />
+      </>
+    );
   }
 
-  return <PageContainer>{content}</PageContainer>;
+  return (
+    <PageContainer>
+      {content}
+      <ConfirmationModal
+        isOpen={!!paymentMethodToDelete}
+        onClose={() => setPaymentMethodToDelete(null)}
+        onConfirm={handleConfirmDeletePaymentMethod}
+        title="Delete Payment Method"
+        message="Are you sure you want to delete this payment method? This action cannot be undone."
+        confirmText="Delete"
+        confirmColor="#ef4444"
+      />
+    </PageContainer>
+  );
 };
 
 export default PaymentMethodPage;

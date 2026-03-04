@@ -6,15 +6,17 @@ import useAuth from '../../../shared/hooks/useAuth';
 import { LoadingState } from '../../../shared/components/ui/LoadingComponents';
 import authApi from '../../../shared/services/authApi';
 import { toast } from 'react-toastify';
+import { ConfirmationModal } from '../../../shared/components/modal/ConfirmationModal';
 
 const AccountTab = () => {
   const navigate = useNavigate();
   const { seller, isLoading, refetchAuth } = useAuth();
   const [deactivating, setDeactivating] = React.useState(false);
+  const [showDeactivateModal, setShowDeactivateModal] = React.useState(false);
 
   const handleDeactivate = async () => {
-    if (!window.confirm('Deactivate your seller account? You will be logged out. Contact support to reactivate.')) return;
     setDeactivating(true);
+    setShowDeactivateModal(false);
     try {
       await authApi.updateMyStatus('deactive');
       toast.success('Account deactivated.');
@@ -65,156 +67,168 @@ const AccountTab = () => {
   };
 
   return (
-    <Container>
-      <Header>
-        <Title>Account Information</Title>
-        <Description>
-          View your account details and status
-        </Description>
-      </Header>
+    <>
+      <Container>
+        <Header>
+          <Title>Account Information</Title>
+          <Description>
+            View your account details and status
+          </Description>
+        </Header>
 
-      {/* Basic Information */}
-      <Section>
-        <SectionHeader>
-          <SectionIcon>
-            <FaUser />
-          </SectionIcon>
-          <SectionTitle>Basic Information</SectionTitle>
-        </SectionHeader>
-        <SectionContent>
-          <InfoRow>
-            <InfoLabel>Name</InfoLabel>
-            <InfoValue>{seller.name || seller.shopName || 'N/A'}</InfoValue>
-          </InfoRow>
-          {seller.shopName && seller.name && (
-            <InfoRow>
-              <InfoLabel>Shop Name</InfoLabel>
-              <InfoValue>{seller.shopName}</InfoValue>
-            </InfoRow>
-          )}
-          <InfoRow>
-            <InfoLabel>Email</InfoLabel>
-            <InfoValue>
-              {seller.email || 'N/A'}
-              {seller.verification?.emailVerified ? (
-                <VerifiedBadge>
-                  <FaCheckCircle />
-                  Verified
-                </VerifiedBadge>
-              ) : (
-                <UnverifiedBadge>
-                  <FaTimesCircle />
-                  Unverified
-                </UnverifiedBadge>
-              )}
-            </InfoValue>
-          </InfoRow>
-          <InfoRow>
-            <InfoLabel>Phone</InfoLabel>
-            <InfoValue>
-              {seller.phone ? `+${seller.phone}` : 'N/A'}
-              {seller.verification?.phoneVerified ? (
-                <VerifiedBadge>
-                  <FaCheckCircle />
-                  Verified
-                </VerifiedBadge>
-              ) : seller.phone ? (
-                <UnverifiedBadge>
-                  <FaTimesCircle />
-                  Unverified
-                </UnverifiedBadge>
-              ) : null}
-            </InfoValue>
-          </InfoRow>
-        </SectionContent>
-      </Section>
-
-      {/* Account Status */}
-      <Section>
-        <SectionHeader>
-          <SectionIcon>
-            <FaCheckCircle />
-          </SectionIcon>
-          <SectionTitle>Account Status</SectionTitle>
-        </SectionHeader>
-        <SectionContent>
-          <InfoRow>
-            <InfoLabel>Status</InfoLabel>
-            <StatusBadge $status={seller.status || 'pending'}>
-              {seller.status || 'pending'}
-            </StatusBadge>
-          </InfoRow>
-          <InfoRow>
-            <InfoLabel>Business Verified</InfoLabel>
-            <InfoValue>
-              {seller.verification?.businessVerified ? (
-                <VerifiedBadge>
-                  <FaCheckCircle />
-                  Verified
-                </VerifiedBadge>
-              ) : (
-                <UnverifiedBadge>
-                  <FaTimesCircle />
-                  Not Verified
-                </UnverifiedBadge>
-              )}
-            </InfoValue>
-          </InfoRow>
-          <InfoRow>
-            <InfoLabel>Onboarding Stage</InfoLabel>
-            <InfoValue>
-              {seller.onboardingStage || 'profile_incomplete'}
-            </InfoValue>
-          </InfoRow>
-        </SectionContent>
-      </Section>
-
-      {/* Account Activity */}
-      <Section>
-        <SectionHeader>
-          <SectionIcon>
-            <FaClock />
-          </SectionIcon>
-          <SectionTitle>Account Activity</SectionTitle>
-        </SectionHeader>
-        <SectionContent>
-          <InfoRow>
-            <InfoLabel>
-              <FaCalendar />
-              Account Created
-            </InfoLabel>
-            <InfoValue>{formatDate(seller.createdAt)}</InfoValue>
-          </InfoRow>
-          <InfoRow>
-            <InfoLabel>
-              <FaClock />
-              Last Login
-            </InfoLabel>
-            <InfoValue>{formatDateTime(seller.lastLogin)}</InfoValue>
-          </InfoRow>
-        </SectionContent>
-      </Section>
-
-      {/* Deactivate account (seller can only set status to deactive) */}
-      {seller.status === 'active' && (
+        {/* Basic Information */}
         <Section>
           <SectionHeader>
             <SectionIcon>
-              <FaPowerOff />
+              <FaUser />
             </SectionIcon>
-            <SectionTitle>Deactivate account</SectionTitle>
+            <SectionTitle>Basic Information</SectionTitle>
           </SectionHeader>
           <SectionContent>
-            <Description>
-              Deactivate your seller account. You will be logged out. To reactivate, contact support.
-            </Description>
-            <DeactivateButton type="button" onClick={handleDeactivate} disabled={deactivating}>
-              {deactivating ? 'Deactivating...' : 'Deactivate account'}
-            </DeactivateButton>
+            <InfoRow>
+              <InfoLabel>Name</InfoLabel>
+              <InfoValue>{seller.name || seller.shopName || 'N/A'}</InfoValue>
+            </InfoRow>
+            {seller.shopName && seller.name && (
+              <InfoRow>
+                <InfoLabel>Shop Name</InfoLabel>
+                <InfoValue>{seller.shopName}</InfoValue>
+              </InfoRow>
+            )}
+            <InfoRow>
+              <InfoLabel>Email</InfoLabel>
+              <InfoValue>
+                {seller.email || 'N/A'}
+                {seller.verification?.emailVerified ? (
+                  <VerifiedBadge>
+                    <FaCheckCircle />
+                    Verified
+                  </VerifiedBadge>
+                ) : (
+                  <UnverifiedBadge>
+                    <FaTimesCircle />
+                    Unverified
+                  </UnverifiedBadge>
+                )}
+              </InfoValue>
+            </InfoRow>
+            <InfoRow>
+              <InfoLabel>Phone</InfoLabel>
+              <InfoValue>
+                {seller.phone ? `+${seller.phone}` : 'N/A'}
+                {seller.verification?.phoneVerified ? (
+                  <VerifiedBadge>
+                    <FaCheckCircle />
+                    Verified
+                  </VerifiedBadge>
+                ) : seller.phone ? (
+                  <UnverifiedBadge>
+                    <FaTimesCircle />
+                    Unverified
+                  </UnverifiedBadge>
+                ) : null}
+              </InfoValue>
+            </InfoRow>
           </SectionContent>
         </Section>
-      )}
-    </Container>
+
+        {/* Account Status */}
+        <Section>
+          <SectionHeader>
+            <SectionIcon>
+              <FaCheckCircle />
+            </SectionIcon>
+            <SectionTitle>Account Status</SectionTitle>
+          </SectionHeader>
+          <SectionContent>
+            <InfoRow>
+              <InfoLabel>Status</InfoLabel>
+              <StatusBadge $status={seller.status || 'pending'}>
+                {seller.status || 'pending'}
+              </StatusBadge>
+            </InfoRow>
+            <InfoRow>
+              <InfoLabel>Business Verified</InfoLabel>
+              <InfoValue>
+                {seller.verification?.businessVerified ? (
+                  <VerifiedBadge>
+                    <FaCheckCircle />
+                    Verified
+                  </VerifiedBadge>
+                ) : (
+                  <UnverifiedBadge>
+                    <FaTimesCircle />
+                    Not Verified
+                  </UnverifiedBadge>
+                )}
+              </InfoValue>
+            </InfoRow>
+            <InfoRow>
+              <InfoLabel>Onboarding Stage</InfoLabel>
+              <InfoValue>
+                {seller.onboardingStage || 'profile_incomplete'}
+              </InfoValue>
+            </InfoRow>
+          </SectionContent>
+        </Section>
+
+        {/* Account Activity */}
+        <Section>
+          <SectionHeader>
+            <SectionIcon>
+              <FaClock />
+            </SectionIcon>
+            <SectionTitle>Account Activity</SectionTitle>
+          </SectionHeader>
+          <SectionContent>
+            <InfoRow>
+              <InfoLabel>
+                <FaCalendar />
+                Account Created
+              </InfoLabel>
+              <InfoValue>{formatDate(seller.createdAt)}</InfoValue>
+            </InfoRow>
+            <InfoRow>
+              <InfoLabel>
+                <FaClock />
+                Last Login
+              </InfoLabel>
+              <InfoValue>{formatDateTime(seller.lastLogin)}</InfoValue>
+            </InfoRow>
+          </SectionContent>
+        </Section>
+
+        {/* Deactivate account (seller can only set status to deactive) */}
+        {seller.status === 'active' && (
+          <Section>
+            <SectionHeader>
+              <SectionIcon>
+                <FaPowerOff />
+              </SectionIcon>
+              <SectionTitle>Deactivate account</SectionTitle>
+            </SectionHeader>
+            <SectionContent>
+              <Description>
+                Deactivate your seller account. You will be logged out. To reactivate, contact support.
+              </Description>
+              <DeactivateButton type="button" onClick={() => setShowDeactivateModal(true)} disabled={deactivating}>
+                {deactivating ? 'Deactivating...' : 'Deactivate account'}
+              </DeactivateButton>
+            </SectionContent>
+          </Section>
+        )}
+      </Container>
+
+      <ConfirmationModal
+        isOpen={showDeactivateModal}
+        onClose={() => setShowDeactivateModal(false)}
+        onConfirm={handleDeactivate}
+        title="Deactivate Account"
+        message="Deactivate your seller account? You will be logged out. Contact support to reactivate."
+        confirmText="Deactivate"
+        confirmColor="#ef4444"
+      />
+    </>
   );
 };
 

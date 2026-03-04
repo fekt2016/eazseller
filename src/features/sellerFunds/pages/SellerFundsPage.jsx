@@ -17,6 +17,7 @@ import FundsSummaryCard from '../components/FundsSummaryCard';
 import TransactionsTable from '../components/TransactionsTable';
 import RequestWithdrawalModal from '../components/RequestWithdrawalModal';
 import useDynamicPageTitle from '../../../shared/hooks/useDynamicPageTitle';
+import { ConfirmationModal } from '../../../shared/components/modal/ConfirmationModal';
 // Helper to format currency with GHS symbol
 const formatGHS = (value) => {
   return `GH₵${parseFloat(value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -29,6 +30,7 @@ const formatGHS = (value) => {
 const SellerFundsPage = () => {
   const [isWithdrawalModalOpen, setIsWithdrawalModalOpen] = useState(false);
   const [deletingWithdrawalId, setDeletingWithdrawalId] = useState(null);
+  const [withdrawalToDelete, setWithdrawalToDelete] = useState(null);
 
   const { getWalletSummary, getTransactions, requestWithdrawal, deleteWithdrawal } = useSellerFunds();
   const walletSummary = getWalletSummary();
@@ -82,15 +84,16 @@ const SellerFundsPage = () => {
   };
 
   const handleDeleteWithdrawal = async (withdrawalId) => {
-    if (!window.confirm('Are you sure you want to delete this withdrawal request?')) {
-      return;
-    }
+    setWithdrawalToDelete(withdrawalId);
+  };
 
+  const handleConfirmDeleteWithdrawal = async () => {
+    const withdrawalId = withdrawalToDelete;
+    setWithdrawalToDelete(null);
     try {
       setDeletingWithdrawalId(withdrawalId);
       await deleteWithdrawalMutation.mutateAsync(withdrawalId);
     } catch (error) {
-      // Error is handled by the mutation
       console.error('Error deleting withdrawal:', error);
     } finally {
       setDeletingWithdrawalId(null);
@@ -191,6 +194,16 @@ const SellerFundsPage = () => {
         availableBalance={availableBalance}
         paymentMethods={paymentMethods}
         isLoading={requestWithdrawalMutation.isPending}
+      />
+
+      <ConfirmationModal
+        isOpen={!!withdrawalToDelete}
+        onClose={() => setWithdrawalToDelete(null)}
+        onConfirm={handleConfirmDeleteWithdrawal}
+        title="Delete Withdrawal Request"
+        message="Are you sure you want to delete this withdrawal request? This action cannot be undone."
+        confirmText="Delete"
+        confirmColor="#ef4444"
       />
     </PageContainer>
   );

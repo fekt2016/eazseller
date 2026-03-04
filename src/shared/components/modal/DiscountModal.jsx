@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { FaFolder, FaCheck } from "react-icons/fa";
+import { toast } from 'react-toastify';
 
 export default function DiscountModal({
   mode,
@@ -94,7 +95,7 @@ export default function DiscountModal({
     e.preventDefault();
 
     if (selectedProducts.length === 0) {
-      alert("Please select at least one product");
+      toast.error("Please select at least one product");
       return;
     }
 
@@ -107,7 +108,7 @@ export default function DiscountModal({
     endDate.setHours(0, 0, 0, 0);
 
     if (endDate <= startDate) {
-      alert("End date must be after start date");
+      toast.error("End date must be after start date");
       return;
     }
 
@@ -176,10 +177,10 @@ export default function DiscountModal({
                       type="button"
                     >
                       {selectedCategory &&
-                      productsInCategory.length > 0 &&
-                      selectedProducts.filter((id) =>
-                        productsInCategory.some((p) => p._id === id)
-                      ).length === productsInCategory.length
+                        productsInCategory.length > 0 &&
+                        selectedProducts.filter((id) =>
+                          productsInCategory.some((p) => p._id === id)
+                        ).length === productsInCategory.length
                         ? "Deselect All in Category"
                         : "Select All in Category"}
                     </SecondaryButton>
@@ -593,7 +594,7 @@ const PrimaryButton = styled.button`
 
   &:hover {
     background-color: ${(props) =>
-      props.variant === "outline" ? "#dbeafe" : "#2563eb"};
+    props.variant === "outline" ? "#dbeafe" : "#2563eb"};
   }
 `;
 

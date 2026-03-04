@@ -235,14 +235,29 @@ function OrderDetails() {
                       <FaMapMarkerAlt size={14} /> Shipping Address
                     </InfoLabel>
                     <InfoValue>
-                      {/* {order.order.shippingAddress} */}
-                      {/* {order.shippingAddress?.street &&
-                        `${order.order.shippingAddress}, `}
-                      {order.shippingAddress?.city &&
-                        `${order.shippingAddress.city}, `}
-                      {order.shippingAddress?.state &&
-                        `${order.shippingAddress.state}, `}
-                      {order.shippingAddress?.postalCode} */}
+                      {order.order.shippingAddress ? (
+                        <>
+                          {order.order.shippingAddress.streetAddress && (
+                            <span style={{ display: 'block' }}>{order.order.shippingAddress.streetAddress}</span>
+                          )}
+                          {order.order.shippingAddress.landmark && (
+                            <span style={{ display: 'block', color: 'var(--color-grey-500)', fontSize: '0.9em' }}>
+                              Near: {order.order.shippingAddress.landmark}
+                            </span>
+                          )}
+                          <span style={{ display: 'block' }}>
+                            {order.order.shippingAddress.city && `${order.order.shippingAddress.city}, `}
+                            {order.order.shippingAddress.region}
+                          </span>
+                          {order.order.shippingAddress.contactPhone && (
+                            <span style={{ display: 'block' }}>
+                              📞 {order.order.shippingAddress.contactPhone}
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        'N/A'
+                      )}
                     </InfoValue>
                   </InfoCard>
 

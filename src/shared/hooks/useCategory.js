@@ -14,64 +14,46 @@ const useCategory = () => {
         let page = 1;
         let hasMore = true;
         const limit = 1000; // Fetch 1000 per page
-        
+
         // Fetch all pages until we get everything
         while (hasMore) {
           const response = await categoryService.getAllCategories({
             limit,
             page,
           });
-          
+
           // Handle different response structures from handleFactory.getAll
           // Backend returns: { status: 'success', results: [...], meta: {...} }
-          const categories = response?.data?.results || 
-                            response?.data?.data?.results || 
-                            response?.data?.data || 
-                            response?.results || 
-                            response?.data || 
-                            [];
-          
+          const categories = response?.data?.results ||
+            response?.data?.data?.results ||
+            response?.data?.data ||
+            response?.results ||
+            response?.data ||
+            [];
+
           // Get pagination info from meta
           const meta = response?.data?.meta || response?.meta || {};
           const total = meta.total || categories.length;
           const totalPages = meta.totalPages || Math.ceil(total / limit) || 1;
-          
+
           if (Array.isArray(categories) && categories.length > 0) {
             allCategories = [...allCategories, ...categories];
-            
+
             // Check if there are more pages
             hasMore = page < totalPages && categories.length === limit;
             page++;
-            
-            // Debug logging (only in development)
-            if (process.env.NODE_ENV === 'development') {
-              console.log(`[useCategory] Fetched page ${page - 1}:`, {
-                categoriesInPage: categories.length,
-                totalSoFar: allCategories.length,
-                totalPages,
-                hasMore,
-              });
-            }
+
+
           } else {
             hasMore = false;
           }
-          
+
           // Safety limit to prevent infinite loops
           if (page > 100) {
-            console.warn('[useCategory] Reached safety limit of 100 pages');
             hasMore = false;
           }
         }
-        
-        // Debug logging (only in development)
-        if (process.env.NODE_ENV === 'development') {
-          console.log('[useCategory] Categories fetched:', {
-            totalCategories: allCategories.length,
-            pagesFetched: page - 1,
-            sampleCategory: allCategories[0],
-          });
-        }
-        
+
         // Return in the expected format
         return {
           data: {
@@ -80,11 +62,10 @@ const useCategory = () => {
           }
         };
       } catch (error) {
-        console.error("Failed to fetch categories:", error);
-        throw error; // Re-throw to let React Query handle it
+        throw error;
       }
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: Infinity,
     retry: 2,
   });
 
@@ -93,19 +74,16 @@ const useCategory = () => {
     useQuery({
       queryKey: ["category", id],
       queryFn: async () => {
-        console.log("useCategory", id);
         if (!id) return null;
         try {
           const { data } = await categoryService.getCategory(id);
-          console.log(data);
           return data || null;
         } catch (error) {
-          console.error(`Failed to fetch category ${id}:`, error);
           throw new Error(`Failed to load category: ${error.message}`);
         }
       },
       enabled: !!id,
-      staleTime: 1000 * 60 * 5, // 5 minutes
+      staleTime: Infinity,
       retry: 2,
     });
 
@@ -125,7 +103,6 @@ const useCategory = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
-      console.log("Category created successfully!!!");
     },
   });
 
@@ -142,49 +119,33 @@ const useCategory = () => {
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
       queryClient.invalidateQueries({ queryKey: ["category", variables.id] });
-      console.log("Category updated successfully!!!");
     },
   });
 
   // Delete category mutation
   const deleteCategory = useMutation({
     mutationFn: async (id) => {
-      console.log(id);
       await api.delete(`/categories/${id}`);
       return id;
     },
     onSuccess: (deletedId) => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
       queryClient.removeQueries({ queryKey: ["category", deletedId] });
-      console.log("Category deleted successfully!!!");
     },
   });
   const getParentCategories = useQuery({
     queryKey: ["parentCategories"],
     queryFn: async () => {
-      if (process.env.NODE_ENV === 'development') {
-        console.log("Fetching parent categories from /categories/parents endpoint...");
-      }
       try {
         const response = await categoryService.getParentCategories();
-        
-        // Debug logging (only in development)
-        if (process.env.NODE_ENV === 'development') {
-          console.log('[useCategory] Parent categories response:', {
-            hasResponse: !!response,
-            responseKeys: response ? Object.keys(response) : [],
-            dataKeys: response?.data ? Object.keys(response.data) : [],
-            categoriesCount: response?.data?.categories?.length || 0,
-          });
-        }
-        
+
+
         return response;
       } catch (error) {
-        console.error("Failed to fetch parent categories:", error.message || error);
-        throw error; // Re-throw to let React Query handle it
+        throw error;
       }
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: Infinity,
     retry: 2,
   });
 

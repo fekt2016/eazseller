@@ -9,7 +9,7 @@ const Header = ({ user, onToggleSidebar, isSidebarOpen = false }) => {
     <Container>
       <LeftSection>
         {onToggleSidebar && (
-          <HamburgerButton 
+          <HamburgerButton
             onClick={onToggleSidebar}
             aria-label="Toggle sidebar"
           >
@@ -32,10 +32,10 @@ const Header = ({ user, onToggleSidebar, isSidebarOpen = false }) => {
           </>
         ) : (
           <div style={{ display: "flex", alignItems: "center", gap: "var(--spacing-md)" }}>
-            <Link 
+            <Link
               to={PATHS.LOGIN}
-              style={{ 
-                color: "var(--color-primary-500)", 
+              style={{
+                color: "var(--color-primary-500)",
                 fontSize: "var(--font-size-sm)",
                 textDecoration: "none",
                 fontWeight: "var(--font-semibold)",
@@ -110,15 +110,6 @@ const TopbarRight = styled.div`
   gap: 20px;
 `;
 
-// const NavItems = styled.nav`
-//   display: flex;
-//   align-items: center;
-//   /* gap: 2rem; */
-
-//   @media (max-width: 768px) {
-//     gap: 1rem;
-//   }
-// `;
 const Container = styled.header`
   height: var(--header-height);
   background: var(--color-white-0);
@@ -136,18 +127,5 @@ const Container = styled.header`
   }
 `;
 
-// const UserProfile = styled.div`
-//   display: flex;
-//   align-items: center;
-//   gap: 1rem;
-//   cursor: pointer;
-
-//   img {
-//     width: 40px;
-//     height: 40px;
-//     border-radius: 50%;
-//     object-fit: cover;
-//   }
-// `;
 
 export default Header;

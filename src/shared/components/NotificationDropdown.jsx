@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { 
-  FaBell, 
-  FaShoppingCart, 
-  FaTruck, 
-  FaMoneyBillWave, 
-  FaHeadset, 
+import {
+  FaBell,
+  FaShoppingCart,
+  FaTruck,
+  FaMoneyBillWave,
+  FaHeadset,
   FaBox,
   FaCheckCircle,
   FaExclamationCircle,
@@ -15,13 +15,15 @@ import {
 } from 'react-icons/fa';
 import { useNotifications, useMarkAsRead, useDeleteNotification } from '../hooks/notifications/useNotifications';
 import { PATHS } from '../../routes/routePaths';
+import { ConfirmationModal } from './modal/ConfirmationModal';
 
 const NotificationDropdown = ({ unreadCount }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [notificationToDelete, setNotificationToDelete] = useState(null);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
-  const { data: notificationsData } = useNotifications({ 
+  const { data: notificationsData } = useNotifications({
     limit: 5
     // Show recent notifications (both read and unread)
   });
@@ -131,22 +133,22 @@ const NotificationDropdown = ({ unreadCount }) => {
       else if (notification.actionUrl) {
         // Use actionUrl from backend, but ensure it starts with /dashboard for seller app
         let actionPath = notification.actionUrl;
-        
+
         // Handle template strings like ${orderId} - replace with actual orderId from metadata
         if (actionPath.includes('${orderId}') && notification.metadata?.orderId) {
           actionPath = actionPath.replace('${orderId}', notification.metadata.orderId);
         }
-        
+
         // Normalize the path - ensure it starts with /dashboard
         if (!actionPath.startsWith('/dashboard')) {
           // If it starts with /, remove it and add /dashboard
-          actionPath = actionPath.startsWith('/') 
-            ? `/dashboard${actionPath}` 
+          actionPath = actionPath.startsWith('/')
+            ? `/dashboard${actionPath}`
             : `/dashboard/${actionPath}`;
         }
-        
+
         targetPath = actionPath;
-      } 
+      }
       // Priority 3: Fallback to metadata-based navigation
       else if (notification.metadata?.orderId) {
         // Use PATHS constant for order detail
@@ -262,9 +264,7 @@ const NotificationDropdown = ({ unreadCount }) => {
                     <DeleteButton
                       onClick={(e) => {
                         e.stopPropagation();
-                        if (window.confirm('Delete this notification?')) {
-                          deleteNotification.mutate(notification._id);
-                        }
+                        setNotificationToDelete(notification._id);
                       }}
                       title="Delete notification"
                     >
@@ -286,6 +286,19 @@ const NotificationDropdown = ({ unreadCount }) => {
           </DropdownFooter>
         </DropdownMenu>
       )}
+
+      <ConfirmationModal
+        isOpen={!!notificationToDelete}
+        onClose={() => setNotificationToDelete(null)}
+        onConfirm={() => {
+          deleteNotification.mutate(notificationToDelete);
+          setNotificationToDelete(null);
+        }}
+        title="Delete Notification"
+        message="Are you sure you want to delete this notification?"
+        confirmText="Delete"
+        confirmColor="#ef4444"
+      />
     </DropdownContainer>
   );
 };
