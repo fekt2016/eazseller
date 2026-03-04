@@ -452,6 +452,18 @@ const PaymentMethodPage = ({ embedded = false }) => {
   const hasBankLimitReached = paymentMethods.some((pm) => pm.type === 'bank_transfer');
   const hasMobileLimitReached = paymentMethods.some((pm) => pm.type === 'mobile_money');
 
+  // Whether seller has configured bank or mobile money (for tab checkmarks)
+  const hasBankDetails =
+    !!seller?.paymentMethods?.bankAccount ||
+    paymentMethods.some(
+      (pm) => pm.type === 'bank_transfer' && (pm.verificationStatus === 'verified' || pm.status === 'verified')
+    );
+  const hasMobileMoneyDetails =
+    !!seller?.paymentMethods?.mobileMoney ||
+    paymentMethods.some(
+      (pm) => pm.type === 'mobile_money' && (pm.verificationStatus === 'verified' || pm.status === 'verified')
+    );
+
   const content = (
     <>
       {!embedded && (
@@ -1102,6 +1114,21 @@ const ActionSection = styled.div`
   @media (max-width: 768px) {
     flex-direction: column-reverse;
 
+    button {
+      width: 100%;
+    }
+  }
+`;
+
+const FormActions = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  padding-top: var(--spacing-lg);
+  margin-top: var(--spacing-md);
+  border-top: 1px solid var(--color-grey-200);
+
+  @media (max-width: 768px) {
     button {
       width: 100%;
     }
