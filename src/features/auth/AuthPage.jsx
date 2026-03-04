@@ -4,7 +4,9 @@ import styled, { keyframes } from "styled-components";
 import { FaCheck, FaEye, FaEyeSlash } from "react-icons/fa";
 import { PropagateLoader } from "react-spinners";
 import useAuth from '../../shared/hooks/useAuth';
-import { validateGhanaPhone, sanitizeName } from '../../shared/utils/helpers';
+import { sanitizeName } from '../../shared/utils/helpers';
+import { detectGhanaNetwork, isValidGhanaPhone, normalizeGhanaPhone } from '../../shared/utils/detectGhanaNetwork';
+import NetworkBadge from '../../shared/components/ui/NetworkBadge';
 import { PATHS } from '../../routes/routePaths';
 import { ButtonSpinner } from '../../shared/components/ButtonSpinner';
 import { ErrorState } from '../../shared/components/ui/LoadingComponents';
@@ -69,15 +71,13 @@ const AuthPage = () => {
     }
   }, []);
 
-  // Validate phone number in real-time
+  // Derive network from contactNumber for API (backend expects e.g. "mtn")
   useEffect(() => {
-    if (formData.contactNumber) {
-      const validation = validateGhanaPhone(formData.contactNumber);
-      if (validation.valid) {
-        setPhoneNetwork(validation.network.toLowerCase());
-      } else {
-        setPhoneNetwork("");
-      }
+    const result = detectGhanaNetwork(formData.contactNumber);
+    if (result?.network) {
+      setPhoneNetwork(result.network.toLowerCase());
+    } else {
+      setPhoneNetwork("");
     }
   }, [formData.contactNumber]);
 
@@ -200,6 +200,34 @@ const AuthPage = () => {
       });
     }
   };
+
+  // Format phone for display: "0241234567" -> "024 123 4567"
+  const formatPhoneDisplay = (stripped) => {
+    const d = normalizeGhanaPhone(stripped || '');
+    if (d.length <= 3) return d;
+    if (d.length <= 6) return `${d.slice(0, 3)} ${d.slice(3)}`;
+    return `${d.slice(0, 3)} ${d.slice(3, 6)} ${d.slice(6, 10)}`;
+  };
+
+  // Phone input: strip/normalize and save stripped; accept paste and +233/233
+  const handlePhoneChange = (e) => {
+    const raw = e.target.value;
+    const stripped = normalizeGhanaPhone(raw);
+    let limited = stripped;
+    if (!stripped) limited = '';
+    else if (stripped.startsWith('0')) limited = stripped.slice(0, 10);
+    else limited = ('0' + stripped).slice(0, 10);
+    setFormData((prev) => ({ ...prev, contactNumber: limited }));
+    if (fieldErrors.contactNumber) {
+      setFieldErrors((prev) => ({ ...prev, contactNumber: undefined }));
+    }
+  };
+
+  // Derived: network result for badge (null if < 3 digits)
+  const phoneNetworkResult = formData.contactNumber ? detectGhanaNetwork(formData.contactNumber) : null;
+  const phoneDigits = normalizeGhanaPhone(formData.contactNumber);
+  const phoneLengthError = phoneDigits.length >= 3 && phoneDigits.length !== 10;
+  const phoneUnknownError = phoneDigits.length === 10 && phoneNetworkResult && !phoneNetworkResult.isValid;
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
@@ -434,9 +462,11 @@ const AuthPage = () => {
     if (!formData.contactNumber.trim()) {
       clientErrors.contactNumber = 'Phone number is required';
     } else {
-      const phoneValidation = validateGhanaPhone(formData.contactNumber);
-      if (!phoneValidation.valid) {
-        clientErrors.contactNumber = 'Please enter a valid Ghanaian phone number';
+      const digits = normalizeGhanaPhone(formData.contactNumber);
+      if (digits.length !== 10) {
+        clientErrors.contactNumber = 'Phone number must be 10 digits';
+      } else if (!isValidGhanaPhone(formData.contactNumber)) {
+        clientErrors.contactNumber = 'Please enter a valid Ghana mobile number';
       }
     }
 
@@ -763,42 +793,36 @@ const AuthPage = () => {
               <Label>
                 Contact Number <span>*</span>
               </Label>
-              <PhoneInputContainer>
-                <PhonePrefix>+233</PhonePrefix>
-                <PhoneInput
-                  type="text"
-                  name="contactNumber"
-                  value={formData.contactNumber}
-                  onChange={handleChange}
-                  placeholder="Enter your phone number"
-                  required
-                  style={fieldErrors.contactNumber ? { borderColor: '#dc2626' } : {}}
-                />
-
-                {phoneNetwork && (
-                  <NetworkIndicator className={phoneNetwork}>
-                    <NetworkIcon>
-                      {phoneNetwork === "mtn"
-                        ? "📶"
-                        : phoneNetwork === "telecel"
-                          ? "📱"
-                          : "📞"}
-                    </NetworkIcon>
-                    {phoneNetwork === "mtn"
-                      ? "MTN"
-                      : phoneNetwork === "telecel"
-                        ? "Telecel"
-                        : "AirtelTigo"}
-                  </NetworkIndicator>
+              <PhoneInputWrapper>
+                <PhoneInputContainer $hasError={!!(fieldErrors.contactNumber || phoneLengthError || phoneUnknownError)}>
+                  <PhonePrefix>🇬🇭</PhonePrefix>
+                  <PhoneInput
+                    type="text"
+                    name="contactNumber"
+                    value={formatPhoneDisplay(formData.contactNumber)}
+                    onChange={handlePhoneChange}
+                    placeholder="024 123 4567"
+                    required
+                    inputMode="tel"
+                    autoComplete="tel"
+                  />
+                  {phoneNetworkResult && (
+                    <PhoneBadgeSlot>
+                      <NetworkBadge network={phoneNetworkResult} />
+                    </PhoneBadgeSlot>
+                  )}
+                </PhoneInputContainer>
+                {fieldErrors.contactNumber && <ErrorText>{fieldErrors.contactNumber}</ErrorText>}
+                {!fieldErrors.contactNumber && phoneLengthError && (
+                  <ErrorText>Phone number must be 10 digits</ErrorText>
                 )}
-              </PhoneInputContainer>
-              {fieldErrors.contactNumber ? (
-                <ErrorText>{fieldErrors.contactNumber}</ErrorText>
-              ) : (
-                <HelpText>
-                  Enter Ghanaian number (MTN, Telecel, or AirtelTigo)
-                </HelpText>
-              )}
+                {!fieldErrors.contactNumber && !phoneLengthError && phoneUnknownError && (
+                  <ErrorText>Please enter a valid Ghana mobile number</ErrorText>
+                )}
+                {!fieldErrors.contactNumber && !phoneLengthError && !phoneUnknownError && (
+                  <HelpText>Enter Ghanaian number (MTN, Telecel, or AirtelTigo)</HelpText>
+                )}
+              </PhoneInputWrapper>
             </InputGroup>
 
             <InputGroup>
@@ -1847,120 +1871,75 @@ const HelpText = styled.span`
   }
 `;
 
+const PhoneInputWrapper = styled.div`
+  margin-top: 0.375rem;
+`;
+
 const PhoneInputContainer = styled.div`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-top: 0.375rem;
-  flex-wrap: wrap;
-`;
-
-const NetworkIndicator = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  background: #f8fafc;
-  color: #475569;
-  border-radius: 8px;
-  padding: 0.375rem 0.75rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  margin-left: 0.5rem;
-  border: 1px solid #e2e8f0;
-
-  &.mtn {
-    background: #fffbe6;
-    color: #ffbe00;
-    border-color: #ffeb99;
-  }
-  &.telecel {
-    background: #ffe6f0;
-    color: #e6007a;
-    border-color: #ffb3d1;
-  }
-  &.airteltigo {
-    background: #e6f0ff;
-    color: #0057b8;
-    border-color: #b3d9ff;
-  }
-`;
-
-const NetworkIcon = styled.span`
-  font-size: 1.2rem;
-  margin-right: 0.3rem;
-`;
-
-const PhonePrefix = styled.span`
-  background: #f8fafc;
-  color: var(--color-primary-600);
-  border-radius: 10px;
-  padding: 0.875rem 1rem;
-  font-size: clamp(0.95rem, 2.5vw, 1rem);
-  font-weight: 500;
-  margin-right: 0.5rem;
-  border: 1.5px solid #e2e8f0;
-  white-space: nowrap;
+  padding: 0 0.75rem 0 0;
+  border: 1.5px solid ${(p) => (p.$hasError ? '#dc2626' : '#e2e8f0')};
+  border-radius: 12px;
+  background: #ffffff;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   min-height: 44px;
-  display: inline-flex;
-  align-items: center;
 
-  /* Mobile phone optimizations */
+  &:focus-within {
+    border-color: ${(p) => (p.$hasError ? '#dc2626' : 'var(--color-primary-500)')};
+    box-shadow: 0 0 0 4px rgba(255, 196, 0, 0.1);
+  }
+
   @media (max-width: 640px) {
-    padding: 1rem 1.125rem;
-    font-size: clamp(1rem, 3vw, 1.0625rem);
     min-height: 48px;
-    border-radius: 12px;
+    border-radius: 14px;
   }
 
   @media (max-width: 480px) {
-    padding: 1.125rem 1.25rem;
-    font-size: clamp(1.0625rem, 3.5vw, 1.125rem);
     min-height: 52px;
-    border-radius: 14px;
   }
 `;
 
-const PhoneInput = styled.input`
-  padding: 0.875rem 1rem;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 12px;
+const PhoneBadgeSlot = styled.span`
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+`;
+
+const PhonePrefix = styled.span`
+  color: #0f172a;
   font-size: clamp(0.95rem, 2.5vw, 1rem);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  padding-left: 0.5rem;
+  flex-shrink: 0;
+`;
+
+const PhoneInput = styled.input`
+  padding: 0.875rem 0.5rem 0.875rem 0;
+  border: none;
+  font-size: clamp(0.95rem, 2.5vw, 1rem);
+  transition: all 0.2s ease;
   flex: 1;
-  background: #ffffff;
+  min-width: 0;
+  background: transparent;
   color: #0f172a;
   font-weight: 400;
-  min-height: 44px; /* Minimum touch target */
 
   &:focus {
-    border-color: var(--color-primary-500);
-    box-shadow: 
-      0 0 0 4px rgba(255, 196, 0, 0.1),
-      0 2px 8px rgba(0, 0, 0, 0.04);
     outline: none;
-  }
-
-  &:hover:not(:focus) {
-    border-color: #cbd5e1;
   }
 
   &::placeholder {
     color: #94a3b8;
-    font-weight: 400;
   }
 
-  /* Mobile phone optimizations */
   @media (max-width: 640px) {
-    padding: 1rem 1.125rem;
+    padding: 1rem 0.5rem 1rem 0;
     font-size: clamp(1rem, 3vw, 1.0625rem);
-    min-height: 48px;
-    border-radius: 14px;
   }
 
   @media (max-width: 480px) {
-    padding: 1.125rem 1.25rem;
+    padding: 1.125rem 0.5rem 1.125rem 0;
     font-size: clamp(1.0625rem, 3.5vw, 1.125rem);
-    min-height: 52px;
-    border-radius: 16px;
   }
 `;
