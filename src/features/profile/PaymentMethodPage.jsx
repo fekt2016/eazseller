@@ -606,20 +606,26 @@ const PaymentMethodPage = ({ embedded = false }) => {
                         {/* Show info tooltip for pending status */}
                         {(method.verificationStatus === 'pending' || method.status === 'pending' || !method.verificationStatus) && (
                           <StatusInfoTooltip>
-                            Your payment method is awaiting admin verification. You will be notified once it's reviewed.
+                            Your payment method is awaiting admin verification. You cannot edit it while it's being reviewed.
                           </StatusInfoTooltip>
                         )}
                       </td>
                       <td>
                         <DefaultSelector>
                           <RadioButton
+                            id={`payment-method-${method._id || method.id}`}
                             type="radio"
                             name="defaultPaymentMethod"
                             checked={method.isDefault}
-                            onChange={() => !method.isDefault && handleSetDefault(method._id)}
+                            onChange={() => !method.isDefault && handleSetDefault(method._id || method.id)}
                             disabled={setDefaultPaymentMethod.isPending}
                           />
-                          <RadioLabel onClick={() => !method.isDefault && handleSetDefault(method._id)}>
+                          <RadioLabel
+                            htmlFor={`payment-method-${method._id || method.id}`}
+                            title={!(method.status === 'verified' || method.status === 'active' || method.verificationStatus === 'verified')
+                              ? "Note: Only verified payment methods can be used for actual payouts."
+                              : ""}
+                          >
                             {method.isDefault ? (
                               <DefaultBadge>
                                 <FaStar /> Default
@@ -643,7 +649,8 @@ const PaymentMethodPage = ({ embedded = false }) => {
                               e.stopPropagation();
                               handleEditPaymentMethod(method);
                             }}
-                            title="Edit this payment method"
+                            title={method.status === 'pending' ? "Cannot edit while pending" : "Edit this payment method"}
+                            disabled={method.status === 'pending'}
                           >
                             <FaEdit /> Edit
                           </ActionButton>
@@ -652,7 +659,7 @@ const PaymentMethodPage = ({ embedded = false }) => {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleDeletePaymentMethod(method._id)}
-                            disabled={deletePaymentMethod.isPending}
+                            disabled={deletePaymentMethod.isPending || method.status === 'pending'}
                             $danger
                           >
                             <FaTrash /> Delete
@@ -668,314 +675,313 @@ const PaymentMethodPage = ({ embedded = false }) => {
         )}
       </Section>
 
-      {/* Tabs */}
-      <TabsContainer>
-        <TabButton
-          $active={activeTab === 'bank'}
-          onClick={() => setActiveTab('bank')}
-        >
-          <FaBuilding /> Bank Account
-          {hasBankDetails && <FaCheckCircle style={{ marginLeft: '8px', color: 'var(--color-green-600)' }} />}
-        </TabButton>
-        <TabButton
-          $active={activeTab === 'mobile'}
-          onClick={() => setActiveTab('mobile')}
-        >
-          <FaMobileAlt /> Mobile Money
-          {hasMobileMoneyDetails && <FaCheckCircle style={{ marginLeft: '8px', color: 'var(--color-green-600)' }} />}
-        </TabButton>
-      </TabsContainer>
+      {/* Tabs - Only show if no method exists or if editing an existing one */}
+      {(!hasAnyPaymentMethod || editingMethodId) && (
+        <TabsContainer>
+          <TabButton
+            $active={activeTab === 'bank'}
+            onClick={() => setActiveTab('bank')}
+          >
+            <FaBuilding /> Bank Account
+            {hasBankDetails && <FaCheckCircle style={{ marginLeft: '8px', color: 'var(--color-green-600)' }} />}
+          </TabButton>
+          <TabButton
+            $active={activeTab === 'mobile'}
+            onClick={() => setActiveTab('mobile')}
+          >
+            <FaMobileAlt /> Mobile Money
+            {hasMobileMoneyDetails && <FaCheckCircle style={{ marginLeft: '8px', color: 'var(--color-green-600)' }} />}
+          </TabButton>
+        </TabsContainer>
+      )}
 
-      <Form onSubmit={handleSubmit}>
-        {/* Bank Account Section */}
-        {activeTab === 'bank' && (
-          <Section $marginBottom="lg">
-            <SectionHeader $padding="md">
-              <h3>{editingMethodId ? 'Edit Bank Account Details' : 'Bank Account Details'}</h3>
-              {hasAnyPaymentMethod && !editingMethodId && (
-                <InfoBanner style={{ marginTop: 'var(--spacing-sm)' }}>
-                  <FaCheckCircle /> You already have a payment method. To use a bank account instead, please edit your existing method.
-                </InfoBanner>
-              )}
-              {editingMethodId && (
-                <InfoBanner style={{ marginTop: 'var(--spacing-sm)' }}>
-                  <FaEdit /> You are editing an existing payment method. Make your changes and click "Update Payment Method" to save.
-                </InfoBanner>
-              )}
-            </SectionHeader>
-            <FormContent>
-              {hasBankDetails && !hasBankLimitReached && (
-                <InfoBanner>
-                  <FaCheckCircle /> You have a bank account configured. Update the details below if needed.
-                </InfoBanner>
-              )}
+      {/* Form - Only show if no method exists or if editing an existing one */}
+      {(!hasAnyPaymentMethod || editingMethodId) && (
+        <Form onSubmit={handleSubmit}>
+          {/* Bank Account Section */}
+          {activeTab === 'bank' && (
+            <Section $marginBottom="lg">
+              <SectionHeader $padding="md">
+                <h3>{editingMethodId ? 'Edit Bank Account Details' : 'Bank Account Details'}</h3>
+                {hasAnyPaymentMethod && !editingMethodId && (
+                  <InfoBanner style={{ marginTop: 'var(--spacing-sm)' }}>
+                    <FaCheckCircle /> You already have a payment method. To use a bank account instead, please edit your existing method.
+                  </InfoBanner>
+                )}
+                {editingMethodId && (
+                  <InfoBanner style={{ marginTop: 'var(--spacing-sm)' }}>
+                    <FaEdit /> You are editing an existing payment method. Make your changes and click "Update Payment Method" to save.
+                  </InfoBanner>
+                )}
+              </SectionHeader>
+              <FormContent>
+                {hasBankDetails && !hasBankLimitReached && (
+                  <InfoBanner>
+                    <FaCheckCircle /> You have a bank account configured. Update the details below if needed.
+                  </InfoBanner>
+                )}
 
-              <FormGroup>
-                <Label htmlFor="accountName">
-                  Account Name <Required>*</Required>
-                </Label>
-                <Input
-                  id="accountName"
-                  name="accountName"
-                  type="text"
-                  value={bankDetails.accountName}
-                  onChange={handleBankChange}
-                  placeholder="Enter account holder name"
-                  required
-                />
-              </FormGroup>
+                <FormGroup>
+                  <Label htmlFor="accountName">
+                    Account Name <Required>*</Required>
+                  </Label>
+                  <Input
+                    id="accountName"
+                    name="accountName"
+                    type="text"
+                    value={bankDetails.accountName}
+                    onChange={handleBankChange}
+                    placeholder="Enter account holder name"
+                    required
+                  />
+                </FormGroup>
 
-              <FormGroup>
-                <Label htmlFor="accountNumber">
-                  Account Number <Required>*</Required>
-                </Label>
-                <Input
-                  id="accountNumber"
-                  name="accountNumber"
-                  type="text"
-                  value={bankDetails.accountNumber}
-                  onChange={handleBankChange}
-                  placeholder="Enter account number"
-                  required
-                />
-              </FormGroup>
+                <FormGroup>
+                  <Label htmlFor="accountNumber">
+                    Account Number <Required>*</Required>
+                  </Label>
+                  <Input
+                    id="accountNumber"
+                    name="accountNumber"
+                    type="text"
+                    value={bankDetails.accountNumber}
+                    onChange={handleBankChange}
+                    placeholder="Enter account number"
+                    required
+                  />
+                </FormGroup>
 
-              <FormGroup>
-                <Label htmlFor="bankName">
-                  Bank Name <Required>*</Required>
-                </Label>
-                <Select
-                  id="bankName"
-                  name="bankName"
-                  value={bankDetails.bankName}
-                  onChange={handleBankChange}
-                  required
-                >
-                  <option value="">Select a bank</option>
-                  {GHANA_BANKS.map((bank) => (
-                    <option key={bank} value={bank}>
-                      {bank}
-                    </option>
-                  ))}
-                </Select>
-              </FormGroup>
+                <FormGroup>
+                  <Label htmlFor="bankName">
+                    Bank Name <Required>*</Required>
+                  </Label>
+                  <Select
+                    id="bankName"
+                    name="bankName"
+                    value={bankDetails.bankName}
+                    onChange={handleBankChange}
+                    required
+                  >
+                    <option value="">Select a bank</option>
+                    {GHANA_BANKS.map((bank) => (
+                      <option key={bank} value={bank}>
+                        {bank}
+                      </option>
+                    ))}
+                  </Select>
+                </FormGroup>
 
-              <FormGroup>
-                <Label htmlFor="branch">Branch (Optional)</Label>
-                <Input
-                  id="branch"
-                  name="branch"
-                  type="text"
-                  value={bankDetails.branch}
-                  onChange={handleBankChange}
-                  placeholder="Enter branch name"
-                />
-              </FormGroup>
+                <FormGroup>
+                  <Label htmlFor="branch">Branch (Optional)</Label>
+                  <Input
+                    id="branch"
+                    name="branch"
+                    type="text"
+                    value={bankDetails.branch}
+                    onChange={handleBankChange}
+                    placeholder="Enter branch name"
+                  />
+                </FormGroup>
 
-              {/* Reactivation Field - Show when editing and (payout is rejected OR payment method is rejected) */}
-              {editingMethodId && (() => {
-                const currentMethod = paymentMethods.find(m => (m._id || m.id) === editingMethodId);
-                const isMethodRejected = currentMethod?.verificationStatus === 'rejected';
-                const shouldShowReactivation = isPayoutRejected || isMethodRejected;
+                {/* Reactivation Field - Show when editing and (payout is rejected OR payment method is rejected) */}
+                {editingMethodId && (() => {
+                  const currentMethod = paymentMethods.find(m => (m._id || m.id) === editingMethodId);
+                  const isMethodRejected = currentMethod?.verificationStatus === 'rejected';
+                  const shouldShowReactivation = isPayoutRejected || isMethodRejected;
 
-                return shouldShowReactivation ? (
-                  <FormGroup>
-                    <ReactivationCheckboxContainer>
-                      <Checkbox
-                        id="requestReactivation"
-                        type="checkbox"
-                        checked={requestReactivation}
-                        onChange={(e) => setRequestReactivation(e.target.checked)}
-                      />
-                      <CheckboxLabel htmlFor="requestReactivation">
-                        <ReactivationTitle>
-                          <FaCheckCircle /> Request Payment Status Reactivation
-                        </ReactivationTitle>
-                        <ReactivationDescription>
-                          {isPayoutRejected && isMethodRejected
-                            ? 'Both your seller payout status and this payment method were rejected. Check this box to request reactivation after updating your payment details.'
-                            : isPayoutRejected
-                              ? 'Your seller payout status was rejected. Check this box to request reactivation after updating your payment details.'
-                              : 'This payment method was rejected. Check this box to request reactivation after updating your payment details.'
-                          }
-                          {(payoutRejectionReason || currentMethod?.rejectionReason) && (
-                            <RejectionReason>
-                              <strong>Rejection Reason:</strong> {payoutRejectionReason || currentMethod?.rejectionReason}
-                            </RejectionReason>
-                          )}
-                        </ReactivationDescription>
-                      </CheckboxLabel>
-                    </ReactivationCheckboxContainer>
-                  </FormGroup>
-                ) : null;
-              })()}
-            </FormContent>
-          </Section>
-        )}
+                  return shouldShowReactivation ? (
+                    <FormGroup>
+                      <ReactivationCheckboxContainer>
+                        <Checkbox
+                          id="requestReactivation"
+                          type="checkbox"
+                          checked={requestReactivation}
+                          onChange={(e) => setRequestReactivation(e.target.checked)}
+                        />
+                        <CheckboxLabel htmlFor="requestReactivation">
+                          <ReactivationTitle>
+                            <FaCheckCircle /> Request Payment Status Reactivation
+                          </ReactivationTitle>
+                          <ReactivationDescription>
+                            {isPayoutRejected && isMethodRejected
+                              ? 'Both your seller payout status and this payment method were rejected. Check this box to request reactivation after updating your payment details.'
+                              : isPayoutRejected
+                                ? 'Your seller payout status was rejected. Check this box to request reactivation after updating your payment details.'
+                                : 'This payment method was rejected. Check this box to request reactivation after updating your payment details.'
+                            }
+                            {(payoutRejectionReason || currentMethod?.rejectionReason) && (
+                              <RejectionReason>
+                                <strong>Rejection Reason:</strong> {payoutRejectionReason || currentMethod?.rejectionReason}
+                              </RejectionReason>
+                            )}
+                          </ReactivationDescription>
+                        </CheckboxLabel>
+                      </ReactivationCheckboxContainer>
+                    </FormGroup>
+                  ) : null;
+                })()}
+              </FormContent>
+            </Section>
+          )}
 
-        {/* Mobile Money Section */}
-        {activeTab === 'mobile' && (
-          <Section $marginBottom="lg">
-            <SectionHeader $padding="md">
-              <h3>{editingMethodId ? 'Edit Mobile Money Details' : 'Mobile Money Details'}</h3>
-              {hasAnyPaymentMethod && !editingMethodId && (
-                <InfoBanner style={{ marginTop: 'var(--spacing-sm)' }}>
-                  <FaCheckCircle /> You already have a payment method. To use mobile money instead, please edit your existing method.
-                </InfoBanner>
-              )}
-              {editingMethodId && (
-                <InfoBanner style={{ marginTop: 'var(--spacing-sm)' }}>
-                  <FaEdit /> You are editing an existing payment method. Make your changes and click "Update Payment Method" to save.
-                </InfoBanner>
-              )}
-            </SectionHeader>
-            <FormContent>
-              {hasMobileMoneyDetails && !hasMobileLimitReached && (
-                <InfoBanner>
-                  <FaCheckCircle /> You have a mobile money account configured. Update the details below if needed.
-                </InfoBanner>
-              )}
+          {/* Mobile Money Section */}
+          {activeTab === 'mobile' && (
+            <Section $marginBottom="lg">
+              <SectionHeader $padding="md">
+                <h3>{editingMethodId ? 'Edit Mobile Money Details' : 'Mobile Money Details'}</h3>
+                {hasAnyPaymentMethod && !editingMethodId && (
+                  <InfoBanner style={{ marginTop: 'var(--spacing-sm)' }}>
+                    <FaCheckCircle /> You already have a payment method. To use mobile money instead, please edit your existing method.
+                  </InfoBanner>
+                )}
+                {editingMethodId && (
+                  <InfoBanner style={{ marginTop: 'var(--spacing-sm)' }}>
+                    <FaEdit /> You are editing an existing payment method. Make your changes and click "Update Payment Method" to save.
+                  </InfoBanner>
+                )}
+              </SectionHeader>
+              <FormContent>
+                {hasMobileMoneyDetails && !hasMobileLimitReached && (
+                  <InfoBanner>
+                    <FaCheckCircle /> You have a mobile money account configured. Update the details below if needed.
+                  </InfoBanner>
+                )}
 
-              <FormGroup>
-                <Label htmlFor="accountName">
-                  Account Name <Required>*</Required>
-                </Label>
-                <Input
-                  id="accountName"
-                  name="accountName"
-                  type="text"
-                  value={mobileMoneyDetails.accountName}
-                  onChange={handleMobileMoneyChange}
-                  placeholder="Enter account holder name"
-                  required
-                />
-              </FormGroup>
+                <FormGroup>
+                  <Label htmlFor="accountName">
+                    Account Name <Required>*</Required>
+                  </Label>
+                  <Input
+                    id="accountName"
+                    name="accountName"
+                    type="text"
+                    value={mobileMoneyDetails.accountName}
+                    onChange={handleMobileMoneyChange}
+                    placeholder="Enter account holder name"
+                    required
+                  />
+                </FormGroup>
 
-              <FormGroup>
-                <Label htmlFor="phone">
-                  <FaPhone /> Phone Number <Required>*</Required>
-                </Label>
-                <Input
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  value={mobileMoneyDetails.phone}
-                  onChange={handleMobileMoneyChange}
-                  placeholder="0244123456"
-                  maxLength={10}
-                  required
-                />
-                <HelperText>
-                  {mobileMoneyDetails.phone && detectGhanaPhoneNetwork(mobileMoneyDetails.phone).isValid
-                    ? `Detected network: ${detectGhanaPhoneNetwork(mobileMoneyDetails.phone).network || 'Unknown'}`
-                    : 'Enter your mobile money number (10 digits)'}
-                </HelperText>
-              </FormGroup>
+                <FormGroup>
+                  <Label htmlFor="phone">
+                    <FaPhone /> Phone Number <Required>*</Required>
+                  </Label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    value={mobileMoneyDetails.phone}
+                    onChange={handleMobileMoneyChange}
+                    placeholder="0244123456"
+                    maxLength={10}
+                    required
+                  />
+                  <HelperText>
+                    {mobileMoneyDetails.phone && detectGhanaPhoneNetwork(mobileMoneyDetails.phone).isValid
+                      ? `Detected network: ${detectGhanaPhoneNetwork(mobileMoneyDetails.phone).network || 'Unknown'}`
+                      : 'Enter your mobile money number (10 digits)'}
+                  </HelperText>
+                </FormGroup>
 
-              <FormGroup>
-                <Label htmlFor="network">
-                  <FaMobileAlt /> Mobile Network <Required>*</Required>
-                </Label>
-                <Select
-                  id="network"
-                  name="network"
-                  value={mobileMoneyDetails.network}
-                  onChange={handleMobileMoneyChange}
-                  required
-                >
-                  <option value="">Select network</option>
-                  {MOBILE_NETWORKS.map((network) => (
-                    <option key={network} value={network}>
-                      {network}
-                    </option>
-                  ))}
-                </Select>
-              </FormGroup>
+                <FormGroup>
+                  <Label htmlFor="network">
+                    <FaMobileAlt /> Mobile Network <Required>*</Required>
+                  </Label>
+                  <Select
+                    id="network"
+                    name="network"
+                    value={mobileMoneyDetails.network}
+                    onChange={handleMobileMoneyChange}
+                    required
+                  >
+                    <option value="">Select network</option>
+                    {MOBILE_NETWORKS.map((network) => (
+                      <option key={network} value={network}>
+                        {network}
+                      </option>
+                    ))}
+                  </Select>
+                </FormGroup>
 
-              {/* Reactivation Field - Show when editing and (payout is rejected OR payment method is rejected) */}
-              {editingMethodId && (() => {
-                const currentMethod = paymentMethods.find(m => (m._id || m.id) === editingMethodId);
-                const isMethodRejected = currentMethod?.verificationStatus === 'rejected';
-                const shouldShowReactivation = isPayoutRejected || isMethodRejected;
+                {/* Reactivation Field - Show when editing and (payout is rejected OR payment method is rejected) */}
+                {editingMethodId && (() => {
+                  const currentMethod = paymentMethods.find(m => (m._id || m.id) === editingMethodId);
+                  const isMethodRejected = currentMethod?.verificationStatus === 'rejected';
+                  const shouldShowReactivation = isPayoutRejected || isMethodRejected;
 
-                return shouldShowReactivation ? (
-                  <FormGroup>
-                    <ReactivationCheckboxContainer>
-                      <Checkbox
-                        id="requestReactivation"
-                        type="checkbox"
-                        checked={requestReactivation}
-                        onChange={(e) => setRequestReactivation(e.target.checked)}
-                      />
-                      <CheckboxLabel htmlFor="requestReactivation">
-                        <ReactivationTitle>
-                          <FaCheckCircle /> Request Payment Status Reactivation
-                        </ReactivationTitle>
-                        <ReactivationDescription>
-                          {isPayoutRejected && isMethodRejected
-                            ? 'Both your seller payout status and this payment method were rejected. Check this box to request reactivation after updating your payment details.'
-                            : isPayoutRejected
-                              ? 'Your seller payout status was rejected. Check this box to request reactivation after updating your payment details.'
-                              : 'This payment method was rejected. Check this box to request reactivation after updating your payment details.'
-                          }
-                          {(payoutRejectionReason || currentMethod?.rejectionReason) && (
-                            <RejectionReason>
-                              <strong>Rejection Reason:</strong> {payoutRejectionReason || currentMethod?.rejectionReason}
-                            </RejectionReason>
-                          )}
-                        </ReactivationDescription>
-                      </CheckboxLabel>
-                    </ReactivationCheckboxContainer>
-                  </FormGroup>
-                ) : null;
-              })()}
-            </FormContent>
-          </Section>
-        )}
+                  return shouldShowReactivation ? (
+                    <FormGroup>
+                      <ReactivationCheckboxContainer>
+                        <Checkbox
+                          id="requestReactivation"
+                          type="checkbox"
+                          checked={requestReactivation}
+                          onChange={(e) => setRequestReactivation(e.target.checked)}
+                        />
+                        <CheckboxLabel htmlFor="requestReactivation">
+                          <ReactivationTitle>
+                            <FaCheckCircle /> Request Payment Status Reactivation
+                          </ReactivationTitle>
+                          <ReactivationDescription>
+                            {isPayoutRejected && isMethodRejected
+                              ? 'Both your seller payout status and this payment method were rejected. Check this box to request reactivation after updating your payment details.'
+                              : isPayoutRejected
+                                ? 'Your seller payout status was rejected. Check this box to request reactivation after updating your payment details.'
+                                : 'This payment method was rejected. Check this box to request reactivation after updating your payment details.'
+                            }
+                            {(payoutRejectionReason || currentMethod?.rejectionReason) && (
+                              <RejectionReason>
+                                <strong>Rejection Reason:</strong> {payoutRejectionReason || currentMethod?.rejectionReason}
+                              </RejectionReason>
+                            )}
+                          </ReactivationDescription>
+                        </CheckboxLabel>
+                      </ReactivationCheckboxContainer>
+                    </FormGroup>
+                  ) : null;
+                })()}
+              </FormContent>
+            </Section>
+          )}
 
-        {/* Form Actions */}
-        {!hasAnyPaymentMethod || editingMethodId ? (
-          <FormActions>
-            <Button
-              type="submit"
-              variant="primary"
-              size="lg"
-              $fullWidth
-              disabled={isSubmitting || isUpdateLoading}
-            >
-              {isSubmitting ? (
-                'Saving...'
-              ) : (
-                <>
-                  <FaSave /> {editingMethodId ? 'Update Payment Method' : 'Save Payment Method'}
-                </>
-              )}
-            </Button>
-            {editingMethodId && (
+          {/* Form Actions */}
+          {!hasAnyPaymentMethod || editingMethodId ? (
+            <FormActions>
               <Button
-                type="button"
-                variant="ghost"
-                size="md"
-                onClick={() => {
-                  setEditingMethodId(null);
-                  setError(null);
-                  setSuccess(false);
-                }}
+                type="submit"
+                variant="primary"
+                size="lg"
+                $fullWidth
                 disabled={isSubmitting || isUpdateLoading}
-                style={{ marginTop: 'var(--spacing-md)' }}
               >
-                Cancel Editing
+                {isSubmitting ? (
+                  'Saving...'
+                ) : (
+                  <>
+                    <FaSave /> {editingMethodId ? 'Update Payment Method' : 'Save Payment Method'}
+                  </>
+                )}
               </Button>
-            )}
-          </FormActions>
-        ) : (
-          <Section $marginBottom="lg">
-            <InfoBanner>
-              <FaEdit /> To change your payment method or update details, click the <strong>Edit</strong> button in the table above.
-            </InfoBanner>
-          </Section>
-        )}
-      </Form>
+              {editingMethodId && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="md"
+                  onClick={() => {
+                    setEditingMethodId(null);
+                    setError(null);
+                    setSuccess(false);
+                  }}
+                  disabled={isSubmitting || isUpdateLoading}
+                  style={{ marginTop: 'var(--spacing-md)' }}
+                >
+                  Cancel Editing
+                </Button>
+              )}
+            </FormActions>
+          ) : null}
+        </Form>
+      )}
     </>
   );
 

@@ -11,6 +11,8 @@ import { ConfirmationModal } from '../../../shared/components/modal/Confirmation
 const AccountTab = () => {
   const navigate = useNavigate();
   const { seller, isLoading, refetchAuth } = useAuth();
+
+  console.log("seller", seller)
   const [deactivating, setDeactivating] = React.useState(false);
   const [showDeactivateModal, setShowDeactivateModal] = React.useState(false);
 
@@ -129,6 +131,44 @@ const AccountTab = () => {
                 ) : null}
               </InfoValue>
             </InfoRow>
+            <InfoRow>
+              <InfoLabel>ID Proof Status</InfoLabel>
+              <InfoValue>
+                {(() => {
+                  console.log(seller)
+                  const isVerified = seller.verification?.idVerified;
+                  const hasDocument = seller.verificationDocuments?.idProof;
+                  const idProofStatus = seller.verificationDocuments?.idProof?.status;
+
+                  console.log("isVerified, hasDocument", hasDocument)
+
+                  if (isVerified) {
+                    return (
+                      <VerifiedBadge>
+                        <FaCheckCircle />
+                        Verified
+                      </VerifiedBadge>
+                    );
+                  }
+
+                  if (hasDocument) {
+                    return (
+                      <StatusBadge $status="pending">
+                        <FaClock style={{ marginRight: '4px' }} />
+                        {idProofStatus}
+                      </StatusBadge>
+                    );
+                  }
+
+                  return (
+                    <UnverifiedBadge>
+                      <FaTimesCircle />
+                      Not Submitted
+                    </UnverifiedBadge>
+                  );
+                })()}
+              </InfoValue>
+            </InfoRow>
           </SectionContent>
         </Section>
 
@@ -138,7 +178,7 @@ const AccountTab = () => {
             <SectionIcon>
               <FaCheckCircle />
             </SectionIcon>
-            <SectionTitle>Account Status</SectionTitle>
+            <SectionTitle>Business Status</SectionTitle>
           </SectionHeader>
           <SectionContent>
             <InfoRow>
