@@ -117,7 +117,7 @@ const AccountTab = () => {
             <InfoRow>
               <InfoLabel>Phone</InfoLabel>
               <InfoValue>
-                {seller.phone ? `+${seller.phone}` : 'N/A'}
+                {seller.phone ? `${seller.phone}` : 'N/A'}
                 {seller.verification?.phoneVerified ? (
                   <VerifiedBadge>
                     <FaCheckCircle />

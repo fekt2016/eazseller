@@ -164,6 +164,9 @@ const EditProduct = () => {
 
       // Attributes handling
       attributes: product.attributes || [],
+
+      // Video handling
+      video: product.video || "",
     };
   }, [product]);
   // Track unsaved changes
@@ -293,6 +296,13 @@ const EditProduct = () => {
       // The existing warranty stored in the product will be preserved on update.
 
       formData.append("condition", data.condition);
+
+      // Append video if present
+      if (data.video) {
+        // If it's a File, multer will pick it up from req.files
+        // If it's a string (e.g. existing video URL), it will be in req.body
+        formData.append("video", data.video);
+      }
 
       // Return window
       if (data.returnWindowDays != null) {

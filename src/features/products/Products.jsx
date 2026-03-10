@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { useQueryClient } from "@tanstack/react-query";
 import useAuth from '../../shared/hooks/useAuth';
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import useProduct from '../../shared/hooks/useProduct';
 import useAnalytics from '../../shared/hooks/useAnalytics';
 import useCategory from '../../shared/hooks/useCategory';
@@ -22,6 +22,8 @@ import SearchBox from '../../shared/components/ui/SearchBox';
 import { LoadingState, EmptyState } from '../../shared/components/ui/LoadingComponents';
 import { ButtonSpinner } from '../../shared/components/ButtonSpinner';
 import { toast } from 'react-toastify';
+import { getOptimizedImageUrl, IMAGE_SLOTS } from "../../shared/utils/cloudinaryConfig";
+import OptimizedImage from "../../shared/components/OptimizedImage";
 
 export default function Products() {
   const [deletingId, setDeletingId] = useState(null);
@@ -74,7 +76,20 @@ export default function Products() {
     return filtered;
   }, [products, searchTerm, categoryFilter]);
 
-  const handleDeleteClick = (id) => {
+  const handleDeleteConfirmed = useCallback(async (stringId) => {
+    setDeletingId(stringId);
+    try {
+      await deleteProduct.mutateAsync(stringId);
+      await queryClient.invalidateQueries({ queryKey: ["products"] });
+    } catch (error) {
+      const msg = error?.response?.data?.message || error?.message || "Failed to delete product. Please try again.";
+      toast.error(msg);
+    } finally {
+      setDeletingId(null);
+    }
+  }, [deleteProduct, queryClient]);
+
+  const handleDeleteClick = useCallback((id) => {
     const stringId = id.toString();
     if (pendingDeleteId === stringId) {
       // Second click — confirmed
@@ -86,39 +101,24 @@ export default function Products() {
       // Auto-reset after 4 seconds
       setTimeout(() => setPendingDeleteId((cur) => cur === stringId ? null : cur), 4000);
     }
-  };
+  }, [pendingDeleteId, handleDeleteConfirmed]);
 
-  const handleDeleteConfirmed = async (stringId) => {
-    setDeletingId(stringId);
-    try {
-      await deleteProduct.mutateAsync(stringId);
-      await queryClient.invalidateQueries({ queryKey: ["products"] });
-    } catch (error) {
-      const msg = error?.response?.data?.message || error?.message || "Failed to delete product. Please try again.";
-      toast.error(msg);
-    } finally {
-      setDeletingId(null);
-    }
-  };
-
-  // Product columns for ResponsiveDataTable
-  const productColumns = [
+  // Product columns for ResponsiveDataTable - memoized to prevent re-renders
+  const productColumns = useMemo(() => [
     {
       key: 'product',
       title: 'Product',
       render: (product) => (
         <ProductCellContent>
-          <ProductImage
-            src={product.imageCover}
-            alt={product.name}
-            onError={(e) => {
-              // Prevent infinite loop
-              if (e.target.dataset.fallbackAttempted !== 'true') {
-                e.target.dataset.fallbackAttempted = 'true';
-                e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="50" height="50"%3E%3Crect width="50" height="50" fill="%23f0f0f0"/%3E%3Ctext x="50%25" y="50%25" font-family="Arial" font-size="10" fill="%23999" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E';
-              }
-            }}
-          />
+          <div style={{ width: '50px', flexShrink: 0 }}>
+            <OptimizedImage
+              src={product.imageCover || (product.images && product.images[0])}
+              slot={IMAGE_SLOTS.TABLE_THUMB}
+              aspectRatio="1/1"
+              alt={product.name}
+              radius="0.5rem"
+            />
+          </div>
           <ProductName>{product.name}</ProductName>
         </ProductCellContent>
       ),
@@ -216,7 +216,7 @@ export default function Products() {
         </ActionButtons>
       ),
     },
-  ];
+  ], [pendingDeleteId, deletingId, handleDeleteClick, viewsByProductId]);
 
   if (authLoading || productsLoading) {
     return (
@@ -293,12 +293,10 @@ const ProductCellContent = styled.div`
   gap: var(--spacing-sm);
 `;
 
-const ProductImage = styled.img`
+/* ProductImage styled component replaced by OptimizedImage */
+const ProductImage = styled.div`
   width: 50px;
   height: 50px;
-  object-fit: cover;
-  border-radius: var(--border-radius-md);
-  border: 1px solid var(--color-grey-200);
   flex-shrink: 0;
 `;
 

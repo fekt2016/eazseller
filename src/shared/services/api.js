@@ -1,8 +1,10 @@
 import axios from "axios";
 
-// Determine base URL based on environment and hostname
-// In development (localhost), ALWAYS use local backend (http://localhost:4000/api/v1)
-// In production, use VITE_API_BASE_URL / VITE_API_URL or default https://api.saiisai.com/api/v1
+// getBaseURL() priority:
+// 1. localhost/127.0.0.1 → dev server (http://localhost:4000/api/v1)
+// 2. VITE_API_BASE_URL env var (preferred for production)
+// 3. VITE_API_URL env var (legacy support)
+// 4. Hardcoded https://api.saiisai.com/api/v1 — set VITE_API_BASE_URL in production to avoid relying on this fallback
 const getBaseURL = () => {
   if (typeof window !== "undefined") {
     const hostname = window.location.hostname;
@@ -131,6 +133,10 @@ api.interceptors.request.use((config) => {
   const relativePath = getRelativePath(config.url);
   const normalizedPath = normalizePath(relativePath);
   const method = config.method ? config.method.toLowerCase() : "get";
+
+  // Platform identification for backend logging and rate-limiting
+  config.headers = config.headers || {};
+  config.headers['x-platform'] = 'eazseller';
 
   // SECURITY: Ensure Content-Type is set correctly
   // For FormData, let browser set Content-Type with boundary
@@ -266,6 +272,22 @@ api.interceptors.request.use((config) => {
     console.debug(`[API] Cookie will be sent automatically for ${method.toUpperCase()} ${normalizedPath}`);
   }
 
+  // Longer timeout for auth endpoints (login, /seller/me, verify-otp, etc.)
+  const AUTH_PATHS = [
+    '/seller/me',
+    '/seller/login',
+    '/seller/logout',
+    '/seller/verify-otp',
+    '/seller/send-otp',
+    '/seller/forgot-password',
+    '/seller/reset-password',
+    '/seller/register',
+  ];
+  const isAuthPath = AUTH_PATHS.some((path) => config.url?.includes(path));
+  if (isAuthPath) {
+    config.timeout = 30000; // 30s for auth
+  }
+
   // Enhanced logging for verify-otp requests
   if (import.meta.env.DEV && normalizedPath.includes('verify-otp')) {
     console.log(`[API] 🔍 Verify OTP request details:`, {
@@ -282,7 +304,7 @@ api.interceptors.request.use((config) => {
 // Response interceptor
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     // Handle timeout errors with user-friendly messages
     const isTimeout = error?.code === 'ECONNABORTED' || error?.message?.includes('timeout');
     if (isTimeout) {
@@ -331,28 +353,98 @@ api.interceptors.response.use(
       console.error('═══════════════════════════════════════════════════════════');
     }
 
-    // Handle session expiration
+    // Handle CSRF token errors (403) — fetch new token and retry
+    if (error.response?.status === 403) {
+      const errorCode = error.response?.data?.code || error.response?.data?.error || '';
+      const isCsrfError =
+        String(errorCode).includes('CSRF') ||
+        errorCode === 'CSRF_TOKEN_MISSING' ||
+        errorCode === 'CSRF_TOKEN_MISMATCH' ||
+        errorCode === 'INVALID_CSRF_TOKEN';
+
+      if (isCsrfError && !error.config._csrfRetried) {
+        try {
+          const tokenResponse = await fetch(`${normalizedBaseURL}/csrf-token`, {
+            method: 'GET',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+          });
+
+          if (tokenResponse.ok) {
+            const tokenData = await tokenResponse.json();
+            if (tokenData?.csrfToken) {
+              error.config._csrfRetried = true;
+              error.config.headers = error.config.headers || {};
+              error.config.headers['X-CSRF-Token'] = tokenData.csrfToken;
+              if (import.meta.env.DEV) {
+                console.warn('[API] CSRF token refreshed, retrying request');
+              }
+              return api(error.config);
+            }
+          }
+        } catch (csrfErr) {
+          if (import.meta.env.DEV) {
+            console.warn('[API] CSRF refresh failed:', csrfErr?.message);
+          }
+        }
+      }
+    }
+
+    // Handle session expiration (401) — redirect to login with message for non-login endpoints
     if (error.response?.status === 401) {
+      const requestUrl = error.config?.url || '';
+      const isLoginEndpoint =
+        requestUrl.includes('/seller/login') || requestUrl.includes('/seller/register');
+
+      if (!isLoginEndpoint && !error.config?._authRetried) {
+        error.config._authRetried = true;
+        if (typeof sessionStorage !== 'undefined') {
+          sessionStorage.setItem(
+            'eazseller_login_message',
+            'Your session has expired. Please log in again.'
+          );
+        }
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
+        return Promise.reject(error);
+      }
+
       const url = error.config?.url || '';
       const isAuthEndpoint = url.includes('/seller/me') || url.includes('/auth/me');
 
       if (isAuthEndpoint) {
-        // 401 on auth endpoint = user not authenticated (normal state, not an error)
         if (import.meta.env.DEV) {
           console.debug("[API] Seller unauthenticated (401) on auth endpoint - cookie may be expired or missing");
         }
       } else {
-        // Other endpoint 401 = might be temporary or session issue
         if (import.meta.env.DEV) {
           console.debug("[API] 401 on non-auth endpoint - seller may need to re-authenticate");
         }
       }
 
-      // SECURITY: No token storage - cookies are managed by backend
-      // Just clear React Query cache - backend cookie is cleared by logout endpoint
       if (import.meta.env.DEV) {
         console.debug("[API] 401 response - cookie-based auth, no local storage to clear");
       }
+    }
+
+    // Handle 429 rate limit
+    if (error.response?.status === 429) {
+      const retryAfter =
+        error.response.headers['retry-after'] ||
+        error.response.data?.retryAfter ||
+        null;
+
+      const retryMessage = retryAfter
+        ? `Too many requests. Please try again in ${Math.ceil(Number(retryAfter) / 60)} minute(s).`
+        : 'Too many requests. Please wait a moment and try again.';
+
+      return Promise.reject({
+        ...error,
+        userMessage: retryMessage,
+        isRateLimit: true,
+        retryAfter: retryAfter,
+      });
     }
 
     // Handle other errors
@@ -369,18 +461,20 @@ api.interceptors.response.use(
     if (isVerifyOtpError && import.meta.env.DEV) {
       console.error(`[API Interceptor] Error Message: ${errorMessage}`);
     } else if (isNetworkError) {
-      // Enhanced logging for production debugging
-      console.error(`[API] 🚨 Network Error Details (Production Log):`, {
-        url: fullUrl || error.config?.url,
-        method: error.config?.method,
-        baseURL: error.config?.baseURL,
-        message: error.message,
-        code: error.code,
-        status: error.response?.status,
-        response: error.response,
-        request: error.request ? 'Request object exists' : 'No request object',
-        fullError: error // Log the full error object
-      });
+      if (import.meta.env.DEV) {
+        console.error('[API] 🚨 Network Error Details:', {
+          message: error.message,
+          code: error.code,
+          url: error.config?.url,
+          method: error.config?.method,
+          fullError: error,
+        });
+      } else {
+        console.error('[API] 🚨 Network Error:', {
+          message: error.message,
+          code: error.code,
+        });
+      }
     } else {
       console.error(`[API] Error: ${errorMessage}`, {
         url: fullUrl || error.config?.url,

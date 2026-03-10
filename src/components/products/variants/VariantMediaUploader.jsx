@@ -1,6 +1,7 @@
 import styled from "styled-components";
 import { useState, useEffect } from "react";
 import { FiUploadCloud, FiX } from "react-icons/fi";
+import { getOptimizedImageUrl, IMAGE_SLOTS } from "../../../shared/utils/cloudinaryConfig";
 
 export default function VariantMediaUploader({
   images = [],
@@ -33,7 +34,7 @@ export default function VariantMediaUploader({
 
     const remainingSlots = maxImages - images.length;
     const filesToAdd = files.slice(0, remainingSlots);
-    
+
     onImagesChange([...images, ...filesToAdd]);
     e.target.value = ""; // Reset input
   };
@@ -81,7 +82,7 @@ export default function VariantMediaUploader({
         <ImagesGrid>
           {previews.map((preview, index) => (
             <ImageWrapper key={index}>
-              <ImagePreview src={preview} alt={`Variant image ${index + 1}`} />
+              <ImagePreview src={getOptimizedImageUrl(preview, IMAGE_SLOTS.FORM_PREVIEW)} alt={`Variant image ${index + 1}`} />
               <RemoveImageButton
                 type="button"
                 onClick={() => handleRemoveImage(index)}
@@ -209,12 +210,16 @@ const ImageWrapper = styled.div`
   border-radius: var(--border-radius-md);
   overflow: hidden;
   border: 1px solid var(--color-grey-200);
+  background-color: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 const ImagePreview = styled.img`
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
 `;
 
 const RemoveImageButton = styled.button`

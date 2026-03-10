@@ -244,7 +244,9 @@ const getWithdrawalRequest = async (withdrawalId) => {
  * Ensures Authorization header is always sent
  */
 const verifyOTP = async (withdrawalId, otp) => {
-  console.log('[VERIFY OTP] Request sent:', { withdrawalId, otp: '***' + otp.slice(-2) });
+  if (import.meta.env.DEV) {
+    console.debug('[VERIFY OTP] Request sent');
+  }
 
   // SECURITY: Cookie-only authentication - no token storage
   // Cookies are automatically sent via withCredentials: true in api.js
@@ -256,27 +258,10 @@ const verifyOTP = async (withdrawalId, otp) => {
       { otp }
     );
 
-    console.log('[VERIFY OTP] RESPONSE:', JSON.stringify(response.data, null, 2));
     return response.data;
   } catch (error) {
-    console.error('[VERIFY OTP] ERROR:', JSON.parse(JSON.stringify({
-      message: error.message,
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      paystackError: error.response?.data?.paystack,
-      headers: error.response?.headers,
-      config: {
-        url: error.config?.url,
-        method: error.config?.method,
-        withCredentials: error.config?.withCredentials
-      }
-    })));
-
-    // Log Paystack error from backend if available
-    if (error.response?.data?.paystack) {
-      console.error('[VERIFY OTP] 🔥 PAYSTACK ERROR FROM BACKEND:', error.response.data.paystack);
-      console.error('[VERIFY OTP] 🔥 PAYSTACK ERROR (STRINGIFIED):', JSON.stringify(error.response.data.paystack, null, 2));
+    if (import.meta.env.DEV) {
+      console.error('[VERIFY OTP] Error:', error.message, error.response?.status);
     }
 
     throw error;
@@ -353,10 +338,10 @@ const extractAuthorizationUrl = (data) => {
 };
 
 const handlePaystackRedirect = (authorizationUrl) => {
-  console.log('[VERIFY OTP] Paystack redirect URL:', authorizationUrl);
-
   if (!authorizationUrl) {
-    console.warn('[VERIFY OTP] ⚠️ No authorization URL found');
+    if (import.meta.env.DEV) {
+      console.warn('[VERIFY OTP] No authorization URL found');
+    }
     return false;
   }
 
@@ -399,20 +384,11 @@ export default function SellerWithdrawalVerifyOTP() {
     mutationFn: (otpValue) => verifyOTP(withdrawalId, otpValue),
 
     onSuccess: (data) => {
-      console.log('═══════════════════════════════════════════════════════════');
-      console.log('✅ VERIFY OTP SUCCESS RESPONSE:');
-      console.log('═══════════════════════════════════════════════════════════');
-      console.log(JSON.parse(JSON.stringify(data)));
-      console.log('═══════════════════════════════════════════════════════════');
-
       // Check for Paystack redirect
       const authorizationUrl = extractAuthorizationUrl(data);
 
       if (authorizationUrl) {
-        console.log('[VERIFY OTP] Paystack redirect URL detected:', authorizationUrl);
-        console.log('[VERIFY OTP] ⚠️ Redirect DISABLED - will show URL in console instead');
-        const redirected = handlePaystackRedirect(authorizationUrl);
-        console.log('[VERIFY OTP] Paystack redirect was requested but disabled - continuing to show success state');
+        handlePaystackRedirect(authorizationUrl);
       }
 
       // No redirect required - success
@@ -427,48 +403,20 @@ export default function SellerWithdrawalVerifyOTP() {
       setTimeout(() => {
         navigate(PATHS.WITHDRAWALS);
       }, 2000);
-      console.log('[VERIFY OTP] ✅ Success - redirecting...');
     },
 
     onError: (error) => {
-      console.error('═══════════════════════════════════════════════════════════');
-      console.error('❌ FULL OTP ERROR OBJECT:');
-      console.error('═══════════════════════════════════════════════════════════');
-      console.error(JSON.parse(JSON.stringify(error)));
-      console.error('═══════════════════════════════════════════════════════════');
-
-      console.error('❌ RESPONSE STATUS:', error.response?.status);
-      console.error('❌ RESPONSE DATA:', error.response?.data);
-      console.error('❌ RESPONSE DATA (STRINGIFIED):', JSON.stringify(error.response?.data, null, 2));
-      console.error('❌ PAYSTACK ERROR (from backend):', error.response?.data?.paystack);
-      console.error('❌ REQUEST HEADERS:', error.config?.headers);
-      console.error('❌ REQUEST URL:', error.config?.url);
-      console.error('❌ REQUEST METHOD:', error.config?.method);
-      console.error('❌ REQUEST BASE URL:', error.config?.baseURL);
-      console.error('❌ FULL ERROR MESSAGE:', error.message);
-      console.error('❌ ERROR STACK:', error.stack);
-
-      // Log backend error message if available
-      if (error.response?.data?.message) {
-        console.error('❌ BACKEND ERROR MESSAGE:', error.response.data.message);
-      }
-      if (error.response?.data?.paystack) {
-        console.error('❌ PAYSTACK ERROR DETAILS:', JSON.stringify(error.response.data.paystack, null, 2));
+      if (import.meta.env.DEV) {
+        console.error('[VERIFY OTP] Error:', error.message, error.response?.status);
       }
 
       const errorMessage = error.response?.data?.message || error.message || 'Failed to verify OTP';
-      const statusCode = error.response?.status;
 
       // Check if it's a true authentication error
       if (isTrueAuthError(error)) {
-        console.error('═══════════════════════════════════════════════════════════');
-        console.error('[VERIFY OTP] 🚨 TRUE AUTHENTICATION ERROR - Token invalid/expired');
-        console.error('═══════════════════════════════════════════════════════════');
-        console.error('[VERIFY OTP] Error details:', {
-          status: error.response?.status,
-          message: error.response?.data?.message,
-          fullError: error
-        });
+        if (import.meta.env.DEV) {
+          console.error('[VERIFY OTP] Auth error:', error.response?.status, error.response?.data?.message);
+        }
         const authError = 'Your session has expired. Please log in again.';
         setError(authError);
         toast.error(authError);
@@ -543,7 +491,9 @@ export default function SellerWithdrawalVerifyOTP() {
     mutationFn: () => resendOTP(withdrawalId),
 
     onSuccess: (data) => {
-      console.log('[RESEND OTP] ✅ Success:', data);
+      if (import.meta.env.DEV) {
+        console.debug('[RESEND OTP] Success');
+      }
       toast.success('PIN has been resent to your phone/email. Please check and enter the new PIN.');
 
       // Clear all error states
@@ -560,7 +510,9 @@ export default function SellerWithdrawalVerifyOTP() {
     },
 
     onError: (error) => {
-      console.error('[RESEND OTP] ❌ Error:', error);
+      if (import.meta.env.DEV) {
+        console.error('[RESEND OTP] Error:', error.message);
+      }
       const errorMessage = error.response?.data?.message || error.message || 'Failed to resend OTP';
       setError(errorMessage);
       toast.error(errorMessage);
@@ -587,18 +539,6 @@ export default function SellerWithdrawalVerifyOTP() {
     // Clear previous errors
     setError('');
     setIsOtpExpired(false);
-
-    // ADD DIAGNOSTIC LOGGING BEFORE MUTATION
-    console.log('═══════════════════════════════════════════════════════════');
-    console.log('🔎 VERIFY OTP STARTED:');
-    console.log('═══════════════════════════════════════════════════════════');
-    console.log({
-      withdrawalId,
-      otp: '***' + otp.slice(-2),
-      otpLength: otp.length,
-      timestamp: new Date().toISOString()
-    });
-    console.log('═══════════════════════════════════════════════════════════');
 
     // Trigger mutation
     verifyMutation.mutate(otp);

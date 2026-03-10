@@ -1,10 +1,10 @@
 const breakpoints = {
-  xs: "30rem", // 480px
-  sm: "40rem", // 640px
-  md: "48rem", // 768px
-  lg: "64rem", // 1024px
-  xl: "80rem", // 1280px
-  "2xl": "96rem", // 1536px
+  xs: "32rem", // 512px
+  sm: "64rem", // 1024px
+  md: "76.8rem", // 1228.8px
+  lg: "102.4rem", // 1638.4px
+  xl: "128rem", // 2048px
+  "2xl": "153.6rem", // 2457.6px
 };
 
 export const devicesMax = {
@@ -36,3 +36,4 @@ export const devices = {
 };
 
 export default { devicesMax, devicesMin, devices, breakpoints };
+

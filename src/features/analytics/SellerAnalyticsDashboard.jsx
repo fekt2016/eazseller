@@ -38,6 +38,7 @@ import StatCard from '../../shared/components/ui/StatCard';
 import { LoadingState, ErrorState, SkeletonCard, EmptyState } from '../../shared/components/ui/LoadingComponents';
 import ResponsiveDataTable from '../../shared/components/ui/ResponsiveDataTable';
 import Button from '../../shared/components/ui/Button';
+import { getOptimizedImageUrl, IMAGE_SLOTS } from '../../shared/utils/cloudinaryConfig';
 
 const AnalyticsContainer = styled(PageContainer)`
   animation: fadeIn 0.5s ease-out;
@@ -123,12 +124,12 @@ const DonutCircle = styled.div`
   border-radius: 50%;
   background: conic-gradient(
     ${({ $color1, $color2, $color3, $color4, $value1, $value2, $value3, $value4 }) => {
-      const total = $value1 + $value2 + $value3 + $value4;
-      const p1 = ($value1 / total) * 100;
-      const p2 = ($value2 / total) * 100;
-      const p3 = ($value3 / total) * 100;
-      return `${$color1} 0% ${p1}%, ${$color2} ${p1}% ${p1 + p2}%, ${$color3} ${p1 + p2}% ${p1 + p2 + p3}%, ${$color4} ${p1 + p2 + p3}% 100%`;
-    }}
+    const total = $value1 + $value2 + $value3 + $value4;
+    const p1 = ($value1 / total) * 100;
+    const p2 = ($value2 / total) * 100;
+    const p3 = ($value3 / total) * 100;
+    return `${$color1} 0% ${p1}%, ${$color2} ${p1}% ${p1 + p2}%, ${$color3} ${p1 + p2}% ${p1 + p2 + p3}%, ${$color4} ${p1 + p2 + p3}% 100%`;
+  }}
   );
   display: flex;
   align-items: center;
@@ -354,7 +355,7 @@ const SellerAnalyticsDashboard = () => {
                 {performanceData.performanceBadge?.toUpperCase()} SELLER
               </div>
               <div style={{ fontSize: 'var(--font-size-xs)', opacity: 0.8, marginTop: 'var(--spacing-xs)' }}>
-                On-time Delivery: {formatPercentage(performanceData.breakdown?.onTimeDeliveryRate)} | 
+                On-time Delivery: {formatPercentage(performanceData.breakdown?.onTimeDeliveryRate)} |
                 Quality Score: {formatPercentage(performanceData.breakdown?.productQualityScore)}
               </div>
             </BadgeInfo>
@@ -422,9 +423,9 @@ const SellerAnalyticsDashboard = () => {
                 <LegendItem key={status}>
                   <LegendColor $color={
                     status === 'delivered' ? '#10b981' :
-                    status === 'shipped' ? '#3b82f6' :
-                    status === 'processing' ? '#f59e0b' :
-                    '#ef4444'
+                      status === 'shipped' ? '#3b82f6' :
+                        status === 'processing' ? '#f59e0b' :
+                          '#ef4444'
                   } />
                   <span>{status.charAt(0).toUpperCase() + status.slice(1)}: {data.count} ({data.percentage}%)</span>
                 </LegendItem>
@@ -449,7 +450,7 @@ const SellerAnalyticsDashboard = () => {
                 render: (item) => (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
                     {item.productImage && (
-                      <img src={item.productImage} alt={item.productName} style={{ width: '40px', height: '40px', borderRadius: 'var(--border-radius-sm)', objectFit: 'cover' }} />
+                      <img src={getOptimizedImageUrl(item.productImage, IMAGE_SLOTS.TABLE_THUMB)} alt={item.productName} style={{ width: '40px', height: '40px', borderRadius: 'var(--border-radius-sm)', objectFit: 'cover' }} />
                     )}
                     <span>{item.productName}</span>
                   </div>

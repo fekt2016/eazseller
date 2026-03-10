@@ -19,6 +19,7 @@ const AuthPage = () => {
   const [phoneNetwork, setPhoneNetwork] = useState("");
   const [activeTab, setActiveTab] = useState("login");
   const [loginClientError, setLoginClientError] = useState("");
+  const [sessionMessage, setSessionMessage] = useState("");
 
   // Login state
   const [loginState, setLoginState] = useState({
@@ -43,6 +44,7 @@ const AuthPage = () => {
     location: "",
     network: phoneNetwork,
     contactNumber: "",
+    referral: "",
     agreeToTerms: false,
   });
   // Field-level validation errors: { [fieldName]: errorMessage }
@@ -54,6 +56,20 @@ const AuthPage = () => {
   const { mutateAsync: registerMutation, isPending: isRegistering, error: registerError } = register;
 
   const navigate = useNavigate();
+
+  // Load session-expired message (set by api.js on 401 redirect)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const msg = sessionStorage.getItem("eazseller_login_message");
+      if (msg) {
+        setSessionMessage(msg);
+        sessionStorage.removeItem("eazseller_login_message");
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
 
   // Load remembered email (if any)
   useEffect(() => {
@@ -477,7 +493,7 @@ const AuthPage = () => {
     }
 
     if (!formData.location.trim()) {
-      clientErrors.location = 'Location is required';
+      clientErrors.location = 'Neighborhood is required';
     }
 
     if (!formData.password) {
@@ -524,6 +540,7 @@ const AuthPage = () => {
         shopName: formData.shopName,
         shopLocation: shopLocation,
         network: phoneNetwork,
+        referral: formData.referral,
       };
 
       const response = await registerMutation(registrationData);
@@ -608,6 +625,10 @@ const AuthPage = () => {
               ? "Enter your email and password to access your account"
               : "Fill in your details to get started"}
         </Subtitle>
+
+        {sessionMessage && (
+          <SessionMessageBanner role="alert">{sessionMessage}</SessionMessageBanner>
+        )}
 
         {/* Simple, user-friendly auth error message */}
         {(loginClientError || loginError || verify2FAError || (registerError && Object.keys(fieldErrors).length === 0)) && (
@@ -845,14 +866,14 @@ const AuthPage = () => {
 
             <InputGroup>
               <Label>
-                Location <span>*</span>
+                Neighborhood <span>*</span>
               </Label>
               <Input
                 type="text"
                 name="location"
                 value={formData.location}
                 onChange={handleChange}
-                placeholder="e.g. Accra, Kumasi, Lagos, or your city/area"
+                placeholder="e.g. Nima, Newtown, Adabraka, or your area"
                 required
                 minLength={2}
                 maxLength={120}
@@ -862,9 +883,20 @@ const AuthPage = () => {
                 <ErrorText>{fieldErrors.location}</ErrorText>
               ) : (
                 <HelpText>
-                  Enter your business location (city, region, or area). Anyone can register from any location.
+                  Enter your neighborhood (e.g. Nima, Newtown). Anyone can register from any area.
                 </HelpText>
               )}
+            </InputGroup>
+
+            <InputGroup>
+              <Label>Referral (optional)</Label>
+              <Input
+                type="text"
+                name="referral"
+                value={formData.referral}
+                onChange={handleChange}
+                placeholder="Enter referral code or name"
+              />
             </InputGroup>
 
             <InputGroup>
@@ -1198,6 +1230,17 @@ const ErrorBanner = styled.div`
     font-size: clamp(1rem, 3.5vw, 1.0625rem);
     border-radius: 16px;
   }
+`;
+
+const SessionMessageBanner = styled.div`
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  padding: 0.875rem 1rem;
+  border-radius: 12px;
+  font-size: clamp(0.875rem, 2.5vw, 0.9375rem);
+  margin-bottom: 1.5rem;
+  animation: ${slideIn} 0.3s ease-out;
 `;
 
 const Tabs = styled.div`

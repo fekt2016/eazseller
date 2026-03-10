@@ -95,6 +95,7 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
         weight: "",
         dimension: "",
       },
+      video: "",
     };
 
     if (initialData) {
@@ -148,6 +149,7 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
             }))
             : defaults.specifications.material,
         },
+        video: initialData.video || "",
       };
     }
     return defaults;

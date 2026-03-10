@@ -33,6 +33,9 @@ import ResponsiveDataTable from '../../shared/components/ui/ResponsiveDataTable'
 import Button from '../../shared/components/ui/Button';
 import StatCard from '../../shared/components/ui/StatCard';
 import { LoadingState, ErrorState } from '../../shared/components/ui/LoadingComponents';
+import { ButtonSpinner } from '../../shared/components/ButtonSpinner';
+import { toast } from 'react-toastify';
+import { getOptimizedImageUrl, IMAGE_SLOTS } from "../../shared/utils/cloudinaryConfig";
 import VerificationBanner from '../../shared/components/VerificationBanner';
 
 // Animations
@@ -559,7 +562,7 @@ const Dashboard = () => {
               <ProductCard key={product._id || product.id} as={Link} to={PATHS.PRODUCTS}>
                 <ProductImageWrapper>
                   <ProductImage
-                    src={product.imageCover}
+                    src={getOptimizedImageUrl(product.imageCover, IMAGE_SLOTS.TABLE_THUMB)}
                     alt={product.name}
                     onError={(e) => {
                       if (e.target.dataset.fallbackAttempted !== 'true') {
@@ -985,13 +988,14 @@ const ProductCard = styled(Link)`
 const ProductImageWrapper = styled.div`
   position: relative;
   width: 100%;
-  height: 180px;
+  aspect-ratio: 1 / 1;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: var(--color-grey-100);
+  background-color: #f8fafc;
   padding: var(--spacing-sm);
+  border-bottom: 1px solid var(--color-grey-200);
 `;
 
 const ProductImage = styled.img`

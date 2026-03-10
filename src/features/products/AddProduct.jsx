@@ -281,6 +281,13 @@ const AddProductPage = () => {
       if (data.promotionKey) {
         formData.append("promotionKey", data.promotionKey.trim());
       }
+      // Append video if present
+      if (data.video) {
+        // If it's a File, multer will pick it up from req.files
+        // If it's a string (e.g. existing video URL), it will be in req.body
+        formData.append("video", data.video);
+      }
+
       // Backend sets seller from auth; we append for consistency when we have it
       formData.append("seller", sellerId);
 

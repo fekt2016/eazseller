@@ -12,6 +12,7 @@ import { compressImage } from '../../shared/utils/imageCompressor';
 import { COUNTRIES } from '../../shared/constants/countries';
 import { toast } from 'react-toastify';
 import { detectGhanaNetwork, isValidGhanaPhone, normalizeGhanaPhone } from '../../shared/utils/detectGhanaNetwork';
+import { getOptimizedImageUrl, IMAGE_SLOTS } from '../../shared/utils/cloudinaryConfig';
 import NetworkBadge from '../../shared/components/ui/NetworkBadge';
 
 const BusinessProfilePage = ({ embedded = false }) => {
@@ -92,15 +93,18 @@ const BusinessProfilePage = ({ embedded = false }) => {
       // Handle both old format (string) and new format (object with url property)
       if (seller.verificationDocuments?.businessCert) {
         const businessCert = seller.verificationDocuments.businessCert;
-        setBusinessCertPreview(typeof businessCert === 'string' ? businessCert : businessCert.url || businessCert);
+        const certUrl = typeof businessCert === 'string' ? businessCert : businessCert.url || businessCert;
+        setBusinessCertPreview(getOptimizedImageUrl(certUrl, IMAGE_SLOTS.AVATAR));
       }
       if (seller.verificationDocuments?.businessCertFormA) {
         const businessCertFormA = seller.verificationDocuments.businessCertFormA;
-        setBusinessCertFormAPreview(typeof businessCertFormA === 'string' ? businessCertFormA : businessCertFormA.url || businessCertFormA);
+        const certUrl = typeof businessCertFormA === 'string' ? businessCertFormA : businessCertFormA.url || businessCertFormA;
+        setBusinessCertFormAPreview(getOptimizedImageUrl(certUrl, IMAGE_SLOTS.AVATAR));
       }
       if (seller.verificationDocuments?.idProof) {
         const idProof = seller.verificationDocuments.idProof;
-        setIdProofPreview(typeof idProof === 'string' ? idProof : idProof.url || idProof);
+        const certUrl = typeof idProof === 'string' ? idProof : idProof.url || idProof;
+        setIdProofPreview(getOptimizedImageUrl(certUrl, IMAGE_SLOTS.AVATAR));
       }
     }
   }, [seller]);

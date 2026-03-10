@@ -40,10 +40,10 @@ const TrackingPage = () => {
       try {
         setIsLoading(true);
         setError(null);
-        
+
         // Add a small delay to ensure backend is ready (helps with connection issues)
         await new Promise(resolve => setTimeout(resolve, 100));
-        
+
         const response = await orderService.getOrderByTrackingNumber(trackingNumber);
         const order = response.data?.order;
         console.log('Tracking Page - Order Data:', order);
@@ -51,7 +51,7 @@ const TrackingPage = () => {
         setOrderData(order);
       } catch (err) {
         console.error('Tracking Page Error:', err);
-        
+
         // Better error handling for connection issues
         if (err.code === 'ERR_NETWORK' || err.message?.includes('Network Error') || err.message?.includes('CONNECTION_REFUSED')) {
           setError("Unable to connect to the server. Please ensure the backend server is running on port 4000.");
@@ -101,7 +101,7 @@ const TrackingPage = () => {
     if (iconType === 'rider') return <FaTruck />;
     if (iconType === 'delivery') return <FaTruck />;
     if (iconType === 'delivered') return <FaCheckCircle />;
-    
+
     switch (status) {
       case "pending_payment":
         return <FaClock />;
@@ -183,7 +183,7 @@ const TrackingPage = () => {
     if ((paymentStatus === 'paid' || paymentStatus === 'completed') && currentStatus === 'pending_payment') {
       return 1; // payment_completed
     }
-    
+
     const statusToIndex = {
       'pending_payment': 0,
       'payment_completed': 1,
@@ -204,7 +204,7 @@ const TrackingPage = () => {
     return ALL_TRACKING_STEPS.map((step, index) => {
       // Check if this step has a tracking history entry
       let historyEntry = trackingHistory.find(entry => entry.status === step.status);
-      
+
       // Special handling: If payment is paid but no payment_completed entry exists,
       // create a virtual entry for display
       if (step.status === 'payment_completed' && (paymentStatus === 'paid' || paymentStatus === 'completed') && !historyEntry) {
@@ -214,7 +214,7 @@ const TrackingPage = () => {
           timestamp: orderData.paidAt || orderData.createdAt,
         };
       }
-      
+
       const isCompleted = index < activeStepIndex;
       const isActive = index === activeStepIndex;
       const isPending = index > activeStepIndex;
@@ -235,18 +235,18 @@ const TrackingPage = () => {
   // Get estimated delivery from shipping options (stored in order)
   const getEstimatedDelivery = () => {
     if (orderData.deliveryEstimate) {
-      if (orderData.deliveryEstimate.includes('Today') || 
-          orderData.deliveryEstimate.includes('Business Day') ||
-          orderData.deliveryEstimate.includes('Arrives')) {
+      if (orderData.deliveryEstimate.includes('Today') ||
+        orderData.deliveryEstimate.includes('Business Day') ||
+        orderData.deliveryEstimate.includes('Arrives')) {
         return orderData.deliveryEstimate;
       }
-      
+
       const days = parseInt(orderData.deliveryEstimate);
       if (!isNaN(days) && orderData.createdAt) {
         const orderDate = new Date(orderData.createdAt);
         const estimatedDate = new Date(orderDate);
         estimatedDate.setDate(estimatedDate.getDate() + days);
-        
+
         return estimatedDate.toLocaleDateString('en-US', {
           weekday: 'long',
           year: 'numeric',
@@ -254,10 +254,10 @@ const TrackingPage = () => {
           day: 'numeric',
         });
       }
-      
+
       return orderData.deliveryEstimate;
     }
-    
+
     return null;
   };
 
@@ -282,163 +282,163 @@ const TrackingPage = () => {
       <ContentGrid>
         {/* Main Tracking Card */}
         <MainCard>
-        <TrackingHeader>
-          <TrackingNumber>
-            Tracking Number: <strong>{orderData.trackingNumber}</strong>
-          </TrackingNumber>
-          <OrderNumber>
-            Order Number: <strong>{orderData.orderNumber}</strong>
-          </OrderNumber>
+          <TrackingHeader>
+            <TrackingNumber>
+              Tracking Number: <strong>{orderData.trackingNumber}</strong>
+            </TrackingNumber>
+            <OrderNumber>
+              Order Number: <strong>{orderData.orderNumber}</strong>
+            </OrderNumber>
+            {estimatedDelivery && (
+              <EstimatedDeliveryHeader>
+                <FaCalendarAlt style={{ marginRight: '0.5rem' }} />
+                Expected Delivery: <strong>{estimatedDelivery}</strong>
+              </EstimatedDeliveryHeader>
+            )}
+          </TrackingHeader>
+
+          <CurrentStatus>
+            <StatusLabel>Current Status</StatusLabel>
+            <StatusBadge $color={getStepColor(completeTimeline.find(s => s.isActive) || completeTimeline[0])}>
+              {getStatusIcon(currentStatus)}
+              {formatStatusLabel(currentStatus)}
+            </StatusBadge>
+          </CurrentStatus>
+
           {estimatedDelivery && (
-            <EstimatedDeliveryHeader>
-              <FaCalendarAlt style={{ marginRight: '0.5rem' }} />
-              Expected Delivery: <strong>{estimatedDelivery}</strong>
-            </EstimatedDeliveryHeader>
+            <DeliveryEstimateSection>
+              <DeliveryEstimateLabel>
+                <FaCalendarAlt style={{ marginRight: '0.5rem' }} />
+                Estimated Delivery Date
+              </DeliveryEstimateLabel>
+              <DeliveryEstimateValue>
+                {estimatedDelivery}
+              </DeliveryEstimateValue>
+            </DeliveryEstimateSection>
           )}
-        </TrackingHeader>
 
-        <CurrentStatus>
-          <StatusLabel>Current Status</StatusLabel>
-          <StatusBadge $color={getStepColor(completeTimeline.find(s => s.isActive) || completeTimeline[0])}>
-            {getStatusIcon(currentStatus)}
-            {formatStatusLabel(currentStatus)}
-          </StatusBadge>
-        </CurrentStatus>
+          <TimelineSection>
+            <TimelineTitle>Tracking History</TimelineTitle>
+            <Timeline>
+              {completeTimeline.map((step, index) => {
+                const isLast = index === completeTimeline.length - 1;
+                const stepColor = getStepColor(step);
+                const stepBgColor = getStepBgColor(step);
 
-        {estimatedDelivery && (
-          <DeliveryEstimateSection>
-            <DeliveryEstimateLabel>
-              <FaCalendarAlt style={{ marginRight: '0.5rem' }} />
-              Estimated Delivery Date
-            </DeliveryEstimateLabel>
-            <DeliveryEstimateValue>
-              {estimatedDelivery}
-            </DeliveryEstimateValue>
-          </DeliveryEstimateSection>
-        )}
+                return (
+                  <TimelineItem key={step.status} $completed={step.isCompleted} $isActive={step.isActive} $isLast={isLast}>
+                    <TimelineIcon $color={stepColor} $bgColor={stepBgColor} $completed={step.isCompleted} $isActive={step.isActive}>
+                      {getStatusIcon(step.status, step.icon)}
+                    </TimelineIcon>
+                    <TimelineContent>
+                      <TimelineStatus $color={stepColor}>
+                        {step.isCompleted && <FaCheckCircle style={{ marginRight: '0.5rem', color: stepColor }} />}
+                        {step.label}
+                      </TimelineStatus>
+                      {step.historyEntry && step.historyEntry.message && (
+                        <TimelineMessage>{step.historyEntry.message}</TimelineMessage>
+                      )}
+                      {step.historyEntry && step.historyEntry.timestamp && (
+                        <TimelineDate>{formatDate(step.historyEntry.timestamp)}</TimelineDate>
+                      )}
+                      {step.historyEntry && step.historyEntry.location && (
+                        <TimelineLocation>
+                          <FaMapMarkerAlt />
+                          {step.historyEntry.location}
+                        </TimelineLocation>
+                      )}
+                    </TimelineContent>
+                    {!isLast && <TimelineLine $color={step.isCompleted ? stepColor : "#E5E7EB"} />}
+                  </TimelineItem>
+                );
+              })}
+            </Timeline>
+          </TimelineSection>
 
-        <TimelineSection>
-          <TimelineTitle>Tracking History</TimelineTitle>
-          <Timeline>
-            {completeTimeline.map((step, index) => {
-              const isLast = index === completeTimeline.length - 1;
-              const stepColor = getStepColor(step);
-              const stepBgColor = getStepBgColor(step);
-              
-              return (
-                <TimelineItem key={step.status} $completed={step.isCompleted} $isActive={step.isActive} $isLast={isLast}>
-                  <TimelineIcon $color={stepColor} $bgColor={stepBgColor} $completed={step.isCompleted} $isActive={step.isActive}>
-                    {getStatusIcon(step.status, step.icon)}
-                  </TimelineIcon>
-                  <TimelineContent>
-                    <TimelineStatus $color={stepColor}>
-                      {step.isCompleted && <FaCheckCircle style={{ marginRight: '0.5rem', color: stepColor }} />}
-                      {step.label}
-                    </TimelineStatus>
-                    {step.historyEntry && step.historyEntry.message && (
-                      <TimelineMessage>{step.historyEntry.message}</TimelineMessage>
-                    )}
-                    {step.historyEntry && step.historyEntry.timestamp && (
-                      <TimelineDate>{formatDate(step.historyEntry.timestamp)}</TimelineDate>
-                    )}
-                    {step.historyEntry && step.historyEntry.location && (
-                      <TimelineLocation>
-                        <FaMapMarkerAlt />
-                        {step.historyEntry.location}
-                      </TimelineLocation>
-                    )}
-                  </TimelineContent>
-                  {!isLast && <TimelineLine $color={step.isCompleted ? stepColor : "#E5E7EB"} />}
-                </TimelineItem>
-              );
-            })}
-          </Timeline>
-        </TimelineSection>
-
-        <ShippingInfo>
-          <InfoTitle>
-            <FaMapMarkerAlt style={{ marginRight: '0.5rem' }} />
-            Shipping Address
-          </InfoTitle>
-          {orderData.shippingAddress && Object.keys(orderData.shippingAddress).length > 0 ? (
-            <AddressGrid>
-              {orderData.shippingAddress.fullName && (
-                <AddressItem>
-                  <AddressLabel>Full Name</AddressLabel>
-                  <AddressValue>{orderData.shippingAddress.fullName}</AddressValue>
-                </AddressItem>
-              )}
-              {orderData.shippingAddress.streetAddress && (
-                <AddressItem>
-                  <AddressLabel>Street Address</AddressLabel>
-                  <AddressValue>{orderData.shippingAddress.streetAddress}</AddressValue>
-                </AddressItem>
-              )}
-              {orderData.shippingAddress.area && (
-                <AddressItem>
-                  <AddressLabel>Area/Neighborhood</AddressLabel>
-                  <AddressValue>{orderData.shippingAddress.area}</AddressValue>
-                </AddressItem>
-              )}
-              {orderData.shippingAddress.landmark && (
-                <AddressItem>
-                  <AddressLabel>Landmark</AddressLabel>
-                  <AddressValue>{orderData.shippingAddress.landmark}</AddressValue>
-                </AddressItem>
-              )}
-              {(orderData.shippingAddress.city || orderData.shippingAddress.state) && (
-                <AddressItem>
-                  <AddressLabel>City/State</AddressLabel>
-                  <AddressValue>
-                    {orderData.shippingAddress.city && typeof orderData.shippingAddress.city === 'string' && orderData.shippingAddress.city.charAt(0).toUpperCase() + orderData.shippingAddress.city.slice(1)}
-                    {orderData.shippingAddress.city && orderData.shippingAddress.state && ', '}
-                    {orderData.shippingAddress.state && typeof orderData.shippingAddress.state === 'string' && orderData.shippingAddress.state.charAt(0).toUpperCase() + orderData.shippingAddress.state.slice(1)}
-                  </AddressValue>
-                </AddressItem>
-              )}
-              {orderData.shippingAddress.region && (
-                <AddressItem>
-                  <AddressLabel>Region</AddressLabel>
-                  <AddressValue>
-                    {typeof orderData.shippingAddress.region === 'string' 
-                      ? orderData.shippingAddress.region.split(' ').map(word => 
+          <ShippingInfo>
+            <InfoTitle>
+              <FaMapMarkerAlt style={{ marginRight: '0.5rem' }} />
+              Shipping Address
+            </InfoTitle>
+            {orderData.shippingAddress && Object.keys(orderData.shippingAddress).length > 0 ? (
+              <AddressGrid>
+                {orderData.shippingAddress.fullName && (
+                  <AddressItem>
+                    <AddressLabel>Full Name</AddressLabel>
+                    <AddressValue>{orderData.shippingAddress.fullName}</AddressValue>
+                  </AddressItem>
+                )}
+                {orderData.shippingAddress.streetAddress && (
+                  <AddressItem>
+                    <AddressLabel>Street Address</AddressLabel>
+                    <AddressValue>{orderData.shippingAddress.streetAddress}</AddressValue>
+                  </AddressItem>
+                )}
+                {orderData.shippingAddress.area && (
+                  <AddressItem>
+                    <AddressLabel>Area/Neighborhood</AddressLabel>
+                    <AddressValue>{orderData.shippingAddress.area}</AddressValue>
+                  </AddressItem>
+                )}
+                {orderData.shippingAddress.landmark && (
+                  <AddressItem>
+                    <AddressLabel>Landmark</AddressLabel>
+                    <AddressValue>{orderData.shippingAddress.landmark}</AddressValue>
+                  </AddressItem>
+                )}
+                {(orderData.shippingAddress.city || orderData.shippingAddress.state) && (
+                  <AddressItem>
+                    <AddressLabel>City/State</AddressLabel>
+                    <AddressValue>
+                      {orderData.shippingAddress.city && typeof orderData.shippingAddress.city === 'string' && orderData.shippingAddress.city.charAt(0).toUpperCase() + orderData.shippingAddress.city.slice(1)}
+                      {orderData.shippingAddress.city && orderData.shippingAddress.state && ', '}
+                      {orderData.shippingAddress.state && typeof orderData.shippingAddress.state === 'string' && orderData.shippingAddress.state.charAt(0).toUpperCase() + orderData.shippingAddress.state.slice(1)}
+                    </AddressValue>
+                  </AddressItem>
+                )}
+                {orderData.shippingAddress.region && (
+                  <AddressItem>
+                    <AddressLabel>Region</AddressLabel>
+                    <AddressValue>
+                      {typeof orderData.shippingAddress.region === 'string'
+                        ? orderData.shippingAddress.region.split(' ').map(word =>
                           word.charAt(0).toUpperCase() + word.slice(1)
                         ).join(' ')
-                      : orderData.shippingAddress.region}
-                  </AddressValue>
-                </AddressItem>
-              )}
-              {(orderData.shippingAddress.digitalAddress || orderData.shippingAddress.digitalAdress) && (
-                <AddressItem>
-                  <AddressLabel>Digital Address</AddressLabel>
-                  <AddressValue>{orderData.shippingAddress.digitalAddress || orderData.shippingAddress.digitalAdress}</AddressValue>
-                </AddressItem>
-              )}
-              {orderData.shippingAddress.contactPhone && (
-                <AddressItem>
-                  <AddressLabel>Contact Phone</AddressLabel>
-                  <AddressValue>{orderData.shippingAddress.contactPhone}</AddressValue>
-                </AddressItem>
-              )}
-              {orderData.shippingAddress.country && (
-                <AddressItem>
-                  <AddressLabel>Country</AddressLabel>
-                  <AddressValue>{orderData.shippingAddress.country}</AddressValue>
-                </AddressItem>
-              )}
-              {orderData.shippingAddress.additionalInformation && (
-                <AddressItem $fullWidth>
-                  <AddressLabel>Additional Information</AddressLabel>
-                  <AddressValue>{orderData.shippingAddress.additionalInformation}</AddressValue>
-                </AddressItem>
-              )}
-            </AddressGrid>
-          ) : (
-            <EmptyAddress>
-              Shipping address information is not available for this order.
-            </EmptyAddress>
-          )}
-        </ShippingInfo>
+                        : orderData.shippingAddress.region}
+                    </AddressValue>
+                  </AddressItem>
+                )}
+                {(orderData.shippingAddress.digitalAddress || orderData.shippingAddress.digitalAdress) && (
+                  <AddressItem>
+                    <AddressLabel>Digital Address</AddressLabel>
+                    <AddressValue>{orderData.shippingAddress.digitalAddress || orderData.shippingAddress.digitalAdress}</AddressValue>
+                  </AddressItem>
+                )}
+                {orderData.shippingAddress.contactPhone && (
+                  <AddressItem>
+                    <AddressLabel>Contact Phone</AddressLabel>
+                    <AddressValue>{orderData.shippingAddress.contactPhone}</AddressValue>
+                  </AddressItem>
+                )}
+                {orderData.shippingAddress.country && (
+                  <AddressItem>
+                    <AddressLabel>Country</AddressLabel>
+                    <AddressValue>{orderData.shippingAddress.country}</AddressValue>
+                  </AddressItem>
+                )}
+                {orderData.shippingAddress.additionalInformation && (
+                  <AddressItem $fullWidth>
+                    <AddressLabel>Additional Information</AddressLabel>
+                    <AddressValue>{orderData.shippingAddress.additionalInformation}</AddressValue>
+                  </AddressItem>
+                )}
+              </AddressGrid>
+            ) : (
+              <EmptyAddress>
+                Shipping address information is not available for this order.
+              </EmptyAddress>
+            )}
+          </ShippingInfo>
         </MainCard>
 
         {/* Sidebar - Order Summary & Items */}
@@ -507,10 +507,10 @@ const TrackingPage = () => {
               <InfoRow>
                 <InfoLabel>Payment Method</InfoLabel>
                 <InfoValue>
-                  {orderData.paymentMethod 
-                    ? orderData.paymentMethod.split('_').map(word => 
-                        word.charAt(0).toUpperCase() + word.slice(1)
-                      ).join(' ')
+                  {orderData.paymentMethod
+                    ? orderData.paymentMethod.split('_').map(word =>
+                      word.charAt(0).toUpperCase() + word.slice(1)
+                    ).join(' ')
                     : 'N/A'}
                 </InfoValue>
               </InfoRow>
@@ -535,15 +535,15 @@ const TrackingPage = () => {
                   <InfoRow>
                     <InfoLabel>Delivery Method</InfoLabel>
                     <InfoValue>
-                      {orderData.deliveryMethod === 'pickup_center' 
+                      {orderData.deliveryMethod === 'pickup_center'
                         ? 'Pickup from Saiisai Center'
                         : orderData.deliveryMethod === 'dispatch'
-                        ? 'Saiisai Dispatch Rider'
-                        : orderData.deliveryMethod === 'seller_delivery'
-                        ? "Seller's Own Delivery"
-                        : orderData.deliveryMethod.split('_').map(word => 
-                            word.charAt(0).toUpperCase() + word.slice(1)
-                          ).join(' ')}
+                          ? 'Saiisai Dispatch Rider'
+                          : orderData.deliveryMethod === 'seller_delivery'
+                            ? "Seller's Own Delivery"
+                            : orderData.deliveryMethod.split('_').map(word =>
+                              word.charAt(0).toUpperCase() + word.slice(1)
+                            ).join(' ')}
                     </InfoValue>
                   </InfoRow>
                 )}
@@ -619,9 +619,9 @@ const TrackingPage = () => {
                       <InfoRow>
                         <InfoLabel>Map</InfoLabel>
                         <InfoValue>
-                          <PickupMapLink 
-                            href={orderData.pickupCenter.googleMapLink} 
-                            target="_blank" 
+                          <PickupMapLink
+                            href={orderData.pickupCenter.googleMapLink}
+                            target="_blank"
                             rel="noopener noreferrer"
                           >
                             <FaMapMarkerAlt style={{ marginRight: '0.25rem' }} />
@@ -884,10 +884,10 @@ const TimelineItem = styled.div`
     width: 2px;
     height: calc(100% - 1rem);
     background: ${props => {
-      if (props.$completed) return '#F7C948';
-      if (props.$isActive) return '#2D7FF9';
-      return '#E5E7EB';
-    }};
+    if (props.$completed) return '#F7C948';
+    if (props.$isActive) return '#2D7FF9';
+    return '#E5E7EB';
+  }};
   }
 `;
 
@@ -1024,15 +1024,16 @@ const ItemCard = styled.li`
   display: flex;
   gap: 1rem;
   padding: 1rem;
-  background: #f7fafc;
+  background: #f8fafc;
   border-radius: 8px;
 `;
 
 const ItemImage = styled.img`
   width: 60px;
   height: 60px;
-  object-fit: cover;
+  object-fit: contain;
   border-radius: 8px;
+  background-color: #f8fafc;
 `;
 
 const ItemInfo = styled.div`
@@ -1175,21 +1176,21 @@ const UpdateTrackingModal = ({ orderId, currentStatus, onClose, onSuccess }) => 
       queryClient.invalidateQueries({ queryKey: ['orderTracking'] });
       queryClient.invalidateQueries({ queryKey: ['seller-orders'] });
       queryClient.invalidateQueries({ queryKey: ['sellerOrder', orderId] });
-      
+
       // If order status is "delivered", invalidate balance queries to update available balance
       if (variables.status === 'delivered' || variables.status === 'Delivered') {
         queryClient.invalidateQueries({ queryKey: ['payoutBalance'] });
         queryClient.invalidateQueries({ queryKey: ['sellerBalance'] });
-        queryClient.refetchQueries({ 
+        queryClient.refetchQueries({
           queryKey: ['payoutBalance'],
           type: 'active'
         });
-        queryClient.refetchQueries({ 
+        queryClient.refetchQueries({
           queryKey: ['sellerBalance'],
           type: 'active'
         });
       }
-      
+
       onSuccess();
       onClose();
     },

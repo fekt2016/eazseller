@@ -7,17 +7,19 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: ['./src/__tests__/setup.js'],
-    css: true,
+    setupFiles: ['./src/tests/setup.js'],
+    include: ['src/tests/**/*.test.{js,jsx}'],
+    css: false,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       exclude: [
         'node_modules/',
+        'src/tests/',
         'src/__tests__/',
-        '**/*.test.{js,jsx}',
-        '**/*.spec.{js,jsx}',
-        '**/__mocks__/**',
+        '**/*.d.ts',
+        '**/*.config.*',
+        '**/mockData/**',
       ],
       thresholds: {
         global: {
@@ -27,6 +29,9 @@ export default defineConfig({
           statements: 60,
         },
       },
+    },
+    onConsoleLog(log) {
+      if (log.includes('react-query')) return false;
     },
   },
   resolve: {

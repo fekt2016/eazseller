@@ -4,6 +4,8 @@ import ResponsiveDataTable from '../../../shared/components/ui/ResponsiveDataTab
 import Button from '../../../shared/components/ui/Button';
 import { ButtonSpinner } from '../../../shared/components/ui/LoadingComponents';
 import { FaEdit, FaTrash, FaBoxOpen } from "react-icons/fa";
+import { IMAGE_SLOTS } from "../../../shared/utils/cloudinaryConfig";
+import OptimizedImage from "../../../shared/components/OptimizedImage";
 
 export default function VariantTable({
   variants = [],
@@ -67,11 +69,18 @@ export default function VariantTable({
       align: 'center',
       render: (variant) => {
         const imageUrl = getVariantImageUrl(variant) || productImage;
-        
+
         return (
           <VariantImageContainer>
             {imageUrl ? (
-              <VariantImage src={imageUrl} alt="Variant" />
+              <OptimizedImage
+                src={imageUrl}
+                slot={IMAGE_SLOTS.TABLE_THUMB}
+                aspectRatio="1/1"
+                alt="Variant"
+                objectFit="contain"
+                radius="var(--border-radius-md)"
+              />
             ) : (
               <NoImagePlaceholder>
                 <FaBoxOpen />
@@ -217,17 +226,17 @@ const StockIndicator = styled.div`
   font-size: var(--font-size-sm);
   font-family: var(--font-body);
   background: ${({ $stock }) =>
-    $stock > 20 
-      ? "var(--color-green-100)" 
-      : $stock > 0 
-      ? "var(--color-yellow-100)" 
-      : "var(--color-red-100)"};
+    $stock > 20
+      ? "var(--color-green-100)"
+      : $stock > 0
+        ? "var(--color-yellow-100)"
+        : "var(--color-red-100)"};
   color: ${({ $stock }) =>
-    $stock > 20 
-      ? "var(--color-green-700)" 
-      : $stock > 0 
-      ? "var(--color-yellow-700)" 
-      : "var(--color-red-700)"};
+    $stock > 20
+      ? "var(--color-green-700)"
+      : $stock > 0
+        ? "var(--color-yellow-700)"
+        : "var(--color-red-700)"};
 `;
 
 const StatusBadge = styled.div`
@@ -241,12 +250,12 @@ const StatusBadge = styled.div`
   font-family: var(--font-body);
   text-transform: uppercase;
   background: ${({ status }) =>
-    status === "active" 
-      ? "var(--color-green-100)" 
+    status === "active"
+      ? "var(--color-green-100)"
       : "var(--color-grey-100)"};
   color: ${({ status }) =>
-    status === "active" 
-      ? "var(--color-green-700)" 
+    status === "active"
+      ? "var(--color-green-700)"
       : "var(--color-grey-700)"};
 `;
 
@@ -316,13 +325,10 @@ const VariantImageContainer = styled.div`
   margin: 0 auto;
 `;
 
-const VariantImage = styled.img`
+/* VariantImage styled component replaced by OptimizedImage */
+const VariantImage = styled.div`
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  border-radius: var(--border-radius-md);
-  border: 1px solid var(--color-grey-200);
-  background: var(--color-white-0);
 `;
 
 const NoImagePlaceholder = styled.div`

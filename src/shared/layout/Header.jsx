@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { FaBars, FaTimes } from "react-icons/fa";
 import { PATHS } from '../../routes/routePaths';
 import { devicesMax } from '../styles/breakpoint';
+import { getOptimizedImageUrl, IMAGE_SLOTS } from '../utils/cloudinaryConfig';
 
 const Header = ({ user, onToggleSidebar, isSidebarOpen = false }) => {
   return (
@@ -21,7 +22,18 @@ const Header = ({ user, onToggleSidebar, isSidebarOpen = false }) => {
         {user ? (
           <>
             <UserProfile>
-              <UserAvatar>{user.avatar || user.name?.[0] || 'U'}</UserAvatar>
+              <UserAvatar className="avatar-container">
+                {user.avatar ? (
+                  <img
+                    src={getOptimizedImageUrl(user.avatar, IMAGE_SLOTS.AVATAR)}
+                    alt={user.name || 'User'}
+                    loading="eager"
+                    fetchpriority="high"
+                  />
+                ) : (
+                  user.name?.[0] || 'U'
+                )}
+              </UserAvatar>
               <div style={{ display: "flex", flexDirection: "column" }}>
                 <div style={{ fontWeight: 600 }}>{user.name || 'User'}</div>
                 <div style={{ fontSize: "12px", color: "var(--color-grey-500)" }}>
@@ -73,6 +85,13 @@ const UserAvatar = styled.div`
   color: var(--color-white-0);
   font-weight: 600;
   font-size: 18px;
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 `;
 
 const LeftSection = styled.div`

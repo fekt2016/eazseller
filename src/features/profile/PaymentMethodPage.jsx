@@ -243,9 +243,7 @@ const PaymentMethodPage = ({ embedded = false }) => {
 
   // Handle edit payment method
   const handleEditPaymentMethod = (method) => {
-    console.log('Edit button clicked for method:', method);
     const methodId = method._id || method.id;
-    console.log('Setting editingMethodId to:', methodId);
     setEditingMethodId(methodId);
 
     // Check if payout is rejected and enable reactivation by default
@@ -262,7 +260,6 @@ const PaymentMethodPage = ({ embedded = false }) => {
         bankName: method.bankName || '',
         branch: method.branch || '',
       };
-      console.log('Setting bank details:', bankData);
       setBankDetails(bankData);
     } else if (method.type === 'mobile_money') {
       setActiveTab('mobile');
@@ -282,7 +279,6 @@ const PaymentMethodPage = ({ embedded = false }) => {
         phone: method.mobileNumber || method.phone || '',
         network: network,
       };
-      console.log('Setting mobile money details:', mobileData);
       setMobileMoneyDetails(mobileData);
     }
 

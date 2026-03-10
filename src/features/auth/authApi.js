@@ -72,32 +72,37 @@ const authApi = {
 
   // Verify 2FA code for login (matches EazMain/Saysay)
   verify2FALogin: async (loginSessionId, twoFactorCode) => {
-    console.log('[Seller AuthAPI] Verify 2FA request');
+    if (import.meta.env.DEV) {
+      console.debug('[Seller AuthAPI] Verify 2FA request');
+    }
     const response = await api.post("/seller/verify-2fa-login", {
       loginSessionId,
       twoFactorCode,
     });
-    console.log('[Seller AuthAPI] Verify 2FA response:', response.data?.status || 'success');
+    if (import.meta.env.DEV) {
+      console.debug('[Seller AuthAPI] Verify 2FA response received');
+    }
     return response;
   },
 
   // OTP-based authentication (kept for backward compatibility - used for password reset, etc.)
   sendOtp: async (loginId) => {
     try {
-      console.log('[Seller AuthAPI] Sending OTP request:', { loginId, endpoint: '/seller/send-otp' });
+      if (import.meta.env.DEV) {
+        console.debug('[Seller AuthAPI] Sending OTP request to /seller/send-otp');
+      }
       const response = await api.post("/seller/send-otp", { loginId });
-      console.log('[Seller AuthAPI] OTP send success:', response.data);
+      if (import.meta.env.DEV) {
+        console.debug('[Seller AuthAPI] OTP send success');
+      }
       return response;
     } catch (error) {
-      console.error('[Seller AuthAPI] OTP send error:', {
-        message: error.message,
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data,
-        url: error.config?.url,
-        baseURL: error.config?.baseURL,
-        fullURL: `${error.config?.baseURL}${error.config?.url}`,
-      });
+      if (import.meta.env.DEV) {
+        console.error('[Seller AuthAPI] OTP send error:', {
+          message: error.message,
+          status: error.response?.status,
+        });
+      }
       throw error;
     }
   },

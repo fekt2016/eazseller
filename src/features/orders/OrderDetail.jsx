@@ -177,9 +177,16 @@ function OrderDetails() {
                     return (
                       <TableRow key={item._id}>
                         <TableCell>
-                          <ProductImage>
-                            {item.product?.name?.charAt(0) || "P"}
-                          </ProductImage>
+                          <ProductImage
+                            src={item.product?.imageCover || item.product?.images?.[0]}
+                            alt={item.product?.name}
+                            onError={(e) => {
+                              if (e.target.dataset.fallbackAttempted !== 'true') {
+                                e.target.dataset.fallbackAttempted = 'true';
+                                e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="50" height="50"%3E%3Crect width="50" height="50" fill="%23f0f0f0"/%3E%3Ctext x="50%25" y="50%25" font-family="Arial" font-size="10" fill="%23999" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E';
+                              }
+                            }}
+                          />
                           <ProductDetails>
                             <ProductName>
                               {item.product?.name || "Product"}
@@ -780,17 +787,18 @@ const TableCell = styled.td`
   }
 `;
 
-const ProductImage = styled.div`
+const ProductImage = styled.img`
   width: 50px;
   height: 50px;
   border-radius: 8px;
-  background: var(--color-primary-100);
+  object-fit: contain;
+  aspect-ratio: 1 / 1;
+  background-color: #f8fafc;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-weight: bold;
   flex-shrink: 0;
+  border: 1px solid var(--color-grey-200);
 `;
 
 const ProductDetails = styled.div`

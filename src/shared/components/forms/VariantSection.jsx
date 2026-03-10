@@ -5,6 +5,7 @@ import { generateSKU } from "../../utils/helpers";
 import { FiImage, FiX } from "react-icons/fi";
 import { usePlatformTaxRates } from "../../hooks/usePlatformTaxRates";
 import { toast } from "react-toastify";
+import { getOptimizedImageUrl, IMAGE_SLOTS } from "../../utils/cloudinaryConfig";
 
 // Helper to generate a unique signature for a file to prevent duplicates
 const generateFileSignature = (file) => {
@@ -90,40 +91,40 @@ export default function VariantSection({ variantAttributes = [], seller, singleV
       )}
 
       {!singleVariantMode && (
-      <AttributeManagement>
-        <h4>Additional Attributes:</h4>
-        <AttributeInputGroup>
-          <AttributeInput
-            type="text"
-            value={newAttribute}
-            onChange={(e) => setNewAttribute(e.target.value)}
-            placeholder="New attribute name"
-          />
-          <AddAttributeButton type="button" onClick={addCustomAttribute}>
-            Add Attribute
-          </AddAttributeButton>
-        </AttributeInputGroup>
+        <AttributeManagement>
+          <h4>Additional Attributes:</h4>
+          <AttributeInputGroup>
+            <AttributeInput
+              type="text"
+              value={newAttribute}
+              onChange={(e) => setNewAttribute(e.target.value)}
+              placeholder="New attribute name"
+            />
+            <AddAttributeButton type="button" onClick={addCustomAttribute}>
+              Add Attribute
+            </AddAttributeButton>
+          </AttributeInputGroup>
 
-        <AttributeList>
-          {customAttributes
-            .filter((attr) => attr.toLowerCase() !== "brand")
-            .map((attr, index) => (
-              <AttributeTag key={index}>
-                {attr}
-                <RemoveAttributeButton
-                  type="button"
-                  onClick={() =>
-                    setCustomAttributes((prev) =>
-                      prev.filter((a) => a !== attr),
-                    )
-                  }
-                >
-                  ×
-                </RemoveAttributeButton>
-              </AttributeTag>
-            ))}
-        </AttributeList>
-      </AttributeManagement>
+          <AttributeList>
+            {customAttributes
+              .filter((attr) => attr.toLowerCase() !== "brand")
+              .map((attr, index) => (
+                <AttributeTag key={index}>
+                  {attr}
+                  <RemoveAttributeButton
+                    type="button"
+                    onClick={() =>
+                      setCustomAttributes((prev) =>
+                        prev.filter((a) => a !== attr),
+                      )
+                    }
+                  >
+                    ×
+                  </RemoveAttributeButton>
+                </AttributeTag>
+              ))}
+          </AttributeList>
+        </AttributeManagement>
       )}
 
       <VariantCardsContainer>
@@ -475,6 +476,8 @@ function VariantRow({
           <option value="used">Used</option>
           <option value="fair">Fair</option>
           <option value="poor">Poor</option>
+          <option value="damaged">Damaged</option>
+          <option value="for_parts">For Parts</option>
         </Select>
         {variantErrors?.condition && (
           <VariantErrorMessage>
@@ -944,7 +947,7 @@ function VariantImageUpload({ variantIndex, control, setValue }) {
           {imagePreviews.map((preview, index) => (
             <VariantImagePreview key={index}>
               <VariantPreviewImage
-                src={preview}
+                src={getOptimizedImageUrl(preview, IMAGE_SLOTS.TABLE_THUMB)}
                 alt={`Variant ${index + 1} `}
               />
               <VariantImageRemoveButton

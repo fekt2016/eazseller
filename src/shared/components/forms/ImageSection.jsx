@@ -3,6 +3,8 @@ import { useEffect, useState, useRef } from "react";
 import { useFormContext } from "react-hook-form";
 import { FiUploadCloud } from "react-icons/fi";
 import { toast } from "react-toastify";
+import { getOptimizedImageUrl, IMAGE_SLOTS } from "../../utils/cloudinaryConfig";
+import OptimizedImage from "../OptimizedImage";
 
 // Styled components - defined before component to ensure they're available
 const ImageSectionContainer = styled.div`
@@ -179,6 +181,7 @@ const RemoveButton = styled.button`
   transition: all 0.2s;
   min-width: 32px; /* Touch-friendly */
   min-height: 32px;
+  z-index: 10;
 
   &:hover {
     background: #c53030;
@@ -216,31 +219,35 @@ const CoverPreview = styled.div`
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-`;
-
-const CoverImage = styled.img`
-  width: 100%;
-  max-height: 300px;
-  object-fit: contain;
+  aspect-ratio: 1 / 1;
   background-color: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-grey-200);
 `;
 
 export default function ImageSection({ isSubmitting }) {
   const { watch, setValue, register, trigger, formState: { errors } } = useFormContext();
   const [coverPreview, setCoverPreview] = useState("");
+  const [videoPreview, setVideoPreview] = useState("");
 
-  // Use ref to track cover image to prevent it from being cleared
+  // Refs to track files
   const coverImageRef = useRef(null);
+  const videoRef = useRef(null);
 
-  // Watch form value only for cover image (product-level)
+  // Watch form values for previews
   const imageCover = watch("imageCover");
+  const video = watch("video");
 
-  // Update ref when imageCover changes
+  // Update refs when values change
   useEffect(() => {
-    if (imageCover) {
-      coverImageRef.current = imageCover;
-    }
+    if (imageCover) coverImageRef.current = imageCover;
   }, [imageCover]);
+
+  useEffect(() => {
+    if (video) videoRef.current = video;
+  }, [video]);
 
   // Register imageCover for validation
   useEffect(() => {
@@ -267,28 +274,73 @@ export default function ImageSection({ isSubmitting }) {
     }
   }, [imageCover]);
 
+  // Sync video preview
+  useEffect(() => {
+    if (typeof video === "string") {
+      setVideoPreview(video);
+    } else if (video instanceof File) {
+      const preview = URL.createObjectURL(video);
+      setVideoPreview(preview);
+    } else {
+      setVideoPreview("");
+    }
+  }, [video]);
+
   // Cleanup object URLs
   useEffect(() => {
     return () => {
-      if (coverPreview.startsWith("blob:")) {
+      if (coverPreview && coverPreview.startsWith("blob:")) {
         URL.revokeObjectURL(coverPreview);
       }
+      if (videoPreview && videoPreview.startsWith("blob:")) {
+        URL.revokeObjectURL(videoPreview);
+      }
     };
-  }, [coverPreview]);
+  }, [coverPreview, videoPreview]);
 
   const handleCoverImage = (e) => {
     const file = e.target.files[0];
     if (file) {
       setValue("imageCover", file, { shouldValidate: true, shouldDirty: true });
-      // Update ref to track the cover image
       coverImageRef.current = file;
-      // Trigger validation after setting the value
       trigger("imageCover");
-      // Clear the input value to allow re-selecting the same file
       e.target.value = '';
-    } else {
-      // If no file selected, don't clear the existing value
-      // This prevents accidental clearing when clicking cancel
+    }
+  };
+
+  const handleVideoUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // 1. Check file size (50MB)
+      if (file.size > 50 * 1024 * 1024) {
+        toast.error("Video file size must be less than 50MB");
+        return;
+      }
+
+      // 2. Check video duration (20s)
+      const videoElement = document.createElement('video');
+      videoElement.preload = 'metadata';
+      videoElement.onloadedmetadata = function () {
+        window.URL.revokeObjectURL(videoElement.src);
+        const duration = videoElement.duration;
+
+        if (duration > 20.5) { // Allowing a tiny buffer for browser rounding
+          toast.error("Product video must be 20 seconds or less");
+          setValue("video", "", { shouldValidate: true });
+          return;
+        }
+
+        setValue("video", file, { shouldValidate: true, shouldDirty: true });
+        videoRef.current = file;
+      };
+
+      videoElement.onerror = function () {
+        toast.error("Invalid video file");
+        window.URL.revokeObjectURL(videoElement.src);
+      };
+
+      videoElement.src = URL.createObjectURL(file);
+      e.target.value = '';
     }
   };
 
@@ -325,8 +377,60 @@ export default function ImageSection({ isSubmitting }) {
           <PreviewContainer>
             <PreviewTitle>Cover Preview</PreviewTitle>
             <CoverPreview>
-              <CoverImage src={coverPreview} alt="Cover preview" />
+              <OptimizedImage
+                src={coverPreview}
+                slot={IMAGE_SLOTS.FORM_PREVIEW}
+                aspectRatio="1/1"
+                alt="Cover preview"
+                objectFit="contain"
+              />
             </CoverPreview>
+          </PreviewContainer>
+        )}
+      </ImageUploadCard>
+
+      {/* Video Upload */}
+      <ImageUploadCard>
+        <UploadLabel>
+          Product Video <Optional>(Optional)</Optional>
+          <HelperText>Adding a video helps customers see your product in action (Max 20 seconds)</HelperText>
+        </UploadLabel>
+        <UploadArea $hasError={!!errors.video}>
+          <UploadIcon>
+            <FiUploadCloud />
+          </UploadIcon>
+          <UploadText>
+            <strong>Click to upload</strong> or drag and drop
+          </UploadText>
+          <UploadText>Supported: All video formats (Max 50MB, Max 20s)</UploadText>
+          <FileInput
+            type="file"
+            accept="video/*"
+            onChange={handleVideoUpload}
+            disabled={isSubmitting}
+            name="video"
+          />
+        </UploadArea>
+        {errors.video && (
+          <ImageErrorMessage>{errors.video.message}</ImageErrorMessage>
+        )}
+
+        {videoPreview && (
+          <PreviewContainer>
+            <PreviewTitle>Video Preview</PreviewTitle>
+            <div style={{ position: 'relative', borderRadius: '8px', overflow: 'hidden' }}>
+              <video
+                src={videoPreview}
+                controls
+                style={{ width: '100%', maxHeight: '400px', borderRadius: '8px' }}
+              />
+              <RemoveButton
+                type="button"
+                onClick={() => setValue("video", "", { shouldDirty: true })}
+              >
+                ×
+              </RemoveButton>
+            </div>
           </PreviewContainer>
         )}
       </ImageUploadCard>

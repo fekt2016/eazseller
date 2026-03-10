@@ -1,5 +1,3 @@
-import { jwtDecode } from "jwt-decode";
-
 export const formatCurrency = (value) =>
   new Intl.NumberFormat("en", { style: "currency", currency: "USD" }).format(
     value
@@ -50,18 +48,6 @@ export function formatTime(date) {
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(date));
-}
-
-/**
- * @deprecated This function is no longer used with cookie-based authentication.
- * Tokens are now stored in HTTP-only cookies and managed by the backend.
- * Use the useAuth hook to get the current seller's role instead.
- */
-export function returnRole(token) {
-  // Legacy function - kept for backward compatibility but not used
-  // Cookie-based auth: Tokens are in HTTP-only cookies, not accessible from JS
-  console.warn('[returnRole] This function is deprecated. Use useAuth hook instead.');
-  return "";
 }
 
 // export const generateSKU = ({ productName, index }) => {
@@ -171,7 +157,6 @@ const networks = {
 
 export const validateGhanaPhone = (phone) => {
   const cleanedPhone = phone.replace(/\D/g, "");
-  console.log("cleanedPhone", cleanedPhone);
 
   // Validate length
   if (cleanedPhone.length < 10 || cleanedPhone.length > 12) {

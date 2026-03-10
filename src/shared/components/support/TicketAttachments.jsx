@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { FaFile, FaFilePdf, FaFileImage, FaTimes } from 'react-icons/fa';
 import styled from 'styled-components';
+import { getOptimizedImageUrl, IMAGE_SLOTS } from '../../utils/cloudinaryConfig';
 
 const AttachmentsContainer = styled.div`
   margin-top: var(--spacing-md);
@@ -154,7 +155,7 @@ export default function TicketAttachments({ attachments = [] }) {
               >
                 <AttachmentThumbnail>
                   {isImg ? (
-                    <img src={url} alt={name} />
+                    <img src={getOptimizedImageUrl(url, IMAGE_SLOTS.TABLE_THUMB)} alt={name} />
                   ) : (
                     <AttachmentIcon>{getFileIcon(url)}</AttachmentIcon>
                   )}
@@ -171,7 +172,7 @@ export default function TicketAttachments({ attachments = [] }) {
           <CloseButton onClick={() => setPreviewImage(null)}>
             <FaTimes />
           </CloseButton>
-          <PreviewImage src={previewImage} alt="Preview" />
+          <PreviewImage src={getOptimizedImageUrl(previewImage, IMAGE_SLOTS.PRODUCT_DETAIL)} alt="Preview" />
         </ImagePreview>
       )}
     </>
