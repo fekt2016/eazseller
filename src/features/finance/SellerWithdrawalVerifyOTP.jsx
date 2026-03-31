@@ -14,20 +14,20 @@ import { PATHS } from '../../routes/routePaths';
 const PageContainer = styled.div`
   max-width: 600px;
   margin: 0 auto;
-  padding: var(--spacing-xl);
+  padding: 1.5rem;
 `;
 
 const Header = styled.div`
-  margin-bottom: var(--spacing-xl);
+  margin-bottom: 1.5rem;
 `;
 
 const BackLink = styled(Link)`
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  color: var(--color-primary);
+  gap: 0.375rem;
+  color: #E8920A;
   text-decoration: none;
-  margin-bottom: var(--spacing-md);
+  margin-bottom: 1rem;
   font-weight: 500;
   transition: opacity 0.2s;
 
@@ -37,35 +37,35 @@ const BackLink = styled(Link)`
 `;
 
 const Title = styled.h1`
-  font-size: var(--font-size-2xl);
+  font-size: 1.5rem;
   font-weight: 700;
-  color: var(--color-grey-900);
-  margin-bottom: var(--spacing-xs);
+  color: #111827;
+  margin-bottom: 0.375rem;
 `;
 
 const Subtitle = styled.p`
-  color: var(--color-grey-600);
-  font-size: var(--font-size-base);
+  color: #6B7280;
+  font-size: 1rem;
 `;
 
 const Card = styled.div`
-  background: var(--color-white-0);
-  border: 1px solid var(--color-grey-200);
-  border-radius: var(--border-radius-lg);
-  padding: var(--spacing-xl);
+  background: #FFFFFF;
+  border: 1px solid #F1EFE8;
+  border-radius: 12px;
+  padding: 1.5rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 `;
 
 const WithdrawalInfo = styled.div`
-  margin-bottom: var(--spacing-xl);
-  padding-bottom: var(--spacing-xl);
-  border-bottom: 1px solid var(--color-grey-200);
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #F1EFE8;
 `;
 
 const InfoRow = styled.div`
   display: flex;
   justify-content: space-between;
-  margin-bottom: var(--spacing-md);
+  margin-bottom: 1rem;
 
   &:last-child {
     margin-bottom: 0;
@@ -73,50 +73,50 @@ const InfoRow = styled.div`
 `;
 
 const InfoLabel = styled.span`
-  color: var(--color-grey-600);
-  font-size: var(--font-size-sm);
+  color: #6B7280;
+  font-size: 0.875rem;
 `;
 
 const InfoValue = styled.span`
-  color: var(--color-grey-900);
+  color: #111827;
   font-weight: 600;
-  font-size: var(--font-size-base);
+  font-size: 1rem;
 `;
 
 const AmountValue = styled(InfoValue)`
-  font-size: var(--font-size-xl);
-  color: var(--color-primary);
+  font-size: 1.1rem;
+  color: #E8920A;
 `;
 
 const Instructions = styled.div`
-  background: var(--color-blue-50);
-  border: 1px solid var(--color-blue-200);
-  border-radius: var(--border-radius-md);
-  padding: var(--spacing-md);
-  margin-bottom: var(--spacing-xl);
-  color: var(--color-blue-900);
-  font-size: var(--font-size-sm);
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 9px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  color: #1E3A5F;
+  font-size: 0.875rem;
   line-height: 1.6;
 `;
 
 const FormGroup = styled.div`
-  margin-bottom: var(--spacing-xl);
+  margin-bottom: 1.5rem;
 `;
 
 const Label = styled.label`
   display: block;
-  margin-bottom: var(--spacing-sm);
-  color: var(--color-grey-700);
+  margin-bottom: 0.5rem;
+  color: #374151;
   font-weight: 500;
-  font-size: var(--font-size-sm);
+  font-size: 0.875rem;
 `;
 
 const OTPInput = styled.input`
   width: 100%;
-  padding: var(--spacing-md);
-  border: 2px solid var(--color-grey-300);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-xl);
+  padding: 1rem;
+  border: 2px solid #E5E7EB;
+  border-radius: 9px;
+  font-size: 1.1rem;
   text-align: center;
   letter-spacing: 0.5rem;
   font-weight: 600;
@@ -124,35 +124,35 @@ const OTPInput = styled.input`
 
   &:focus {
     outline: none;
-    border-color: var(--color-primary);
+    border-color: #E8920A;
   }
 
   &::placeholder {
     letter-spacing: 0;
-    color: var(--color-grey-400);
+    color: #D1D5DB;
   }
 `;
 
 const ButtonGroup = styled.div`
   display: flex;
-  gap: var(--spacing-md);
-  margin-top: var(--spacing-xl);
+  gap: 1rem;
+  margin-top: 1.5rem;
   width: 100%;
 `;
 
 const Button = styled.button`
   flex: 1;
-  padding: var(--spacing-md) var(--spacing-lg);
+  padding: 1rem 2rem;
   border: none;
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-base);
+  border-radius: 9px;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-sm);
+  gap: 0.5rem;
   min-height: 44px;
 
   &:disabled {
@@ -162,55 +162,55 @@ const Button = styled.button`
 `;
 
 const PrimaryButton = styled(Button)`
-  background: var(--color-primary);
+  background: #E8920A;
   color: white;
   min-width: 150px;
 
   &:hover:not(:disabled) {
-    background: var(--color-primary-dark);
+    background: #D97706;
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 
   &:disabled {
-    background: var(--color-grey-400);
-    color: var(--color-grey-600);
+    background: #D1D5DB;
+    color: #6B7280;
   }
 `;
 
 const SecondaryButton = styled(Button)`
-  background: var(--color-grey-100);
-  color: var(--color-grey-700);
+  background: #F9F8F5;
+  color: #374151;
 
   &:hover:not(:disabled) {
-    background: var(--color-grey-200);
+    background: #F1EFE8;
   }
 `;
 
 const ErrorMessage = styled.div`
-  background: var(--color-red-50);
-  border: 1px solid var(--color-red-200);
-  border-radius: var(--border-radius-md);
-  padding: var(--spacing-md);
-  margin-bottom: var(--spacing-md);
-  color: var(--color-red-700);
-  font-size: var(--font-size-sm);
+  background: #FCEBEB;
+  border: 1px solid #FECACA;
+  border-radius: 9px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  color: #A32D2D;
+  font-size: 0.875rem;
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: 0.5rem;
 `;
 
 const SuccessMessage = styled.div`
-  background: var(--color-green-50);
-  border: 1px solid var(--color-green-200);
-  border-radius: var(--border-radius-md);
-  padding: var(--spacing-md);
-  margin-bottom: var(--spacing-md);
-  color: var(--color-green-700);
-  font-size: var(--font-size-sm);
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  border-radius: 9px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  color: #3B6D11;
+  font-size: 0.875rem;
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: 0.5rem;
 `;
 
 const LoadingSpinner = styled(FaSpinner)`
@@ -551,9 +551,9 @@ export default function SellerWithdrawalVerifyOTP() {
     return (
       <PageContainer>
         <Card>
-          <div style={{ textAlign: 'center', padding: 'var(--spacing-xl)' }}>
+          <div style={{ textAlign: 'center', padding: '1.5rem' }}>
             <LoadingSpinner size={32} />
-            <p style={{ marginTop: 'var(--spacing-md)', color: 'var(--color-grey-600)' }}>
+            <p style={{ marginTop: '1rem', color: '#6B7280' }}>
               Loading withdrawal details...
             </p>
           </div>
@@ -664,12 +664,12 @@ export default function SellerWithdrawalVerifyOTP() {
           <strong>Instructions:</strong> Paystack has sent a 6-digit PIN to your phone number or email address.
           Please enter the PIN below to complete the withdrawal transfer.
           {isOtpExpired && !resendMutation.isSuccess && (
-            <div style={{ marginTop: 'var(--spacing-sm)', fontWeight: '600', color: 'var(--color-orange-700)' }}>
+            <div style={{ marginTop: '0.5rem', fontWeight: '600', color: '#854F0B' }}>
               ⚠️ Your PIN has expired. Please click "Resend PIN" to receive a new one.
             </div>
           )}
           {resendMutation.isSuccess && (
-            <div style={{ marginTop: 'var(--spacing-sm)', fontWeight: '600', color: 'var(--color-green-700)' }}>
+            <div style={{ marginTop: '0.5rem', fontWeight: '600', color: '#3B6D11' }}>
               ✅ New PIN has been sent! Please check your phone/email and enter the new PIN.
             </div>
           )}
@@ -682,7 +682,7 @@ export default function SellerWithdrawalVerifyOTP() {
             <div style={{ flex: 1 }}>
               {error}
               {isOtpExpired && (
-                <div style={{ marginTop: 'var(--spacing-sm)', fontSize: 'var(--font-size-xs)' }}>
+                <div style={{ marginTop: '0.5rem', fontSize: '0.8rem' }}>
                   Click the "Resend PIN" button below to receive a new PIN.
                 </div>
               )}
@@ -712,7 +712,7 @@ export default function SellerWithdrawalVerifyOTP() {
               disabled={verifyMutation.isPending || verifyMutation.isSuccess}
               autoFocus
               style={isOtpExpired ? {
-                borderColor: 'var(--color-orange-500)',
+                borderColor: '#E8920A',
                 borderWidth: '2px',
               } : {}}
             />
@@ -750,7 +750,7 @@ export default function SellerWithdrawalVerifyOTP() {
               onClick={() => resendMutation.mutate()}
               disabled={resendMutation.isPending || verifyMutation.isPending || verifyMutation.isSuccess}
               style={isOtpExpired ? {
-                background: 'var(--color-orange-500)',
+                background: '#E8920A',
                 color: 'white',
                 fontWeight: '600',
               } : {}}

@@ -2,16 +2,50 @@ import { useState, useMemo } from 'react';
 import styled from 'styled-components';
 import useDynamicPageTitle from '../../shared/hooks/useDynamicPageTitle';
 import { useSellerTransactions } from '../../shared/hooks/finance/useSellerTransactions';
-import { PageContainer, PageHeader, TitleSection, ActionSection } from '../../shared/components/ui/SpacingSystem';
 import TransactionFilterBar from '../../components/finance/transactions/TransactionFilterBar';
 import TransactionTable from '../../components/finance/transactions/TransactionTable';
 import ExportTransactionsButton from '../../components/finance/transactions/ExportTransactionsButton';
 import Pagination from '../../components/finance/transactions/Pagination';
-import { LoadingState, ErrorState } from '../../shared/components/ui/LoadingComponents';
-import { devicesMax } from '../../shared/styles/breakpoint';
+import { ErrorState, SkeletonTableRows } from '../../shared/components/ui/LoadingComponents';
+
+const TxPage = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  background: #F9F8F5;
+  min-height: 100vh;
+`;
+
+const TxHeader = styled.div`
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  padding: 0.85rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+`;
+
+const TxTitle = styled.h1`
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.1rem;
+`;
+
+const TxSubtitle = styled.p`
+  font-size: 0.8rem;
+  color: #9CA3AF;
+  margin: 0;
+`;
 
 const ContentSection = styled.section`
-  margin-top: var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 `;
 
 const TransactionHistoryPage = () => {
@@ -75,37 +109,35 @@ const TransactionHistoryPage = () => {
 
   if (isLoading && !data) {
     return (
-      <PageContainer>
-        <LoadingState message="Loading transaction history..." />
-      </PageContainer>
+      <TxPage>
+        <SkeletonTableRows count={8} />
+      </TxPage>
     );
   }
 
   if (error) {
     return (
-      <PageContainer>
+      <TxPage>
         <ErrorState
           title="Failed to load transactions"
           message={error?.message || 'Please try again later'}
         />
-      </PageContainer>
+      </TxPage>
     );
   }
 
   return (
-    <PageContainer>
-      <PageHeader $padding="lg" $marginBottom="lg">
-        <TitleSection>
-          <h1>Transaction History</h1>
-          <p>View all your financial transactions and earnings</p>
-        </TitleSection>
-        <ActionSection>
-          <ExportTransactionsButton 
-            transactions={transactions}
-            filename={`transactions-${new Date().toISOString().split('T')[0]}.csv`}
-          />
-        </ActionSection>
-      </PageHeader>
+    <TxPage>
+      <TxHeader>
+        <div>
+          <TxTitle>Transaction History</TxTitle>
+          <TxSubtitle>View all your financial transactions and earnings</TxSubtitle>
+        </div>
+        <ExportTransactionsButton
+          transactions={transactions}
+          filename={`transactions-${new Date().toISOString().split('T')[0]}.csv`}
+        />
+      </TxHeader>
 
       <ContentSection>
         <TransactionFilterBar
@@ -130,7 +162,7 @@ const TransactionHistoryPage = () => {
           />
         )}
       </ContentSection>
-    </PageContainer>
+    </TxPage>
   );
 };
 

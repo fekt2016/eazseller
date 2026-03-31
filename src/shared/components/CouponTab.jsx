@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo } from "react";
-import styled, { keyframes } from "styled-components";
+import styled from "styled-components";
+import { SkeletonTableRows } from '../components/ui/LoadingComponents';
+
 import {
   FaSearch,
   FaEnvelope,
   FaPlus,
   FaCopy,
-  FaSpinner,
   FaChevronDown,
   FaChevronUp,
   FaEdit,
@@ -174,10 +175,7 @@ const CouponTab = ({
       </Header>
 
       {isLoading ? (
-        <LoadingState>
-          <Spinner />
-          <p>Loading coupons...</p>
-        </LoadingState>
+        <SkeletonTableRows count={6} />
       ) : filteredBatches.length === 0 ? (
         <EmptyState>
           <h3>No coupon batches found</h3>
@@ -369,495 +367,392 @@ const CouponTab = ({
 };
 
 // Styled Components
-const spinAnimation = keyframes`
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-`;
-
 const Container = styled.div`
-  padding: 24px;
-  background-color: #f9fafb;
-  min-height: calc(100vh - 64px);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 `;
 
 const Header = styled.div`
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
   display: flex;
-  gap: 16px;
-  margin-bottom: 24px;
-  align-items: center;
   flex-wrap: wrap;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: stretch;
-  }
+  gap: 0.75rem;
+  align-items: center;
 `;
+
 const ControlsContainer = styled.div`
+  flex: 1;
   display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: 0.75rem;
   align-items: center;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: stretch;
-  }
-`;
-const StatusFilter = styled.div`
-  display: flex;
-  gap: 8px;
   flex-wrap: wrap;
-
-  @media (max-width: 768px) {
-    width: 100%;
-    justify-content: space-between;
-  }
 `;
+
 const SearchContainer = styled.div`
   position: relative;
   flex: 1;
-  max-width: 500px;
-  min-width: 250px;
-
-  @media (max-width: 768px) {
-    max-width: 100%;
-  }
+  min-width: 200px;
 `;
 
 const SearchIcon = styled(FaSearch)`
   position: absolute;
-  left: 14px;
+  left: 0.85rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #9ca3af;
-  font-size: 16px;
+  color: #9CA3AF;
+  font-size: 0.8rem;
 `;
 
 const SearchInput = styled.input`
   width: 100%;
-  padding: 12px 16px 12px 42px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  font-size: 15px;
-  transition: all 0.2s;
-  background-color: white;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  height: 36px;
+  padding: 0 0.9rem 0 2.2rem;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 9px;
+  font-size: 0.875rem;
+  background: #F9F8F5;
+  color: #111827;
+  outline: none;
+  box-sizing: border-box;
 
-  &:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-  }
+  &::placeholder { color: #9CA3AF; }
+  &:focus { border-color: #E8920A; background: #FFFFFF; }
+`;
+
+const FilterContainer = styled.div``;
+
+const StatusSelect = styled.select`
+  height: 36px;
+  padding: 0 0.75rem;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 9px;
+  font-size: 0.8rem;
+  color: #374151;
+  background: #FFFFFF;
+  cursor: pointer;
+  outline: none;
+
+  &:focus { border-color: #E8920A; }
 `;
 
 const CreateButton = styled.button`
-  padding: 12px 24px;
-  background-color: #3b82f6;
-  color: white;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 36px;
+  padding: 0 1rem;
+  background: #E8920A;
+  color: #FFFFFF;
   border: none;
+  border-radius: 9px;
+  font-size: 0.875rem;
+  font-weight: 600;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 15px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  height: 42px;
+  flex-shrink: 0;
+  transition: opacity 0.12s;
 
-  &:hover {
-    background-color: #2563eb;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
-
-  @media (max-width: 768px) {
-    width: 100%;
-    justify-content: center;
-  }
-`;
-
-const LoadingState = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 80px 20px;
-  text-align: center;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-`;
-
-const Spinner = styled(FaSpinner)`
-  font-size: 3rem;
-  animation: ${spinAnimation} 1s linear infinite;
-  margin-bottom: 24px;
-  color: #3b82f6;
-`;
-const FilterContainer = styled.div`
-  position: relative;
-`;
-
-const StatusSelect = styled.select`
-  padding: 10px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 15px;
-  background: white;
-  cursor: pointer;
-  height: 42px;
-  appearance: none;
-  padding-right: 40px;
-
-  &:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-  }
+  &:hover { opacity: 0.88; }
 `;
 
 const EmptyState = styled.div`
-  text-align: center;
-  padding: 60px 30px;
-  background: white;
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  max-width: 600px;
-  margin: 0 auto;
+  padding: 3rem 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
 
   h3 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: 16px;
-    color: #1f2937;
+    font-size: 0.975rem;
+    font-weight: 600;
+    color: #374151;
+    margin: 0;
   }
 
   p {
-    color: #6b7280;
-    margin-bottom: 30px;
-    font-size: 1.05rem;
+    font-size: 0.8rem;
+    color: #9CA3AF;
+    margin: 0 0 0.75rem;
   }
 `;
 
 const BatchesContainer = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 0.75rem;
 `;
 
 const BatchCard = styled.div`
-  background: white;
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   overflow: hidden;
-  transition: all 0.3s ease;
-  border: 1px solid #e5e7eb;
-
-  &:hover {
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
-    transform: translateY(-3px);
-  }
 `;
+
 const StatusButton = styled.button`
-  padding: 8px 16px;
+  height: 30px;
+  padding: 0 0.85rem;
   border-radius: 20px;
-  font-size: 0.875rem;
+  font-size: 0.775rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
-  border: 1px solid transparent;
-  background-color: ${({ active }) => (active ? "#dbeafe" : "#f3f4f6")};
-  color: ${({ active }) => (active ? "#1d4ed8" : "#4b5563")};
+  transition: all 0.12s;
+  border: 0.5px solid ${({ active }) => active ? '#E8920A' : '#F1EFE8'};
+  background: ${({ active }) => active ? '#FDF3E3' : '#FFFFFF'};
+  color: ${({ active }) => active ? '#E8920A' : '#6B7280'};
 
-  &:hover {
-    background-color: #e5e7eb;
-  }
+  &:hover { border-color: #E8920A; color: #E8920A; }
 `;
 
 const BatchHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px;
+  padding: 1rem 1.25rem;
   cursor: pointer;
-  background: #f8fafc;
-  border-bottom: 1px solid #e5e7eb;
+  transition: background 0.12s;
+
+  &:hover { background: #FFFDF9; }
 
   @media (max-width: 768px) {
     flex-direction: column;
     align-items: flex-start;
-    gap: 16px;
+    gap: 0.75rem;
   }
 `;
 
 const HeaderContent = styled.div`
   flex: 1;
+  min-width: 0;
 `;
 
 const BatchName = styled.h3`
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: #1f2937;
+  font-size: 0.925rem;
+  font-weight: 600;
+  color: #111827;
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
+  gap: 0.45rem;
+  margin: 0 0 0.3rem;
+
+  svg { color: #9CA3AF; font-size: 0.75rem; flex-shrink: 0; }
 `;
 
 const BatchInfo = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
-  font-size: 14px;
-  color: #6b7280;
-
-  @media (max-width: 480px) {
-    flex-direction: column;
-    gap: 8px;
-  }
+  gap: 1rem;
+  font-size: 0.775rem;
+  color: #9CA3AF;
 `;
 
 const InfoItem = styled.div`
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 0.3rem;
 `;
 
 const Label = styled.span`
-  font-weight: 600;
-  color: #4b5563;
+  font-weight: 500;
+  color: #6B7280;
 `;
 
 const Value = styled.span`
-  color: #6b7280;
+  color: #9CA3AF;
 `;
 
 const BatchDiscount = styled.div`
-  padding: 8px 16px;
-  background-color: #d1fae5;
-  color: #065f46;
-  border-radius: 24px;
-  font-weight: 700;
-  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 0.65rem;
+  background: #D1FAE5;
+  color: #065F46;
+  border-radius: 20px;
+  font-size: 0.775rem;
+  font-weight: 600;
   white-space: nowrap;
-  margin-right: 10px;
+  margin-right: 0.5rem;
 `;
 
 const BatchActions = styled.div`
   display: flex;
   align-items: center;
-  gap: 8px;
-
-  @media (max-width: 768px) {
-    width: 100%;
-    justify-content: flex-end;
-  }
+  gap: 0.4rem;
 `;
 
 const BatchDetails = styled.div`
-  padding: 24px;
-  background: #fff;
+  padding: 1rem 1.25rem;
+  background: #FAFAF9;
+  border-top: 0.5px solid #F1EFE8;
 `;
 
 const StatsContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 25px;
-  padding-bottom: 25px;
-  border-bottom: 1px solid #f1f5f9;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 0.5px solid #F1EFE8;
+  align-items: center;
 `;
 
 const StatItem = styled.div`
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 16px;
-  background: #f8fafc;
-  border-radius: 10px;
-  min-width: 160px;
-  border-left: 4px solid #3b82f6;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-
-  @media (max-width: 480px) {
-    min-width: 100%;
-  }
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 8px;
 `;
 
 const StatLabel = styled.span`
-  font-size: 14px;
-  color: #64748b;
-  margin-bottom: 8px;
+  font-size: 0.75rem;
+  color: #9CA3AF;
 `;
 
 const StatValue = styled.span`
-  font-size: 20px;
-  font-weight: 800;
-  color: #1e293b;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
 `;
 
 const BatchActionButton = styled.button`
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  background: #e0f2fe;
-  color: #0369a1;
-  border: none;
+  gap: 0.4rem;
+  height: 30px;
+  padding: 0 0.85rem;
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
   border-radius: 8px;
-  font-weight: 600;
+  color: #374151;
+  font-size: 0.775rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.12s;
 
-  &:hover {
-    background: #bae6fd;
-    transform: translateY(-1px);
-  }
-
-  @media (max-width: 480px) {
-    width: 100%;
-    justify-content: center;
-  }
+  &:hover { border-color: #E8920A; color: #E8920A; background: #FDF3E3; }
 `;
 
 const CouponsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0.75rem;
 
-  @media (max-width: 480px) {
-    grid-template-columns: 1fr;
-  }
+  @media (max-width: 480px) { grid-template-columns: 1fr; }
 `;
 
 const CouponCard = styled.div`
-  border: 1px solid ${({ used, sent }) =>
-    used ? "#fecaca" : sent ? "#a7f3d0" : "#bfdbfe"};
+  border: 0.5px solid ${({ used, sent }) =>
+    used ? '#FEE2E2' : sent ? '#D1FAE5' : '#F1EFE8'};
   background: ${({ used, sent }) =>
-    used ? "#fef2f2" : sent ? "#f0fdf4" : "#f0f9ff"};
+    used ? '#FFF5F5' : sent ? '#F0FDF4' : '#FFFFFF'};
   border-radius: 10px;
-  padding: 20px;
+  padding: 0.85rem 1rem;
   display: flex;
   flex-direction: column;
-  transition: all 0.2s;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
-
-  &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  }
+  gap: 0.5rem;
 `;
 
 const CouponHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 15px;
+  gap: 0.5rem;
 `;
 
 const CouponCode = styled.div`
-  font-family: "Courier New", monospace;
-  font-size: 17px;
+  font-family: ui-monospace, 'Courier New', monospace;
+  font-size: 0.875rem;
   font-weight: 700;
-  color: #1e40af;
+  color: #E8920A;
   word-break: break-all;
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.4rem;
   flex-wrap: wrap;
 `;
 
 const SentBadge = styled.span`
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 11px;
+  gap: 3px;
+  font-size: 0.68rem;
   font-weight: 600;
   color: #059669;
-  background: #d1fae5;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #D1FAE5;
+  padding: 2px 6px;
+  border-radius: 10px;
   white-space: nowrap;
-  
-  svg {
-    font-size: 12px;
-  }
+
+  svg { font-size: 0.65rem; }
 `;
 
 const UsedBadge = styled.span`
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 11px;
+  gap: 3px;
+  font-size: 0.68rem;
   font-weight: 600;
-  color: #b91c1c;
-  background: #fee2e2;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #B91C1C;
+  background: #FEE2E2;
+  padding: 2px 6px;
+  border-radius: 10px;
   white-space: nowrap;
-  
-  svg {
-    font-size: 12px;
-  }
+
+  svg { font-size: 0.65rem; }
 `;
 
 const CouponStatus = styled.div`
-  padding: 6px 12px;
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 0.5rem;
   border-radius: 20px;
-  font-size: 13px;
+  font-size: 0.7rem;
   font-weight: 600;
-  background: ${({ used }) => (used ? "#fee2e2" : "#d1fae5")};
-  color: ${({ used }) => (used ? "#b91c1c" : "#065f46")};
-  margin-left: 10px;
   flex-shrink: 0;
+  background: ${({ used }) => used ? '#FEE2E2' : '#D1FAE5'};
+  color: ${({ used }) => used ? '#991B1B' : '#065F46'};
 `;
 
 const CouponActions = styled.div`
   display: flex;
-  gap: 10px;
-  margin-top: 10px;
-
-  @media (max-width: 380px) {
-    flex-direction: column;
-  }
+  gap: 0.4rem;
 `;
 
 const ActionButton = styled.button`
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 10px 15px;
+  gap: 0.4rem;
+  height: 30px;
+  padding: ${({ copied }) => copied !== undefined ? '0 0.7rem' : '0'};
+  min-width: ${({ copied }) => copied !== undefined ? 'auto' : '30px'};
+  flex: ${({ copied }) => copied !== undefined ? 1 : 'none'};
   border-radius: 8px;
-  background: ${({ copied }) => (copied ? "#10b981" : "white")};
-  border: 1px solid ${({ copied }) => (copied ? "#10b981" : "#e5e7eb")};
-  color: ${({ copied }) => (copied ? "white" : "#4b5563")};
+  border: 0.5px solid ${({ copied }) => copied ? '#A7F3D0' : '#F1EFE8'};
+  background: ${({ copied }) => copied ? '#D1FAE5' : '#FFFFFF'};
+  color: ${({ copied }) => copied ? '#065F46' : '#6B7280'};
+  font-size: 0.775rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
-  font-size: 14px;
-  font-weight: 600;
-  flex: 1;
+  transition: all 0.12s;
 
   &:hover {
-    background: ${({ copied }) => (copied ? "#059669" : "#f3f4f6")};
-    border-color: ${({ copied }) => (copied ? "#059669" : "#d1d5db")};
-  }
-
-  &:last-child {
-    background: ${({ copied }) => (copied ? "#10b981" : "#eff6ff")};
-    border-color: ${({ copied }) => (copied ? "#10b981" : "#dbeafe")};
-    color: ${({ copied }) => (copied ? "white" : "#1d4ed8")};
-
-    &:hover {
-      background: ${({ copied }) => (copied ? "#059669" : "#dbeafe")};
-    }
+    border-color: #E8920A;
+    background: ${({ copied }) => copied ? '#A7F3D0' : '#FDF3E3'};
+    color: ${({ copied }) => copied ? '#065F46' : '#E8920A'};
   }
 `;
 

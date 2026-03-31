@@ -268,7 +268,7 @@ const Container = styled.div`
   display: flex;
   min-height: 100vh;
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
-  font-family: var(--font-body);
+  
   padding: 2rem;
   align-items: center;
   justify-content: center;
@@ -403,7 +403,7 @@ const Input = styled.input`
 
   &:focus {
     outline: none;
-    border-color: var(--color-primary-500);
+    border-color: #E8920A;
     box-shadow: 
       0 0 0 4px rgba(255, 196, 0, 0.1),
       0 2px 8px rgba(0, 0, 0, 0.04);
@@ -427,7 +427,7 @@ const Input = styled.input`
 `;
 
 const SubmitButton = styled.button`
-  background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-600));
+  background: linear-gradient(135deg, #E8920A, #E8920A);
   color: white;
   border: none;
   padding: 0.9375rem 1.5rem;
@@ -491,7 +491,7 @@ const FooterText = styled.p`
 `;
 
 const FooterLink = styled(Link)`
-  color: var(--color-primary-600);
+  color: #E8920A;
   text-decoration: none;
   font-weight: 500;
   transition: all 0.2s ease;
@@ -500,7 +500,7 @@ const FooterLink = styled(Link)`
   display: inline-block;
 
   &:hover {
-    color: var(--color-primary-700);
+    color: #D97706;
     background: rgba(255, 196, 0, 0.08);
   }
 `;

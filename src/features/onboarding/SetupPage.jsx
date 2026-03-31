@@ -19,8 +19,6 @@ import useSellerStatus from '../../shared/hooks/useSellerStatus';
 import { PATHS } from '../../routes/routePaths';
 import Button from '../../shared/components/ui/Button';
 import { LoadingState } from '../../shared/components/ui/LoadingComponents';
-import { PageContainer, PageHeader, TitleSection, Section, SectionHeader } from '../../shared/components/ui/SpacingSystem';
-import { devicesMax } from '../../shared/styles/breakpoint';
 
 const SetupPage = () => {
   const {
@@ -52,33 +50,33 @@ const SetupPage = () => {
         ? 'Documents verified' 
         : 'Update documents',
       link: `${PATHS.SETTINGS}?tab=profile&scrollTo=verification-documents`,
-      color: 'var(--color-primary-500)',
+      color: '#E8920A',
     },
     {
       id: 'bank-details',
       label: 'Setup & Verify Payment Methods',
       description: 'Add and verify your payment method for receiving payments',
-      completed: requiredSetup.hasPaymentMethodVerified || paymentMethodStatus?.isVerified, // ✅ From backend
+      completed: requiredSetup.hasPaymentMethodVerified || paymentMethodStatus?.isVerified,
       icon: <FaCreditCard />,
       action: (requiredSetup.hasPaymentMethodVerified || paymentMethodStatus?.isVerified)
-        ? 'Payment method verified' 
+        ? 'Payment method verified'
         : 'Add payment method',
       link: PATHS.PAYMENT_METHODS,
-      color: 'var(--color-green-700)',
+      color: '#15803D',
     },
     {
       id: 'contact-verification',
       label: 'Verify Contact Information',
       description: 'Verify your email address or phone number',
-      completed: verification.contactVerified || verification.emailVerified, // ✅ From backend
+      completed: verification.contactVerified || verification.emailVerified,
       emailVerified: verification.emailVerified,
       phoneVerified: verification.phoneVerified,
       icon: <FaShieldAlt />,
       action: (verification.contactVerified || verification.emailVerified)
-        ? 'Contact verified' 
+        ? 'Contact verified'
         : 'Verify email or phone',
       link: `${PATHS.SETTINGS}#verification`,
-      color: 'var(--color-blue-700)',
+      color: '#1D4ED8',
     },
   ];
 
@@ -128,9 +126,9 @@ const SetupPage = () => {
 
   if (isLoading) {
     return (
-      <PageContainer>
+      <SetupContainer>
         <LoadingState message="Loading setup status..." />
-      </PageContainer>
+      </SetupContainer>
     );
   }
 
@@ -140,17 +138,17 @@ const SetupPage = () => {
   const progressPercentage = totalSteps > 0 ? (completedCount / totalSteps) * 100 : 0;
 
   return (
-    <PageContainer>
-      <ModernHeader $padding="xl" $marginBottom="lg">
+    <SetupContainer>
+      <ModernHeader>
         <HeaderContent>
-          <TitleSection>
+          <div>
             <WelcomeBadge>
               <FaRocket />
               Welcome to Saiisai!
             </WelcomeBadge>
             <MainTitle>Complete Your Seller Setup</MainTitle>
             <Subtitle>Follow these steps to launch your store and start selling</Subtitle>
-          </TitleSection>
+          </div>
           
           <ProgressOverview>
             <ProgressStats>
@@ -164,7 +162,7 @@ const SetupPage = () => {
                   cy="60"
                   r="54"
                   fill="none"
-                  stroke="var(--color-primary-100)"
+                  stroke="#FDE3BB"
                   strokeWidth="8"
                 />
                 <circle
@@ -243,11 +241,11 @@ const SetupPage = () => {
       )}
 
       {/* Setup Steps Grid */}
-      <Section $marginBottom="xl">
-        <SectionHeader $padding="lg" $marginBottom="lg">
+      <SetupSection>
+        <SetupSectionHeader>
           <SectionTitle>Setup Checklist</SectionTitle>
           <SectionSubtitle>Complete all steps to launch your store</SectionSubtitle>
-        </SectionHeader>
+        </SetupSectionHeader>
         
         <StepsGrid>
           {setupSteps.map((step) => (
@@ -308,17 +306,17 @@ const SetupPage = () => {
             </StepCard>
           ))}
         </StepsGrid>
-      </Section>
+      </SetupSection>
 
       {/* Next Steps Section */}
       {completedCount === totalSteps && (
         <NextStepsSection>
-          <SectionHeader $padding="lg" $marginBottom="md">
+          <SetupSectionHeader>
             <SectionTitle>What's Next?</SectionTitle>
-          </SectionHeader>
+          </SetupSectionHeader>
           <NextStepsGrid>
             <NextStepCard>
-              <NextStepIcon $color="var(--color-primary-500)">
+              <NextStepIcon $color="#E8920A">
                 <FaChartLine />
               </NextStepIcon>
               <NextStepContent>
@@ -330,7 +328,7 @@ const SetupPage = () => {
             </NextStepCard>
             
             <NextStepCard>
-              <NextStepIcon $color="var(--color-green-700)">
+              <NextStepIcon $color="#15803D">
                 <FaStore />
               </NextStepIcon>
               <NextStepContent>
@@ -342,7 +340,7 @@ const SetupPage = () => {
             </NextStepCard>
           </NextStepsGrid>
         </NextStepsSection>
-      )}
+
 
       {/* Action Buttons */}
       <ActionSection>
@@ -382,26 +380,27 @@ const SetupPage = () => {
       <svg width="0" height="0">
         <defs>
           <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="var(--color-primary-500)" />
-            <stop offset="100%" stopColor="var(--color-primary-700)" />
+            <stop offset="0%" stopColor="#E8920A" />
+            <stop offset="100%" stopColor="#D97706" />
           </linearGradient>
         </defs>
       </svg>
-    </PageContainer>
+    </SetupContainer>
   );
 };
 
 export default SetupPage;
 
 // Modern Styled Components
-const ModernHeader = styled(PageHeader)`
-  background: linear-gradient(135deg, var(--color-white-0) 0%, var(--color-grey-50) 100%);
-  border-radius: var(--border-radius-xl);
-  border: 1px solid var(--color-grey-200);
-  margin-bottom: var(--spacing-2xl);
+const ModernHeader = styled.div`
+  background: linear-gradient(135deg, #FFFFFF 0%, #F9F8F5 100%);
+  border-radius: 16px;
+  border: 1px solid #F1EFE8;
+  padding: 2rem;
+  margin-bottom: 2rem;
   position: relative;
   overflow: hidden;
-  
+
   &::before {
     content: '';
     position: absolute;
@@ -409,7 +408,7 @@ const ModernHeader = styled(PageHeader)`
     right: 0;
     width: 200px;
     height: 200px;
-    background: radial-gradient(circle, var(--color-primary-100) 0%, transparent 70%);
+    background: radial-gradient(circle, #FDF3E3 0%, transparent 70%);
     opacity: 0.6;
   }
 `;
@@ -417,44 +416,44 @@ const ModernHeader = styled(PageHeader)`
 const HeaderContent = styled.div`
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: var(--spacing-2xl);
+  gap: 2rem;
   align-items: start;
   position: relative;
   z-index: 2;
   
-  @media ${devicesMax.lg} {
+  @media (max-width: 1024px) {
     grid-template-columns: 1fr;
-    gap: var(--spacing-lg);
+    gap: 1.25rem;
   }
 `;
 
 const WelcomeBadge = styled.div`
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  background: var(--color-primary-50);
-  color: var(--color-primary-700);
-  padding: var(--spacing-xs) var(--spacing-md);
-  border-radius: var(--border-radius-full);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-semibold);
-  margin-bottom: var(--spacing-md);
+  gap: 0.5rem;
+  background: #FFF8EE;
+  color: #B45309;
+  padding: 0.3rem 0.85rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 0.85rem;
 `;
 
 const MainTitle = styled.h1`
   font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: var(--font-bold);
-  background: linear-gradient(135deg, var(--color-grey-900) 0%, var(--color-primary-600) 100%);
+  font-weight: 700;
+  background: linear-gradient(135deg, #111827 0%, #D97706 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin: 0 0 var(--spacing-sm) 0;
+  margin: 0 0 0.5rem 0;
   line-height: 1.2;
 `;
 
 const Subtitle = styled.p`
-  font-size: var(--font-size-lg);
-  color: var(--color-grey-600);
+  font-size: 1.1rem;
+  color: #6B7280;
   margin: 0;
   line-height: 1.6;
 `;
@@ -462,14 +461,14 @@ const Subtitle = styled.p`
 const ProgressOverview = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-xl);
-  padding: var(--spacing-lg);
-  background: var(--color-white-0);
-  border-radius: var(--border-radius-lg);
-  border: 1px solid var(--color-grey-200);
-  box-shadow: var(--shadow-sm);
+  gap: 1.5rem;
+  padding: 1.25rem;
+  background: #FFFFFF;
+  border-radius: 12px;
+  border: 1px solid #F1EFE8;
+  box-shadow: none;
   
-  @media ${devicesMax.sm} {
+  @media (max-width: 640px) {
     flex-direction: column;
     text-align: center;
   }
@@ -481,16 +480,16 @@ const ProgressStats = styled.div`
 
 const ProgressNumber = styled.div`
   font-size: 2.5rem;
-  font-weight: var(--font-bold);
-  color: var(--color-primary-600);
+  font-weight: 700;
+  color: #D97706;
   line-height: 1;
 `;
 
 const ProgressLabel = styled.div`
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-600);
-  font-weight: var(--font-medium);
-  margin-top: var(--spacing-xs);
+  font-size: 0.875rem;
+  color: #6B7280;
+  font-weight: 500;
+  margin-top: 0.3rem;
 `;
 
 const ProgressCircle = styled.div`
@@ -517,13 +516,13 @@ const ProgressText = styled.div`
   
   span {
     font-size: 1.5rem;
-    font-weight: var(--font-bold);
-    color: var(--color-grey-900);
+    font-weight: 700;
+    color: #111827;
   }
 `;
 
 const ProgressContainer = styled.div`
-  margin-top: var(--spacing-xl);
+  margin-top: 1.5rem;
   position: relative;
   z-index: 2;
 `;
@@ -532,19 +531,19 @@ const ProgressInfo = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--spacing-md);
+  margin-bottom: 0.85rem;
 `;
 
 const ProgressStatus = styled.span`
-  font-size: var(--font-size-md);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-800);
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1F2937;
 `;
 
 const ProgressPercentage = styled.span`
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-600);
-  font-weight: var(--font-medium);
+  font-size: 0.875rem;
+  color: #6B7280;
+  font-weight: 500;
 `;
 
 const ModernProgressBar = styled.div`
@@ -555,8 +554,8 @@ const ModernProgressBar = styled.div`
 const ProgressTrack = styled.div`
   width: 100%;
   height: 100%;
-  background: var(--color-grey-200);
-  border-radius: var(--border-radius-full);
+  background: #F1EFE8;
+  border-radius: 9999px;
   overflow: hidden;
   position: relative;
 `;
@@ -565,10 +564,10 @@ const ProgressFill = styled.div`
   height: 100%;
   width: ${(props) => props.$percentage}%;
   background: linear-gradient(90deg, 
-    var(--color-primary-500) 0%, 
-    var(--color-primary-600) 50%,
-    var(--color-primary-700) 100%);
-  border-radius: var(--border-radius-full);
+    #E8920A 0%, 
+    #D97706 50%,
+    #B45309 100%);
+  border-radius: 9999px;
   transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
@@ -610,11 +609,11 @@ const ProgressDot = styled.div.attrs(props => ({
   height: 24px;
   border-radius: 50%;
   background: ${props => 
-    props.$completed ? 'var(--color-primary-500)' : 
-    props.$active ? 'var(--color-white-0)' : 'var(--color-grey-300)'};
+    props.$completed ? '#E8920A' : 
+    props.$active ? '#FFFFFF' : '#D1D5DB'};
   border: 3px solid ${props => 
-    props.$completed ? 'var(--color-primary-500)' : 
-    props.$active ? 'var(--color-primary-500)' : 'var(--color-grey-300)'};
+    props.$completed ? '#E8920A' : 
+    props.$active ? '#E8920A' : '#D1D5DB'};
   transform: translateX(-50%);
   display: flex;
   align-items: center;
@@ -622,18 +621,18 @@ const ProgressDot = styled.div.attrs(props => ({
   transition: all 0.3s ease;
   
   svg {
-    color: var(--color-white-0);
+    color: #FFFFFF;
     font-size: 12px;
   }
 `;
 
 const SuccessBanner = styled.div`
-  background: linear-gradient(135deg, var(--color-green-500) 0%, var(--color-green-600) 100%);
+  background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
   color: white;
-  padding: var(--spacing-xl);
-  border-radius: var(--border-radius-xl);
-  margin-bottom: var(--spacing-2xl);
-  box-shadow: var(--shadow-lg);
+  padding: 1.5rem;
+  border-radius: 16px;
+  margin-bottom: 2rem;
+  box-shadow: none;
   position: relative;
   overflow: hidden;
 `;
@@ -641,11 +640,11 @@ const SuccessBanner = styled.div`
 const SuccessContent = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-lg);
+  gap: 1.25rem;
   position: relative;
   z-index: 2;
   
-  @media ${devicesMax.sm} {
+  @media (max-width: 640px) {
     flex-direction: column;
     text-align: center;
   }
@@ -661,14 +660,14 @@ const SuccessText = styled.div`
 `;
 
 const SuccessTitle = styled.h3`
-  margin: 0 0 var(--spacing-xs) 0;
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-bold);
+  margin: 0 0 0.3rem 0;
+  font-size: 1.25rem;
+  font-weight: 700;
 `;
 
 const SuccessMessage = styled.p`
   margin: 0;
-  font-size: var(--font-size-md);
+  font-size: 1rem;
   opacity: 0.95;
   line-height: 1.6;
 `;
@@ -704,44 +703,44 @@ const ConfettiPiece = styled.div`
 `;
 
 const SectionTitle = styled.h2`
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-bold);
-  color: var(--color-grey-900);
-  margin: 0 0 var(--spacing-xs) 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 0.3rem 0;
 `;
 
 const SectionSubtitle = styled.p`
-  font-size: var(--font-size-md);
-  color: var(--color-grey-600);
+  font-size: 1rem;
+  color: #6B7280;
   margin: 0;
 `;
 
 const StepsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: var(--spacing-lg);
+  gap: 1.25rem;
   
-  @media ${devicesMax.sm} {
+  @media (max-width: 640px) {
     grid-template-columns: 1fr;
   }
 `;
 
 const StepCard = styled.div`
-  background: var(--color-white-0);
-  padding: var(--spacing-xl);
-  border-radius: var(--border-radius-lg);
+  background: #FFFFFF;
+  padding: 1.5rem;
+  border-radius: 12px;
   border: 2px solid ${props => 
-    props.$completed ? 'var(--color-green-200)' : 'var(--color-grey-200)'};
-  box-shadow: var(--shadow-sm);
+    props.$completed ? '#BBF7D0' : '#F1EFE8'};
+  box-shadow: none;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
+    box-shadow: none;
     border-color: ${props => 
-      props.$completed ? 'var(--color-green-300)' : 'var(--color-primary-200)'};
+      props.$completed ? '#86EFAC' : '#FDE3BB'};
   }
 
   &::before {
@@ -753,8 +752,8 @@ const StepCard = styled.div`
     height: 4px;
     background: ${props => 
       props.$completed ? 
-      'linear-gradient(90deg, var(--color-green-500), var(--color-green-600))' :
-      'linear-gradient(90deg, var(--color-grey-300), var(--color-grey-400))'};
+      'linear-gradient(90deg, #22C55E, #16A34A)' :
+      'linear-gradient(90deg, #D1D5DB, #9CA3AF)'};
   }
 `;
 
@@ -762,17 +761,17 @@ const StepHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: 1.25rem;
 `;
 
 const StepIcon = styled.div`
   width: 60px;
   height: 60px;
-  border-radius: var(--border-radius-lg);
+  border-radius: 12px;
   background: ${props => 
-    props.$completed ? props.$color : 'var(--color-grey-100)'};
+    props.$completed ? props.$color : '#F3F4F6'};
   color: ${props => 
-    props.$completed ? 'var(--color-white-0)' : 'var(--color-grey-500)'};
+    props.$completed ? '#FFFFFF' : '#6B7280'};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -781,88 +780,88 @@ const StepIcon = styled.div`
 `;
 
 const StepStatus = styled.span`
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-semibold);
+  font-size: 0.875rem;
+  font-weight: 600;
   color: ${props => 
-    props.$completed ? 'var(--color-green-600)' : 'var(--color-grey-500)'};
+    props.$completed ? '#16A34A' : '#6B7280'};
   background: ${props => 
-    props.$completed ? 'var(--color-green-50)' : 'var(--color-grey-100)'};
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--border-radius-full);
+    props.$completed ? '#F0FDF4' : '#F3F4F6'};
+  padding: 0.3rem 0.5rem;
+  border-radius: 9999px;
 `;
 
 const StepContent = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 0.85rem;
 `;
 
 const StepLabel = styled.h3`
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111827;
   margin: 0;
   line-height: 1.4;
 `;
 
 const StepDescription = styled.p`
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-600);
+  font-size: 0.875rem;
+  color: #6B7280;
   margin: 0;
   line-height: 1.5;
 `;
 
 const StepAction = styled.span`
-  font-size: var(--font-size-sm);
+  font-size: 0.875rem;
   color: ${props => 
-    props.$disabled ? 'var(--color-grey-400)' : 
-    props.$completed ? 'var(--color-green-600)' : 'var(--color-grey-600)'};
+    props.$disabled ? '#9CA3AF' : 
+    props.$completed ? '#16A34A' : '#6B7280'};
   font-style: ${props => (props.$disabled ? 'italic' : 'normal')};
-  font-weight: ${props => (props.$completed ? 'var(--font-semibold)' : 'normal')};
-  padding: var(--spacing-sm) 0;
+  font-weight: ${props => (props.$completed ? '600' : 'normal')};
+  padding: 0.5rem 0;
 `;
 
 const CompletedBadge = styled.div`
   position: absolute;
-  top: var(--spacing-lg);
-  right: var(--spacing-lg);
-  color: var(--color-green-500);
+  top: 1.25rem;
+  right: 1.25rem;
+  color: #22C55E;
   font-size: 1.5rem;
 `;
 
-const NextStepsSection = styled(Section)`
-  background: linear-gradient(135deg, var(--color-grey-50) 0%, var(--color-white-0) 100%);
-  border-radius: var(--border-radius-xl);
-  padding: var(--spacing-xl);
-  border: 1px solid var(--color-grey-200);
+const NextStepsSection = styled.div`
+  background: linear-gradient(135deg, #F9F8F5 0%, #FFFFFF 100%);
+  border-radius: 16px;
+  padding: 1.5rem;
+  border: 1px solid #F1EFE8;
 `;
 
 const NextStepsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: var(--spacing-lg);
+  gap: 1.25rem;
 `;
 
 const NextStepCard = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-lg);
-  padding: var(--spacing-lg);
-  background: var(--color-white-0);
-  border-radius: var(--border-radius-lg);
-  border: 1px solid var(--color-grey-200);
+  gap: 1.25rem;
+  padding: 1.25rem;
+  background: #FFFFFF;
+  border-radius: 12px;
+  border: 1px solid #F1EFE8;
   transition: all 0.3s ease;
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    box-shadow: none;
   }
 `;
 
 const NextStepIcon = styled.div`
   width: 60px;
   height: 60px;
-  border-radius: var(--border-radius-lg);
+  border-radius: 12px;
   background: ${props => props.$color}20;
   color: ${props => props.$color};
   display: flex;
@@ -877,15 +876,15 @@ const NextStepContent = styled.div`
 `;
 
 const NextStepTitle = styled.h4`
-  font-size: var(--font-size-md);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
-  margin: 0 0 var(--spacing-xs) 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.3rem 0;
 `;
 
 const NextStepDescription = styled.p`
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-600);
+  font-size: 0.875rem;
+  color: #6B7280;
   margin: 0;
   line-height: 1.5;
 `;
@@ -893,37 +892,58 @@ const NextStepDescription = styled.p`
 const VerificationStatus = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
-  margin: var(--spacing-md) 0;
-  padding: var(--spacing-md);
-  background: var(--color-grey-50);
-  border-radius: var(--border-radius-md);
+  gap: 0.5rem;
+  margin: 0.85rem 0;
+  padding: 0.85rem;
+  background: #F9F8F5;
+  border-radius: 9px;
 `;
 
 const VerificationItem = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  font-size: var(--font-size-sm);
-  color: ${props => props.$verified ? 'var(--color-green-700)' : 'var(--color-grey-600)'};
-  font-weight: ${props => props.$verified ? 'var(--font-semibold)' : 'var(--font-normal)'};
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: ${props => props.$verified ? '#15803D' : '#6B7280'};
+  font-weight: ${props => props.$verified ? '600' : '400'};
 
   svg {
-    color: ${props => props.$verified ? 'var(--color-green-600)' : 'var(--color-grey-500)'};
-    font-size: var(--font-size-md);
+    color: ${props => props.$verified ? '#16A34A' : '#6B7280'};
+    font-size: 1rem;
   }
 `;
 
 const ActionSection = styled.div`
   display: flex;
-  gap: var(--spacing-md);
+  gap: 0.85rem;
   justify-content: center;
-  margin-top: var(--spacing-2xl);
-  padding-top: var(--spacing-xl);
-  border-top: 1px solid var(--color-grey-200);
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #F1EFE8;
   
-  @media ${devicesMax.sm} {
+  @media (max-width: 640px) {
     flex-direction: column;
     align-items: stretch;
   }
+`;
+
+// ── Page-level wrappers (replacing SpacingSystem imports) ──────────────────────
+const SetupContainer = styled.div`
+  display: grid;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  background: #F9F8F5;
+  min-height: 100vh;
+`;
+
+const SetupSection = styled.div`
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  overflow: hidden;
+`;
+
+const SetupSectionHeader = styled.div`
+  padding: 1rem 1.25rem;
+  border-bottom: 0.5px solid #F1EFE8;
 `;

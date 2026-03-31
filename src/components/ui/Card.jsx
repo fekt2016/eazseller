@@ -2,9 +2,9 @@
 import styled, { css } from 'styled-components';
 
 const cardBaseStyles = css`
-  background: var(--color-white-0);
-  border-radius: var(--radius-md);
-  padding: var(--space-md);
+  background: #FFFFFF;
+  border-radius: 9px;
+  padding: 1rem;
   width: 100%;
   position: relative;
 `;
@@ -16,22 +16,22 @@ const StyledCard = styled.div`
     switch (variant) {
       case 'elevated':
         return css`
-          box-shadow: var(--shadow-md);
-          border: 1px solid var(--color-grey-100);
+          
+          border: 1px solid #F9F8F5;
 
           &:hover {
-            box-shadow: var(--shadow-lg);
+            
           }
         `;
       case 'outlined':
         return css`
-          border: 1px solid var(--color-grey-200);
+          border: 1px solid #F1EFE8;
           box-shadow: none;
         `;
       default:
         return css`
-          box-shadow: var(--shadow-sm);
-          border: 1px solid var(--color-grey-50);
+          
+          border: 1px solid #F9F8F5;
         `;
     }
   }}
@@ -42,11 +42,11 @@ const StyledCard = styled.div`
 
   ${({ clickable }) => clickable && css`
     cursor: pointer;
-    transition: all var(--transition-base);
+    transition: all 0.12s;
 
     &:hover {
       transform: translateY(-2px);
-      box-shadow: var(--shadow-lg);
+      
     }
   `}
 `;
@@ -55,15 +55,15 @@ const CardHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--space-md);
-  padding-bottom: var(--space-sm);
-  border-bottom: 1px solid var(--color-grey-200);
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #F1EFE8;
 `;
 
 const CardTitle = styled.h3`
-  font-size: var(--text-lg);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
   margin: 0;
 `;
 
@@ -72,12 +72,12 @@ const CardContent = styled.div`
 `;
 
 const CardFooter = styled.div`
-  margin-top: var(--space-md);
-  padding-top: var(--space-sm);
-  border-top: 1px solid var(--color-grey-200);
+  margin-top: 1rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #F1EFE8;
   display: flex;
   justify-content: flex-end;
-  gap: var(--space-sm);
+  gap: 0.5rem;
 `;
 
 const Card = ({ 

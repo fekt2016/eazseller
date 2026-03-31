@@ -83,7 +83,7 @@ describe('SetupPage', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText(/welcome to eazshop/i)).toBeInTheDocument();
+      expect(screen.getByText(/welcome to saiisai/i)).toBeInTheDocument();
     });
   });
 

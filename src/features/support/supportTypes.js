@@ -57,21 +57,21 @@ export const TICKET_ROLE = {
  * Status badge colors - using theme variables
  */
 export const STATUS_COLORS = {
-  open: 'var(--color-brand-500)',
-  in_progress: 'var(--color-yellow-700)',
-  awaiting_user: 'var(--color-indigo-700)',
-  escalated: 'var(--color-red-600)',
-  resolved: 'var(--color-green-700)',
-  closed: 'var(--color-grey-600)',
+  open: '#E8920A',
+  in_progress: '#854F0B',
+  awaiting_user: '#4338CA',
+  escalated: '#DC2626',
+  resolved: '#3B6D11',
+  closed: '#6B7280',
 };
 
 /**
  * Priority badge colors - using theme variables
  */
 export const PRIORITY_COLORS = {
-  low: 'var(--color-grey-600)',
-  medium: 'var(--color-brand-500)',
-  high: 'var(--color-yellow-700)',
-  critical: 'var(--color-red-600)',
+  low: '#6B7280',
+  medium: '#E8920A',
+  high: '#854F0B',
+  critical: '#DC2626',
 };
 

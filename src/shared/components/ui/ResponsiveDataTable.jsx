@@ -6,9 +6,9 @@ import { FaEye, FaEdit, FaTrash } from "react-icons/fa";
 
 const TableContainer = styled.div`
   ${SpacingProps}
-  background: var(--color-white-0);
-  border-radius: var(--border-radius-lg);
-  border: 1px solid var(--color-grey-200);
+  background: #FFFFFF;
+  border-radius: ;
+  border: 1px solid #F1EFE8;
   overflow: hidden;
 `;
 
@@ -18,15 +18,15 @@ const Table = styled.table`
 `;
 
 const TableHead = styled.thead`
-  background: var(--color-grey-50);
+  background: #F9F8F5;
 `;
 
 const TableRow = styled.tr`
-  border-bottom: 1px solid var(--color-grey-200);
+  border-bottom: 1px solid #F1EFE8;
   transition: background-color 0.2s ease;
   
   &:hover {
-    background-color: var(--color-grey-50);
+    background-color: #F9F8F5;
   }
   
   &:last-child {
@@ -35,12 +35,12 @@ const TableRow = styled.tr`
 `;
 
 const TableHeader = styled.th`
-  padding: var(--spacing-md);
+  padding: 1rem;
   text-align: ${({ $align }) => $align || 'left'};
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-700);
-  font-family: var(--font-heading);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-size: 1.2rem;
@@ -49,11 +49,11 @@ const TableHeader = styled.th`
 const TableBody = styled.tbody``;
 
 const TableCell = styled.td`
-  padding: var(--spacing-md);
+  padding: 1rem;
   text-align: ${({ $align }) => $align || 'left'};
-  font-size: var(--font-size-md);
-  color: var(--color-grey-700);
-  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: #374151;
+  
   vertical-align: middle;
 `;
 
@@ -65,15 +65,15 @@ const CardList = styled.div`
 `;
 
 const DataCard = styled.div`
-  background: var(--color-white-0);
-  border: 1px solid var(--color-grey-200);
-  border-radius: var(--border-radius-lg);
+  background: #FFFFFF;
+  border: 1px solid #F1EFE8;
+  border-radius: ;
   ${SpacingProps}
-  margin-bottom: var(--spacing-sm);
+  margin-bottom: 1rem;
   transition: all 0.3s ease;
   
   &:hover {
-    box-shadow: var(--shadow-md);
+    
   }
   
   &:last-child {
@@ -84,54 +84,54 @@ const DataCard = styled.div`
 const CardContent = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 1rem;
 `;
 
 const CardRow = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: ${({ $alignItems }) => $alignItems || 'center'};
-  padding: var(--spacing-sm) 0;
+  padding: 1rem 0;
   
   &:not(:last-child) {
-    border-bottom: 1px solid var(--color-grey-100);
+    border-bottom: 1px solid #F9F8F5;
   }
 `;
 
 const CardLabel = styled.span`
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-600);
-  font-size: var(--font-size-sm);
-  font-family: var(--font-heading);
+  font-weight: 600;
+  color: #6B7280;
+  font-size: 0.875rem;
+  
   text-transform: uppercase;
   letter-spacing: 0.3px;
 `;
 
 const CardValue = styled.div`
-  color: var(--color-grey-800);
+  color: #1F2937;
   text-align: right;
-  font-family: var(--font-body);
+  
   flex: 1;
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: 1rem;
 `;
 
 const CardActions = styled.div`
   display: flex;
-  gap: var(--spacing-xs);
+  gap: 1rem;
   justify-content: flex-end;
-  margin-top: var(--spacing-sm);
-  padding-top: var(--spacing-sm);
-  border-top: 1px solid var(--color-grey-200);
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #F1EFE8;
   ${SpacingProps}
 `;
 
 const ActionGroup = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: 1rem;
 `;
 
 /**
@@ -241,9 +241,9 @@ export default function ResponsiveDataTable({
 }
 
 const EmptyState = styled.div`
-  padding: var(--spacing-2xl);
+  padding: 1rem;
   text-align: center;
-  color: var(--color-grey-500);
-  font-family: var(--font-body);
+  color: #9CA3AF;
+  
 `;
 

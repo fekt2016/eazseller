@@ -118,7 +118,7 @@ const VerificationPage = ({ embedded = false }) => {
       {/* Email Verification Section */}
       <Section $marginBottom="lg">
         <SectionHeader $padding="md">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <FaEnvelope />
             <h3>Email Verification</h3>
             {verification.emailVerified ? (
@@ -147,7 +147,7 @@ const VerificationPage = ({ embedded = false }) => {
                 <p>
                   <strong>Verify your email:</strong> {seller.email}
                 </p>
-                <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-grey-600)', marginTop: 'var(--spacing-xs)' }}>
+                <p style={{ fontSize: '0.875rem', color: '#6B7280', marginTop: '0.375rem' }}>
                   We'll send a 6-digit verification code to your email address
                 </p>
               </InfoBox>
@@ -240,183 +240,152 @@ export default VerificationPage;
 
 // Styled Components
 const FormContent = styled.div`
-  padding: var(--spacing-lg);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 1rem;
 `;
 
 const InfoBox = styled.div`
-  padding: var(--spacing-md);
-  background: var(--color-blue-50);
-  border: 1px solid var(--color-blue-200);
-  border-radius: var(--border-radius-md);
-  color: var(--color-blue-700);
+  padding: 0.85rem 1rem;
+  background: #EFF6FF;
+  border: 0.5px solid #BFDBFE;
+  border-left: 3px solid #3B82F6;
+  border-radius: 9px;
+  color: #1D4ED8;
 
   p {
     margin: 0;
-    font-size: var(--font-size-sm);
+    font-size: 0.9rem;
+    line-height: 1.5;
   }
 `;
 
 const VerificationForm = styled.form`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 0.85rem;
 `;
 
 const FormGroup = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 0.35rem;
 `;
 
 const Label = styled.label`
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-700);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
 `;
 
 const OtpInput = styled.input`
-  padding: var(--spacing-md);
-  border: 2px solid var(--color-grey-300);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-bold);
+  height: 52px;
+  padding: 0 1rem;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 9px;
+  font-size: 1.5rem;
+  font-weight: 700;
   text-align: center;
   letter-spacing: 0.5rem;
-  font-family: 'Courier New', monospace;
-  color: var(--color-grey-900);
-  transition: all 0.2s ease;
+  font-family: ui-monospace, 'Courier New', monospace;
+  color: #111827;
+  background: #F9F8F5;
+  outline: none;
   max-width: 300px;
 
-  &:focus {
-    outline: none;
-    border-color: var(--color-primary-500);
-    box-shadow: 0 0 0 3px var(--color-primary-100);
-  }
-
-  &::placeholder {
-    letter-spacing: 0.3rem;
-    color: var(--color-grey-400);
-  }
+  &:focus { border-color: #E8920A; background: #FFFFFF; }
+  &::placeholder { letter-spacing: 0.3rem; color: #D1D5DB; }
 `;
 
 const ButtonGroup = styled.div`
   display: flex;
-  gap: var(--spacing-md);
+  gap: 0.5rem;
   align-items: center;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-
-    button {
-      width: 100%;
-    }
-  }
+  flex-wrap: wrap;
 `;
 
 const ResendContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-top: var(--spacing-sm);
+  margin-top: 0.3rem;
 `;
 
 const ResendText = styled.span`
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-600);
-
-  svg {
-    color: var(--color-grey-500);
-  }
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  color: #9CA3AF;
 `;
 
 const ResendButton = styled.button`
   background: none;
   border: none;
-  color: var(--color-primary-600);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-medium);
+  color: #E8920A;
+  font-size: 0.9rem;
+  font-weight: 600;
   cursor: pointer;
   text-decoration: underline;
-  transition: color 0.2s ease;
+  transition: opacity 0.12s;
 
-  &:hover:not(:disabled) {
-    color: var(--color-primary-700);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
+  &:hover:not(:disabled) { opacity: 0.8; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
 `;
 
 const ErrorText = styled.span`
-  color: var(--color-red-600);
-  font-size: var(--font-size-sm);
-  margin-top: var(--spacing-xs);
+  color: #EF4444;
+  font-size: 0.875rem;
 `;
 
 const SuccessMessage = styled.div`
   display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md);
-  background: var(--color-green-50);
-  border: 1px solid var(--color-green-200);
-  border-radius: var(--border-radius-md);
-  color: var(--color-green-700);
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 0.85rem 1rem;
+  background: #D1FAE5;
+  border: 0.5px solid #A7F3D0;
+  border-left: 3px solid #10B981;
+  border-radius: 9px;
+  color: #065F46;
 
-  svg {
-    color: var(--color-green-600);
-    flex-shrink: 0;
-  }
+  svg { flex-shrink: 0; margin-top: 0.1rem; }
 `;
 
 const SuccessTitle = styled.h4`
-  margin: 0 0 var(--spacing-xs) 0;
-  font-size: var(--font-size-md);
-  font-weight: var(--font-semibold);
+  margin: 0 0 0.2rem;
+  font-size: 0.875rem;
+  font-weight: 600;
 `;
 
 const SuccessText = styled.p`
   margin: 0;
-  font-size: var(--font-size-sm);
+  font-size: 0.9rem;
 `;
 
 const VerifiedBadge = styled.span`
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  background: var(--color-green-100);
-  color: var(--color-green-700);
-  border-radius: var(--border-radius-sm);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-semibold);
-
-  svg {
-    color: var(--color-green-600);
-  }
+  gap: 0.3rem;
+  height: 22px;
+  padding: 0 0.6rem;
+  background: #D1FAE5;
+  color: #065F46;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
 `;
 
 const UnverifiedBadge = styled.span`
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  background: var(--color-red-100);
-  color: var(--color-red-700);
-  border-radius: var(--border-radius-sm);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-semibold);
-
-  svg {
-    color: var(--color-red-600);
-  }
+  gap: 0.3rem;
+  height: 22px;
+  padding: 0 0.6rem;
+  background: #FEE2E2;
+  color: #991B1B;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
 `;
 

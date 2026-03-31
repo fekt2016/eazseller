@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "eazseller",
+      "runtimeExecutable": "/Users/mac/Desktop/Saiisai/eazseller/node_modules/.bin/vite",
+      "runtimeArgs": ["--port", "5175"],
+      "port": 5175,
+      "cwd": "/Users/mac/Desktop/Saiisai/eazseller"
+    }
+  ]
+}

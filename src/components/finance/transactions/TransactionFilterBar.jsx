@@ -5,19 +5,19 @@ import Button from '../../../shared/components/ui/Button';
 import { devicesMax } from '../../../shared/styles/breakpoint';
 
 const FilterContainer = styled.div`
-  background: var(--color-white-0);
-  border-radius: var(--border-radius-lg);
-  padding: var(--spacing-lg);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--color-grey-200);
-  margin-bottom: var(--spacing-xl);
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 1rem;
+  
+  border: 1px solid #F1EFE8;
+  margin-bottom: 1rem;
 `;
 
 const FilterGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-md);
+  gap: 1rem;
+  margin-bottom: 1rem;
   
   @media ${devicesMax.sm} {
     grid-template-columns: 1fr;
@@ -27,47 +27,47 @@ const FilterGrid = styled.div`
 const FilterGroup = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 1rem;
 `;
 
 const Label = styled.label`
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-700);
-  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  
 `;
 
 const Select = styled.select`
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid var(--color-grey-300);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-base);
-  font-family: var(--font-body);
-  color: var(--color-grey-900);
-  background: var(--color-white-0);
-  transition: all var(--transition-base);
+  padding: 1rem 1rem;
+  border: 1px solid #E5E7EB;
+  border-radius: 9px;
+  font-size: 1rem;
+  
+  color: #111827;
+  background: #FFFFFF;
+  transition: all 0.12s;
   
   &:focus {
     outline: none;
-    border-color: var(--color-primary-500);
-    box-shadow: 0 0 0 3px var(--color-primary-100);
+    border-color: #E8920A;
+    box-shadow: 0 0 0 3px #E8920A;
   }
 `;
 
 const Input = styled.input`
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid var(--color-grey-300);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-base);
-  font-family: var(--font-body);
-  color: var(--color-grey-900);
-  background: var(--color-white-0);
-  transition: all var(--transition-base);
+  padding: 1rem 1rem;
+  border: 1px solid #E5E7EB;
+  border-radius: 9px;
+  font-size: 1rem;
+  
+  color: #111827;
+  background: #FFFFFF;
+  transition: all 0.12s;
   
   &:focus {
     outline: none;
-    border-color: var(--color-primary-500);
-    box-shadow: 0 0 0 3px var(--color-primary-100);
+    border-color: #E8920A;
+    box-shadow: 0 0 0 3px #E8920A;
   }
 `;
 
@@ -77,14 +77,14 @@ const SearchInput = styled.div`
   align-items: center;
   
   input {
-    padding-left: var(--spacing-3xl);
+    padding-left: 1rem;
     width: 100%;
   }
   
   svg {
     position: absolute;
-    left: var(--spacing-md);
-    color: var(--color-grey-400);
+    left: 1rem;
+    color: #D1D5DB;
     pointer-events: none;
   }
 `;
@@ -92,7 +92,7 @@ const SearchInput = styled.div`
 const DateRangeGroup = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-sm);
+  gap: 1rem;
   
   @media ${devicesMax.sm} {
     grid-template-columns: 1fr;
@@ -103,7 +103,7 @@ const ActionsBar = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: 1rem;
   flex-wrap: wrap;
   
   @media ${devicesMax.sm} {

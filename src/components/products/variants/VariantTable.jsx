@@ -79,7 +79,7 @@ export default function VariantTable({
                 aspectRatio="1/1"
                 alt="Variant"
                 objectFit="contain"
-                radius="var(--border-radius-md)"
+                radius="9px"
               />
             ) : (
               <NoImagePlaceholder>
@@ -194,117 +194,88 @@ export default function VariantTable({
 
 // Styled Components
 const VariantName = styled.div`
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
-  font-family: var(--font-heading);
-  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: #111827;
+  
+  font-size: 0.9rem;
 `;
 
 const AttributesText = styled.p`
-  color: var(--color-grey-600);
-  font-size: var(--font-size-sm);
+  color: #6B7280;
+  font-size: 0.875rem;
   margin: 0;
-  font-family: var(--font-body);
+  
   line-height: 1.5;
 `;
 
 const Price = styled.div`
-  font-weight: var(--font-bold);
-  color: var(--color-grey-900);
-  font-family: var(--font-heading);
-  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: #111827;
+  
+  font-size: 0.9rem;
 `;
 
 const StockIndicator = styled.div`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 60px;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--border-radius-cir);
-  font-weight: var(--font-semibold);
-  font-size: var(--font-size-sm);
-  font-family: var(--font-body);
+  min-width: 48px;
+  padding: 0.25rem 0.625rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.8rem;
   background: ${({ $stock }) =>
-    $stock > 20
-      ? "var(--color-green-100)"
-      : $stock > 0
-        ? "var(--color-yellow-100)"
-        : "var(--color-red-100)"};
+    $stock > 20 ? '#DCFCE7' : $stock > 0 ? '#FEF3C7' : '#FEE2E2'};
   color: ${({ $stock }) =>
-    $stock > 20
-      ? "var(--color-green-700)"
-      : $stock > 0
-        ? "var(--color-yellow-700)"
-        : "var(--color-red-700)"};
+    $stock > 20 ? '#15803D' : $stock > 0 ? '#B45309' : '#B91C1C'};
 `;
 
 const StatusBadge = styled.div`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--border-radius-cir);
-  font-weight: var(--font-semibold);
-  font-size: var(--font-size-xs);
-  font-family: var(--font-body);
-  text-transform: uppercase;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: capitalize;
   background: ${({ status }) =>
-    status === "active"
-      ? "var(--color-green-100)"
-      : "var(--color-grey-100)"};
+    status === 'active' ? '#DCFCE7' : '#F3F4F6'};
   color: ${({ status }) =>
-    status === "active"
-      ? "var(--color-green-700)"
-      : "var(--color-grey-700)"};
+    status === 'active' ? '#15803D' : '#6B7280'};
 `;
 
 const ConditionBadge = styled.div`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--border-radius-cir);
-  font-weight: var(--font-semibold);
-  font-size: var(--font-size-xs);
-  font-family: var(--font-body);
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.75rem;
   text-transform: capitalize;
   background: ${({ condition }) => {
     switch (condition) {
-      case 'new':
-        return 'var(--color-blue-100)';
+      case 'new': return '#DBEAFE';
       case 'like_new':
-      case 'open_box':
-        return 'var(--color-green-100)';
-      case 'refurbished':
-        return 'var(--color-purple-100)';
-      case 'used':
-        return 'var(--color-yellow-100)';
-      case 'fair':
-        return 'var(--color-orange-100)';
-      case 'poor':
-        return 'var(--color-red-100)';
-      default:
-        return 'var(--color-grey-100)';
+      case 'open_box': return '#DCFCE7';
+      case 'refurbished': return '#EDE9FE';
+      case 'used': return '#FEF3C7';
+      case 'fair': return '#FEF9C3';
+      case 'poor': return '#FEE2E2';
+      default: return '#F3F4F6';
     }
   }};
   color: ${({ condition }) => {
     switch (condition) {
-      case 'new':
-        return 'var(--color-blue-700)';
+      case 'new': return '#1D4ED8';
       case 'like_new':
-      case 'open_box':
-        return 'var(--color-green-700)';
-      case 'refurbished':
-        return 'var(--color-purple-700)';
-      case 'used':
-        return 'var(--color-yellow-700)';
-      case 'fair':
-        return 'var(--color-orange-700)';
-      case 'poor':
-        return 'var(--color-red-700)';
-      default:
-        return 'var(--color-grey-700)';
+      case 'open_box': return '#15803D';
+      case 'refurbished': return '#6D28D9';
+      case 'used': return '#92400E';
+      case 'fair': return '#854D0E';
+      case 'poor': return '#B91C1C';
+      default: return '#374151';
     }
   }};
 `;
@@ -313,7 +284,7 @@ const ActionButtons = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: 0.25rem;
 `;
 
 const VariantImageContainer = styled.div`
@@ -338,19 +309,19 @@ const NoImagePlaceholder = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: var(--color-grey-100);
-  border-radius: var(--border-radius-md);
-  border: 1px dashed var(--color-grey-300);
-  color: var(--color-grey-500);
-  font-size: var(--font-size-xs);
-  gap: var(--spacing-xs);
-  
+  background: #F9F8F5;
+  border-radius: 9px;
+  border: 1px dashed #E5E7EB;
+  color: #9CA3AF;
+  font-size: 0.8rem;
+  gap: 0.25rem;
+
   svg {
-    font-size: var(--font-size-lg);
+    font-size: 1.1rem;
   }
   
   span {
-    font-size: var(--font-size-xs);
-    font-weight: var(--font-medium);
+    font-size: 0.8rem;
+    font-weight: 500;
   }
 `;

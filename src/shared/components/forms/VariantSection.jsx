@@ -75,6 +75,7 @@ export default function VariantSection({ variantAttributes = [], seller, singleV
       })),
       sku: "",
       price: 0,
+      originalPrice: "",
       stock: 0,
       status: "active",
       condition: "new", //   Default condition
@@ -426,6 +427,22 @@ function VariantRow({
         )}
       </VariantFieldGroup>
 
+      {/* Compare-at (original) price — shows strike-through when higher than price */}
+      <VariantFieldGroup>
+        <FieldLabel>
+          Compare-at price <OptionalMuted>(optional)</OptionalMuted>
+        </FieldLabel>
+        <Input
+          type="number"
+          step="0.01"
+          min="0"
+          {...register(`variants.${variantIndex}.originalPrice`)}
+          placeholder="Higher than price to show a sale"
+          $hasError={!!variantErrors?.originalPrice}
+        />
+        <HelperSmall>Set above your selling price to display a discount badge to buyers.</HelperSmall>
+      </VariantFieldGroup>
+
       {/* Quantity */}
       <VariantFieldGroup>
         <FieldLabel>
@@ -748,6 +765,20 @@ const Required = styled.span`
   color: #ef4444;
   font-weight: 600;
 `;
+
+const OptionalMuted = styled.span`
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #64748b;
+`;
+
+const HelperSmall = styled.p`
+  margin: 0.25rem 0 0 0;
+  font-size: 0.75rem;
+  color: #64748b;
+  line-height: 1.35;
+`;
+
 const VariantAttributes = styled.div`
   display: flex;
   flex-direction: column;

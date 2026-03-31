@@ -3,13 +3,6 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { FaPlus, FaArrowLeft, FaBoxOpen } from "react-icons/fa";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  PageContainer,
-  PageHeader,
-  TitleSection,
-  ActionSection,
-  Toolbar,
-} from '../../../shared/components/ui/SpacingSystem';
 import Button from '../../../shared/components/ui/Button';
 import SearchBox from '../../../shared/components/ui/SearchBox';
 import { LoadingState, EmptyState } from '../../../shared/components/ui/LoadingComponents';
@@ -81,9 +74,9 @@ export default function VariantsListPage() {
 
   if (variantsLoading || productLoading) {
     return (
-      <PageContainer>
+      <VariantListPage>
         <LoadingState message="Loading variants..." />
-      </PageContainer>
+      </VariantListPage>
     );
   }
 
@@ -94,29 +87,27 @@ export default function VariantsListPage() {
       : product?.imageCover) || null;
 
   return (
-    <PageContainer>
-      <PageHeader $padding="lg" $marginBottom="lg">
-        <TitleSection>
-          <BackButton onClick={() => navigate(-1)}>
-            <FaArrowLeft /> Back
-          </BackButton>
+    <VariantListPage>
+      <VarHeader>
+        <BackButton onClick={() => navigate(-1)}>
+          <FaArrowLeft /> Back
+        </BackButton>
+        <VarTitleSection>
           <h1>Product Variants</h1>
-          <p>
-            Manage variants for: <strong>{productName}</strong>
-          </p>
-        </TitleSection>
-        <ActionSection>
+          <p>Manage variants for: <strong>{productName}</strong></p>
+        </VarTitleSection>
+        <VarActions>
           <Button
             as={Link}
             to={`/dashboard/products/${productId}/variants/create`}
             variant="primary"
-            size="lg"
+            size="md"
             gradient
           >
             <FaPlus /> Add Variant
           </Button>
-        </ActionSection>
-      </PageHeader>
+        </VarActions>
+      </VarHeader>
 
       {variants.length === 0 ? (
         <EmptyState
@@ -136,14 +127,14 @@ export default function VariantsListPage() {
           }
         />
       ) : (
-        <>
-          <Toolbar $padding="md" $marginBottom="lg">
+        <TableCard>
+          <SearchToolbar>
             <SearchBox
               placeholder="Search variants by name, attributes, or SKU..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-          </Toolbar>
+          </SearchToolbar>
 
           <VariantTable
             variants={filteredVariants}
@@ -152,9 +143,9 @@ export default function VariantsListPage() {
             onDelete={handleDelete}
             deletingId={deletingId}
           />
-        </>
+        </TableCard>
       )}
-    </PageContainer>
+    </VariantListPage>
   );
 }
 
@@ -162,21 +153,90 @@ export default function VariantsListPage() {
 const BackButton = styled.button`
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  margin-bottom: var(--spacing-md);
+  gap: 0.375rem;
+  height: 32px;
+  padding: 0 0.75rem;
   background: transparent;
-  border: 1px solid var(--color-grey-300);
-  border-radius: var(--border-radius-md);
-  color: var(--color-grey-700);
-  font-size: var(--font-size-sm);
-  font-family: var(--font-body);
+  border: 0.5px solid #F1EFE8;
+  border-radius: 9px;
+  color: #6B7280;
+  font-size: 0.8rem;
+  font-family: inherit;
   cursor: pointer;
-  transition: var(--transition-base);
+  transition: all 0.12s;
+  flex-shrink: 0;
 
   &:hover {
-    background: var(--color-grey-50);
-    border-color: var(--color-grey-400);
+    background: #F9F8F5;
+    border-color: #E8920A;
+    color: #374151;
   }
 `;
 
+const VariantListPage = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: #F9F8F5;
+  min-height: 100vh;
+`;
+
+const VarHeader = styled.div`
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  border-left: 3px solid #E8920A;
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+`;
+
+const VarTitleSection = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+
+  h1 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+  }
+
+  p {
+    font-size: 0.8rem;
+    color: #9CA3AF;
+    margin: 0;
+
+    &::before {
+      content: '·';
+      margin-right: 0.5rem;
+      color: #D1D5DB;
+    }
+
+    strong { color: #374151; font-weight: 500; }
+  }
+`;
+
+const VarActions = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  margin-left: auto;
+`;
+
+const TableCard = styled.div`
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  overflow: hidden;
+`;
+
+const SearchToolbar = styled.div`
+  padding: 0.875rem 1.25rem;
+  border-bottom: 0.5px solid #F1EFE8;
+`;

@@ -466,176 +466,177 @@ export default SecurityTab;
 const Container = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xl);
+  gap: 1rem;
 `;
 
 const Section = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
-  padding: var(--spacing-lg);
-  background: var(--color-white-0);
-  border-radius: var(--border-radius-lg);
-  border: 1px solid var(--color-grey-200);
+  gap: 1rem;
+  padding: 1.25rem;
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
 `;
 
 const SectionHeader = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
-  padding-bottom: var(--spacing-md);
-  border-bottom: 1px solid var(--color-grey-200);
+  gap: 0.85rem;
+  padding-bottom: 1rem;
+  border-bottom: 0.5px solid #F1EFE8;
 `;
 
 const SectionIcon = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: var(--color-primary-100);
-  border-radius: var(--border-radius-md);
-  color: var(--color-primary-600);
-  font-size: var(--font-size-lg);
+  width: 38px;
+  height: 38px;
+  background: #FDF3E3;
+  border-radius: 9px;
+  color: #E8920A;
+  font-size: 1rem;
+  flex-shrink: 0;
 `;
 
 const SectionTitle = styled.h2`
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
+  font-size: 0.975rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
 `;
 
 const SectionContent = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 0.85rem;
 `;
 
 const SignInMethodList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: 0.5rem;
 `;
 
 const SignInMethodItem = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md);
-  background: var(--color-grey-50);
-  border-radius: var(--border-radius-md);
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  background: #F9F8F5;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 9px;
 
   > span:first-of-type {
     flex: 1;
-    font-weight: var(--font-medium);
-    color: var(--color-grey-900);
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: #374151;
   }
 `;
 
 const SignInMethodNote = styled.span`
-  width: 100%;
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-600);
-  font-weight: normal;
-  margin-top: var(--spacing-xs);
+  font-size: 0.875rem;
+  color: #9CA3AF;
+  line-height: 1.5;
 `;
 
 const ConnectedBadge = styled.span`
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-semibold);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--border-radius-md);
-  background: ${(p) => (p.$connected ? 'var(--color-green-600)' : 'var(--color-grey-200)')};
-  color: ${(p) => (p.$connected ? 'var(--color-white-0)' : 'var(--color-grey-600)')};
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 0.6rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: ${(p) => p.$connected ? '#D1FAE5' : '#F3F4F6'};
+  color: ${(p) => p.$connected ? '#065F46' : '#6B7280'};
 `;
 
 const StatusBadge = styled.div`
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs) var(--spacing-md);
-  border-radius: var(--border-radius-full);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-semibold);
-  background: ${props => props.$enabled ? 'var(--color-green-100)' : 'var(--color-red-100)'};
-  color: ${props => props.$enabled ? 'var(--color-green-700)' : 'var(--color-red-700)'};
+  gap: 0.35rem;
+  height: 24px;
+  padding: 0 0.7rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: ${(p) => p.$enabled ? '#D1FAE5' : '#FEE2E2'};
+  color: ${(p) => p.$enabled ? '#065F46' : '#991B1B'};
   width: fit-content;
 `;
 
 const Description = styled.p`
-  font-size: var(--font-size-md);
-  color: var(--color-grey-600);
+  font-size: 0.875rem;
+  color: #6B7280;
   line-height: 1.6;
+  margin: 0;
 `;
 
 const EnabledState = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 0.85rem;
 `;
 
 const DisabledState = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 0.85rem;
 `;
 
 const SetupState = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: 1rem;
 `;
 
 const VerificationForm = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 0.85rem;
   max-width: 400px;
 `;
 
 const PasswordForm = styled.form`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 0.85rem;
   max-width: 500px;
 `;
 
 const FormGroup = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 0.35rem;
 `;
 
 const Label = styled.label`
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-medium);
-  color: var(--color-grey-700);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
 `;
 
 const Input = styled.input`
-  padding: var(--spacing-sm) var(--spacing-md);
-  font-size: var(--font-size-md);
-  border: 1px solid var(--color-grey-300);
-  border-radius: var(--border-radius-md);
-  background: var(--color-white-0);
-  color: var(--color-grey-900);
-  transition: all 0.2s ease;
+  height: 38px;
+  padding: 0 0.85rem;
+  font-size: 0.875rem;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 9px;
+  background: #F9F8F5;
+  color: #111827;
+  outline: none;
 
-  &:focus {
-    outline: none;
-    border-color: var(--color-primary-500);
-    box-shadow: 0 0 0 3px rgba(255, 196, 0, 0.1);
-  }
-
-  &::placeholder {
-    color: var(--color-grey-400);
-  }
+  &:focus { border-color: #E8920A; background: #FFFFFF; }
+  &::placeholder { color: #9CA3AF; }
 `;
 
 const ErrorText = styled.p`
-  font-size: var(--font-size-sm);
-  color: var(--color-red-600);
-  margin-top: var(--spacing-xs);
+  font-size: 0.875rem;
+  color: #EF4444;
+  margin: 0;
 `;
 
 const DisableButton = styled(Button)`
@@ -645,13 +646,14 @@ const DisableButton = styled(Button)`
 const SessionsList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 0.5rem;
 `;
 
 const EmptyState = styled.p`
-  font-size: var(--font-size-md);
-  color: var(--color-grey-500);
+  font-size: 0.875rem;
+  color: #9CA3AF;
   text-align: center;
-  padding: var(--spacing-xl);
+  padding: 1.5rem;
+  margin: 0;
 `;
 

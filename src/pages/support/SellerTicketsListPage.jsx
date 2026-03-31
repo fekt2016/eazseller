@@ -6,56 +6,61 @@ import styled from 'styled-components';
 import { useMyTickets } from '../../shared/hooks/useSupport';
 import { STATUS_COLORS, PRIORITY_COLORS } from './supportTypes';
 import { PATHS } from '../../routes/routePaths';
+import { SkeletonTableRows } from '../../shared/components/ui/LoadingComponents';
 
+/* ─── Styled Components ───────────────────────────────────────────────────── */
 const Container = styled.div`
-  max-width: 120rem;
-  margin: 0 auto;
-  padding: 3rem 2rem;
+  display: grid;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: #F9F8F5;
   min-height: 100vh;
-  background: #fafbfc;
 `;
 
 const Header = styled.div`
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  padding: 1.2rem 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 3rem;
   flex-wrap: wrap;
-  gap: 1.6rem;
+  gap: 0.75rem;
 `;
 
 const Title = styled.h1`
-  font-size: 2.4rem;
-  font-weight: 700;
-  color: #1a202c;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111827;
   margin: 0;
 `;
 
 const CreateButton = styled(motion.button)`
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.8rem;
-  background: #00C896;
-  color: #ffffff;
+  gap: 0.45rem;
+  height: 36px;
+  padding: 0 1rem;
+  background: #E8920A;
+  color: #FFFFFF;
   border: none;
-  padding: 1.2rem 2.4rem;
-  border-radius: 0.8rem;
-  font-size: 1rem;
+  border-radius: 9px;
+  font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    background: #00A67E;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 200, 150, 0.3);
-  }
+  transition: background 0.12s;
+
+  &:hover { background: #D97706; }
 `;
 
 const FiltersBar = styled.div`
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
   display: flex;
-  gap: 1.6rem;
-  margin-bottom: 2.4rem;
+  gap: 0.75rem;
   flex-wrap: wrap;
   align-items: center;
 `;
@@ -63,76 +68,69 @@ const FiltersBar = styled.div`
 const SearchInput = styled.div`
   position: relative;
   flex: 1;
-  min-width: 20rem;
+  min-width: 200px;
 `;
 
 const SearchIcon = styled.div`
   position: absolute;
-  left: 1.2rem;
+  left: 0.85rem;
   top: 50%;
   transform: translateY(-50%);
-  color: #64748b;
+  color: #9CA3AF;
+  font-size: 0.8rem;
 `;
 
 const Input = styled.input`
   width: 100%;
-  padding: 1rem 1rem 1rem 4rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.8rem;
-  font-size: 1rem;
-  background: #ffffff;
-  transition: all 0.2s ease;
-  
-  &:focus {
-    outline: none;
-    border-color: #00C896;
-    box-shadow: 0 0 0 3px rgba(0, 200, 150, 0.1);
-  }
+  height: 36px;
+  padding: 0 0.9rem 0 2.2rem;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 9px;
+  font-size: 0.875rem;
+  background: #F9F8F5;
+  color: #111827;
+  outline: none;
+  box-sizing: border-box;
+
+  &::placeholder { color: #9CA3AF; }
+  &:focus { border-color: #E8920A; background: #FFFFFF; }
 `;
 
 const FilterSelect = styled.select`
-  padding: 1rem 1.2rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.8rem;
-  font-size: 1rem;
-  background: #ffffff;
+  height: 36px;
+  padding: 0 0.75rem;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 9px;
+  font-size: 0.8rem;
+  color: #374151;
+  background: #FFFFFF;
   cursor: pointer;
-  min-width: 15rem;
-  
-  &:focus {
-    outline: none;
-    border-color: #00C896;
-  }
+  outline: none;
+  &:focus { border-color: #E8920A; }
 `;
 
 const TicketsList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 1.6rem;
+  gap: 0.5rem;
 `;
 
 const TicketCard = styled(motion.div)`
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 1.2rem;
-  padding: 2.4rem;
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  padding: 1.1rem 1.25rem;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  
-  &:hover {
-    border-color: #00C896;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transform: translateY(-2px);
-  }
+  transition: background 0.12s, border-color 0.12s;
+
+  &:hover { background: #FFFDF9; border-color: #E8920A; }
 `;
 
 const TicketHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1.2rem;
-  gap: 1.6rem;
+  gap: 1rem;
 `;
 
 const TicketLeft = styled.div`
@@ -141,79 +139,81 @@ const TicketLeft = styled.div`
 `;
 
 const TicketNumber = styled.div`
-  font-size: 0.875rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  color: #64748b;
-  margin-bottom: 0.4rem;
+  color: #9CA3AF;
+  font-family: ui-monospace, 'Courier New', monospace;
+  margin-bottom: 0.25rem;
 `;
 
 const TicketTitle = styled.h3`
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #1a202c;
-  margin: 0 0 0.8rem 0;
-  line-height: 1.3;
+  font-size: 0.925rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.4rem;
+  line-height: 1.4;
 `;
 
 const TicketMeta = styled.div`
   display: flex;
-  gap: 1.6rem;
+  gap: 0.9rem;
   flex-wrap: wrap;
-  font-size: 0.875rem;
-  color: #64748b;
+  font-size: 0.775rem;
+  color: #9CA3AF;
 `;
 
 const TicketRight = styled.div`
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 0.8rem;
+  gap: 0.4rem;
+  flex-shrink: 0;
 `;
 
 const Badge = styled.span`
   display: inline-flex;
   align-items: center;
-  padding: 0.4rem 0.8rem;
-  border-radius: 0.4rem;
-  font-size: 0.75rem;
+  height: 22px;
+  padding: 0 0.6rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
   font-weight: 600;
   text-transform: capitalize;
-  background: ${props => props.$bgColor || '#e2e8f0'};
-  color: ${props => props.$color || '#1a202c'};
+  background: ${(p) => p.$bgColor || '#F3F4F6'};
+  color: ${(p) => p.$color || '#374151'};
 `;
 
 const EmptyState = styled.div`
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  padding: 4rem 2rem;
   text-align: center;
-  padding: 6rem 2rem;
-  background: #ffffff;
-  border-radius: 1.2rem;
-  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
 `;
 
 const EmptyIcon = styled.div`
-  font-size: 4rem;
-  color: #cbd5e1;
-  margin-bottom: 1.6rem;
+  font-size: 2.5rem;
+  color: #D1D5DB;
+  margin-bottom: 0.5rem;
 `;
 
 const EmptyTitle = styled.h3`
-  font-size: 1.5rem;
+  font-size: 0.975rem;
   font-weight: 600;
-  color: #1a202c;
-  margin: 0 0 0.8rem 0;
+  color: #374151;
+  margin: 0;
 `;
 
 const EmptyText = styled.p`
-  font-size: 1rem;
-  color: #64748b;
-  margin: 0 0 2.4rem 0;
+  font-size: 0.8rem;
+  color: #9CA3AF;
+  margin: 0 0 1rem;
 `;
 
-const LoadingState = styled.div`
-  text-align: center;
-  padding: 6rem 2rem;
-  color: #64748b;
-`;
 
 /**
  * Seller Tickets List Page
@@ -280,7 +280,7 @@ const SellerTicketsListPage = () => {
   if (isLoading) {
     return (
       <Container>
-        <LoadingState>Loading tickets...</LoadingState>
+        <SkeletonTableRows count={6} />
       </Container>
     );
   }

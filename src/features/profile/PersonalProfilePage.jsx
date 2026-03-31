@@ -6,7 +6,6 @@ import useAuth from '../../shared/hooks/useAuth';
 import { PATHS } from '../../routes/routePaths';
 import Button from '../../shared/components/ui/Button';
 import { LoadingState } from '../../shared/components/ui/LoadingComponents';
-import { PageContainer, PageHeader, TitleSection, Section, SectionHeader } from '../../shared/components/ui/SpacingSystem';
 import { detectGhanaNetwork, isValidGhanaPhone, normalizeGhanaPhone } from '../../shared/utils/detectGhanaNetwork';
 import NetworkBadge from '../../shared/components/ui/NetworkBadge';
 
@@ -127,11 +126,11 @@ const PersonalProfilePage = ({ embedded = false }) => {
   const content = (
     <>
       {!embedded && (
-        <PageHeader $padding="lg" $marginBottom="lg">
-          <TitleSection>
-            <h1>Personal Profile</h1>
-            <p>Update your personal information and account details</p>
-          </TitleSection>
+        <ProfileHeader>
+          <div>
+            <ProfileTitle>Personal Profile</ProfileTitle>
+            <ProfileSubtitle>Update your personal information and account details</ProfileSubtitle>
+          </div>
           <Button
             variant="ghost"
             size="md"
@@ -139,18 +138,16 @@ const PersonalProfilePage = ({ embedded = false }) => {
           >
             <FaArrowLeft /> Back to Dashboard
           </Button>
-        </PageHeader>
+        </ProfileHeader>
       )}
 
-      {/* Success Message */}
       {success && (
         <SuccessBanner>
-          <FaSave size={20} />
+          <FaSave size={16} />
           <span>Profile updated successfully!</span>
         </SuccessBanner>
       )}
 
-      {/* Error Message */}
       {error && (
         <ErrorBanner>
           <span>{error}</span>
@@ -158,11 +155,8 @@ const PersonalProfilePage = ({ embedded = false }) => {
       )}
 
       <Form onSubmit={handleSubmit}>
-        {/* Personal Information Section */}
-        <Section $marginBottom="lg">
-          <SectionHeader $padding="md">
-            <h3>Personal Information</h3>
-          </SectionHeader>
+        <ProfileSection>
+          <SectionTitle>Personal Information</SectionTitle>
           <FormContent>
             <FormGroup>
               <Label htmlFor="name">
@@ -234,9 +228,8 @@ const PersonalProfilePage = ({ embedded = false }) => {
               </PhoneInputWrapper>
             </FormGroup>
           </FormContent>
-        </Section>
+        </ProfileSection>
 
-        {/* Action Buttons */}
         <ActionSection>
           <Button
             type="submit"
@@ -265,103 +258,156 @@ const PersonalProfilePage = ({ embedded = false }) => {
     return content;
   }
 
-  return <PageContainer>{content}</PageContainer>;
+  return <PersonalPage>{content}</PersonalPage>;
 };
 
 export default PersonalProfilePage;
 
 // Styled Components
+const PersonalPage = styled.div`
+  display: grid;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: #F9F8F5;
+  min-height: 100vh;
+`;
+
+const ProfileHeader = styled.div`
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  border-left: 3px solid #E8920A;
+  padding: 1.2rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+`;
+
+const ProfileTitle = styled.h1`
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.2rem;
+`;
+
+const ProfileSubtitle = styled.p`
+  font-size: 0.9rem;
+  color: #9CA3AF;
+  margin: 0;
+`;
+
+const ProfileSection = styled.div`
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  overflow: hidden;
+`;
+
+const SectionTitle = styled.h3`
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+  padding: 1rem 1.25rem;
+  border-bottom: 0.5px solid #F1EFE8;
+`;
+
 const Form = styled.form`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: 0;
 `;
 
 const FormContent = styled.div`
-  padding: var(--spacing-lg);
+  padding: 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 0.85rem;
 `;
 
 const Required = styled.span`
-  color: var(--color-red-600);
-  margin-left: var(--spacing-xs);
+  color: #EF4444;
+  margin-left: 0.25rem;
 `;
 
 const FormGroup = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 0.3rem;
 `;
 
 const Label = styled.label`
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-700);
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
 
   svg {
-    color: var(--color-grey-500);
+    color: #9CA3AF;
+    font-size: 0.75rem;
   }
 `;
 
 const Input = styled.input`
-  padding: var(--spacing-md);
-  border: 2px solid var(--color-grey-300);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-md);
-  color: var(--color-grey-900);
-  transition: all 0.2s ease;
+  height: 38px;
+  padding: 0 0.75rem;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 9px;
+  font-size: 0.9rem;
+  color: #111827;
+  background: #F9F8F5;
+  outline: none;
   width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.12s, background 0.12s;
 
   &:focus {
-    outline: none;
-    border-color: var(--color-primary-500);
-    box-shadow: 0 0 0 3px var(--color-primary-100);
+    border-color: #E8920A;
+    background: #FFFFFF;
   }
 
   &:disabled {
-    background: var(--color-grey-100);
-    cursor: not-allowed;
     opacity: 0.6;
+    cursor: not-allowed;
   }
 
   &::placeholder {
-    color: var(--color-grey-400);
+    color: #D1D5DB;
   }
 `;
 
 const HelperText = styled.p`
-  font-size: var(--font-size-xs);
-  color: var(--color-grey-600);
-  margin: var(--spacing-xs) 0 0 0;
+  font-size: 0.75rem;
+  color: #9CA3AF;
+  margin: 0.2rem 0 0;
 `;
 
 const ErrorText = styled.p`
-  font-size: var(--font-size-xs);
-  color: var(--color-red-600);
-  margin: var(--spacing-xs) 0 0 0;
+  font-size: 0.75rem;
+  color: #EF4444;
+  margin: 0.2rem 0 0;
 `;
 
-const PhoneInputWrapper = styled.div`
-  margin-top: var(--spacing-xs);
-`;
+const PhoneInputWrapper = styled.div``;
 
 const PhoneInputContainer = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   padding: 0 0.75rem 0 0;
-  border: 2px solid ${(p) => (p.$hasError ? 'var(--color-red-500)' : 'var(--color-grey-300)')};
-  border-radius: var(--border-radius-md);
-  background: #fff;
-  min-height: 44px;
+  border: 0.5px solid ${(p) => (p.$hasError ? '#EF4444' : '#F1EFE8')};
+  border-radius: 9px;
+  background: #F9F8F5;
+  min-height: 38px;
+  transition: border-color 0.12s, background 0.12s;
+
   &:focus-within {
-    border-color: ${(p) => (p.$hasError ? 'var(--color-red-500)' : 'var(--color-primary-500)')};
-    box-shadow: 0 0 0 3px var(--color-primary-100);
+    border-color: ${(p) => (p.$hasError ? '#EF4444' : '#E8920A')};
+    background: #FFFFFF;
   }
 `;
 
@@ -372,75 +418,63 @@ const PhoneBadgeSlot = styled.span`
 `;
 
 const PhonePrefix = styled.span`
-  color: var(--color-grey-700);
-  font-size: var(--font-size-md);
-  padding-left: var(--spacing-md);
+  color: #374151;
+  font-size: 0.875rem;
+  padding-left: 0.75rem;
   flex-shrink: 0;
 `;
 
 const PhoneInput = styled.input`
-  padding: var(--spacing-md) 0.5rem var(--spacing-md) 0;
+  padding: 0 0.4rem;
   border: none;
-  font-size: var(--font-size-md);
+  font-size: 0.9rem;
   flex: 1;
   min-width: 0;
   background: transparent;
-  color: var(--color-grey-900);
-  &:focus {
-    outline: none;
-  }
-  &::placeholder {
-    color: var(--color-grey-400);
-  }
-  &:disabled {
-    background: transparent;
-    cursor: not-allowed;
-    opacity: 0.6;
-  }
+  color: #111827;
+  outline: none;
+
+  &::placeholder { color: #D1D5DB; }
+  &:disabled { cursor: not-allowed; opacity: 0.6; }
 `;
 
 const SuccessBanner = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-md) var(--spacing-lg);
-  background: var(--color-green-50);
-  border: 1px solid var(--color-green-200);
-  border-radius: var(--border-radius-md);
-  color: var(--color-green-700);
-  margin-bottom: var(--spacing-lg);
-
-  svg {
-    color: var(--color-green-600);
-  }
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: #D1FAE5;
+  border: 0.5px solid #A7F3D0;
+  border-left: 3px solid #10B981;
+  border-radius: 9px;
+  color: #065F46;
+  font-size: 0.9rem;
 `;
 
 const ErrorBanner = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-md) var(--spacing-lg);
-  background: var(--color-red-50);
-  border: 1px solid var(--color-red-200);
-  border-radius: var(--border-radius-md);
-  color: var(--color-red-700);
-  margin-bottom: var(--spacing-lg);
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: #FEF2F2;
+  border: 0.5px solid #FECACA;
+  border-left: 3px solid #EF4444;
+  border-radius: 9px;
+  color: #DC2626;
+  font-size: 0.9rem;
 `;
 
 const ActionSection = styled.div`
   display: flex;
-  gap: var(--spacing-md);
+  gap: 0.5rem;
   justify-content: flex-end;
-  padding: var(--spacing-lg);
-  border-top: 1px solid var(--color-grey-200);
-  background: var(--color-grey-50);
+  padding: 1rem 1.25rem;
+  border-top: 0.5px solid #F1EFE8;
+  background: #FAFAF9;
 
-  @media (max-width: 768px) {
+  @media (max-width: 640px) {
     flex-direction: column;
-
-    button {
-      width: 100%;
-    }
+    button { width: 100%; }
   }
 `;
 

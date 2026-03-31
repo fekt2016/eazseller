@@ -7,31 +7,31 @@ const PaginationContainer = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-md);
-  background: var(--color-white-0);
-  border-top: 1px solid var(--color-grey-200);
+  padding: 1rem;
+  background: #FFFFFF;
+  border-top: 1px solid #F1EFE8;
   
   @media ${devicesMax.sm} {
     flex-direction: column;
-    gap: var(--spacing-md);
+    gap: 1rem;
   }
 `;
 
 const PageInfo = styled.div`
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-600);
-  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: #6B7280;
+  
 `;
 
 const PaginationButtons = styled.div`
   display: flex;
-  gap: var(--spacing-xs);
+  gap: 1rem;
   align-items: center;
 `;
 
 const PageButton = styled(Button)`
   min-width: 3.2rem;
-  padding: var(--spacing-xs) var(--spacing-sm);
+  padding: 1rem 1rem;
 `;
 
 const Pagination = ({ 
@@ -74,7 +74,7 @@ const Pagination = ({
         >
           <FaChevronLeft />
         </PageButton>
-        <PageInfo style={{ margin: '0 var(--spacing-sm)' }}>
+        <PageInfo style={{ margin: '0 1rem' }}>
           Page {currentPage} of {totalPages}
         </PageInfo>
         <PageButton

@@ -137,3 +137,15 @@ export const useGetUserOrderById = (id) => {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
+
+export const useUpdateSellerOrderStatus = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ orderId, status }) =>
+      orderService.updateSellerOrderStatus(orderId, status),
+    onSuccess: (_data, vars) => {
+      queryClient.invalidateQueries({ queryKey: ["sellerOrder", vars.orderId] });
+      queryClient.invalidateQueries({ queryKey: ["seller-orders"] });
+    },
+  });
+};

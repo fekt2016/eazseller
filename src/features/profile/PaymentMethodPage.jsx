@@ -534,9 +534,9 @@ const PaymentMethodPage = ({ embedded = false }) => {
                       <td>
                         <TypeCell>
                           {method.type === 'mobile_money' ? (
-                            <FaMobileAlt style={{ color: 'var(--color-primary-500)' }} />
+                            <FaMobileAlt style={{ color: '#E8920A' }} />
                           ) : (
-                            <FaBuilding style={{ color: 'var(--color-primary-500)' }} />
+                            <FaBuilding style={{ color: '#E8920A' }} />
                           )}
                           <span>{details.type}</span>
                         </TypeCell>
@@ -679,14 +679,14 @@ const PaymentMethodPage = ({ embedded = false }) => {
             onClick={() => setActiveTab('bank')}
           >
             <FaBuilding /> Bank Account
-            {hasBankDetails && <FaCheckCircle style={{ marginLeft: '8px', color: 'var(--color-green-600)' }} />}
+            {hasBankDetails && <FaCheckCircle style={{ marginLeft: '8px', color: '#3B6D11' }} />}
           </TabButton>
           <TabButton
             $active={activeTab === 'mobile'}
             onClick={() => setActiveTab('mobile')}
           >
             <FaMobileAlt /> Mobile Money
-            {hasMobileMoneyDetails && <FaCheckCircle style={{ marginLeft: '8px', color: 'var(--color-green-600)' }} />}
+            {hasMobileMoneyDetails && <FaCheckCircle style={{ marginLeft: '8px', color: '#3B6D11' }} />}
           </TabButton>
         </TabsContainer>
       )}
@@ -700,12 +700,12 @@ const PaymentMethodPage = ({ embedded = false }) => {
               <SectionHeader $padding="md">
                 <h3>{editingMethodId ? 'Edit Bank Account Details' : 'Bank Account Details'}</h3>
                 {hasAnyPaymentMethod && !editingMethodId && (
-                  <InfoBanner style={{ marginTop: 'var(--spacing-sm)' }}>
+                  <InfoBanner style={{ marginTop: '0.5rem' }}>
                     <FaCheckCircle /> You already have a payment method. To use a bank account instead, please edit your existing method.
                   </InfoBanner>
                 )}
                 {editingMethodId && (
-                  <InfoBanner style={{ marginTop: 'var(--spacing-sm)' }}>
+                  <InfoBanner style={{ marginTop: '0.5rem' }}>
                     <FaEdit /> You are editing an existing payment method. Make your changes and click "Update Payment Method" to save.
                   </InfoBanner>
                 )}
@@ -826,12 +826,12 @@ const PaymentMethodPage = ({ embedded = false }) => {
               <SectionHeader $padding="md">
                 <h3>{editingMethodId ? 'Edit Mobile Money Details' : 'Mobile Money Details'}</h3>
                 {hasAnyPaymentMethod && !editingMethodId && (
-                  <InfoBanner style={{ marginTop: 'var(--spacing-sm)' }}>
+                  <InfoBanner style={{ marginTop: '0.5rem' }}>
                     <FaCheckCircle /> You already have a payment method. To use mobile money instead, please edit your existing method.
                   </InfoBanner>
                 )}
                 {editingMethodId && (
-                  <InfoBanner style={{ marginTop: 'var(--spacing-sm)' }}>
+                  <InfoBanner style={{ marginTop: '0.5rem' }}>
                     <FaEdit /> You are editing an existing payment method. Make your changes and click "Update Payment Method" to save.
                   </InfoBanner>
                 )}
@@ -969,7 +969,7 @@ const PaymentMethodPage = ({ embedded = false }) => {
                     setSuccess(false);
                   }}
                   disabled={isSubmitting || isUpdateLoading}
-                  style={{ marginTop: 'var(--spacing-md)' }}
+                  style={{ marginTop: '1rem' }}
                 >
                   Cancel Editing
                 </Button>
@@ -1020,269 +1020,219 @@ export default PaymentMethodPage;
 const Form = styled.form`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: 1rem;
 `;
 
 const FormContent = styled.div`
-  padding: var(--spacing-lg);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 0.85rem;
 `;
 
 const FormGroup = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 0.35rem;
 `;
 
 const Label = styled.label`
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-700);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #374151;
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: 0.35rem;
 
-  svg {
-    color: var(--color-grey-500);
-  }
+  svg { color: #9CA3AF; }
 `;
 
 const Required = styled.span`
-  color: var(--color-red-500);
+  color: #EF4444;
 `;
 
 const Input = styled.input`
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid var(--color-grey-300);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-md);
-  font-family: var(--font-body);
-  color: var(--color-grey-900);
-  transition: all 0.2s ease;
+  height: 38px;
+  padding: 0 0.85rem;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 9px;
+  font-size: 0.875rem;
+  background: #F9F8F5;
+  color: #111827;
+  outline: none;
 
-  &:focus {
-    outline: none;
-    border-color: var(--color-primary-500);
-    box-shadow: 0 0 0 3px var(--color-primary-100);
-  }
-
-  &::placeholder {
-    color: var(--color-grey-400);
-  }
-
-  &:disabled {
-    background: var(--color-grey-100);
-    cursor: not-allowed;
-  }
+  &:focus { border-color: #E8920A; background: #FFFFFF; }
+  &::placeholder { color: #9CA3AF; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
 `;
 
 const Select = styled.select`
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid var(--color-grey-300);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-md);
-  font-family: var(--font-body);
-  color: var(--color-grey-900);
-  background: white;
-  transition: all 0.2s ease;
+  height: 38px;
+  padding: 0 0.85rem;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 9px;
+  font-size: 0.875rem;
+  background: #F9F8F5;
+  color: #111827;
+  outline: none;
+  cursor: pointer;
 
-  &:focus {
-    outline: none;
-    border-color: var(--color-primary-500);
-    box-shadow: 0 0 0 3px var(--color-primary-100);
-  }
-
-  &:disabled {
-    background: var(--color-grey-100);
-    cursor: not-allowed;
-  }
+  &:focus { border-color: #E8920A; background: #FFFFFF; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
 `;
 
 const HelperText = styled.p`
-  font-size: var(--font-size-xs);
-  color: var(--color-grey-500);
-  margin-top: var(--spacing-xs);
+  font-size: 0.75rem;
+  color: #9CA3AF;
+  margin: 0;
 `;
 
 const ActionSection = styled.div`
   display: flex;
-  gap: var(--spacing-md);
+  gap: 0.5rem;
   justify-content: flex-end;
-  padding-top: var(--spacing-lg);
-  border-top: 1px solid var(--color-grey-200);
+  padding-top: 1rem;
+  border-top: 0.5px solid #F1EFE8;
 
   @media (max-width: 768px) {
     flex-direction: column-reverse;
-
-    button {
-      width: 100%;
-    }
+    button { width: 100%; }
   }
 `;
 
 const FormActions = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
-  padding-top: var(--spacing-lg);
-  margin-top: var(--spacing-md);
-  border-top: 1px solid var(--color-grey-200);
-
-  @media (max-width: 768px) {
-    button {
-      width: 100%;
-    }
-  }
+  gap: 0.85rem;
+  padding-top: 1rem;
+  border-top: 0.5px solid #F1EFE8;
 `;
 
 const SuccessBanner = styled.div`
-  background: linear-gradient(135deg, var(--color-green-500), var(--color-green-600));
-  color: white;
-  padding: var(--spacing-md) var(--spacing-lg);
-  border-radius: var(--border-radius-lg);
-  margin-bottom: var(--spacing-lg);
+  background: #D1FAE5;
+  border: 0.5px solid #A7F3D0;
+  border-left: 3px solid #10B981;
+  color: #065F46;
+  padding: 0.85rem 1rem;
+  border-radius: 9px;
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
-  box-shadow: var(--shadow-md);
+  gap: 0.75rem;
 `;
 
 const SuccessTitle = styled.h3`
-  margin: 0 0 var(--spacing-xs) 0;
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-semibold);
+  margin: 0 0 0.2rem;
+  font-size: 0.9rem;
+  font-weight: 600;
 `;
 
 const SuccessMessage = styled.p`
   margin: 0;
-  font-size: var(--font-size-sm);
-  opacity: 0.95;
+  font-size: 0.8rem;
 `;
 
 const ErrorBanner = styled.div`
-  background: var(--color-red-50);
-  border: 1px solid var(--color-red-200);
-  color: var(--color-red-700);
-  padding: var(--spacing-md) var(--spacing-lg);
-  border-radius: var(--border-radius-lg);
-  margin-bottom: var(--spacing-lg);
+  background: #FEF2F2;
+  border: 0.5px solid #FECACA;
+  border-left: 3px solid #EF4444;
+  color: #991B1B;
+  padding: 0.85rem 1rem;
+  border-radius: 9px;
 `;
 
 const ErrorTitle = styled.h3`
-  margin: 0 0 var(--spacing-xs) 0;
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-semibold);
+  margin: 0 0 0.2rem;
+  font-size: 0.9rem;
+  font-weight: 600;
 `;
 
 const ErrorMessage = styled.p`
   margin: 0;
-  font-size: var(--font-size-sm);
+  font-size: 0.8rem;
 `;
 
 const TabsContainer = styled.div`
   display: flex;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-lg);
-  border-bottom: 2px solid var(--color-grey-200);
+  gap: 0.4rem;
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  padding: 0.6rem;
+  margin-bottom: 1rem;
 `;
 
 const TabButton = styled.button`
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-md) var(--spacing-lg);
-  background: transparent;
-  border: none;
-  border-bottom: 3px solid transparent;
-  color: var(--color-grey-600);
-  font-size: var(--font-size-md);
-  font-weight: var(--font-medium);
+  gap: 0.4rem;
+  height: 34px;
+  padding: 0 1rem;
+  background: ${(p) => p.$active ? '#E8920A' : 'transparent'};
+  color: ${(p) => p.$active ? '#FFFFFF' : '#374151'};
+  border: 0.5px solid ${(p) => p.$active ? '#E8920A' : 'transparent'};
+  border-radius: 9px;
+  font-size: 0.825rem;
+  font-weight: ${(p) => p.$active ? 600 : 400};
   cursor: pointer;
-  transition: all 0.2s ease;
-  margin-bottom: -2px;
+  transition: all 0.12s;
 
-  &:hover {
-    color: var(--color-primary-600);
-    background: var(--color-grey-50);
-  }
-
-  ${(props) =>
-    props.$active &&
-    `
-    color: var(--color-primary-600);
-    border-bottom-color: var(--color-primary-600);
-    font-weight: var(--font-semibold);
-  `}
-
-  svg {
-    font-size: var(--font-size-lg);
-  }
+  &:hover { background: ${(p) => p.$active ? '#D97706' : '#F9F8F5'}; }
 `;
 
 const InfoBanner = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--color-blue-50);
-  border: 1px solid var(--color-blue-200);
-  border-radius: var(--border-radius-md);
-  color: var(--color-blue-700);
-  font-size: var(--font-size-sm);
-  margin-bottom: var(--spacing-md);
+  gap: 0.5rem;
+  padding: 0.7rem 0.9rem;
+  background: #EFF6FF;
+  border: 0.5px solid #BFDBFE;
+  border-left: 3px solid #3B82F6;
+  border-radius: 9px;
+  color: #1D4ED8;
+  font-size: 0.8rem;
+  margin-bottom: 0.75rem;
 
-  svg {
-    color: var(--color-blue-600);
-    flex-shrink: 0;
-  }
+  svg { flex-shrink: 0; color: #3B82F6; }
 `;
 
 const TableContainer = styled.div`
   overflow-x: auto;
-  border-radius: var(--border-radius-lg);
-  border: 1px solid var(--color-grey-200);
-  background: var(--color-white-0);
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  background: #FFFFFF;
 `;
 
 const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--font-size-sm);
+  font-size: 0.8rem;
 
   thead {
-    background: var(--color-grey-50);
-    border-bottom: 2px solid var(--color-grey-200);
+    background: #F9F8F5;
+    border-bottom: 0.5px solid #F1EFE8;
   }
 
   th {
-    padding: var(--spacing-md);
+    padding: 0.75rem 1rem;
     text-align: left;
-    font-weight: var(--font-semibold);
-    color: var(--color-grey-700);
-    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: #9CA3AF;
+    font-size: 0.72rem;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.05em;
   }
 
   tbody {
     tr {
-      border-bottom: 1px solid var(--color-grey-100);
-      transition: background-color 0.2s ease;
+      border-bottom: 0.5px solid #F1EFE8;
+      transition: background 0.12s;
 
-      &:hover {
-        background: var(--color-grey-50);
-      }
-
-      &:last-child {
-        border-bottom: none;
-      }
+      &:hover { background: #FFFDF9; }
+      &:last-child { border-bottom: none; }
     }
 
     td {
-      padding: var(--spacing-md);
-      color: var(--color-grey-700);
+      padding: 0.85rem 1rem;
+      color: #374151;
       vertical-align: middle;
     }
   }
@@ -1291,124 +1241,92 @@ const Table = styled.table`
 const TypeCell = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  font-weight: var(--font-medium);
-
-  svg {
-    font-size: var(--font-size-lg);
-  }
+  gap: 0.5rem;
+  font-weight: 500;
 `;
 
 const AccountName = styled.div`
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #111827;
 `;
 
 const AccountDetails = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
-  min-width: 200px;
+  gap: 0.2rem;
+  min-width: 180px;
 `;
 
 const PrimaryDetail = styled.div`
-  font-weight: var(--font-medium);
-  color: var(--color-grey-900);
-  font-size: var(--font-size-sm);
+  font-size: 0.8rem;
+  color: #374151;
   line-height: 1.5;
-  
-  strong {
-    font-weight: var(--font-semibold);
-    color: var(--color-grey-700);
-    margin-right: var(--spacing-xs);
-  }
+
+  strong { font-weight: 600; color: #6B7280; margin-right: 0.25rem; }
 `;
 
 const SecondaryDetail = styled.div`
-  font-size: var(--font-size-xs);
-  color: var(--color-grey-600);
+  font-size: 0.75rem;
+  color: #9CA3AF;
   line-height: 1.5;
-  
-  strong {
-    font-weight: var(--font-semibold);
-    color: var(--color-grey-700);
-    margin-right: var(--spacing-xs);
-  }
+
+  strong { font-weight: 600; color: #6B7280; margin-right: 0.25rem; }
 `;
 
 const DefaultSelector = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: 0.4rem;
 `;
 
 const RadioButton = styled.input`
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   cursor: pointer;
-  accent-color: var(--color-primary-500);
-  
-  &:disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-  }
+  accent-color: #E8920A;
+
+  &:disabled { cursor: not-allowed; opacity: 0.5; }
 `;
 
 const RadioLabel = styled.label`
   cursor: pointer;
   display: flex;
   align-items: center;
-  
-  &:hover {
-    opacity: 0.8;
-  }
 `;
 
 const DefaultBadge = styled.div`
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  background: var(--color-yellow-50);
-  color: var(--color-yellow-700);
-  border-radius: var(--border-radius-sm);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-semibold);
-
-  svg {
-    color: var(--color-yellow-600);
-  }
+  gap: 0.3rem;
+  height: 22px;
+  padding: 0 0.6rem;
+  background: #FEF3C7;
+  color: #92400E;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 600;
 `;
 
 const DefaultText = styled.span`
-  font-size: var(--font-size-xs);
-  color: var(--color-grey-600);
-  font-weight: var(--font-medium);
-  
-  &:hover {
-    color: var(--color-primary-600);
-  }
+  font-size: 0.75rem;
+  color: #9CA3AF;
+  font-weight: 500;
 `;
 
 const ActionButtons = styled.div`
   display: flex;
-  gap: var(--spacing-xs);
+  gap: 0.35rem;
   align-items: center;
 `;
 
 const ActionButton = styled(Button)`
-  padding: var(--spacing-xs) var(--spacing-sm);
-  font-size: var(--font-size-xs);
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
 
-  ${(props) =>
-    props.$danger &&
-    `
-    color: var(--color-red-600);
-    
-    &:hover {
-      background: var(--color-red-50);
-      color: var(--color-red-700);
-    }
+  ${(p) => p.$danger && `
+    color: #EF4444;
+    &:hover { background: #FEF2F2; color: #DC2626; }
   `}
 `;
 
@@ -1417,50 +1335,45 @@ const EmptyState = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--spacing-xl) var(--spacing-lg);
+  padding: 2.5rem 1.5rem;
   text-align: center;
-  color: var(--color-grey-500);
+  color: #9CA3AF;
 
-  svg {
-    margin-bottom: var(--spacing-md);
-    opacity: 0.5;
-  }
+  svg { margin-bottom: 0.75rem; opacity: 0.5; }
 `;
 
 const EmptyTitle = styled.h3`
-  margin: 0 0 var(--spacing-xs) 0;
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-700);
+  margin: 0 0 0.3rem;
+  font-size: 0.975rem;
+  font-weight: 600;
+  color: #374151;
 `;
 
 const EmptyMessage = styled.p`
   margin: 0;
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-600);
+  font-size: 0.8rem;
+  color: #9CA3AF;
   max-width: 400px;
 `;
 
 const ReactivationCheckboxContainer = styled.div`
   display: flex;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md);
-  background: var(--color-yellow-50);
-  border: 2px solid var(--color-yellow-200);
-  border-radius: var(--border-radius-md);
-  transition: all 0.2s ease;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  background: #FFFBEB;
+  border: 0.5px solid #FDE68A;
+  border-left: 3px solid #F59E0B;
+  border-radius: 9px;
+  transition: background 0.12s;
 
-  &:hover {
-    background: var(--color-yellow-100);
-    border-color: var(--color-yellow-300);
-  }
+  &:hover { background: #FEF3C7; }
 `;
 
 const Checkbox = styled.input`
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   cursor: pointer;
-  accent-color: var(--color-primary-500);
+  accent-color: #E8920A;
   flex-shrink: 0;
   margin-top: 2px;
 `;
@@ -1468,7 +1381,7 @@ const Checkbox = styled.input`
 const CheckboxLabel = styled.label`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 0.2rem;
   cursor: pointer;
   flex: 1;
 `;
@@ -1476,76 +1389,51 @@ const CheckboxLabel = styled.label`
 const ReactivationTitle = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  font-weight: var(--font-semibold);
-  color: var(--color-yellow-800);
-  font-size: var(--font-size-sm);
+  gap: 0.35rem;
+  font-weight: 600;
+  color: #92400E;
+  font-size: 0.8rem;
 
-  svg {
-    color: var(--color-yellow-600);
-  }
+  svg { color: #D97706; }
 `;
 
 const ReactivationDescription = styled.p`
   margin: 0;
-  font-size: var(--font-size-xs);
-  color: var(--color-yellow-700);
+  font-size: 0.75rem;
+  color: #78350F;
   line-height: 1.5;
 `;
 
 const RejectionReason = styled.div`
-  margin-top: var(--spacing-xs);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  background: var(--color-red-50);
-  border-left: 3px solid var(--color-red-300);
-  border-radius: var(--border-radius-sm);
-  font-size: var(--font-size-xs);
-  color: var(--color-red-700);
+  margin-top: 0.3rem;
+  padding: 0.5rem 0.75rem;
+  background: #FEF2F2;
+  border-left: 3px solid #EF4444;
+  border-radius: 7px;
+  font-size: 0.75rem;
+  color: #991B1B;
 
-  strong {
-    font-weight: var(--font-semibold);
-    display: block;
-    margin-bottom: var(--spacing-xs);
-  }
+  strong { font-weight: 600; display: block; margin-bottom: 0.2rem; }
 `;
 
 const VerificationStatusBadge = styled.div`
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--border-radius-sm);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-semibold);
+  gap: 0.3rem;
+  height: 22px;
+  padding: 0 0.6rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 600;
   position: relative;
-  
-  ${(props) => {
-    switch (props.$status) {
-      case 'verified':
-        return `
-          background: var(--color-green-50);
-          color: var(--color-green-700);
-          border: 1px solid var(--color-green-200);
-        `;
-      case 'rejected':
-        return `
-          background: var(--color-red-50);
-          color: var(--color-red-700);
-          border: 1px solid var(--color-red-200);
-        `;
-      case 'pending':
-      default:
-        return `
-          background: var(--color-yellow-50);
-          color: var(--color-yellow-700);
-          border: 1px solid var(--color-yellow-200);
-        `;
+
+  ${(p) => {
+    switch (p.$status) {
+      case 'verified': return `background: #D1FAE5; color: #065F46;`;
+      case 'rejected': return `background: #FEE2E2; color: #991B1B;`;
+      default:         return `background: #FEF3C7; color: #92400E;`;
     }
   }}
-  
-  svg {
-    font-size: var(--font-size-sm);
-  }
 `;
 
 const RejectionTooltip = styled.div`
@@ -1553,22 +1441,20 @@ const RejectionTooltip = styled.div`
   bottom: 100%;
   left: 50%;
   transform: translateX(-50%);
-  margin-bottom: var(--spacing-xs);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  background: var(--color-grey-900);
-  color: white;
-  border-radius: var(--border-radius-sm);
-  font-size: var(--font-size-xs);
+  margin-bottom: 0.3rem;
+  padding: 0.35rem 0.6rem;
+  background: #111827;
+  color: #FFFFFF;
+  border-radius: 7px;
+  font-size: 0.7rem;
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.2s ease;
+  transition: opacity 0.12s;
   z-index: 1000;
-  
-  ${VerificationStatusBadge}:hover & {
-    opacity: 1;
-  }
-  
+
+  ${VerificationStatusBadge}:hover & { opacity: 1; }
+
   &::after {
     content: '';
     position: absolute;
@@ -1576,17 +1462,17 @@ const RejectionTooltip = styled.div`
     left: 50%;
     transform: translateX(-50%);
     border: 4px solid transparent;
-    border-top-color: var(--color-grey-900);
+    border-top-color: #111827;
   }
 `;
 
 const StatusInfoTooltip = styled.div`
-  margin-top: var(--spacing-xs);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  background: var(--color-blue-50);
-  border-left: 3px solid var(--color-blue-300);
-  border-radius: var(--border-radius-sm);
-  font-size: var(--font-size-xs);
-  color: var(--color-blue-700);
+  margin-top: 0.3rem;
+  padding: 0.5rem 0.75rem;
+  background: #EFF6FF;
+  border-left: 3px solid #3B82F6;
+  border-radius: 7px;
+  font-size: 0.75rem;
+  color: #1D4ED8;
   line-height: 1.4;
 `;

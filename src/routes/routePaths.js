@@ -92,6 +92,9 @@ export const PATHS = {
   // Data Deletion (Public)
   DATA_DELETION: "/data-deletion",
 
+  // Cookie Policy (Public)
+  COOKIE_POLICY: "/cookie-policy",
+
   // Education (Public)
   EDUCATION: "/education",
   EDUCATION_DASHBOARD: "/dashboard/education",
@@ -111,6 +114,9 @@ export const PATHS = {
 
   // Reviews
   REVIEWS: "/dashboard/reviews",
+
+  // Testimonials
+  TESTIMONIALS: "/dashboard/testimonials",
   
   // Tracking
   TRACKING: "/dashboard/tracking/:trackingNumber",

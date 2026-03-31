@@ -2,35 +2,33 @@ import styled, { css, keyframes } from "styled-components";
 import { devicesMax } from "../styles/breakpoint";
 
 const imageFadeIn = keyframes`
-  from { opacity: 0; transform: scale(0.98); }
-  to { opacity: 1; transform: scale(1); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 `;
 
 export const ImageWrapper = styled.div`
   position: relative;
   width: 100%;
-  aspect-ratio: ${({ $aspectRatio }) => $aspectRatio || "1 / 1"};
+  min-height: 0;
   overflow: hidden;
-  background-color: ${({ $bg }) => $bg || "var(--color-grey-100, #f8f9fa)"};
-  border-radius: ${({ $radius }) => $radius || "var(--border-radius-md, 0.75rem)"};
+  background-color: ${({ $bg }) => $bg || "#F9F8F5"};
+  border-radius: ${({ $radius }) => $radius || "9px"};
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s ease;
-
-  &.image-hover:hover img {
-    transform: scale(1.05);
-  }
 `;
 
 export const StyledImage = styled.img`
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: ${({ $objectFit }) => $objectFit || "contain"} !important;
+  display: block;
+  width: auto !important;
+  height: auto !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain;
   object-position: center;
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
   opacity: ${({ $loaded }) => ($loaded ? 1 : 0)};
   animation: ${({ $loaded }) => ($loaded ? css`${imageFadeIn} 0.4s ease-out` : "none")};
+  transform: none;
 `;
 
 export const Skeleton = styled.div`
@@ -38,9 +36,9 @@ export const Skeleton = styled.div`
   inset: 0;
   background: linear-gradient(
     90deg,
-    var(--color-grey-100, #f3f4f6) 0%,
-    var(--color-grey-200, #e5e7eb) 50%,
-    var(--color-grey-100, #f3f4f6) 100%
+    #F9F8F5 0%,
+    #F1EFE8 50%,
+    #F9F8F5 100%
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite linear;

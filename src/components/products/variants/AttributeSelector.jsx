@@ -200,32 +200,32 @@ export default function AttributeSelector({
 const AttributeSelectorContainer = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md);
-  background: var(--color-white-0);
-  border-radius: var(--border-radius-lg);
-  border: 1px solid var(--color-grey-200);
+  gap: 1rem;
+  padding: 1rem;
+  background: #FFFFFF;
+  border-radius: 12px;
+  border: 1px solid #F1EFE8;
 `;
 
 const SectionTitle = styled.h3`
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
-  font-family: var(--font-heading);
-  margin-bottom: var(--spacing-sm);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111827;
+  
+  margin-bottom: 1rem;
 `;
 
 const AttributeField = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 1rem;
 `;
 
 const AttributeLabel = styled.label`
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-700);
-  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  
 `;
 
 const AttributeInputWrapper = styled.div`
@@ -234,31 +234,31 @@ const AttributeInputWrapper = styled.div`
 
 const AttributeInput = styled.input`
   width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid var(--color-grey-300);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-md);
-  font-family: var(--font-body);
-  color: var(--color-grey-900);
-  transition: var(--transition-base);
+  padding: 1rem 1rem;
+  border: 1px solid #E5E7EB;
+  border-radius: 9px;
+  font-size: 0.9rem;
+  
+  color: #111827;
+  transition: 0.12s;
 
   &:focus {
     outline: none;
-    border-color: var(--color-primary-500);
-    box-shadow: 0 0 0 3px var(--color-primary-100);
+    border-color: #E8920A;
+    box-shadow: 0 0 0 3px #E8920A;
   }
 
   &:hover {
-    border-color: var(--color-grey-400);
+    border-color: #D1D5DB;
   }
 `;
 
 const CustomAttributeSection = styled.div`
   display: flex;
-  gap: var(--spacing-sm);
-  margin-top: var(--spacing-sm);
-  padding-top: var(--spacing-md);
-  border-top: 1px solid var(--color-grey-200);
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #F1EFE8;
 `;
 
 const CustomAttributeInput = styled(AttributeInput)`
@@ -266,20 +266,20 @@ const CustomAttributeInput = styled(AttributeInput)`
 `;
 
 const AddButton = styled.button`
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--color-primary-500);
-  color: var(--color-white-0);
+  padding: 1rem 1rem;
+  background: #E8920A;
+  color: #FFFFFF;
   border: none;
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-semibold);
-  font-family: var(--font-body);
+  border-radius: 9px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  
   cursor: pointer;
-  transition: var(--transition-base);
+  transition: 0.12s;
   white-space: nowrap;
 
   &:hover:not(:disabled) {
-    background: var(--color-primary-600);
+    background: #E8920A;
     transform: translateY(-1px);
   }
 
@@ -292,29 +292,29 @@ const AddButton = styled.button`
 const CustomAttributesList = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-xs);
-  margin-top: var(--spacing-sm);
-  padding-top: var(--spacing-md);
-  border-top: 1px solid var(--color-grey-200);
+  gap: 1rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #F1EFE8;
 `;
 
 const AttributeTag = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  background: var(--color-grey-100);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-sm);
-  font-family: var(--font-body);
+  gap: 1rem;
+  padding: 1rem 1rem;
+  background: #F9F8F5;
+  border-radius: 9px;
+  font-size: 0.875rem;
+  
 `;
 
 const RemoveAttributeButton = styled.button`
   background: none;
   border: none;
-  color: var(--color-red-600);
+  color: #A32D2D;
   cursor: pointer;
-  font-size: var(--font-size-lg);
+  font-size: 1.1rem;
   line-height: 1;
   padding: 0;
   width: 20px;
@@ -322,11 +322,11 @@ const RemoveAttributeButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--border-radius-cir);
-  transition: var(--transition-base);
+  border-radius: 50%;
+  transition: 0.12s;
 
   &:hover {
-    background: var(--color-red-100);
-    color: var(--color-red-700);
+    background: #A32D2D;
+    color: #A32D2D;
   }
 `;

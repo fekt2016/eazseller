@@ -1,585 +1,961 @@
 import { useState } from 'react';
 import styled from 'styled-components';
 import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  PieChart,
+  Pie,
+  Cell,
+} from 'recharts';
+import {
   FaDollarSign,
   FaShoppingCart,
   FaBox,
   FaChartLine,
-  FaEye,
   FaMoneyBillWave,
-  FaReceipt,
-  FaWarehouse,
-  FaUndo,
+  FaExclamationTriangle,
   FaTrophy,
   FaArrowUp,
   FaArrowDown,
+  FaWarehouse,
+  FaUndo,
+  FaReceipt,
 } from 'react-icons/fa';
 import {
   useSellerKPICards,
   useSellerRevenueAnalytics,
   useSellerOrderStatusAnalytics,
   useSellerTopProducts,
-  useSellerTrafficAnalytics,
   useSellerPayoutAnalytics,
   useSellerTaxAnalytics,
   useSellerInventoryAnalytics,
   useSellerRefundAnalytics,
   useSellerPerformanceScore,
 } from '../../shared/hooks/useSellerAnalytics';
-import {
-  PageContainer,
-  PageHeader,
-  TitleSection,
-  Section,
-  SectionHeader,
-  StatsGrid,
-} from '../../shared/components/ui/SpacingSystem';
-import StatCard from '../../shared/components/ui/StatCard';
-import { LoadingState, ErrorState, SkeletonCard, EmptyState } from '../../shared/components/ui/LoadingComponents';
-import ResponsiveDataTable from '../../shared/components/ui/ResponsiveDataTable';
-import Button from '../../shared/components/ui/Button';
 import { getOptimizedImageUrl, IMAGE_SLOTS } from '../../shared/utils/cloudinaryConfig';
+import { getAttentionCountsFromBreakdown } from '../../shared/utils/orderAttention';
 
-const AnalyticsContainer = styled(PageContainer)`
-  animation: fadeIn 0.5s ease-out;
-`;
+/* ─── formatters ──────────────────────────────────────────────────────────── */
+const fmtCurrency = (v) =>
+  new Intl.NumberFormat('en-GH', { style: 'currency', currency: 'GHS', minimumFractionDigits: 2 }).format(v || 0);
+const fmtNumber = (v) => new Intl.NumberFormat('en-GH').format(v || 0);
+const fmtPct = (v) => `${(v || 0).toFixed(1)}%`;
+const fmtDate = (v) => new Date(v).toLocaleDateString('en-GH', { month: 'short', day: 'numeric' });
 
-const KPIGrid = styled(StatsGrid)`
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: var(--spacing-lg);
-  margin-bottom: var(--spacing-2xl);
-`;
+/* ─── constants ───────────────────────────────────────────────────────────── */
+const RANGES = [
+  { label: '7d', value: 7 },
+  { label: '30d', value: 30 },
+  { label: '90d', value: 90 },
+  { label: '1y', value: 365 },
+];
 
-const ChartContainer = styled(Section)`
-  background: var(--color-white-0);
-  border-radius: var(--border-radius-xl);
-  padding: var(--spacing-xl);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--color-grey-200);
-  margin-bottom: var(--spacing-xl);
-`;
+const STATUS_COLORS = {
+  delivered: '#10B981',
+  shipped: '#3B82F6',
+  processing: '#F59E0B',
+  pending: '#E8920A',
+  cancelled: '#EF4444',
+};
 
-const ChartTitle = styled.h3`
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-800);
-  margin-bottom: var(--spacing-md);
-  font-family: var(--font-heading);
-`;
+const BADGE_META = {
+  gold:   { bg: 'linear-gradient(135deg,#FFD700,#F59E0B)', text: '#7C2D00' },
+  silver: { bg: 'linear-gradient(135deg,#CBD5E1,#94A3B8)', text: '#1E293B' },
+  bronze: { bg: 'linear-gradient(135deg,#D97706,#92400E)', text: '#FEF3C7' },
+  poor:   { bg: '#F3F4F6', text: '#374151' },
+};
 
-const SimpleLineChart = styled.div`
-  height: 300px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-md) 0;
-  border-bottom: 2px solid var(--color-grey-200);
-  position: relative;
-`;
-
-const Bar = styled.div`
-  flex: 1;
-  background: linear-gradient(to top, var(--color-primary-500), var(--color-primary-300));
-  border-radius: var(--border-radius-sm) var(--border-radius-sm) 0 0;
-  min-height: 10px;
-  position: relative;
-  transition: all 0.3s ease;
-  cursor: pointer;
-
-  &:hover {
-    opacity: 0.8;
-    transform: scaleY(1.05);
-  }
-`;
-
-const BarLabel = styled.div`
-  position: absolute;
-  bottom: -20px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: var(--font-size-xs);
-  color: var(--color-grey-600);
-  white-space: nowrap;
-`;
-
-const DonutChart = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-xl);
-  flex-wrap: wrap;
-`;
-
-const DonutSegment = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-xs);
-`;
-
-const DonutCircle = styled.div`
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  background: conic-gradient(
-    ${({ $color1, $color2, $color3, $color4, $value1, $value2, $value3, $value4 }) => {
-    const total = $value1 + $value2 + $value3 + $value4;
-    const p1 = ($value1 / total) * 100;
-    const p2 = ($value2 / total) * 100;
-    const p3 = ($value3 / total) * 100;
-    return `${$color1} 0% ${p1}%, ${$color2} ${p1}% ${p1 + p2}%, ${$color3} ${p1 + p2}% ${p1 + p2 + p3}%, ${$color4} ${p1 + p2 + p3}% 100%`;
-  }}
+/* ─── sub-components ─────────────────────────────────────────────────────── */
+function KPICard({ icon, title, value, change, accentColor }) {
+  const isPositive = change > 0;
+  const hasChange = change !== null && change !== undefined;
+  return (
+    <KPIItem $accent={accentColor}>
+      <KPITop>
+        <KPIIcon $accent={accentColor}>{icon}</KPIIcon>
+        {hasChange && (
+          <ChangePill $positive={isPositive}>
+            {isPositive ? <FaArrowUp size={9} /> : <FaArrowDown size={9} />}
+            {Math.abs(change).toFixed(1)}%
+          </ChangePill>
+        )}
+      </KPITop>
+      <KPIValue>{value}</KPIValue>
+      <KPITitle>{title}</KPITitle>
+    </KPIItem>
   );
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  box-shadow: var(--shadow-md);
-`;
+}
 
-const DonutCenter = styled.div`
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: var(--color-white-0);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: var(--font-bold);
-  font-size: var(--font-size-lg);
-  color: var(--color-grey-800);
-`;
+function RangeTabs({ value, onChange }) {
+  return (
+    <RangeTabsWrap>
+      {RANGES.map((r) => (
+        <RangeTab key={r.value} $active={value === r.value} onClick={() => onChange(r.value)}>
+          {r.label}
+        </RangeTab>
+      ))}
+    </RangeTabsWrap>
+  );
+}
 
-const Legend = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-`;
+function SectionCard({ title, icon, children, action }) {
+  return (
+    <Card>
+      <CardHead>
+        <CardTitle>
+          {icon && <CardTitleIcon>{icon}</CardTitleIcon>}
+          {title}
+        </CardTitle>
+        {action}
+      </CardHead>
+      <CardBody>{children}</CardBody>
+    </Card>
+  );
+}
 
-const LegendItem = styled.div`
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-700);
-`;
+function MiniStat({ label, value, color }) {
+  return (
+    <MiniStatWrap>
+      <MiniStatValue $color={color}>{value}</MiniStatValue>
+      <MiniStatLabel>{label}</MiniStatLabel>
+    </MiniStatWrap>
+  );
+}
 
-const LegendColor = styled.div`
-  width: 16px;
-  height: 16px;
-  border-radius: var(--border-radius-sm);
-  background: ${({ $color }) => $color};
-`;
+/* ─── custom tooltip ─────────────────────────────────────────────────────── */
+function RevenueTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <TooltipBox>
+      <TooltipDate>{label}</TooltipDate>
+      <TooltipValue>{fmtCurrency(payload[0]?.value)}</TooltipValue>
+    </TooltipBox>
+  );
+}
 
-const RangeSelector = styled.div`
-  display: flex;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-lg);
-`;
-
-const RangeButton = styled(Button)`
-  padding: var(--spacing-xs) var(--spacing-md);
-  font-size: var(--font-size-sm);
-  background: ${({ $active }) => $active ? 'var(--color-primary-500)' : 'var(--color-grey-100)'};
-  color: ${({ $active }) => $active ? 'var(--color-white-0)' : 'var(--color-grey-700)'};
-  border: none;
-
-  &:hover {
-    background: ${({ $active }) => $active ? 'var(--color-primary-600)' : 'var(--color-grey-200)'};
-  }
-`;
-
-const PerformanceBadge = styled.div`
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-lg);
-  background: ${({ $badge }) => {
-    if ($badge === 'gold') return 'linear-gradient(135deg, #FFD700, #FFA500)';
-    if ($badge === 'silver') return 'linear-gradient(135deg, #C0C0C0, #808080)';
-    if ($badge === 'bronze') return 'linear-gradient(135deg, #CD7F32, #8B4513)';
-    return 'var(--color-grey-200)';
-  }};
-  border-radius: var(--border-radius-xl);
-  color: ${({ $badge }) => $badge === 'poor' ? 'var(--color-grey-700)' : 'var(--color-white-0)'};
-  box-shadow: var(--shadow-md);
-`;
-
-const BadgeIcon = styled.div`
-  font-size: 3rem;
-`;
-
-const BadgeInfo = styled.div`
-  flex: 1;
-`;
-
-const BadgeScore = styled.div`
-  font-size: 2.5rem;
-  font-weight: var(--font-bold);
-`;
-
-const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('en-GH', {
-    style: 'currency',
-    currency: 'GHS',
-    minimumFractionDigits: 2,
-  }).format(amount || 0);
-};
-
-const formatNumber = (num) => {
-  return new Intl.NumberFormat('en-GH').format(num || 0);
-};
-
-const formatPercentage = (num) => {
-  return `${(num || 0).toFixed(1)}%`;
-};
-
+/* ─── main component ──────────────────────────────────────────────────────── */
 const SellerAnalyticsDashboard = () => {
   const [revenueRange, setRevenueRange] = useState(30);
-  const [trafficRange, setTrafficRange] = useState(30);
   const [payoutRange, setPayoutRange] = useState(30);
-  const [taxRange, setTaxRange] = useState(30);
   const [refundRange, setRefundRange] = useState(30);
   const [performanceRange, setPerformanceRange] = useState(30);
 
-  // KPI Cards
   const { data: kpiData, isLoading: kpiLoading, error: kpiError } = useSellerKPICards();
-
-  // Revenue Analytics
   const { data: revenueData, isLoading: revenueLoading } = useSellerRevenueAnalytics(revenueRange);
-
-  // Order Status Analytics
   const { data: orderStatusData, isLoading: orderStatusLoading } = useSellerOrderStatusAnalytics();
-
-  // Top Products
   const { data: topProductsData, isLoading: topProductsLoading } = useSellerTopProducts(10);
+  const { data: payoutData } = useSellerPayoutAnalytics(payoutRange);
+  const { data: taxData } = useSellerTaxAnalytics(30);
+  const { data: inventoryData } = useSellerInventoryAnalytics();
+  const { data: refundData } = useSellerRefundAnalytics(refundRange);
+  const { data: performanceData } = useSellerPerformanceScore(performanceRange);
 
-  // Traffic Analytics
-  const { data: trafficData, isLoading: trafficLoading } = useSellerTrafficAnalytics(trafficRange);
+  const attentionCounts = getAttentionCountsFromBreakdown(orderStatusData?.statusBreakdown || {});
 
-  // Payout Analytics
-  const { data: payoutData, isLoading: payoutLoading } = useSellerPayoutAnalytics(payoutRange);
+  /* KPI config */
+  const kpi = kpiData || {};
+  const KPI_ITEMS = [
+    { icon: <FaDollarSign />, title: "Today's Revenue", value: fmtCurrency(kpi.revenueToday?.value), change: kpi.revenueToday?.change, accent: '#10B981' },
+    { icon: <FaChartLine />, title: "Weekly Revenue", value: fmtCurrency(kpi.revenueThisWeek?.value), change: kpi.revenueThisWeek?.change, accent: '#3B82F6' },
+    { icon: <FaShoppingCart />, title: "Orders Today", value: fmtNumber(kpi.ordersToday?.value), accent: '#8B5CF6' },
+    { icon: <FaExclamationTriangle />, title: "Needs Attention", value: fmtNumber(attentionCounts.attention), accent: '#F59E0B' },
+    { icon: <FaBox />, title: "Products Live", value: fmtNumber(kpi.totalProductsLive?.value), accent: '#E8920A' },
+    { icon: <FaMoneyBillWave />, title: "Available Balance", value: fmtCurrency(kpi.availableBalance?.value), accent: '#10B981' },
+  ];
 
-  // Tax Analytics
-  const { data: taxData, isLoading: taxLoading } = useSellerTaxAnalytics(taxRange);
+  /* Revenue chart data */
+  const chartData = (revenueData?.dailyRevenue || []).slice(-14).map((d) => ({
+    date: fmtDate(d.date),
+    amount: d.amount,
+  }));
 
-  // Inventory Analytics
-  const { data: inventoryData, isLoading: inventoryLoading } = useSellerInventoryAnalytics();
+  /* Order status pie data */
+  const pieData = orderStatusData?.statusBreakdown
+    ? Object.entries(orderStatusData.statusBreakdown).map(([status, d]) => ({
+        name: status.charAt(0).toUpperCase() + status.slice(1),
+        value: d.count || 0,
+        color: STATUS_COLORS[status] || '#9CA3AF',
+      }))
+    : [];
 
-  // Refund Analytics
-  const { data: refundData, isLoading: refundLoading } = useSellerRefundAnalytics(refundRange);
-
-  // Performance Score
-  const { data: performanceData, isLoading: performanceLoading } = useSellerPerformanceScore(performanceRange);
+  /* Top products */
+  const topProducts = topProductsData?.topSellingProducts || topProductsData?.data?.topSellingProducts || [];
 
   if (kpiLoading) {
     return (
-      <AnalyticsContainer>
-        <KPIGrid>
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <SkeletonCard key={i} />
-          ))}
-        </KPIGrid>
-      </AnalyticsContainer>
+      <Page>
+        <SkeletonGrid>
+          {[1, 2, 3, 4, 5, 6].map((i) => <SkeletonKPI key={i} />)}
+        </SkeletonGrid>
+        <SkeletonChart />
+      </Page>
     );
   }
 
   if (kpiError) {
-    return <ErrorState message="Failed to load analytics data" />;
+    return (
+      <Page>
+        <StateCard>
+          <FaExclamationTriangle size={28} color="#EF4444" />
+          <p style={{ color: '#374151', marginTop: '0.75rem' }}>Failed to load analytics data</p>
+        </StateCard>
+      </Page>
+    );
   }
 
-  const kpi = kpiData || {};
-
   return (
-    <AnalyticsContainer>
+    <Page>
+      {/* Header */}
       <PageHeader>
-        <TitleSection>
-          <h1>Analytics Dashboard</h1>
-          <p>Track your sales, revenue, and performance metrics</p>
-        </TitleSection>
+        <div>
+          <PageTitle>Analytics</PageTitle>
+          <PageSub>Track your sales, revenue, and performance</PageSub>
+        </div>
       </PageHeader>
 
-      {/* KPI Cards */}
+      {/* KPI grid */}
       <KPIGrid>
-        <StatCard
-          title={kpi.revenueToday?.label || "Today's Revenue"}
-          value={formatCurrency(kpi.revenueToday?.value || 0)}
-          change={kpi.revenueToday?.change ? `${kpi.revenueToday.change > 0 ? '+' : ''}${kpi.revenueToday.change.toFixed(1)}%` : null}
-          variant="success"
-          icon={<FaDollarSign />}
-        />
-        <StatCard
-          title={kpi.revenueThisWeek?.label || "This Week's Revenue"}
-          value={formatCurrency(kpi.revenueThisWeek?.value || 0)}
-          change={kpi.revenueThisWeek?.change ? `${kpi.revenueThisWeek.change > 0 ? '+' : ''}${kpi.revenueThisWeek.change.toFixed(1)}%` : null}
-          variant="primary"
-          icon={<FaChartLine />}
-        />
-        <StatCard
-          title={kpi.ordersToday?.label || "Orders Today"}
-          value={formatNumber(kpi.ordersToday?.value || 0)}
-          variant="info"
-          icon={<FaShoppingCart />}
-        />
-        <StatCard
-          title={kpi.pendingOrders?.label || "Pending Orders"}
-          value={formatNumber(kpi.pendingOrders?.value || 0)}
-          variant="warning"
-          icon={<FaBox />}
-        />
-        <StatCard
-          title={kpi.totalProductsLive?.label || "Products Live"}
-          value={formatNumber(kpi.totalProductsLive?.value || 0)}
-          variant="info"
-          icon={<FaBox />}
-        />
-        <StatCard
-          title={kpi.availableBalance?.label || "Available Balance"}
-          value={formatCurrency(kpi.availableBalance?.value || 0)}
-          variant="success"
-          icon={<FaMoneyBillWave />}
-        />
+        {KPI_ITEMS.map((k) => (
+          <KPICard key={k.title} icon={k.icon} title={k.title} value={k.value} change={k.change} accentColor={k.accent} />
+        ))}
       </KPIGrid>
 
-      {/* Performance Badge */}
-      {performanceData && (
-        <ChartContainer>
-          <ChartTitle>Seller Performance Score</ChartTitle>
-          <PerformanceBadge $badge={performanceData.performanceBadge}>
-            <BadgeIcon>
-              <FaTrophy />
-            </BadgeIcon>
-            <BadgeInfo>
-              <div style={{ fontSize: 'var(--font-size-sm)', opacity: 0.9 }}>
-                {performanceData.performanceBadge?.toUpperCase()} SELLER
-              </div>
-              <div style={{ fontSize: 'var(--font-size-xs)', opacity: 0.8, marginTop: 'var(--spacing-xs)' }}>
-                On-time Delivery: {formatPercentage(performanceData.breakdown?.onTimeDeliveryRate)} |
-                Quality Score: {formatPercentage(performanceData.breakdown?.productQualityScore)}
-              </div>
-            </BadgeInfo>
-            <BadgeScore>{performanceData.sellerScore?.toFixed(1)}</BadgeScore>
-          </PerformanceBadge>
-        </ChartContainer>
-      )}
+      {/* Performance score */}
+      {performanceData && (() => {
+        const badge = performanceData.performanceBadge || 'poor';
+        const meta = BADGE_META[badge] || BADGE_META.poor;
+        return (
+          <SectionCard title="Seller Performance" icon={<FaTrophy />} action={<RangeTabs value={performanceRange} onChange={setPerformanceRange} />}>
+            <PerformanceWrap $bg={meta.bg} $text={meta.text}>
+              <TrophyIcon>{<FaTrophy size={28} />}</TrophyIcon>
+              <PerformanceInfo>
+                <PerformanceTier $text={meta.text}>{badge.toUpperCase()} SELLER</PerformanceTier>
+                <PerformanceScore $text={meta.text}>{performanceData.sellerScore?.toFixed(1)}<ScoreUnit $text={meta.text}>/100</ScoreUnit></PerformanceScore>
+                <PerformanceMeta $text={meta.text}>
+                  On-time delivery: {fmtPct(performanceData.breakdown?.onTimeDeliveryRate)} &nbsp;·&nbsp;
+                  Quality score: {fmtPct(performanceData.breakdown?.productQualityScore)}
+                </PerformanceMeta>
+              </PerformanceInfo>
+            </PerformanceWrap>
+          </SectionCard>
+        );
+      })()}
 
-      {/* Revenue Timeline */}
-      <ChartContainer>
-        <ChartTitle>Revenue Timeline</ChartTitle>
-        <RangeSelector>
-          <RangeButton $active={revenueRange === 7} onClick={() => setRevenueRange(7)}>7 Days</RangeButton>
-          <RangeButton $active={revenueRange === 30} onClick={() => setRevenueRange(30)}>30 Days</RangeButton>
-          <RangeButton $active={revenueRange === 90} onClick={() => setRevenueRange(90)}>90 Days</RangeButton>
-          <RangeButton $active={revenueRange === 365} onClick={() => setRevenueRange(365)}>1 Year</RangeButton>
-        </RangeSelector>
+      {/* Revenue timeline */}
+      <SectionCard
+        title="Revenue Timeline"
+        icon={<FaChartLine />}
+        action={<RangeTabs value={revenueRange} onChange={setRevenueRange} />}
+      >
         {revenueLoading ? (
-          <LoadingState />
-        ) : revenueData?.dailyRevenue ? (
-          <SimpleLineChart>
-            {revenueData.dailyRevenue.slice(-14).map((day, index) => {
-              const maxRevenue = Math.max(...revenueData.dailyRevenue.map(d => d.amount));
-              const height = maxRevenue > 0 ? (day.amount / maxRevenue) * 100 : 0;
-              return (
-                <Bar key={index} style={{ height: `${height}%` }}>
-                  <BarLabel>{new Date(day.date).toLocaleDateString('en-GH', { month: 'short', day: 'numeric' })}</BarLabel>
-                </Bar>
-              );
-            })}
-          </SimpleLineChart>
+          <ChartSkeleton />
+        ) : chartData.length > 0 ? (
+          <>
+            <ResponsiveContainer width="100%" height={220}>
+              <AreaChart data={chartData} margin={{ top: 4, right: 4, left: 0, bottom: 20 }}>
+                <defs>
+                  <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#E8920A" stopOpacity={0.18} />
+                    <stop offset="95%" stopColor="#E8920A" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#F1EFE8" vertical={false} />
+                <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#9CA3AF' }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
+                <YAxis tick={{ fontSize: 11, fill: '#9CA3AF' }} tickLine={false} axisLine={false} tickFormatter={(v) => `₵${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`} width={48} />
+                <Tooltip content={<RevenueTooltip />} />
+                <Area type="monotone" dataKey="amount" stroke="#E8920A" strokeWidth={2} fill="url(#revenueGrad)" dot={false} activeDot={{ r: 4, fill: '#E8920A' }} />
+              </AreaChart>
+            </ResponsiveContainer>
+            {revenueData?.summary && (
+              <RevenueSummary>
+                <MiniStat label="Total Revenue" value={fmtCurrency(revenueData.summary.totalRevenue)} />
+                <SummaryDivider />
+                <MiniStat label="Net Revenue" value={fmtCurrency(revenueData.summary.netRevenue)} color="#10B981" />
+                <SummaryDivider />
+                <MiniStat label="Withholding Tax" value={fmtCurrency(revenueData.summary.withholdingDeducted)} color="#EF4444" />
+              </RevenueSummary>
+            )}
+          </>
         ) : (
-          <EmptyState message="No revenue data available" />
+          <EmptyMsg>No revenue data for this period</EmptyMsg>
         )}
-        {revenueData?.summary && (
-          <div style={{ marginTop: 'var(--spacing-lg)', display: 'flex', gap: 'var(--spacing-lg)', flexWrap: 'wrap' }}>
-            <div><strong>Total Revenue:</strong> {formatCurrency(revenueData.summary.totalRevenue)}</div>
-            <div><strong>Net Revenue:</strong> {formatCurrency(revenueData.summary.netRevenue)}</div>
-            <div><strong>Withholding Tax:</strong> {formatCurrency(revenueData.summary.withholdingDeducted)}</div>
-          </div>
-        )}
-      </ChartContainer>
+      </SectionCard>
 
-      {/* Order Status Breakdown */}
-      <ChartContainer>
-        <ChartTitle>Order Status Breakdown</ChartTitle>
-        {orderStatusLoading ? (
-          <LoadingState />
-        ) : orderStatusData?.statusBreakdown ? (
-          <DonutChart>
-            <DonutCircle
-              $color1="#10b981"
-              $color2="#3b82f6"
-              $color3="#f59e0b"
-              $color4="#ef4444"
-              $value1={orderStatusData.statusBreakdown.delivered?.count || 0}
-              $value2={orderStatusData.statusBreakdown.shipped?.count || 0}
-              $value3={orderStatusData.statusBreakdown.processing?.count || 0}
-              $value4={orderStatusData.statusBreakdown.pending?.count || 0}
-            >
-              <DonutCenter>{orderStatusData.totalOrders || 0}</DonutCenter>
-            </DonutCircle>
-            <Legend>
-              {Object.entries(orderStatusData.statusBreakdown).map(([status, data]) => (
-                <LegendItem key={status}>
-                  <LegendColor $color={
-                    status === 'delivered' ? '#10b981' :
-                      status === 'shipped' ? '#3b82f6' :
-                        status === 'processing' ? '#f59e0b' :
-                          '#ef4444'
-                  } />
-                  <span>{status.charAt(0).toUpperCase() + status.slice(1)}: {data.count} ({data.percentage}%)</span>
-                </LegendItem>
+      {/* Two-column: order status + top products */}
+      <TwoCol>
+        {/* Order status */}
+        <SectionCard title="Order Status" icon={<FaShoppingCart />}>
+          {orderStatusLoading ? (
+            <ChartSkeleton />
+          ) : pieData.length > 0 ? (
+            <StatusLayout>
+              <PieWrap>
+                <ResponsiveContainer width="100%" height={180}>
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={52}
+                      outerRadius={80}
+                      dataKey="value"
+                      paddingAngle={2}
+                    >
+                      {pieData.map((entry, i) => (
+                        <Cell key={i} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(v, n) => [fmtNumber(v), n]} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <PieCenter>{fmtNumber(orderStatusData?.totalOrders || 0)}<PieCenterSub>total</PieCenterSub></PieCenter>
+              </PieWrap>
+              <StatusLegend>
+                {pieData.map((d) => (
+                  <LegendRow key={d.name}>
+                    <LegendDot $color={d.color} />
+                    <LegendName>{d.name}</LegendName>
+                    <LegendCount>{fmtNumber(d.value)}</LegendCount>
+                  </LegendRow>
+                ))}
+              </StatusLegend>
+            </StatusLayout>
+          ) : (
+            <EmptyMsg>No order data available</EmptyMsg>
+          )}
+        </SectionCard>
+
+        {/* Top products */}
+        <SectionCard title="Top Selling Products" icon={<FaTrophy />}>
+          {topProductsLoading ? (
+            <ChartSkeleton />
+          ) : topProducts.length > 0 ? (
+            <ProductList>
+              {topProducts.slice(0, 6).map((p, i) => (
+                <ProductRow key={p.productId || i}>
+                  <ProductRank>{i + 1}</ProductRank>
+                  {p.productImage && (
+                    <ProductImg
+                      src={getOptimizedImageUrl(p.productImage, IMAGE_SLOTS.TABLE_THUMB)}
+                      alt={p.productName}
+                    />
+                  )}
+                  <ProductInfo>
+                    <ProductName>{p.productName}</ProductName>
+                    <ProductMeta>{fmtNumber(p.totalSold)} sold · {fmtNumber(p.totalOrders)} orders</ProductMeta>
+                  </ProductInfo>
+                  <ProductRevenue>{fmtCurrency(p.totalRevenue)}</ProductRevenue>
+                </ProductRow>
               ))}
-            </Legend>
-          </DonutChart>
-        ) : (
-          <EmptyState message="No order data available" />
-        )}
-      </ChartContainer>
+            </ProductList>
+          ) : (
+            <EmptyMsg>No product data available</EmptyMsg>
+          )}
+        </SectionCard>
+      </TwoCol>
 
-      {/* Top Products */}
-      {topProductsData?.topSellingProducts && (
-        <ChartContainer>
-          <ChartTitle>Top Selling Products</ChartTitle>
-          <ResponsiveDataTable
-            data={topProductsData.topSellingProducts}
-            columns={[
-              {
-                key: 'productName',
-                title: 'Product',
-                render: (item) => (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
-                    {item.productImage && (
-                      <img src={getOptimizedImageUrl(item.productImage, IMAGE_SLOTS.TABLE_THUMB)} alt={item.productName} style={{ width: '40px', height: '40px', borderRadius: 'var(--border-radius-sm)', objectFit: 'cover' }} />
-                    )}
-                    <span>{item.productName}</span>
-                  </div>
-                ),
-              },
-              { key: 'totalSold', title: 'Sold', render: (item) => formatNumber(item.totalSold) },
-              { key: 'totalRevenue', title: 'Revenue', render: (item) => formatCurrency(item.totalRevenue) },
-              { key: 'totalOrders', title: 'Orders', render: (item) => formatNumber(item.totalOrders) },
-              { key: 'conversionRate', title: 'Conversion', render: (item) => formatPercentage(item.conversionRate) },
-            ]}
-          />
-        </ChartContainer>
-      )}
-
-      {/* Tax Breakdown */}
+      {/* Tax breakdown */}
       {taxData && (
-        <ChartContainer>
-          <ChartTitle>Tax Breakdown</ChartTitle>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--spacing-lg)' }}>
-            <div>
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-grey-600)', marginBottom: 'var(--spacing-xs)' }}>VAT</div>
-              <div style={{ fontSize: 'var(--font-size-xl)', fontWeight: 'var(--font-bold)' }}>{formatCurrency(taxData.taxBreakdown?.totalVAT || 0)}</div>
-            </div>
-            <div>
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-grey-600)', marginBottom: 'var(--spacing-xs)' }}>NHIL</div>
-              <div style={{ fontSize: 'var(--font-size-xl)', fontWeight: 'var(--font-bold)' }}>{formatCurrency(taxData.taxBreakdown?.totalNHIL || 0)}</div>
-            </div>
-            <div>
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-grey-600)', marginBottom: 'var(--spacing-xs)' }}>GETFund</div>
-              <div style={{ fontSize: 'var(--font-size-xl)', fontWeight: 'var(--font-bold)' }}>{formatCurrency(taxData.taxBreakdown?.totalGETFund || 0)}</div>
-            </div>
-            <div>
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-grey-600)', marginBottom: 'var(--spacing-xs)' }}>COVID Levy</div>
-              <div style={{ fontSize: 'var(--font-size-xl)', fontWeight: 'var(--font-bold)' }}>{formatCurrency(taxData.taxBreakdown?.totalCovidLevy || 0)}</div>
-            </div>
-            <div>
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-grey-600)', marginBottom: 'var(--spacing-xs)' }}>Withholding Tax</div>
-              <div style={{ fontSize: 'var(--font-size-xl)', fontWeight: 'var(--font-bold)' }}>{formatCurrency(taxData.withholdingTax?.total || 0)}</div>
-            </div>
-            <div>
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-grey-600)', marginBottom: 'var(--spacing-xs)' }}>Net Revenue</div>
-              <div style={{ fontSize: 'var(--font-size-xl)', fontWeight: 'var(--font-bold)', color: 'var(--color-green-600)' }}>{formatCurrency(taxData.sellerRevenue?.netRevenue || 0)}</div>
-            </div>
-          </div>
-        </ChartContainer>
+        <SectionCard title="Tax Breakdown" icon={<FaReceipt />}>
+          <FourGrid>
+            <MiniStat label="VAT" value={fmtCurrency(taxData.taxBreakdown?.totalVAT)} />
+            <MiniStat label="NHIL" value={fmtCurrency(taxData.taxBreakdown?.totalNHIL)} />
+            <MiniStat label="GETFund" value={fmtCurrency(taxData.taxBreakdown?.totalGETFund)} />
+            <MiniStat label="Withholding Tax" value={fmtCurrency(taxData.withholdingTax?.total)} color="#EF4444" />
+            <MiniStat label="Net Revenue" value={fmtCurrency(taxData.sellerRevenue?.netRevenue)} color="#10B981" />
+          </FourGrid>
+        </SectionCard>
       )}
 
-      {/* Inventory Alerts */}
+      {/* Inventory */}
       {inventoryData && (
-        <ChartContainer>
-          <ChartTitle>Inventory Alerts</ChartTitle>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--spacing-lg)', marginBottom: 'var(--spacing-lg)' }}>
-            <div>
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-grey-600)' }}>Low Stock Items</div>
-              <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 'var(--font-bold)', color: 'var(--color-warning-600)' }}>
-                {inventoryData.inventorySummary?.lowStock || 0}
-              </div>
-            </div>
-            <div>
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-grey-600)' }}>Out of Stock</div>
-              <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 'var(--font-bold)', color: 'var(--color-danger-600)' }}>
-                {inventoryData.inventorySummary?.outOfStock || 0}
-              </div>
-            </div>
-            <div>
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-grey-600)' }}>Total SKUs</div>
-              <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 'var(--font-bold)' }}>
-                {inventoryData.inventorySummary?.totalSKUs || 0}
-              </div>
-            </div>
-            <div>
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-grey-600)' }}>Inventory Value</div>
-              <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 'var(--font-bold)' }}>
-                {formatCurrency(inventoryData.inventorySummary?.inventoryValue || 0)}
-              </div>
-            </div>
-          </div>
-          {inventoryData.lowStockProducts && inventoryData.lowStockProducts.length > 0 && (
-            <ResponsiveDataTable
-              data={inventoryData.lowStockProducts.slice(0, 10)}
-              columns={[
-                { key: 'name', title: 'Product' },
-                { key: 'stock', title: 'Stock', render: (item) => <span style={{ color: 'var(--color-warning-600)', fontWeight: 'bold' }}>{item.stock}</span> },
-                { key: 'price', title: 'Price', render: (item) => formatCurrency(item.price) },
-              ]}
-            />
+        <SectionCard title="Inventory Alerts" icon={<FaWarehouse />}>
+          <FourGrid>
+            <MiniStat label="Low Stock" value={fmtNumber(inventoryData.inventorySummary?.lowStock)} color="#F59E0B" />
+            <MiniStat label="Out of Stock" value={fmtNumber(inventoryData.inventorySummary?.outOfStock)} color="#EF4444" />
+            <MiniStat label="Total SKUs" value={fmtNumber(inventoryData.inventorySummary?.totalSKUs)} />
+            <MiniStat label="Inventory Value" value={fmtCurrency(inventoryData.inventorySummary?.inventoryValue)} color="#10B981" />
+          </FourGrid>
+          {inventoryData.lowStockProducts?.length > 0 && (
+            <LowStockTable>
+              <LowStockHead>
+                <span>Product</span>
+                <span>Stock</span>
+                <span>Price</span>
+              </LowStockHead>
+              {inventoryData.lowStockProducts.slice(0, 8).map((p, i) => (
+                <LowStockRow key={i}>
+                  <span>{p.name}</span>
+                  <StockBadge $low={p.stock <= 5}>{p.stock}</StockBadge>
+                  <span>{fmtCurrency(p.price)}</span>
+                </LowStockRow>
+              ))}
+            </LowStockTable>
           )}
-        </ChartContainer>
+        </SectionCard>
       )}
 
-      {/* Payout Analytics */}
+      {/* Payout analytics */}
       {payoutData && (
-        <ChartContainer>
-          <ChartTitle>Payout Analytics</ChartTitle>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--spacing-lg)', marginBottom: 'var(--spacing-lg)' }}>
-            <div>
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-grey-600)' }}>Total Withdrawn</div>
-              <div style={{ fontSize: 'var(--font-size-xl)', fontWeight: 'var(--font-bold)' }}>{formatCurrency(payoutData.totalWithdrawn || 0)}</div>
-            </div>
-            <div>
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-grey-600)' }}>Pending Withdrawal</div>
-              <div style={{ fontSize: 'var(--font-size-xl)', fontWeight: 'var(--font-bold)', color: 'var(--color-warning-600)' }}>{formatCurrency(payoutData.pendingWithdrawal || 0)}</div>
-            </div>
-            <div>
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-grey-600)' }}>Withholding Tax</div>
-              <div style={{ fontSize: 'var(--font-size-xl)', fontWeight: 'var(--font-bold)' }}>{formatCurrency(payoutData.withholdingTaxDeducted || 0)}</div>
-            </div>
-            <div>
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-grey-600)' }}>Available Balance</div>
-              <div style={{ fontSize: 'var(--font-size-xl)', fontWeight: 'var(--font-bold)', color: 'var(--color-green-600)' }}>{formatCurrency(payoutData.availableBalance || 0)}</div>
-            </div>
-          </div>
-          {payoutData.lastPayouts && payoutData.lastPayouts.length > 0 && (
-            <ResponsiveDataTable
-              data={payoutData.lastPayouts}
-              columns={[
-                { key: 'date', title: 'Date', render: (item) => new Date(item.date).toLocaleDateString('en-GH') },
-                { key: 'amountRequested', title: 'Requested', render: (item) => formatCurrency(item.amountRequested) },
-                { key: 'withholdingTax', title: 'Tax', render: (item) => formatCurrency(item.withholdingTax) },
-                { key: 'amountPaid', title: 'Paid', render: (item) => formatCurrency(item.amountPaid) },
-                { key: 'status', title: 'Status', render: (item) => <span style={{ textTransform: 'capitalize' }}>{item.status}</span> },
-              ]}
-            />
+        <SectionCard title="Payout Analytics" icon={<FaMoneyBillWave />} action={<RangeTabs value={payoutRange} onChange={setPayoutRange} />}>
+          <FourGrid>
+            <MiniStat label="Total Withdrawn" value={fmtCurrency(payoutData.totalWithdrawn)} />
+            <MiniStat label="Pending" value={fmtCurrency(payoutData.pendingWithdrawal)} color="#F59E0B" />
+            <MiniStat label="Withholding Tax" value={fmtCurrency(payoutData.withholdingTaxDeducted)} color="#EF4444" />
+            <MiniStat label="Available Balance" value={fmtCurrency(payoutData.availableBalance)} color="#10B981" />
+          </FourGrid>
+          {payoutData.lastPayouts?.length > 0 && (
+            <LowStockTable>
+              <LowStockHead>
+                <span>Date</span>
+                <span>Requested</span>
+                <span>Tax</span>
+                <span>Paid</span>
+                <span>Status</span>
+              </LowStockHead>
+              {payoutData.lastPayouts.map((p, i) => (
+                <LowStockRow key={i}>
+                  <span>{new Date(p.date).toLocaleDateString('en-GH')}</span>
+                  <span>{fmtCurrency(p.amountRequested)}</span>
+                  <span>{fmtCurrency(p.withholdingTax)}</span>
+                  <span>{fmtCurrency(p.amountPaid)}</span>
+                  <PayoutStatus $status={p.status}>{p.status}</PayoutStatus>
+                </LowStockRow>
+              ))}
+            </LowStockTable>
           )}
-        </ChartContainer>
+        </SectionCard>
       )}
-    </AnalyticsContainer>
+
+      {/* Refund analytics */}
+      {refundData && (
+        <SectionCard title="Refund Analytics" icon={<FaUndo />} action={<RangeTabs value={refundRange} onChange={setRefundRange} />}>
+          <FourGrid>
+            {refundData.totalRefunds !== undefined && <MiniStat label="Total Refunds" value={fmtNumber(refundData.totalRefunds)} />}
+            {refundData.totalRefundAmount !== undefined && <MiniStat label="Refund Amount" value={fmtCurrency(refundData.totalRefundAmount)} color="#EF4444" />}
+            {refundData.refundRate !== undefined && <MiniStat label="Refund Rate" value={fmtPct(refundData.refundRate)} color={refundData.refundRate > 5 ? '#EF4444' : '#10B981'} />}
+          </FourGrid>
+        </SectionCard>
+      )}
+    </Page>
   );
 };
 
 export default SellerAnalyticsDashboard;
 
+/* ─── styled components ───────────────────────────────────────────────────── */
+const Page = styled.div`
+  display: grid;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: #F9F8F5;
+  min-height: 100vh;
+`;
+
+const PageHeader = styled.div`
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-left: 3px solid #E8920A;
+  border-radius: 12px;
+  padding: 1.2rem 1.5rem;
+`;
+
+const PageTitle = styled.h1`
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.2rem;
+`;
+
+const PageSub = styled.p`
+  font-size: 0.875rem;
+  color: #6B7280;
+  margin: 0;
+`;
+
+/* KPI */
+const KPIGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.75rem;
+
+  @media (max-width: 1100px) { grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 640px)  { grid-template-columns: repeat(2, 1fr); }
+`;
+
+const KPIItem = styled.div`
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  padding: 1rem 1.2rem 1rem;
+  border-top: 3px solid ${(p) => p.$accent};
+`;
+
+const KPITop = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+`;
+
+const KPIIcon = styled.div`
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: ${(p) => p.$accent}15;
+  color: ${(p) => p.$accent};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+`;
+
+const ChangePill = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.15rem 0.45rem;
+  border-radius: 20px;
+  background: ${(p) => p.$positive ? '#DCFCE7' : '#FEE2E2'};
+  color: ${(p) => p.$positive ? '#15803D' : '#DC2626'};
+`;
+
+const KPIValue = styled.div`
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.2;
+  margin-bottom: 0.2rem;
+`;
+
+const KPITitle = styled.div`
+  font-size: 0.75rem;
+  color: #9CA3AF;
+`;
+
+/* Section card */
+const Card = styled.div`
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  overflow: hidden;
+`;
+
+const CardHead = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 0.5px solid #F1EFE8;
+`;
+
+const CardTitle = styled.h3`
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const CardTitleIcon = styled.span`
+  color: #E8920A;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+`;
+
+const CardBody = styled.div`
+  padding: 1.25rem;
+`;
+
+/* Range tabs */
+const RangeTabsWrap = styled.div`
+  display: flex;
+  gap: 0.25rem;
+  background: #F9F8F5;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 8px;
+  padding: 0.2rem;
+`;
+
+const RangeTab = styled.button`
+  height: 26px;
+  padding: 0 0.65rem;
+  border-radius: 6px;
+  border: none;
+  font-size: 0.75rem;
+  font-weight: ${(p) => p.$active ? 600 : 400};
+  cursor: pointer;
+  transition: all 0.12s;
+  background: ${(p) => p.$active ? '#E8920A' : 'transparent'};
+  color: ${(p) => p.$active ? '#FFFFFF' : '#6B7280'};
+
+  &:hover { background: ${(p) => p.$active ? '#D97706' : '#F1EFE8'}; }
+`;
+
+/* Performance */
+const PerformanceWrap = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  background: ${(p) => p.$bg};
+  color: ${(p) => p.$text};
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+`;
+
+const TrophyIcon = styled.div`
+  opacity: 0.9;
+`;
+
+const PerformanceInfo = styled.div`
+  flex: 1;
+`;
+
+const PerformanceTier = styled.div`
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: ${(p) => p.$text};
+  opacity: 0.8;
+  margin-bottom: 0.2rem;
+`;
+
+const PerformanceScore = styled.div`
+  font-size: 2rem;
+  font-weight: 800;
+  color: ${(p) => p.$text};
+  line-height: 1;
+  margin-bottom: 0.3rem;
+`;
+
+const ScoreUnit = styled.span`
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: ${(p) => p.$text};
+  opacity: 0.6;
+`;
+
+const PerformanceMeta = styled.div`
+  font-size: 0.75rem;
+  color: ${(p) => p.$text};
+  opacity: 0.75;
+`;
+
+/* Revenue chart */
+const TooltipBox = styled.div`
+  background: #1F2937;
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+`;
+
+const TooltipDate = styled.div`
+  font-size: 0.8rem;
+  color: #9CA3AF;
+  margin-bottom: 0.2rem;
+`;
+
+const TooltipValue = styled.div`
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #FFFFFF;
+`;
+
+const RevenueSummary = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 0.5px solid #F1EFE8;
+  flex-wrap: wrap;
+`;
+
+const SummaryDivider = styled.div`
+  width: 1px;
+  height: 28px;
+  background: #F1EFE8;
+`;
+
+/* Mini stat */
+const MiniStatWrap = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+`;
+
+const MiniStatValue = styled.div`
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: ${(p) => p.$color || '#111827'};
+`;
+
+const MiniStatLabel = styled.div`
+  font-size: 0.8rem;
+  color: #9CA3AF;
+`;
+
+const FourGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1.25rem;
+`;
+
+/* Two-column layout */
+const TwoCol = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+
+  @media (max-width: 900px) { grid-template-columns: 1fr; }
+`;
+
+/* Pie / order status */
+const StatusLayout = styled.div`
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+`;
+
+const PieWrap = styled.div`
+  position: relative;
+  flex-shrink: 0;
+  width: 180px;
+`;
+
+const PieCenter = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.2;
+`;
+
+const PieCenterSub = styled.div`
+  font-size: 0.8rem;
+  color: #9CA3AF;
+  font-weight: 400;
+`;
+
+const StatusLegend = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  min-width: 130px;
+`;
+
+const LegendRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const LegendDot = styled.div`
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: ${(p) => p.$color};
+  flex-shrink: 0;
+`;
+
+const LegendName = styled.span`
+  flex: 1;
+  font-size: 0.8rem;
+  color: #374151;
+`;
+
+const LegendCount = styled.span`
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #111827;
+`;
+
+/* Top products */
+const ProductList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+`;
+
+const ProductRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0;
+  border-bottom: 0.5px solid #F9F8F5;
+
+  &:last-child { border-bottom: none; }
+`;
+
+const ProductRank = styled.div`
+  width: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #D1D5DB;
+  text-align: center;
+  flex-shrink: 0;
+`;
+
+const ProductImg = styled.img`
+  width: 36px;
+  height: 36px;
+  border-radius: 7px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 0.5px solid #F1EFE8;
+`;
+
+const ProductInfo = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
+const ProductName = styled.div`
+  font-size: 0.825rem;
+  font-weight: 500;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const ProductMeta = styled.div`
+  font-size: 0.8rem;
+  color: #9CA3AF;
+  margin-top: 0.1rem;
+`;
+
+const ProductRevenue = styled.div`
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: #E8920A;
+  white-space: nowrap;
+  flex-shrink: 0;
+`;
+
+/* Low stock / payout table */
+const LowStockTable = styled.div`
+  margin-top: 1rem;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 9px;
+  overflow: hidden;
+`;
+
+const LowStockHead = styled.div`
+  display: flex;
+  gap: 1rem;
+  padding: 0.55rem 0.9rem;
+  background: #F9F8F5;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #9CA3AF;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+
+  > span { flex: 1; }
+`;
+
+const LowStockRow = styled.div`
+  display: flex;
+  gap: 1rem;
+  padding: 0.6rem 0.9rem;
+  border-top: 0.5px solid #F9F8F5;
+  font-size: 0.8rem;
+  color: #374151;
+  align-items: center;
+
+  > span { flex: 1; }
+`;
+
+const StockBadge = styled.div`
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: ${(p) => p.$low ? '#DC2626' : '#D97706'};
+`;
+
+const PayoutStatus = styled.div`
+  flex: 1;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+  color: ${(p) =>
+    p.$status === 'completed' ? '#10B981' :
+    p.$status === 'pending' ? '#F59E0B' : '#6B7280'};
+`;
+
+/* Misc */
+const EmptyMsg = styled.p`
+  font-size: 0.8rem;
+  color: #9CA3AF;
+  text-align: center;
+  padding: 2rem 0;
+  margin: 0;
+`;
+
+const ChartSkeleton = styled.div`
+  height: 200px;
+  background: linear-gradient(90deg, #F9F8F5 25%, #F1EFE8 50%, #F9F8F5 75%);
+  background-size: 200% 100%;
+  border-radius: 8px;
+  animation: shimmer 1.4s infinite;
+
+  @keyframes shimmer { to { background-position: -200% 0; } }
+`;
+
+const SkeletonGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.75rem;
+
+  @media (max-width: 1100px) { grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 640px)  { grid-template-columns: repeat(2, 1fr); }
+`;
+
+const SkeletonKPI = styled.div`
+  height: 100px;
+  background: linear-gradient(90deg, #F9F8F5 25%, #F1EFE8 50%, #F9F8F5 75%);
+  background-size: 200% 100%;
+  border-radius: 12px;
+  animation: shimmer 1.4s infinite;
+
+  @keyframes shimmer { to { background-position: -200% 0; } }
+`;
+
+const SkeletonChart = styled.div`
+  height: 280px;
+  background: linear-gradient(90deg, #F9F8F5 25%, #F1EFE8 50%, #F9F8F5 75%);
+  background-size: 200% 100%;
+  border-radius: 12px;
+  animation: shimmer 1.4s infinite;
+
+  @keyframes shimmer { to { background-position: -200% 0; } }
+`;
+
+const StateCard = styled.div`
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  padding: 3rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`;

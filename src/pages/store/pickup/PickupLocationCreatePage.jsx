@@ -93,10 +93,10 @@ export default PickupLocationCreatePage;
 const FormHeader = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-xl);
-  padding-bottom: var(--spacing-lg);
-  border-bottom: 1px solid var(--color-grey-200);
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #F1EFE8;
 `;
 
 const FormIcon = styled.div`
@@ -105,19 +105,19 @@ const FormIcon = styled.div`
   justify-content: center;
   width: 4rem;
   height: 4rem;
-  border-radius: var(--border-radius-lg);
-  background-color: var(--color-primary-100);
-  color: var(--color-primary-600);
+  border-radius: 12px;
+  background-color: #FEF3C7;
+  color: #E8920A;
 
   svg {
-    font-size: var(--font-size-xl);
+    font-size: 1.25rem;
   }
 `;
 
 const FormTitle = styled.h2`
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
   margin: 0;
 `;
 

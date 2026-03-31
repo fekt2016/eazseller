@@ -105,12 +105,12 @@ const ModalOverlay = styled.div`
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: var(--spacing-md);
+  padding: 1rem;
 `;
 
 const ModalContent = styled.div`
-  background: var(--color-white-0);
-  border-radius: var(--border-radius-lg);
+  background: #FFFFFF;
+  border-radius: 12px;
   width: 100%;
   max-width: 500px;
   max-height: 90vh;
@@ -122,55 +122,55 @@ const ModalHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-lg);
-  border-bottom: 1px solid var(--color-grey-200);
+  padding: 1rem;
+  border-bottom: 1px solid #F1EFE8;
 `;
 
 const ModalTitle = styled.h2`
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  font-size: var(--font-size-lg);
+  gap: 1rem;
+  font-size: 1.1rem;
   font-weight: 600;
-  color: var(--color-grey-900);
+  color: #111827;
   margin: 0;
 `;
 
 const CloseButton = styled.button`
   background: none;
   border: none;
-  font-size: var(--font-size-lg);
-  color: var(--color-grey-600);
+  font-size: 1.1rem;
+  color: #6B7280;
   cursor: pointer;
-  padding: var(--spacing-xs);
+  padding: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--border-radius-sm);
+  border-radius: 6px;
   transition: all 0.2s;
 
   &:hover {
-    background: var(--color-grey-100);
-    color: var(--color-grey-900);
+    background: #F9F8F5;
+    color: #111827;
   }
 `;
 
 const ModalBody = styled.div`
-  padding: var(--spacing-lg);
+  padding: 1rem;
 `;
 
 const WarningBox = styled.div`
   display: flex;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md);
-  background: var(--color-orange-50);
-  border: 1px solid var(--color-orange-200);
-  border-radius: var(--border-radius-md);
-  margin-bottom: var(--spacing-lg);
-  color: var(--color-orange-900);
+  gap: 1rem;
+  padding: 1rem;
+  background: #FFF7ED;
+  border: 1px solid #FED7AA;
+  border-radius: 9px;
+  margin-bottom: 1rem;
+  color: #7C2D12;
 
   svg {
-    font-size: var(--font-size-xl);
+    font-size: 1.25rem;
     flex-shrink: 0;
     margin-top: 2px;
   }
@@ -180,12 +180,12 @@ const WarningBox = styled.div`
 
     strong {
       display: block;
-      margin-bottom: var(--spacing-xs);
+      margin-bottom: 1rem;
     }
 
     p {
       margin: 0;
-      font-size: var(--font-size-sm);
+      font-size: 0.875rem;
       line-height: 1.5;
     }
   }
@@ -194,84 +194,84 @@ const WarningBox = styled.div`
 const Form = styled.form`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: 1rem;
 `;
 
 const FormGroup = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 1rem;
 `;
 
 const Label = styled.label`
-  font-size: var(--font-size-sm);
+  font-size: 0.875rem;
   font-weight: 600;
-  color: var(--color-grey-700);
+  color: #374151;
 `;
 
 const Required = styled.span`
-  color: var(--color-red-600);
+  color: #DC2626;
 `;
 
 const TextArea = styled.textarea`
   width: 100%;
-  padding: var(--spacing-sm);
-  border: 1px solid var(--color-grey-300);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-sm);
+  padding: 1rem;
+  border: 1px solid #E5E7EB;
+  border-radius: 9px;
+  font-size: 0.875rem;
   font-family: inherit;
   resize: vertical;
   min-height: 100px;
 
   &:focus {
     outline: none;
-    border-color: var(--color-blue-500);
+    border-color: #3B82F6;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   }
 
   &:disabled {
-    background: var(--color-grey-100);
+    background: #F9F8F5;
     cursor: not-allowed;
   }
 
   &::placeholder {
-    color: var(--color-grey-400);
+    color: #D1D5DB;
   }
 `;
 
 const HelpText = styled.span`
-  font-size: var(--font-size-xs);
-  color: var(--color-grey-500);
+  font-size: 0.8rem;
+  color: #9CA3AF;
 `;
 
 const ErrorMessage = styled.div`
-  color: var(--color-red-600);
-  font-size: var(--font-size-sm);
-  margin-top: var(--spacing-xs);
+  color: #DC2626;
+  font-size: 0.875rem;
+  margin-top: 1rem;
 `;
 
 const ButtonGroup = styled.div`
   display: flex;
-  gap: var(--spacing-md);
+  gap: 1rem;
   justify-content: flex-end;
-  margin-top: var(--spacing-md);
+  margin-top: 1rem;
 `;
 
 const CancelButton = styled(Button)`
-  background: var(--color-grey-100);
-  color: var(--color-grey-700);
+  background: #F9F8F5;
+  color: #374151;
 
   &:hover:not(:disabled) {
-    background: var(--color-grey-200);
+    background: #F1EFE8;
   }
 `;
 
 const ConfirmButton = styled(Button)`
-  background: var(--color-orange-600);
-  color: var(--color-white-0);
+  background: #E8920A;
+  color: #FFFFFF;
 
   &:hover:not(:disabled) {
-    background: var(--color-orange-700);
+    background: #C2410C;
   }
 
   &:disabled {

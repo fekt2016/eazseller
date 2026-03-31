@@ -4,11 +4,10 @@ import { getTransactionStatusColor, getTransactionStatusBgColor } from '../../..
 const Badge = styled.span`
   display: inline-flex;
   align-items: center;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--border-radius-cir);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-semibold);
-  font-family: var(--font-body);
+  padding: 3px 10px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
   text-transform: capitalize;
   background-color: ${({ $status }) => getTransactionStatusBgColor($status)};
   color: ${({ $status }) => getTransactionStatusColor($status)};

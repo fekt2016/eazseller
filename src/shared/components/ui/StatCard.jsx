@@ -3,14 +3,14 @@ import { FaArrowUp, FaArrowDown } from "react-icons/fa";
 import { SpacingProps } from "./SpacingSystem";
 
 const StatCardContainer = styled.div`
-  background: var(--color-white-0);
-  border: 1px solid var(--color-grey-200);
-  border-radius: var(--border-radius-lg);
+  background: #FFFFFF;
+  border: 1px solid #F1EFE8;
+  border-radius: 12px;
   ${SpacingProps}
   transition: all 0.3s ease;
   
   &:hover {
-    box-shadow: var(--shadow-md);
+    
     transform: translateY(-2px);
   }
 `;
@@ -19,14 +19,14 @@ const StatHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: var(--spacing-sm);
+  margin-bottom: 1rem;
 `;
 
 const StatTitle = styled.h3`
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-medium);
-  color: var(--color-grey-600);
-  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6B7280;
+  
   text-transform: uppercase;
   letter-spacing: 0.5px;
 `;
@@ -34,48 +34,48 @@ const StatTitle = styled.h3`
 const StatIcon = styled.div`
   width: 3.2rem;
   height: 3.2rem;
-  border-radius: var(--border-radius-md);
+  border-radius: 9px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: ${({ $variant }) => {
     switch ($variant) {
-      case 'primary': return 'var(--color-primary-100)';
-      case 'success': return 'var(--color-green-100)';
-      case 'warning': return 'var(--color-yellow-100)';
-      case 'danger': return 'var(--color-red-100)';
-      default: return 'var(--color-grey-100)';
+      case 'primary': return '#E8920A';
+      case 'success': return '#3B6D11';
+      case 'warning': return '#854F0B';
+      case 'danger': return '#A32D2D';
+      default: return '#F9F8F5';
     }
   }};
   color: ${({ $variant }) => {
     switch ($variant) {
-      case 'primary': return 'var(--color-primary-600)';
-      case 'success': return 'var(--color-green-700)';
-      case 'warning': return 'var(--color-yellow-700)';
-      case 'danger': return 'var(--color-red-600)';
-      default: return 'var(--color-grey-600)';
+      case 'primary': return '#E8920A';
+      case 'success': return '#3B6D11';
+      case 'warning': return '#854F0B';
+      case 'danger': return '#A32D2D';
+      default: return '#6B7280';
     }
   }};
   font-size: 1.6rem;
 `;
 
 const StatValue = styled.div`
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-bold);
-  color: var(--color-grey-900);
-  font-family: var(--font-heading);
-  margin-bottom: var(--spacing-xs);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+  
+  margin-bottom: 1rem;
 `;
 
 const StatChange = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-medium);
+  gap: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
   color: ${({ $positive }) => 
-    $positive ? 'var(--color-green-700)' : 'var(--color-red-600)'};
-  font-family: var(--font-body);
+    $positive ? '#3B6D11' : '#A32D2D'};
+  
 `;
 
 /**

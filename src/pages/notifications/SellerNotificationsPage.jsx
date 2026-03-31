@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { FaBell, FaCheck, FaCheckDouble, FaTrash, FaTimes, FaShoppingCart, FaTruck, FaMoneyBillWave, FaHeadset, FaBox, FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
 import { useNotifications, useUnreadCount, useMarkAsRead, useMarkAllAsRead, useDeleteNotification } from '../../shared/hooks/notifications/useNotifications';
 import { PageContainer, LoadingSpinner, Button, TitleSection } from '../../shared/components/ui';
+import { SkeletonTableRows } from '../../shared/components/ui/LoadingComponents';
 import { PATHS } from '../../routes/routePaths';
 
 const SellerNotificationsPage = () => {
@@ -46,18 +47,18 @@ const SellerNotificationsPage = () => {
   const getNotificationColor = (type) => {
     switch (type) {
       case 'order':
-        return 'var(--color-primary-500)';
+        return '#E8920A';
       case 'delivery':
-        return 'var(--color-blue-500)';
+        return '#185FA5';
       case 'payout':
       case 'finance':
-        return 'var(--color-green-500)';
+        return '#3B6D11';
       case 'support':
-        return 'var(--color-orange-500)';
+        return '#E8920A';
       case 'product':
-        return 'var(--color-purple-500)';
+        return '#5B21B6';
       default:
-        return 'var(--color-grey-500)';
+        return '#9CA3AF';
     }
   };
 
@@ -118,416 +119,383 @@ const SellerNotificationsPage = () => {
     }
   };
 
+  const TYPE_META = {
+    order:   { color: '#E8920A', bg: '#FDF3E3' },
+    delivery:{ color: '#3B82F6', bg: '#EFF6FF' },
+    payout:  { color: '#10B981', bg: '#ECFDF5' },
+    finance: { color: '#10B981', bg: '#ECFDF5' },
+    support: { color: '#8B5CF6', bg: '#F5F3FF' },
+    product: { color: '#EC4899', bg: '#FDF2F8' },
+  };
+
+  const typeMeta = (type) => TYPE_META[type] || { color: '#9CA3AF', bg: '#F9F8F5' };
+
   if (isLoading) {
     return (
-      <PageContainer>
-        <LoadingSpinner />
-      </PageContainer>
+      <Page>
+        <SkeletonTableRows count={8} />
+      </Page>
     );
   }
 
   return (
-    <PageContainer>
+    <Page>
+      {/* Header */}
       <PageHeader>
-        <HeaderContent>
-          <TitleSection>
-            <h1>Notifications</h1>
-          </TitleSection>
-          {unreadCount > 0 && (
-            <UnreadBadge>{unreadCount} unread</UnreadBadge>
+        <div>
+          <PageTitle>Notifications</PageTitle>
+          <PageSub>Stay updated on orders, payouts, and more</PageSub>
+        </div>
+        <HeaderRight>
+          {unreadCount > 0 && <UnreadBadge>{unreadCount} unread</UnreadBadge>}
+          {notifications.length > 0 && unreadCount > 0 && (
+            <MarkAllBtn onClick={() => markAllAsRead.mutate()} disabled={markAllAsRead.isPending}>
+              <FaCheckDouble size={12} /> Mark all read
+            </MarkAllBtn>
           )}
-        </HeaderContent>
-        {notifications.length > 0 && unreadCount > 0 && (
-          <MarkAllReadButton
-            onClick={() => markAllAsRead.mutate()}
-            disabled={markAllAsRead.isPending}
-          >
-            <FaCheckDouble />
-            Mark All Read
-          </MarkAllReadButton>
-        )}
+        </HeaderRight>
       </PageHeader>
 
-      <FiltersSection>
-        <FilterGroup>
-          <FilterLabel>Status:</FilterLabel>
-          <FilterButtons>
-            <FilterButton
-              $active={filter === 'all'}
-              onClick={() => setFilter('all')}
-            >
-              All
-            </FilterButton>
-            <FilterButton
-              $active={filter === 'unread'}
-              onClick={() => setFilter('unread')}
-            >
-              Unread
-            </FilterButton>
-            <FilterButton
-              $active={filter === 'read'}
-              onClick={() => setFilter('read')}
-            >
-              Read
-            </FilterButton>
-          </FilterButtons>
-        </FilterGroup>
+      {/* Filters */}
+      <FiltersCard>
+        <FilterRow>
+          <FilterLabel>Status</FilterLabel>
+          <PillGroup>
+            {['all','unread','read'].map((f) => (
+              <Pill key={f} $active={filter === f} onClick={() => setFilter(f)}>
+                {f.charAt(0).toUpperCase() + f.slice(1)}
+              </Pill>
+            ))}
+          </PillGroup>
+        </FilterRow>
+        <FilterRow>
+          <FilterLabel>Type</FilterLabel>
+          <PillGroup>
+            {['all','order','payout','support','product'].map((t) => (
+              <Pill key={t} $active={typeFilter === t} onClick={() => setTypeFilter(t)}>
+                {t.charAt(0).toUpperCase() + t.slice(1)}
+              </Pill>
+            ))}
+          </PillGroup>
+        </FilterRow>
+      </FiltersCard>
 
-        <FilterGroup>
-          <FilterLabel>Type:</FilterLabel>
-          <FilterButtons>
-            <FilterButton
-              $active={typeFilter === 'all'}
-              onClick={() => setTypeFilter('all')}
-            >
-              All
-            </FilterButton>
-            <FilterButton
-              $active={typeFilter === 'order'}
-              onClick={() => setTypeFilter('order')}
-            >
-              Orders
-            </FilterButton>
-            <FilterButton
-              $active={typeFilter === 'payout'}
-              onClick={() => setTypeFilter('payout')}
-            >
-              Payouts
-            </FilterButton>
-            <FilterButton
-              $active={typeFilter === 'support'}
-              onClick={() => setTypeFilter('support')}
-            >
-              Support
-            </FilterButton>
-            <FilterButton
-              $active={typeFilter === 'product'}
-              onClick={() => setTypeFilter('product')}
-            >
-              Products
-            </FilterButton>
-          </FilterButtons>
-        </FilterGroup>
-      </FiltersSection>
-
+      {/* List */}
       {notifications.length === 0 ? (
-        <EmptyState>
-          <EmptyIcon>
-            <FaBell />
-          </EmptyIcon>
+        <StateCard>
+          <FaBell size={32} color="#D1D5DB" />
           <EmptyTitle>No notifications</EmptyTitle>
-          <EmptyMessage>
-            {filter === 'unread'
-              ? "You're all caught up! No unread notifications."
-              : 'You have no notifications yet.'}
-          </EmptyMessage>
-        </EmptyState>
+          <EmptyMsg>
+            {filter === 'unread' ? "You're all caught up!" : 'Nothing here yet.'}
+          </EmptyMsg>
+        </StateCard>
       ) : (
-        <NotificationsList>
-          {notifications.map((notification) => (
-            <NotificationItem
-              key={notification._id}
-              $unread={!(notification.read ?? notification.isRead)}
-              onClick={() => handleNotificationClick(notification)}
-            >
-              <NotificationIcon $color={getNotificationColor(notification.type)}>
-                {getNotificationIcon(notification.type)}
-              </NotificationIcon>
-              <NotificationContent>
-                <NotificationHeader>
-                  <NotificationTitle>{notification.title}</NotificationTitle>
-                  {!(notification.read ?? notification.isRead) && <UnreadDot />}
-                </NotificationHeader>
-                <NotificationMessage>{notification.message}</NotificationMessage>
-                <NotificationMeta>
-                  <NotificationTime>
-                    {new Date(notification.createdAt).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </NotificationTime>
-                  <NotificationType>{notification.type}</NotificationType>
-                </NotificationMeta>
-              </NotificationContent>
-              <NotificationActions>
-                {!(notification.read ?? notification.isRead) && (
-                  <ActionButton
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      markAsRead.mutate(notification._id);
-                    }}
-                    title="Mark as read"
+        <NotiList>
+          {notifications.map((n) => {
+            const unread = !(n.read ?? n.isRead);
+            const meta = typeMeta(n.type);
+            return (
+              <NotiItem key={n._id} $unread={unread} onClick={() => handleNotificationClick(n)}>
+                <NotiIcon $bg={meta.bg} $color={meta.color}>
+                  {getNotificationIcon(n.type)}
+                </NotiIcon>
+                <NotiBody>
+                  <NotiTop>
+                    <NotiTitle>{n.title}</NotiTitle>
+                    {unread && <UnreadDot />}
+                  </NotiTop>
+                  <NotiMessage>{n.message}</NotiMessage>
+                  <NotiMeta>
+                    <NotiTime>
+                      {new Date(n.createdAt).toLocaleDateString('en-US', {
+                        month: 'short', day: 'numeric', year: 'numeric',
+                        hour: '2-digit', minute: '2-digit',
+                      })}
+                    </NotiTime>
+                    <TypeChip $bg={meta.bg} $color={meta.color}>{n.type}</TypeChip>
+                  </NotiMeta>
+                </NotiBody>
+                <NotiActions>
+                  {unread && (
+                    <IconBtn onClick={(e) => { e.stopPropagation(); markAsRead.mutate(n._id); }} title="Mark as read">
+                      <FaCheck size={11} />
+                    </IconBtn>
+                  )}
+                  <IconBtn
+                    $danger
+                    onClick={(e) => { e.stopPropagation(); if (window.confirm('Delete?')) deleteNotification.mutate(n._id); }}
+                    title="Delete"
                   >
-                    <FaCheck />
-                  </ActionButton>
-                )}
-                <ActionButton
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (window.confirm('Delete this notification?')) {
-                      deleteNotification.mutate(notification._id);
-                    }
-                  }}
-                  title="Delete"
-                  $danger
-                >
-                  <FaTrash />
-                </ActionButton>
-              </NotificationActions>
-            </NotificationItem>
-          ))}
-        </NotificationsList>
+                    <FaTrash size={11} />
+                  </IconBtn>
+                </NotiActions>
+              </NotiItem>
+            );
+          })}
+        </NotiList>
       )}
-    </PageContainer>
+    </Page>
   );
 };
 
 export default SellerNotificationsPage;
 
-// Styled Components
-const PageHeader = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-lg);
-  flex-wrap: wrap;
-  gap: var(--spacing-md);
+/* ─── Styled Components ───────────────────────────────────────────────────── */
+const Page = styled.div`
+  display: grid;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: #F9F8F5;
+  min-height: 100vh;
 `;
 
-const HeaderContent = styled.div`
+const PageHeader = styled.div`
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  padding: 1.2rem 1.5rem;
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+`;
+
+const PageTitle = styled.h1`
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.2rem;
+`;
+
+const PageSub = styled.p`
+  font-size: 0.875rem;
+  color: #6B7280;
+  margin: 0;
+`;
+
+const HeaderRight = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
 `;
 
 const UnreadBadge = styled.span`
-  background: var(--color-primary-500);
-  color: var(--color-white-0);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-semibold);
-`;
-
-const MarkAllReadButton = styled(Button)`
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  height: 24px;
+  padding: 0 0.65rem;
+  background: #FDF3E3;
+  color: #E8920A;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
 `;
 
-const FiltersSection = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-lg);
-  padding: var(--spacing-md);
-  background: var(--color-white-0);
-  border-radius: var(--border-radius-lg);
-  border: 1px solid var(--color-grey-200);
-`;
-
-const FilterGroup = styled.div`
-  display: flex;
+const MarkAllBtn = styled.button`
+  display: inline-flex;
   align-items: center;
-  gap: var(--spacing-md);
-  flex-wrap: wrap;
-`;
-
-const FilterLabel = styled.label`
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-700);
-  min-width: 4rem;
-`;
-
-const FilterButtons = styled.div`
-  display: flex;
-  gap: var(--spacing-xs);
-  flex-wrap: wrap;
-`;
-
-const FilterButton = styled.button`
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border: 1px solid var(--color-grey-300);
-  background: ${(props) =>
-    props.$active ? 'var(--color-primary-500)' : 'var(--color-white-0)'};
-  color: ${(props) =>
-    props.$active ? 'var(--color-white-0)' : 'var(--color-grey-700)'};
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-medium);
+  gap: 0.35rem;
+  height: 32px;
+  padding: 0 0.9rem;
+  border-radius: 9px;
+  border: 0.5px solid #F1EFE8;
+  background: #FFFFFF;
+  color: #374151;
+  font-size: 0.8rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: var(--transition-base);
+  transition: all 0.12s;
 
-  &:hover {
-    border-color: var(--color-primary-500);
-    background: ${(props) =>
-      props.$active ? 'var(--color-primary-600)' : 'var(--color-primary-50)'};
-    color: ${(props) =>
-      props.$active ? 'var(--color-white-0)' : 'var(--color-primary-600)'};
-  }
+  &:hover { background: #F9F8F5; border-color: #E8920A; color: #E8920A; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
 `;
 
-const NotificationsList = styled.div`
+const FiltersCard = styled.div`
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: 0.75rem;
 `;
 
-const NotificationItem = styled.div`
+const FilterRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+`;
+
+const FilterLabel = styled.span`
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #9CA3AF;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  min-width: 44px;
+`;
+
+const PillGroup = styled.div`
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+`;
+
+const Pill = styled.button`
+  height: 28px;
+  padding: 0 0.75rem;
+  border-radius: 20px;
+  border: 0.5px solid ${(p) => p.$active ? '#E8920A' : '#F1EFE8'};
+  background: ${(p) => p.$active ? '#E8920A' : '#FFFFFF'};
+  color: ${(p) => p.$active ? '#FFFFFF' : '#6B7280'};
+  font-size: 0.775rem;
+  font-weight: ${(p) => p.$active ? 600 : 400};
+  cursor: pointer;
+  transition: all 0.12s;
+
+  &:hover { border-color: #E8920A; color: ${(p) => p.$active ? '#FFFFFF' : '#E8920A'}; }
+`;
+
+const NotiList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+const NotiItem = styled.div`
   display: flex;
   align-items: flex-start;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md);
-  background: var(--color-white-0);
-  border-radius: var(--border-radius-md);
-  border: 1px solid var(--color-grey-200);
+  gap: 0.9rem;
+  padding: 1rem 1.2rem;
+  background: ${(p) => p.$unread ? '#FFFDF9' : '#FFFFFF'};
+  border: 0.5px solid #F1EFE8;
+  border-left: ${(p) => p.$unread ? '3px solid #E8920A' : '0.5px solid #F1EFE8'};
+  border-radius: 12px;
   cursor: pointer;
-  transition: var(--transition-base);
-  position: relative;
+  transition: background 0.12s;
 
-  ${(props) =>
-    props.$unread &&
-    `
-    border-left: 4px solid var(--color-primary-500);
-    background: var(--color-primary-50);
-  `}
-
-  &:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transform: translateY(-1px);
-  }
+  &:hover { background: #FFFDF9; }
 `;
 
-const NotificationIcon = styled.div`
-  width: 3rem;
-  height: 3rem;
-  border-radius: var(--border-radius-md);
-  background: ${(props) => props.$color || 'var(--color-grey-200)'};
-  color: var(--color-white-0);
+const NotiIcon = styled.div`
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: ${(p) => p.$bg};
+  color: ${(p) => p.$color};
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--font-size-lg);
+  font-size: 0.875rem;
   flex-shrink: 0;
 `;
 
-const NotificationContent = styled.div`
+const NotiBody = styled.div`
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 0.2rem;
 `;
 
-const NotificationHeader = styled.div`
+const NotiTop = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: 0.5rem;
 `;
 
-const NotificationTitle = styled.h3`
-  font-size: var(--font-size-md);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
+const NotiTitle = styled.h3`
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
   margin: 0;
 `;
 
 const UnreadDot = styled.span`
-  width: 0.5rem;
-  height: 0.5rem;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  background: var(--color-primary-500);
+  background: #E8920A;
+  flex-shrink: 0;
 `;
 
-const NotificationMessage = styled.p`
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-700);
+const NotiMessage = styled.p`
+  font-size: 0.8rem;
+  color: #6B7280;
   margin: 0;
   line-height: 1.5;
 `;
 
-const NotificationMeta = styled.div`
+const NotiMeta = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  margin-top: var(--spacing-xs);
+  gap: 0.5rem;
+  margin-top: 0.1rem;
 `;
 
-const NotificationTime = styled.span`
-  font-size: var(--font-size-xs);
-  color: var(--color-grey-500);
+const NotiTime = styled.span`
+  font-size: 0.72rem;
+  color: #9CA3AF;
 `;
 
-const NotificationType = styled.span`
-  font-size: var(--font-size-xs);
-  color: var(--color-grey-500);
+const TypeChip = styled.span`
+  font-size: 0.7rem;
+  font-weight: 500;
   text-transform: capitalize;
-  padding: 0.125rem 0.5rem;
-  background: var(--color-grey-100);
-  border-radius: var(--border-radius-sm);
+  padding: 0.1rem 0.5rem;
+  border-radius: 20px;
+  background: ${(p) => p.$bg};
+  color: ${(p) => p.$color};
 `;
 
-const NotificationActions = styled.div`
+const NotiActions = styled.div`
   display: flex;
-  gap: var(--spacing-xs);
+  gap: 0.35rem;
   flex-shrink: 0;
 `;
 
-const ActionButton = styled.button`
-  width: 2rem;
-  height: 2rem;
-  border: none;
-  background: var(--color-grey-100);
-  color: ${(props) =>
-    props.$danger ? 'var(--color-red-600)' : 'var(--color-grey-700)'};
-  border-radius: var(--border-radius-md);
+const IconBtn = styled.button`
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  border: 0.5px solid #F1EFE8;
+  background: ${(p) => p.$danger ? '#FEF2F2' : '#FFFFFF'};
+  color: ${(p) => p.$danger ? '#EF4444' : '#6B7280'};
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: var(--transition-base);
+  transition: all 0.12s;
 
-  &:hover {
-    background: ${(props) =>
-      props.$danger ? 'var(--color-red-100)' : 'var(--color-grey-200)'};
-  }
+  &:hover { border-color: ${(p) => p.$danger ? '#EF4444' : '#E8920A'}; }
 `;
 
-const EmptyState = styled.div`
+const StateCard = styled.div`
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  padding: 3rem;
+  text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: var(--spacing-xxl);
-  text-align: center;
-`;
-
-const EmptyIcon = styled.div`
-  width: 5rem;
-  height: 5rem;
-  border-radius: 50%;
-  background: var(--color-grey-100);
-  color: var(--color-grey-400);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-  margin-bottom: var(--spacing-md);
+  gap: 0.5rem;
 `;
 
 const EmptyTitle = styled.h3`
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
-  margin-bottom: var(--spacing-sm);
+  font-size: 0.975rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0.5rem 0 0;
 `;
 
-const EmptyMessage = styled.p`
-  font-size: var(--font-size-md);
-  color: var(--color-grey-600);
+const EmptyMsg = styled.p`
+  font-size: 0.8rem;
+  color: #9CA3AF;
   margin: 0;
 `;
+
 

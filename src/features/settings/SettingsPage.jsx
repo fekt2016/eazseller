@@ -4,164 +4,74 @@ import styled from 'styled-components';
 import {
   FaStore,
   FaCreditCard,
-  FaCog,
   FaArrowLeft,
   FaShieldAlt,
   FaLock,
   FaBell,
   FaUser,
-  FaChevronRight
 } from 'react-icons/fa';
 import { PATHS } from '../../routes/routePaths';
-import Button from '../../shared/components/ui/Button';
-import { PageContainer, PageHeader, TitleSection } from '../../shared/components/ui/SpacingSystem';
 import BusinessProfilePage from '../profile/BusinessProfilePage';
 import PaymentMethodPage from '../profile/PaymentMethodPage';
 import VerificationPage from '../profile/VerificationPage';
 import SecurityTab from './tabs/SecurityTab';
 import NotificationsTab from './tabs/NotificationsTab';
 import AccountTab from './tabs/AccountTab';
-import { devicesMax, devicesMin } from '../../shared/styles/breakpoint';
+
+const VALID_TABS = ['profile', 'payment', 'verification', 'security', 'notifications', 'account'];
+
+const resolveTab = (search, hash) => {
+  const tabParam = new URLSearchParams(search).get('tab');
+  if (tabParam && VALID_TABS.includes(tabParam)) return tabParam;
+  const h = hash.replace('#', '');
+  if (h === 'payment' || h === 'payment-methods') return 'payment';
+  if (h === 'verification' || h === 'verify') return 'verification';
+  if (h === 'security') return 'security';
+  if (h === 'notifications') return 'notifications';
+  if (h === 'account') return 'account';
+  if (h === 'profile' || h === 'business-profile') return 'profile';
+  return 'profile';
+};
 
 const SettingsPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState(() => {
-    // Check query parameter first, then hash
-    const searchParams = new URLSearchParams(location.search);
-    const tabParam = searchParams.get('tab');
-
-    if (tabParam) {
-      if (['profile', 'payment', 'verification', 'security', 'notifications', 'account'].includes(tabParam)) {
-        return tabParam;
-      }
-    }
-
-    // Fallback to hash
-    const hash = location.hash.replace('#', '');
-    if (hash === 'payment' || hash === 'payment-methods') {
-      return 'payment';
-    } else if (hash === 'verification' || hash === 'verify') {
-      return 'verification';
-    } else if (hash === 'security') {
-      return 'security';
-    } else if (hash === 'notifications') {
-      return 'notifications';
-    } else if (hash === 'account') {
-      return 'account';
-    } else if (hash === 'profile' || hash === 'business-profile') {
-      return 'profile';
-    }
-    return 'profile'; // Default to business profile
-  });
+  const [activeTab, setActiveTab] = useState(() =>
+    resolveTab(location.search, location.hash)
+  );
 
   const tabs = [
-    {
-      id: 'profile',
-      label: 'Business Profile',
-      description: 'Manage your business information and documents',
-      icon: <FaStore />,
-      color: 'var(--color-primary-500)',
-    },
-    {
-      id: 'payment',
-      label: 'Payment Methods',
-      description: 'Add and manage your payout methods',
-      icon: <FaCreditCard />,
-      color: 'var(--color-green-700)',
-    },
-    {
-      id: 'verification',
-      label: 'Verification',
-      description: 'Verify your email and contact information',
-      icon: <FaShieldAlt />,
-      color: 'var(--color-blue-700)',
-    },
-    {
-      id: 'security',
-      label: 'Security',
-      description: 'Password, 2FA, and security settings',
-      icon: <FaLock />,
-      color: 'var(--color-red-600)',
-    },
-    {
-      id: 'notifications',
-      label: 'Notifications',
-      description: 'Manage your notification preferences',
-      icon: <FaBell />,
-      color: 'var(--color-indigo-600)',
-    },
-    {
-      id: 'account',
-      label: 'Account',
-      description: 'Account settings and preferences',
-      icon: <FaUser />,
-      color: 'var(--color-grey-700)',
-    },
+    { id: 'profile', label: 'Business Profile', description: 'Business info & documents', icon: <FaStore /> },
+    { id: 'payment', label: 'Payment Methods', description: 'Add and manage payout methods', icon: <FaCreditCard /> },
+    { id: 'verification', label: 'Verification', description: 'Verify email & contact info', icon: <FaShieldAlt /> },
+    { id: 'security', label: 'Security', description: 'Password, 2FA & sessions', icon: <FaLock /> },
+    { id: 'notifications', label: 'Notifications', description: 'Manage notification preferences', icon: <FaBell /> },
+    { id: 'account', label: 'Account', description: 'Account settings & status', icon: <FaUser /> },
   ];
 
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
-    // Preserve query parameters when updating URL
-    const searchParams = new URLSearchParams(location.search);
-    const newSearch = searchParams.toString();
-    window.history.replaceState(
-      null,
-      '',
-      `${location.pathname}${newSearch ? `?${newSearch}` : ''}#${tabId}`
-    );
+    window.history.replaceState(null, '', `${location.pathname}#${tabId}`);
   };
 
-  // Sync with URL query parameter or hash on mount
   useEffect(() => {
-    // Check query parameter first
-    const searchParams = new URLSearchParams(location.search);
-    const tabParam = searchParams.get('tab');
-
-    if (tabParam && ['profile', 'payment', 'verification', 'security', 'notifications', 'account'].includes(tabParam)) {
-      setActiveTab(tabParam);
-      return;
-    }
-
-    // Fallback to hash
-    const hash = location.hash.replace('#', '');
-    if (hash === 'payment' || hash === 'payment-methods') {
-      setActiveTab('payment');
-    } else if (hash === 'verification' || hash === 'verify') {
-      setActiveTab('verification');
-    } else if (hash === 'security') {
-      setActiveTab('security');
-    } else if (hash === 'notifications') {
-      setActiveTab('notifications');
-    } else if (hash === 'account') {
-      setActiveTab('account');
-    } else if (hash === 'profile' || hash === 'business-profile') {
-      setActiveTab('profile');
-    }
+    const tab = resolveTab(location.search, location.hash);
+    if (VALID_TABS.includes(tab)) setActiveTab(tab);
   }, [location.search, location.hash]);
 
-  const activeTabData = tabs.find(tab => tab.id === activeTab);
-
   return (
-    <SettingsContainer>
-
-
-      {/* Settings Layout */}
-      <SettingsLayout>
-        {/* Sidebar Navigation */}
+    <Page>
+      <Layout>
+        {/* Sidebar */}
         <Sidebar>
           <SidebarHeader>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 'var(--spacing-xs)' }}>
-              <BackButton
-                onClick={() => navigate(PATHS.DASHBOARD)}
-                aria-label="Back to Dashboard"
-                style={{ width: '30px', height: '30px', marginRight: 'var(--spacing-sm)' }}
-              >
-                <FaArrowLeft style={{ fontSize: '1.2rem' }} />
-              </BackButton>
-              <SidebarTitle style={{ margin: 0 }}>Settings</SidebarTitle>
+            <BackBtn onClick={() => navigate(PATHS.DASHBOARD)} aria-label="Back">
+              <FaArrowLeft size={11} />
+            </BackBtn>
+            <div>
+              <SidebarTitle>Settings</SidebarTitle>
+              <SidebarSub>Configure your account</SidebarSub>
             </div>
-            <SidebarSubtitle>Configure your account</SidebarSubtitle>
           </SidebarHeader>
           <NavList>
             {tabs.map((tab) => (
@@ -169,251 +79,140 @@ const SettingsPage = () => {
                 key={tab.id}
                 $active={activeTab === tab.id}
                 onClick={() => handleTabChange(tab.id)}
-                $color={tab.color}
               >
-                <NavIcon $active={activeTab === tab.id} $color={tab.color}>
+                <NavIcon $active={activeTab === tab.id}>
                   {tab.icon}
                 </NavIcon>
-                <NavContent>
-                  <NavLabel>{tab.label}</NavLabel>
-                  <NavDescription>{tab.description}</NavDescription>
-                </NavContent>
-                {activeTab === tab.id && (
-                  <NavIndicator $color={tab.color} />
-                )}
+                <NavText>
+                  <NavLabel $active={activeTab === tab.id}>{tab.label}</NavLabel>
+                  <NavDesc>{tab.description}</NavDesc>
+                </NavText>
               </NavItem>
             ))}
           </NavList>
         </Sidebar>
 
-        {/* Main Content Area */}
-        <MainContent>
-          <ContentCard>
-            <TabContent>
-              {activeTab === 'profile' && <BusinessProfilePage embedded />}
-              {activeTab === 'payment' && <PaymentMethodPage embedded />}
-              {activeTab === 'verification' && <VerificationPage embedded />}
-              {activeTab === 'security' && <SecurityTab />}
-              {activeTab === 'notifications' && <NotificationsTab />}
-              {activeTab === 'account' && <AccountTab />}
-            </TabContent>
-          </ContentCard>
-        </MainContent>
-      </SettingsLayout>
-    </SettingsContainer>
+        {/* Main Content */}
+        <ContentCard>
+          <TabContent>
+            {activeTab === 'profile' && <BusinessProfilePage embedded />}
+            {activeTab === 'payment' && <PaymentMethodPage embedded />}
+            {activeTab === 'verification' && <VerificationPage embedded />}
+            {activeTab === 'security' && <SecurityTab />}
+            {activeTab === 'notifications' && <NotificationsTab />}
+            {activeTab === 'account' && <AccountTab />}
+          </TabContent>
+        </ContentCard>
+      </Layout>
+    </Page>
   );
 };
 
 export default SettingsPage;
 
-// Modern Styled Components
-const SettingsContainer = styled(PageContainer)`
-  padding: 0;
-  background: var(--color-grey-50);
+/* ─── Styled Components ─────────────────────────────────────────────────────── */
+const Page = styled.div`
+  padding: 1.25rem;
+  background: #F9F8F5;
   min-height: 100vh;
 `;
 
-const ModernHeader = styled.div`
-  background: linear-gradient(135deg, var(--color-white-0) 0%, var(--color-grey-50) 100%);
-  border-bottom: 1px solid var(--color-grey-200);
-  padding: var(--spacing-lg) var(--spacing-xl);
+const Layout = styled.div`
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 0.75rem;
+  align-items: start;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const Sidebar = styled.aside`
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  padding: 1rem;
   position: sticky;
-  top: 0;
-  z-index: 100;
-  backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.95);
-  
-  @media ${devicesMax.sm} {
-    padding: var(--spacing-md);
-  }
-`;
-
-const HeaderContent = styled.div`
-  max-width: 1400px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-`;
-
-const HeaderLeft = styled.div`
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-lg);
-  flex: 1;
-`;
-
-const BackButton = styled.button`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--border-radius-lg);
-  border: 1px solid var(--color-grey-200);
-  background: var(--color-white-0);
-  color: var(--color-grey-700);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-
-  &:hover {
-    background: var(--color-grey-50);
-    border-color: var(--color-grey-300);
-    color: var(--color-grey-900);
-    transform: translateX(-2px);
-  }
-
-  svg {
-    font-size: var(--font-size-md);
-  }
-`;
-
-const HeaderText = styled.div`
-  flex: 1;
-`;
-
-const Breadcrumb = styled.div`
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  margin-bottom: var(--spacing-xs);
-  font-size: var(--font-size-sm);
-`;
-
-const BreadcrumbLink = styled.button`
-  color: var(--color-grey-600);
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  font-size: inherit;
-  transition: color 0.2s ease;
-
-  &:hover {
-    color: var(--color-primary-600);
-  }
-`;
-
-const BreadcrumbSeparator = styled.span`
-  color: var(--color-grey-400);
-  display: flex;
-  align-items: center;
-  
-  svg {
-    font-size: 1rem;
-  }
-`;
-
-const BreadcrumbCurrent = styled.span`
-  color: var(--color-grey-700);
-  font-weight: var(--font-medium);
-`;
-
-const Title = styled.h1`
-  font-size: clamp(2rem, 4vw, 2.8rem);
-  font-weight: var(--font-bold);
-  color: var(--color-grey-900);
-  margin: 0 0 var(--spacing-xs) 0;
-  background: linear-gradient(135deg, var(--color-grey-900) 0%, var(--color-primary-600) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  line-height: 1.2;
-`;
-
-const Subtitle = styled.p`
-  font-size: var(--font-size-md);
-  color: var(--color-grey-600);
-  margin: 0;
-  line-height: 1.5;
-`;
-
-const SettingsLayout = styled.div`
-  max-width: 1400px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xl);
-  padding: var(--spacing-xl);
-  
-  @media ${devicesMax.md} {
-    gap: var(--spacing-lg);
-    padding: var(--spacing-lg);
-  }
-  
-  @media ${devicesMax.sm} {
-    padding: var(--spacing-md);
-    gap: var(--spacing-md);
-  }
-`;
-
-const Sidebar = styled.div`
-  background: var(--color-white-0);
-  border-radius: var(--border-radius-xl);
-  border: 1px solid var(--color-grey-200);
-  box-shadow: var(--shadow-sm);
-  padding: var(--spacing-lg);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-  
-  @media ${devicesMax.md} {
-    border-radius: var(--border-radius-lg);
-  }
+  top: 1.25rem;
 `;
 
 const SidebarHeader = styled.div`
-  padding-bottom: var(--spacing-lg);
-  border-bottom: 1px solid var(--color-grey-200);
-  margin-bottom: var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 0.5px solid #F1EFE8;
+`;
+
+const BackBtn = styled.button`
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  border: 0.5px solid #F1EFE8;
+  background: #F9F8F5;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.12s;
+
+  &:hover { border-color: #E8920A; color: #E8920A; background: #FDF3E3; }
 `;
 
 const SidebarTitle = styled.h2`
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-bold);
-  color: var(--color-grey-900);
-  margin: 0 0 var(--spacing-xs) 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.1rem;
 `;
 
-const SidebarSubtitle = styled.p`
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-600);
+const SidebarSub = styled.p`
+  font-size: 0.7rem;
+  color: #9CA3AF;
   margin: 0;
 `;
 
 const NavList = styled.ul`
   list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
-  flex-direction: row;
-  overflow-x: auto;
-  gap: var(--spacing-md);
-  padding-bottom: var(--spacing-xs);
-  
-  /* Hide scrollbar for styling */
-  &::-webkit-scrollbar {
-    display: none;
+  flex-direction: column;
+  gap: 2px;
+
+  @media (max-width: 900px) {
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 4px;
+    scrollbar-width: none;
+    &::-webkit-scrollbar { display: none; }
   }
-  scrollbar-width: none;
 `;
 
 const NavItem = styled.li`
-  position: relative;
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--border-radius-lg);
+  gap: 0.6rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  background: ${props => props.$active ? props.$color : 'var(--color-white-0)'};
-  border: 1px solid ${props => props.$active ? props.$color : 'var(--color-grey-200)'};
+  transition: all 0.12s;
+  background: ${(p) => p.$active ? '#FDF3E3' : 'transparent'};
   white-space: nowrap;
-  box-shadow: ${props => props.$active ? `0 4px 12px ${props.$color}40` : 'none'};
 
   &:hover {
-    background: ${props => props.$active ? props.$color : 'var(--color-grey-50)'};
-    border-color: ${props => props.$active ? props.$color : 'var(--color-grey-300)'};
+    background: ${(p) => p.$active ? '#FDF3E3' : '#F9F8F5'};
+  }
+
+  @media (max-width: 900px) {
+    padding: 0.5rem 0.75rem;
+    background: ${(p) => p.$active ? '#E8920A' : '#FFFFFF'};
+    border: 0.5px solid ${(p) => p.$active ? '#E8920A' : '#F1EFE8'};
+    &:hover { background: ${(p) => p.$active ? '#D97706' : '#F9F8F5'}; }
   }
 `;
 
@@ -421,117 +220,58 @@ const NavIcon = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: var(--border-radius-sm);
-  color: ${props => props.$active ? 'var(--color-white-0)' : 'var(--color-grey-500)'};
-  transition: all 0.2s ease;
-  
-  svg {
-    font-size: var(--font-size-md);
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: ${(p) => p.$active ? '#E8920A' : '#F3F0EB'};
+  color: ${(p) => p.$active ? '#FFFFFF' : '#6B7280'};
+  font-size: 0.75rem;
+  flex-shrink: 0;
+
+  @media (max-width: 900px) {
+    background: ${(p) => p.$active ? 'rgba(255,255,255,0.2)' : '#F3F0EB'};
+    color: ${(p) => p.$active ? '#FFFFFF' : '#6B7280'};
   }
 `;
 
-const NavContent = styled.div`
-  display: flex;
-  align-items: center;
+const NavText = styled.div`
+  @media (max-width: 900px) {
+    display: flex;
+    align-items: center;
+  }
 `;
 
 const NavLabel = styled.div`
-  font-size: var(--font-size-md);
-  font-weight: ${props => props.$active ? 'var(--font-semibold)' : 'var(--font-medium)'};
-  color: ${props => props.$active ? 'var(--color-white-0)' : 'var(--color-grey-700)'};
-  transition: all 0.2s ease;
-`;
+  font-size: 0.825rem;
+  font-weight: ${(p) => p.$active ? 600 : 500};
+  color: ${(p) => p.$active ? '#E8920A' : '#374151'};
+  line-height: 1.3;
 
-const NavDescription = styled.div`
-  display: none;
-`;
-
-const NavIndicator = styled.div`
-  display: none;
-`;
-
-const MainContent = styled.main`
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-lg);
-  min-width: 0;
-`;
-
-const ContentHeader = styled.div`
-  background: var(--color-white-0);
-  border-radius: var(--border-radius-xl);
-  border: 1px solid var(--color-grey-200);
-  padding: var(--spacing-lg);
-  box-shadow: var(--shadow-sm);
-`;
-
-const ContentTitle = styled.div`
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-lg);
-`;
-
-const ContentIcon = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 56px;
-  height: 56px;
-  border-radius: var(--border-radius-lg);
-  background: ${props => props.$color ? `${props.$color}15` : 'var(--color-grey-100)'};
-  color: ${props => props.$color || 'var(--color-grey-700)'};
-  flex-shrink: 0;
-  
-  svg {
-    font-size: var(--font-size-xl);
+  @media (max-width: 900px) {
+    color: ${(p) => p.$active ? '#FFFFFF' : '#374151'};
   }
 `;
 
-const ContentTitleText = styled.h2`
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-bold);
-  color: var(--color-grey-900);
-  margin: 0 0 var(--spacing-xs) 0;
-`;
+const NavDesc = styled.div`
+  font-size: 0.7rem;
+  color: #9CA3AF;
+  margin-top: 0.1rem;
 
-const ContentSubtitle = styled.p`
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-600);
-  margin: 0;
+  @media (max-width: 900px) {
+    display: none;
+  }
 `;
 
 const ContentCard = styled.div`
-  background: var(--color-white-0);
-  border-radius: var(--border-radius-xl);
-  border: 1px solid var(--color-grey-200);
-  box-shadow: var(--shadow-sm);
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
   overflow: hidden;
-  animation: fadeIn 0.3s ease;
-  
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
 `;
 
 const TabContent = styled.div`
-  padding: var(--spacing-xl);
+  padding: 1.5rem;
   min-height: 400px;
-  
-  /* When embedded, remove page container padding */
-  > div {
-    padding: 0;
-  }
-  
-  @media ${devicesMax.sm} {
-    padding: var(--spacing-lg);
-  }
+
+  > div { padding: 0; }
 `;

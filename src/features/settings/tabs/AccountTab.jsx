@@ -7,12 +7,12 @@ import { LoadingState } from '../../../shared/components/ui/LoadingComponents';
 import authApi from '../../../shared/services/authApi';
 import { toast } from 'react-toastify';
 import { ConfirmationModal } from '../../../shared/components/modal/ConfirmationModal';
+import { PATHS } from '../../../routes/routePaths';
 
 const AccountTab = () => {
   const navigate = useNavigate();
   const { seller, isLoading, refetchAuth } = useAuth();
 
-  console.log("seller", seller)
   const [deactivating, setDeactivating] = React.useState(false);
   const [showDeactivateModal, setShowDeactivateModal] = React.useState(false);
 
@@ -24,7 +24,7 @@ const AccountTab = () => {
       toast.success('Account deactivated.');
       await authApi.logout();
       if (refetchAuth) refetchAuth();
-      navigate('/seller/login', { replace: true });
+      navigate(PATHS.LOGIN, { replace: true });
     } catch (err) {
       toast.error(err.response?.data?.message || err.message || 'Failed to deactivate account.');
     } finally {
@@ -135,12 +135,9 @@ const AccountTab = () => {
               <InfoLabel>ID Proof Status</InfoLabel>
               <InfoValue>
                 {(() => {
-                  console.log(seller)
                   const isVerified = seller.verification?.idVerified;
                   const hasDocument = seller.verificationDocuments?.idProof;
                   const idProofStatus = seller.verificationDocuments?.idProof?.status;
-
-                  console.log("isVerified, hasDocument", hasDocument)
 
                   if (isVerified) {
                     return (
@@ -277,79 +274,84 @@ export default AccountTab;
 const Container = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xl);
+  gap: 1rem;
 `;
 
 const Header = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
-  padding-bottom: var(--spacing-lg);
-  border-bottom: 1px solid var(--color-grey-200);
+  gap: 0.3rem;
+  padding-bottom: 1rem;
+  border-bottom: 0.5px solid #F1EFE8;
 `;
 
 const Title = styled.h1`
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-bold);
-  color: var(--color-grey-900);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
 `;
 
 const Description = styled.p`
-  font-size: var(--font-size-md);
-  color: var(--color-grey-600);
-  line-height: 1.6;
+  font-size: 0.9rem;
+  color: #9CA3AF;
+  line-height: 1.5;
+  margin: 0;
 `;
 
 const Section = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
-  padding: var(--spacing-lg);
-  background: var(--color-white-0);
-  border-radius: var(--border-radius-lg);
-  border: 1px solid var(--color-grey-200);
+  gap: 0.85rem;
+  padding: 1.25rem;
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
 `;
 
 const SectionHeader = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
-  padding-bottom: var(--spacing-md);
-  border-bottom: 1px solid var(--color-grey-200);
+  gap: 0.85rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 0.5px solid #F1EFE8;
 `;
 
 const SectionIcon = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: var(--color-primary-100);
-  border-radius: var(--border-radius-md);
-  color: var(--color-primary-600);
-  font-size: var(--font-size-lg);
+  width: 38px;
+  height: 38px;
+  background: #FDF3E3;
+  border-radius: 9px;
+  color: #E8920A;
+  font-size: 1rem;
+  flex-shrink: 0;
 `;
 
 const SectionTitle = styled.h2`
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
+  font-size: 0.975rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
 `;
 
 const SectionContent = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 0.5rem;
 `;
 
 const InfoRow = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-md);
-  background: var(--color-grey-50);
-  border-radius: var(--border-radius-md);
-  gap: var(--spacing-md);
+  padding: 0.7rem 0.9rem;
+  background: #F9F8F5;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 9px;
+  gap: 0.75rem;
 
   @media (max-width: 768px) {
     flex-direction: column;
@@ -360,103 +362,91 @@ const InfoRow = styled.div`
 const InfoLabel = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  font-size: var(--font-size-md);
-  font-weight: var(--font-medium);
-  color: var(--color-grey-700);
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #6B7280;
   flex-shrink: 0;
 
-  svg {
-    font-size: var(--font-size-md);
-    color: var(--color-grey-500);
-  }
+  svg { color: #9CA3AF; }
 `;
 
 const InfoValue = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  font-size: var(--font-size-md);
-  color: var(--color-grey-900);
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #111827;
+  font-weight: 500;
   text-align: right;
 
-  @media (max-width: 768px) {
-    text-align: left;
-  }
+  @media (max-width: 768px) { text-align: left; }
 `;
 
 const VerifiedBadge = styled.span`
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: 2px var(--spacing-xs);
-  background: var(--color-green-100);
-  color: var(--color-green-700);
-  border-radius: var(--border-radius-sm);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-medium);
-
-  svg {
-    font-size: var(--font-size-xs);
-  }
+  gap: 0.25rem;
+  height: 20px;
+  padding: 0 0.5rem;
+  background: #D1FAE5;
+  color: #065F46;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
 `;
 
 const UnverifiedBadge = styled.span`
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: 2px var(--spacing-xs);
-  background: var(--color-red-100);
-  color: var(--color-red-700);
-  border-radius: var(--border-radius-sm);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-medium);
-
-  svg {
-    font-size: var(--font-size-xs);
-  }
+  gap: 0.25rem;
+  height: 20px;
+  padding: 0 0.5rem;
+  background: #FEE2E2;
+  color: #991B1B;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
 `;
 
 const StatusBadge = styled.span`
-  display: inline-block;
-  padding: var(--spacing-xs) var(--spacing-md);
-  border-radius: var(--border-radius-full);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-semibold);
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 0.65rem;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 600;
   text-transform: capitalize;
-  background: ${props => {
-    if (props.$status === 'active') return 'var(--color-green-100)';
-    if (props.$status === 'pending') return 'var(--color-yellow-100)';
-    if (props.$status === 'suspended') return 'var(--color-red-100)';
-    if (props.$status === 'deactive') return 'var(--color-grey-200)';
-    return 'var(--color-grey-100)';
+  background: ${(p) => {
+    if (p.$status === 'active') return '#D1FAE5';
+    if (p.$status === 'pending') return '#FEF3C7';
+    if (p.$status === 'suspended') return '#FEE2E2';
+    if (p.$status === 'deactive') return '#F3F4F6';
+    return '#F3F4F6';
   }};
-  color: ${props => {
-    if (props.$status === 'active') return 'var(--color-green-700)';
-    if (props.$status === 'pending') return 'var(--color-yellow-700)';
-    if (props.$status === 'suspended') return 'var(--color-red-700)';
-    if (props.$status === 'deactive') return 'var(--color-grey-600)';
-    return 'var(--color-grey-700)';
+  color: ${(p) => {
+    if (p.$status === 'active') return '#065F46';
+    if (p.$status === 'pending') return '#92400E';
+    if (p.$status === 'suspended') return '#991B1B';
+    if (p.$status === 'deactive') return '#6B7280';
+    return '#374151';
   }};
 `;
 
 const DeactivateButton = styled.button`
-  margin-top: var(--spacing-md);
-  padding: var(--spacing-sm) var(--spacing-lg);
-  background: var(--color-grey-200);
-  color: var(--color-grey-800);
-  border: 1px solid var(--color-grey-300);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-medium);
+  height: 36px;
+  padding: 0 1.1rem;
+  background: #F3F4F6;
+  color: #374151;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 9px;
+  font-size: 0.875rem;
+  font-weight: 600;
   cursor: pointer;
-  &:hover:not(:disabled) {
-    background: var(--color-red-100);
-    color: var(--color-red-700);
-    border-color: var(--color-red-200);
-  }
-  &:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-  }
+  transition: all 0.12s;
+  align-self: flex-start;
+
+  &:hover:not(:disabled) { background: #FEE2E2; color: #991B1B; border-color: #FECACA; }
+  &:disabled { opacity: 0.7; cursor: not-allowed; }
 `;

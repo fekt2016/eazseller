@@ -6,363 +6,234 @@ import { motion } from 'framer-motion';
  * Used by both Seller and Admin support pages
  */
 
-// Container
 export const SupportContainer = styled.div`
-  max-width: 140rem;
-  margin: 0 auto;
-  padding: var(--spacing-lg);
-  
-  @media (max-width: 768px) {
-    padding: var(--spacing-md);
-  }
+  display: grid;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: #F9F8F5;
+  min-height: 100vh;
 `;
 
-// Hero Section
+/* Hero */
 export const HeroSection = styled(motion.section)`
-  background: linear-gradient(135deg, 
-    ${props => props.$primaryColor || 'var(--color-primary-500)'} 0%, 
-    ${props => props.$secondaryColor || 'var(--color-primary-600)'} 100%
-  );
-  border-radius: var(--border-radius-xl);
-  padding: var(--spacing-3xl) var(--spacing-xl);
-  margin-bottom: var(--spacing-2xl);
-  color: var(--color-white-0);
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-    animation: pulse 4s ease-in-out infinite;
-  }
-  
-  @keyframes pulse {
-    0%, 100% { opacity: 0.3; }
-    50% { opacity: 0.6; }
-  }
-  
-  @media (max-width: 768px) {
-    padding: var(--spacing-xl) var(--spacing-lg);
-  }
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  border-left: 3px solid #E8920A;
+  padding: 2rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
 `;
 
-export const HeroContent = styled.div`
-  position: relative;
-  z-index: 1;
-`;
+export const HeroContent = styled.div``;
 
 export const HeroIcon = styled.div`
-  font-size: 6rem;
-  margin-bottom: var(--spacing-lg);
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  background: #FDF3E3;
+  color: #E8920A;
   display: flex;
+  align-items: center;
   justify-content: center;
-  gap: var(--spacing-md);
-  
-  @media (max-width: 768px) {
-    font-size: 4rem;
-  }
+  font-size: 1.5rem;
+  flex-shrink: 0;
 `;
 
 export const HeroTitle = styled.h1`
-  font-size: var(--font-size-4xl);
-  font-weight: var(--font-bold);
-  margin-bottom: var(--spacing-md);
-  font-family: var(--font-heading);
-  
-  @media (max-width: 768px) {
-    font-size: var(--font-size-2xl);
-  }
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.3rem;
 `;
 
 export const HeroSubtext = styled.p`
-  font-size: var(--font-size-lg);
-  opacity: 0.95;
-  max-width: 70rem;
-  margin: 0 auto;
-  line-height: 1.6;
-  
-  @media (max-width: 768px) {
-    font-size: var(--font-size-md);
-  }
+  font-size: 0.875rem;
+  color: #6B7280;
+  margin: 0;
+  line-height: 1.5;
 `;
 
-// Grid Layouts
+/* Grids */
 export const GridContainer = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: var(--spacing-lg);
-  margin-bottom: var(--spacing-2xl);
-  
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-md);
-  }
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0.75rem;
 `;
 
 export const ThreeColumnGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--spacing-lg);
-  margin-bottom: var(--spacing-2xl);
-  
-  @media (max-width: 968px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-  }
+  gap: 0.75rem;
+  @media (max-width: 768px) { grid-template-columns: 1fr; }
 `;
 
-// Cards
+/* Support Cards */
 export const SupportCard = styled(motion.div)`
-  background: var(--color-white-0);
-  border-radius: var(--border-radius-xl);
-  padding: var(--spacing-xl);
-  box-shadow: var(--shadow-md);
-  border: 1px solid var(--color-grey-200);
-  transition: all var(--transition-base);
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  padding: 1.25rem;
   cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 4px;
-    height: 100%;
-    background: ${props => props.$accentColor || 'var(--color-primary-500)'};
-    transform: scaleY(0);
-    transition: transform var(--transition-base);
-  }
-  
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
-    border-color: ${props => props.$accentColor || 'var(--color-primary-500)'};
-    
-    &::before {
-      transform: scaleY(1);
-    }
-  }
+  transition: border-color 0.12s, background 0.12s;
+  border-left: 3px solid ${(p) => p.$accentColor || '#E8920A'};
+
+  &:hover { background: #FFFDF9; border-color: ${(p) => p.$accentColor || '#E8920A'}; }
 `;
 
 export const CardIcon = styled.div`
-  width: 5rem;
-  height: 5rem;
-  border-radius: var(--border-radius-lg);
-  background: ${props => props.$bgColor || 'var(--color-primary-100)'};
-  color: ${props => props.$iconColor || 'var(--color-primary-500)'};
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: ${(p) => p.$bgColor || '#FDF3E3'};
+  color: ${(p) => p.$iconColor || '#E8920A'};
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2.4rem;
-  margin-bottom: var(--spacing-md);
-  transition: all var(--transition-base);
-  
-  ${SupportCard}:hover & {
-    transform: scale(1.1) rotate(5deg);
-  }
+  font-size: 1.1rem;
+  margin-bottom: 0.85rem;
 `;
 
 export const CardTitle = styled.h3`
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-semibold);
-  margin-bottom: var(--spacing-sm);
-  color: var(--color-grey-800);
-  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.4rem;
 `;
 
 export const CardDescription = styled.p`
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-600);
-  line-height: 1.6;
-  margin-bottom: var(--spacing-md);
+  font-size: 0.8rem;
+  color: #6B7280;
+  line-height: 1.55;
+  margin: 0 0 0.85rem;
 `;
 
 export const CardButton = styled.button`
-  background: ${props => props.$bgColor || 'var(--color-primary-500)'};
-  color: var(--color-white-0);
-  border: none;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-semibold);
-  cursor: pointer;
-  transition: all var(--transition-base);
   width: 100%;
-  
-  &:hover {
-    background: ${props => props.$hoverColor || 'var(--color-primary-600)'};
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
-  
-  &:active {
-    transform: translateY(0);
-  }
+  height: 34px;
+  background: ${(p) => p.$bgColor || '#E8920A'};
+  color: #FFFFFF;
+  border: none;
+  border-radius: 9px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.12s;
+  &:hover { opacity: 0.88; }
 `;
 
-// Alert/Critical Cards (Admin)
+/* Alert Cards */
 export const AlertCard = styled(motion.div)`
-  background: ${props => {
-    if (props.$priority === 'critical') return 'var(--color-red-100)';
-    if (props.$priority === 'high') return 'var(--color-yellow-100)';
-    return 'var(--color-blue-100)';
-  }};
-  border-left: 4px solid ${props => {
-    if (props.$priority === 'critical') return 'var(--color-red-700)';
-    if (props.$priority === 'high') return 'var(--color-yellow-700)';
-    return 'var(--color-blue-700)';
-  }};
-  border-radius: var(--border-radius-lg);
-  padding: var(--spacing-lg);
-  margin-bottom: var(--spacing-md);
+  background: ${(p) => p.$priority === 'critical' ? '#FEF2F2' : p.$priority === 'high' ? '#FFFBEB' : '#EFF6FF'};
+  border-left: 3px solid ${(p) => p.$priority === 'critical' ? '#EF4444' : p.$priority === 'high' ? '#F59E0B' : '#3B82F6'};
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 0.5rem;
 `;
 
 export const AlertTitle = styled.h3`
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-semibold);
-  color: ${props => {
-    if (props.$priority === 'critical') return 'var(--color-red-700)';
-    if (props.$priority === 'high') return 'var(--color-yellow-700)';
-    return 'var(--color-blue-700)';
-  }};
-  margin-bottom: var(--spacing-sm);
-  font-family: var(--font-heading);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: ${(p) => p.$priority === 'critical' ? '#DC2626' : p.$priority === 'high' ? '#D97706' : '#2563EB'};
+  margin: 0 0 0.3rem;
 `;
 
 export const AlertDescription = styled.p`
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-700);
-  line-height: 1.6;
+  font-size: 0.8rem;
+  color: #6B7280;
+  line-height: 1.5;
+  margin: 0;
 `;
 
-// Quick Links Section
-export const QuickLinksSection = styled.section`
-  margin-bottom: var(--spacing-2xl);
-`;
+/* Quick Links */
+export const QuickLinksSection = styled.section``;
 
 export const SectionTitle = styled.h2`
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-bold);
-  margin-bottom: var(--spacing-lg);
-  color: var(--color-grey-800);
-  font-family: var(--font-heading);
-  
-  @media (max-width: 768px) {
-    font-size: var(--font-size-xl);
-  }
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #9CA3AF;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 0.75rem;
 `;
 
 export const LinksGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--spacing-md);
-  
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-  }
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.5rem;
 `;
 
 export const QuickLink = styled.a`
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-md);
-  background: var(--color-white-0);
-  border: 1px solid var(--color-grey-200);
-  border-radius: var(--border-radius-md);
+  gap: 0.5rem;
+  padding: 0.7rem 1rem;
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 9px;
   text-decoration: none;
-  color: var(--color-grey-700);
-  transition: all var(--transition-base);
-  font-size: var(--font-size-sm);
-  
-  &:hover {
-    border-color: ${props => props.$accentColor || 'var(--color-primary-500)'};
-    color: ${props => props.$accentColor || 'var(--color-primary-500)'};
-    transform: translateX(4px);
-    box-shadow: var(--shadow-sm);
-  }
+  color: #374151;
+  font-size: 0.825rem;
+  transition: all 0.12s;
+
+  &:hover { border-color: #E8920A; color: #E8920A; background: #FFFDF9; }
 `;
 
-// Chat CTA Section
+/* Chat Section */
 export const ChatSection = styled.section`
-  background: linear-gradient(135deg, var(--color-grey-50) 0%, var(--color-white-0) 100%);
-  border-radius: var(--border-radius-xl);
-  padding: var(--spacing-xl);
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  padding: 1.5rem;
   text-align: center;
-  margin-bottom: var(--spacing-2xl);
-  border: 1px solid var(--color-grey-200);
 `;
 
 export const ChatButton = styled.button`
-  background: ${props => props.$bgColor || 'var(--color-primary-500)'};
-  color: var(--color-white-0);
-  border: none;
-  padding: var(--spacing-md) var(--spacing-xl);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-md);
-  font-weight: var(--font-semibold);
-  cursor: pointer;
-  transition: all var(--transition-base);
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  margin-top: var(--spacing-md);
-  
-  &:hover {
-    background: ${props => props.$hoverColor || 'var(--color-primary-600)'};
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-  }
-  
-  &:active {
-    transform: translateY(0);
-  }
+  gap: 0.45rem;
+  height: 36px;
+  padding: 0 1.1rem;
+  background: ${(p) => p.$bgColor || '#E8920A'};
+  color: #FFFFFF;
+  border: none;
+  border-radius: 9px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.12s;
+  &:hover { opacity: 0.88; }
 `;
 
-// Admin Tools Section
+/* Tools */
 export const ToolsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-2xl);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
 `;
 
 export const ToolButton = styled.a`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-lg);
-  background: var(--color-white-0);
-  border: 2px solid var(--color-grey-200);
-  border-radius: var(--border-radius-lg);
+  gap: 0.5rem;
+  padding: 1.25rem;
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
   text-decoration: none;
-  color: var(--color-grey-700);
-  transition: all var(--transition-base);
-  font-size: var(--font-size-sm);
+  color: #374151;
+  font-size: 0.825rem;
   text-align: center;
-  
-  &:hover {
-    border-color: ${props => props.$accentColor || 'var(--color-primary-500)'};
-    color: ${props => props.$accentColor || 'var(--color-primary-500)'};
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
-  }
+  transition: all 0.12s;
+
+  &:hover { border-color: ${(p) => p.$accentColor || '#E8920A'}; color: ${(p) => p.$accentColor || '#E8920A'}; }
 `;
 
 export const ToolIcon = styled.div`
-  font-size: 2.4rem;
-  color: ${props => props.$iconColor || 'var(--color-primary-500)'};
+  font-size: 1.5rem;
+  color: ${(p) => p.$iconColor || '#E8920A'};
 `;
 

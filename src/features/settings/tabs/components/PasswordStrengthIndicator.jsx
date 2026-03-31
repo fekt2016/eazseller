@@ -14,13 +14,13 @@ const PasswordStrengthIndicator = ({ password }) => {
     if (/[^a-zA-Z0-9]/.test(pwd)) strength++;
 
     if (strength <= 2) {
-      return { level: 1, label: 'Weak', color: 'var(--color-red-500)' };
+      return { level: 1, label: 'Weak', color: '#A32D2D' };
     } else if (strength <= 4) {
-      return { level: 2, label: 'Fair', color: 'var(--color-yellow-500)' };
+      return { level: 2, label: 'Fair', color: '#854F0B' };
     } else if (strength <= 5) {
-      return { level: 3, label: 'Good', color: 'var(--color-blue-500)' };
+      return { level: 3, label: 'Good', color: '#185FA5' };
     } else {
-      return { level: 4, label: 'Strong', color: 'var(--color-green-500)' };
+      return { level: 4, label: 'Strong', color: '#3B6D11' };
     }
   };
 
@@ -51,7 +51,7 @@ export default PasswordStrengthIndicator;
 const Container = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 1rem;
 `;
 
 const BarContainer = styled.div`
@@ -63,14 +63,14 @@ const BarContainer = styled.div`
 const Bar = styled.div`
   flex: 1;
   height: 100%;
-  background: ${props => props.$active ? props.$color : 'var(--color-grey-200)'};
+  background: ${props => props.$active ? props.$color : '#6B7280'};
   border-radius: 2px;
   transition: all 0.3s ease;
 `;
 
 const Label = styled.span`
-  font-size: var(--font-size-xs);
+  font-size: 0.8rem;
   color: ${props => props.$color};
-  font-weight: var(--font-medium);
+  font-weight: 500;
 `;
 

@@ -87,8 +87,8 @@ describe('SettingsPage', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText(/settings/i)).toBeInTheDocument();
-      expect(screen.getByText(/manage your account/i)).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /settings/i })).toBeInTheDocument();
+      expect(screen.getByText(/configure your account/i)).toBeInTheDocument();
     });
   });
 

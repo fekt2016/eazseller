@@ -3,11 +3,6 @@ import styled from "styled-components";
 import { useForm, FormProvider } from "react-hook-form";
 import { useMemo, useEffect, useState } from "react";
 import { FaArrowLeft } from "react-icons/fa";
-import {
-  PageContainer,
-  PageHeader,
-  TitleSection,
-} from '../../../shared/components/ui/SpacingSystem';
 import { LoadingState } from '../../../shared/components/ui/LoadingComponents';
 import VariantSection from '../../../shared/components/forms/VariantSection';
 import CategorySection from '../../../shared/components/forms/CategorySection';
@@ -160,7 +155,10 @@ export default function VariantEditPage() {
 
       const attributes = (v.attributes || []).map((attr) => ({
         key: attr.key,
-        value: attr.value || 'N/A',
+        value:
+          attr.value != null && String(attr.value).trim() !== ''
+            ? String(attr.value).trim()
+            : '',
       }));
 
       const existingImages = (v.images || []).filter((img) => typeof img === 'string');
@@ -214,34 +212,34 @@ export default function VariantEditPage() {
 
   if (variantLoading || (!variantData && productData?.isLoading !== false)) {
     return (
-      <PageContainer>
+      <VariantFormPage>
         <LoadingState message="Loading..." />
-      </PageContainer>
+      </VariantFormPage>
     );
   }
 
   if (!variantData) {
     return (
-      <PageContainer>
+      <VariantFormPage>
         <div>Variant not found</div>
         <button type="button" onClick={() => navigate(-1)}>Go back</button>
-      </PageContainer>
+      </VariantFormPage>
     );
   }
 
   const variantFieldsLoading = subCategoryId && !categoryForVariant;
 
   return (
-    <PageContainer>
-      <PageHeader $padding="lg" $marginBottom="lg">
-        <TitleSection>
+    <VariantFormPage>
+      <VarHeader>
+        <VarTitleSection>
           <BackButton type="button" onClick={() => navigate(-1)}>
             <FaArrowLeft /> Back
           </BackButton>
           <h1>Edit Variant</h1>
           <p>Update variant information (same form as Add Product variant section)</p>
-        </TitleSection>
-      </PageHeader>
+        </VarTitleSection>
+      </VarHeader>
 
       <FormCard>
         <FormProvider {...methods}>
@@ -293,36 +291,36 @@ export default function VariantEditPage() {
           </Form>
         </FormProvider>
       </FormCard>
-    </PageContainer>
+    </VariantFormPage>
   );
 }
 
 const BackButton = styled.button`
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  margin-bottom: var(--spacing-md);
+  gap: 0.375rem;
+  padding: 0.375rem 0.5rem;
+  margin-bottom: 1rem;
   background: transparent;
-  border: 1px solid var(--color-grey-300);
-  border-radius: var(--border-radius-md);
-  color: var(--color-grey-700);
-  font-size: var(--font-size-sm);
-  font-family: var(--font-body);
+  border: 1px solid #E5E7EB;
+  border-radius: 9px;
+  color: #374151;
+  font-size: 0.875rem;
+  
   cursor: pointer;
-  transition: var(--transition-base);
+  transition: all 0.12s;
 
   &:hover {
-    background: var(--color-grey-50);
-    border-color: var(--color-grey-400);
+    background: #F9F8F5;
+    border-color: #D1D5DB;
   }
 `;
 
 const FormCard = styled.div`
-  background: var(--color-white-0);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-md);
-  padding: var(--spacing-lg);
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  padding: 1.5rem;
 
   @media (max-width: 768px) {
     padding: 1.5rem;
@@ -332,61 +330,87 @@ const FormCard = styled.div`
 const Form = styled.form`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: 1.5rem;
 `;
 
 const FormActions = styled.div`
   display: flex;
   justify-content: flex-end;
-  padding-top: var(--spacing-lg);
-  border-top: 1px solid var(--color-grey-200);
+  padding-top: 1.5rem;
+  border-top: 1px solid #F1EFE8;
 `;
 
 const CategorySectionCard = styled.div`
-  padding: var(--spacing-lg);
-  background: var(--color-grey-50, #f8fafc);
-  border: 1px solid var(--color-grey-200, #e2e8f0);
-  border-radius: var(--border-radius-lg);
-  margin-bottom: var(--spacing-lg);
+  padding: 1.5rem;
+  background: #F9F8F5;
+  border: 1px solid #F1EFE8;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
 `;
 
 const CategorySectionTitle = styled.h2`
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-bold);
-  color: var(--color-grey-900);
-  font-family: var(--font-heading);
-  margin: 0 0 var(--spacing-xs) 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #111827;
+  
+  margin: 0 0 0.375rem 0;
 `;
 
 const CategorySectionDescription = styled.p`
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-600);
-  margin: 0 0 var(--spacing-md) 0;
+  font-size: 0.875rem;
+  color: #6B7280;
+  margin: 0 0 1rem 0;
 `;
 
 const CategoryNotice = styled.div`
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-700);
-  padding: var(--spacing-md);
-  background: var(--color-amber-50, #fffbeb);
-  border: 1px solid var(--color-amber-200, #fde68a);
-  border-radius: var(--border-radius-md);
-  margin-top: var(--spacing-sm);
+  font-size: 0.875rem;
+  color: #374151;
+  padding: 1rem;
+  background: #FEF3C7;
+  border: 1px solid #FDE68A;
+  border-radius: 9px;
+  margin-top: 0.5rem;
 
   strong {
-    color: var(--color-grey-900);
+    color: #111827;
   }
 `;
 
 const EditProductLink = styled(Link)`
   display: inline-block;
-  margin-top: var(--spacing-sm);
-  font-size: var(--font-size-sm);
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  color: var(--color-primary-600);
+  color: #E8920A;
   text-decoration: none;
 
   &:hover {
     text-decoration: underline;
   }
+`;
+
+// ── Layout wrappers replacing SpacingSystem ──────────────────────────────────
+const VariantFormPage = styled.div`
+  display: grid;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: #F9F8F5;
+  min-height: 100vh;
+`;
+
+const VarHeader = styled.div`
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  border-left: 3px solid #E8920A;
+  padding: 1.2rem 1.5rem;
+`;
+
+const VarTitleSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+
+  h1 { font-size: 1.25rem; font-weight: 600; color: #111827; margin: 0; }
+  p  { font-size: 0.9rem;  color: #9CA3AF; margin: 0; }
 `;

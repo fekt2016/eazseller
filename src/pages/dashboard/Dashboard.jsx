@@ -15,49 +15,49 @@ import Logo from '../../shared/components/Logo';
 import { PATHS } from '../../routes/routePaths';
 
 const DashboardWrapper = styled.div`
-  background: var(--color-grey-50);
+  background: #F9F8F5;
 `;
 
 const LogoSection = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: var(--space-2xl);
-  padding: var(--space-lg) 0;
+  margin-bottom: 2.5rem;
+  padding: 1.5rem 0;
   
   @media ${devicesMax.md} {
-    margin-bottom: var(--space-xl);
-    padding: var(--space-md) 0;
+    margin-bottom: 2rem;
+    padding: 1rem 0;
   }
 `;
 
 const StatsGrid = styled(Grid)`
-  margin-bottom: var(--space-2xl);
+  margin-bottom: 2.5rem;
 `;
 
 const StatCard = styled(Card)`
   text-align: center;
-  padding: var(--space-xl) !important; // Override if needed, but use global
+  padding: 2rem !important; // Override if needed, but use global
 `;
 
 const StatIcon = styled(IconWrapper)`
-  background: var(--color-primary-100);
-  color: var(--color-primary-500);
-  margin-bottom: var(--space-md);
-  font-size: var(--text-3xl);
+  background: #FEF3C7;
+  color: #E8920A;
+  margin-bottom: 1rem;
+  font-size: 1.875rem;
 `;
 
 const StatNumber = styled.h3`
-  font-size: var(--text-3xl);
-  font-weight: var(--font-bold);
-  color: var(--color-primary-500);
-  margin: 0 0 var(--space-sm) 0;
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #E8920A;
+  margin: 0 0 0.5rem 0;
 `;
 
 const StatLabel = styled.p`
-  color: var(--color-grey-600);
+  color: #6B7280;
   margin: 0;
-  font-size: var(--text-base);
+  font-size: 1rem;
 `;
 
 const Dashboard = () => {

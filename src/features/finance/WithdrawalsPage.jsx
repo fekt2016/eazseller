@@ -22,7 +22,6 @@ import ReversalModal from "./ReversalModal";
 import { useGetPaymentMethods } from "../../shared/hooks/usePaymentMethod";
 import useAuth from "../../shared/hooks/useAuth";
 import { LoadingSpinner } from "../../shared/components/LoadingSpinner";
-import { PageContainer, PageHeader, TitleSection } from "../../shared/components/ui/SpacingSystem";
 import Button from "../../shared/components/ui/Button";
 
 export default function WithdrawalsPage() {
@@ -354,13 +353,13 @@ export default function WithdrawalsPage() {
   };
 
   return (
-    <PageContainer>
-      <PageHeader $padding="lg" $marginBottom="lg">
-        <TitleSection>
-          <h1>Withdrawals</h1>
-          <p>Request withdrawals from your earnings</p>
-        </TitleSection>
-      </PageHeader>
+    <WithdrawalsPage_>
+      <WdHeader>
+        <div>
+          <WdTitle>Withdrawals</WdTitle>
+          <WdSubtitle>Request withdrawals from your earnings</WdSubtitle>
+        </div>
+      </WdHeader>
 
       <BalanceCards>
         <BalanceCard>
@@ -580,8 +579,8 @@ export default function WithdrawalsPage() {
 
                       {/* Payment Details Section */}
                       {request.paymentDetails && (
-                        <RequestDetails style={{ margin: '0.75rem 1rem', padding: '0.75rem', background: 'var(--color-grey-50)', borderRadius: 'var(--border-radius-md)' }}>
-                          <DetailLabel style={{ fontWeight: 600, marginBottom: '0.5rem', fontSize: '0.875rem', color: 'var(--color-grey-700)' }}>Payment Details:</DetailLabel>
+                        <RequestDetails style={{ margin: '0.75rem 1rem', padding: '0.75rem', background: '#F9F8F5', borderRadius: '9px' }}>
+                          <DetailLabel style={{ fontWeight: 600, marginBottom: '0.5rem', fontSize: '0.875rem', color: '#374151' }}>Payment Details:</DetailLabel>
                           {request.paymentMethod === "bank" && request.paymentDetails.accountNumber && (
                             <>
                               {request.paymentDetails.accountName && (
@@ -878,179 +877,216 @@ export default function WithdrawalsPage() {
         request={reversalModal.request}
         isLoading={requestReversal.isPending}
       />
-    </PageContainer>
+    </WithdrawalsPage_>
   );
 }
 
 // Styled Components
+const WithdrawalsPage_ = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  background: #F9F8F5;
+  min-height: 100vh;
+`;
+
+const WdHeader = styled.div`
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  padding: 0.85rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+`;
+
+const WdTitle = styled.h1`
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.1rem;
+`;
+
+const WdSubtitle = styled.p`
+  font-size: 0.8rem;
+  color: #9CA3AF;
+  margin: 0;
+`;
+
 const BalanceCards = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-lg);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
 `;
 
 const BalanceCard = styled.div`
-  padding: var(--spacing-lg);
-  background: var(--color-white-0);
-  border-radius: var(--border-radius-md);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-  }
-
-  ${(props) =>
-    props.$highlight &&
-    `
-    background: linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-primary-100) 100%);
-    border: 2px solid var(--color-primary-300);
-    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
-  `}
+  padding: 1rem 1.25rem;
+  background: #FFFFFF;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
 `;
 
 const BalanceLabel = styled.div`
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-600);
-  margin-bottom: var(--spacing-xs);
+  font-size: 0.72rem;
+  color: #9CA3AF;
+  font-weight: 500;
 `;
 
 const BalanceAmount = styled.div`
-  font-size: var(--font-size-xl);
+  font-size: 1.3rem;
   font-weight: 700;
-  color: var(--color-primary-600);
-
-  ${(props) =>
-    props.$highlight &&
-    `
-    color: var(--color-primary-700);
-    font-size: var(--font-size-2xl);
-  `}
+  color: #111827;
+  line-height: 1;
+  letter-spacing: -0.02em;
 `;
 
 const TabsContainer = styled.div`
-  display: flex;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-lg);
-  border-bottom: 2px solid var(--color-grey-200);
+  display: inline-flex;
+  gap: 2px;
+  background: #F3F0EB;
+  border-radius: 9px;
+  padding: 3px;
 `;
 
 const TabButton = styled.button`
-  padding: var(--spacing-md) var(--spacing-lg);
-  background: ${(props) => (props.$active ? "var(--color-primary-600)" : "transparent")};
-  color: ${(props) => (props.$active ? "white" : "var(--color-grey-700)")};
-  border: none;
-  border-bottom: 2px solid ${(props) => (props.$active ? "var(--color-primary-600)" : "transparent")};
-  border-radius: var(--border-radius-md) var(--border-radius-md) 0 0;
-  font-size: var(--font-size-base);
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  transition: all 0.2s;
+  gap: 0.4rem;
+  height: 28px;
+  padding: 0 0.9rem;
+  background: ${(p) => p.$active ? '#FFFFFF' : 'transparent'};
+  color: ${(p) => p.$active ? '#111827' : '#6B7280'};
+  border: none;
+  border-radius: 7px;
+  font-size: 0.8rem;
+  font-weight: ${(p) => p.$active ? 600 : 400};
+  cursor: pointer;
+  transition: all 0.15s;
+  box-shadow: ${(p) => p.$active ? '0 1px 3px rgba(0,0,0,0.08)' : 'none'};
+  white-space: nowrap;
 
-  &:hover {
-    background: ${(props) => (props.$active ? "var(--color-primary-700)" : "var(--color-grey-50)")};
-  }
+  &:hover { color: ${(p) => p.$active ? '#111827' : '#374151'}; }
 `;
 
 const TabContent = styled.div`
-  min-height: 400px;
+  min-height: 200px;
 `;
 
 const RequestForm = styled.form`
-  background: var(--color-white-0);
-  padding: var(--spacing-xl);
-  border-radius: var(--border-radius-lg);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: var(--spacing-lg);
+  background: #FFFFFF;
+  padding: 1.5rem;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
 `;
 
 const FormGroup = styled.div`
-  margin-bottom: var(--spacing-md);
+  margin-bottom: 0.85rem;
 `;
 
 const Label = styled.label`
   display: block;
-  margin-bottom: var(--spacing-xs);
+  margin-bottom: 0.3rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  color: var(--color-grey-700);
+  color: #374151;
 `;
 
 const Input = styled.input`
   width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid var(--color-grey-300);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-base);
+  height: 38px;
+  padding: 0 0.75rem;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 9px;
+  font-size: 0.9rem;
+  color: #111827;
+  background: #F9F8F5;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.12s, background 0.12s;
 
   &:focus {
-    outline: none;
-    border-color: var(--color-primary-500);
-    box-shadow: 0 0 0 3px var(--color-primary-100);
+    border-color: #E8920A;
+    background: #FFFFFF;
   }
 `;
 
 const Select = styled.select`
   width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid var(--color-grey-300);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-base);
+  height: 38px;
+  padding: 0 0.75rem;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 9px;
+  font-size: 0.9rem;
+  color: #111827;
+  background: #F9F8F5;
+  outline: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: border-color 0.12s, background 0.12s;
 
   &:focus {
-    outline: none;
-    border-color: var(--color-primary-500);
-    box-shadow: 0 0 0 3px var(--color-primary-100);
+    border-color: #E8920A;
+    background: #FFFFFF;
   }
 `;
 
 const HelperText = styled.div`
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-600);
-  margin-top: var(--spacing-xs);
+  font-size: 0.75rem;
+  color: #9CA3AF;
+  margin-top: 0.3rem;
 `;
 
 const CheckboxLabel = styled.label`
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #6B7280;
   cursor: pointer;
+
+  input[type="checkbox"] {
+    accent-color: #E8920A;
+  }
 `;
 
 const ErrorMessage = styled.div`
-  padding: var(--spacing-md);
-  background: var(--color-red-50);
-  color: var(--color-red-700);
-  border-radius: var(--border-radius-md);
-  margin-bottom: var(--spacing-md);
+  padding: 0.7rem 0.85rem;
+  background: #FEF2F2;
+  border: 0.5px solid #FECACA;
+  border-left: 3px solid #EF4444;
+  border-radius: 9px;
+  color: #DC2626;
+  font-size: 0.9rem;
+  margin-bottom: 0.85rem;
 `;
 
 const SubmitButton = styled.button`
   width: 100%;
-  padding: var(--spacing-md) var(--spacing-lg);
-  background: var(--color-primary-600);
-  color: white;
+  height: 40px;
+  background: #E8920A;
+  color: #FFFFFF;
   border: none;
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-base);
+  border-radius: 9px;
+  font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-xs);
-  transition: background-color 0.2s;
+  gap: 0.4rem;
+  transition: opacity 0.12s;
 
   &:hover:not(:disabled) {
-    background: var(--color-primary-700);
+    opacity: 0.85;
   }
 
   &:disabled {
-    background: var(--color-grey-300);
+    opacity: 0.5;
     cursor: not-allowed;
   }
 
@@ -1059,62 +1095,61 @@ const SubmitButton = styled.button`
   }
 
   @keyframes spin {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
   }
 `;
 
 const WithholdingTaxInfo = styled.div`
-  margin-top: 0.75rem;
-  padding: 0.75rem;
-  background: #f8f9fa;
-  border-radius: 0.5rem;
-  border-left: 3px solid #f59e0b;
+  margin-top: 0.65rem;
+  padding: 0.75rem 0.9rem;
+  background: #FFFBEB;
+  border: 0.5px solid #FDE68A;
+  border-left: 3px solid #F59E0B;
+  border-radius: 9px;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.35rem;
 `;
 
 const TaxLabel = styled.div`
   font-size: 0.875rem;
-  color: #64748b;
+  color: #92400E;
   font-weight: 500;
 `;
 
 const TaxAmount = styled.div`
-  font-size: 1rem;
-  color: #f59e0b;
+  font-size: 0.875rem;
+  color: #D97706;
   font-weight: 600;
 `;
 
 const NetAmountLabel = styled.div`
   font-size: 0.875rem;
-  color: #64748b;
+  color: #92400E;
   font-weight: 500;
-  margin-top: 0.25rem;
+  margin-top: 0.15rem;
 `;
 
 const NetAmount = styled.div`
-  font-size: 1.125rem;
-  color: #10b981;
+  font-size: 1rem;
+  color: #059669;
   font-weight: 700;
 `;
 
 const RecentWithdrawalsSection = styled.div`
-  margin-top: var(--spacing-lg);
-  
+  margin-top: 1rem;
+
   h3 {
-    margin-bottom: var(--spacing-md);
-    color: var(--color-grey-700);
+    margin: 0 0 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #111827;
   }
 `;
 
 const HistoryContainer = styled.div`
-  min-height: 400px;
+  min-height: 200px;
 `;
 
 const EmptyState = styled.div`
@@ -1122,97 +1157,86 @@ const EmptyState = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--spacing-2xl);
-  color: var(--color-grey-500);
+  padding: 2.5rem;
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  color: #9CA3AF;
+  font-size: 0.9rem;
   text-align: center;
 `;
 
 const RequestsList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 0.75rem;
 `;
 
 const RequestCard = styled.div`
-  padding: var(--spacing-lg);
-  border: 1px solid var(--color-grey-200);
-  border-radius: var(--border-radius-md);
-  background: var(--color-white-0);
+  padding: 1.25rem;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  background: #FFFFFF;
+  transition: border-color 0.12s;
+
+  &:hover {
+    border-color: #E8920A;
+  }
 `;
 
 const RequestHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--spacing-md);
+  margin-bottom: 0.85rem;
 `;
 
 const RequestInfo = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 0.2rem;
 `;
 
 const RequestAmount = styled.div`
-  font-size: var(--font-size-xl);
+  font-size: 1rem;
   font-weight: 700;
-  color: var(--color-grey-900);
+  color: #111827;
 `;
 
 const RequestMethod = styled.div`
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-600);
+  font-size: 0.875rem;
+  color: #9CA3AF;
 `;
 
 const RequestStatus = styled.div`
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-sm);
+  gap: 0.3rem;
+  height: 22px;
+  padding: 0 0.6rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
   font-weight: 600;
   text-transform: uppercase;
 
   ${(props) => {
     switch (props.$status) {
       case "paid":
-        return `
-          background: var(--color-green-50);
-          color: var(--color-green-700);
-        `;
+        return `background: #D1FAE5; color: #065F46;`;
       case "processing":
       case "approved":
-        return `
-          background: var(--color-blue-50);
-          color: var(--color-blue-700);
-        `;
+        return `background: #DBEAFE; color: #1D4ED8;`;
       case "failed":
       case "rejected":
-        return `
-          background: var(--color-red-50);
-          color: var(--color-red-700);
-        `;
+        return `background: #FEE2E2; color: #991B1B;`;
       case "pending":
-        return `
-          background: var(--color-yellow-50);
-          color: var(--color-yellow-700);
-        `;
+        return `background: #FEF9C3; color: #854D0E;`;
       case "awaiting_paystack_otp":
-        return `
-          background: var(--color-orange-50);
-          color: var(--color-orange-700);
-        `;
+        return `background: #FDF3E3; color: #92400E;`;
       case "reversed":
-        return `
-          background: var(--color-purple-50);
-          color: var(--color-purple-700);
-        `;
+        return `background: #EDE9FE; color: #5B21B6;`;
       default:
-        return `
-          background: var(--color-grey-50);
-          color: var(--color-grey-700);
-        `;
+        return `background: #F3F4F6; color: #4B5563;`;
     }
   }}
 `;
@@ -1220,159 +1244,129 @@ const RequestStatus = styled.div`
 const RequestDetails = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
-  margin-bottom: var(--spacing-md);
+  gap: 0.3rem;
+  margin-bottom: 0.75rem;
 `;
 
 const DetailItem = styled.div`
   display: flex;
   justify-content: space-between;
-  font-size: var(--font-size-sm);
+  font-size: 0.875rem;
 `;
 
 const DetailLabel = styled.div`
   font-weight: 600;
-  color: var(--color-grey-600);
+  color: #9CA3AF;
 `;
 
 const DetailValue = styled.div`
-  color: var(--color-grey-700);
-  ${(props) => props.$error && `color: var(--color-red-600);`}
+  color: #6B7280;
+  ${(props) => props.$error && `color: #DC2626;`}
 `;
 
 const RequestActions = styled.div`
   display: flex;
-  gap: var(--spacing-sm);
-  margin-top: var(--spacing-md);
+  gap: 0.5rem;
+  margin-top: 0.75rem;
   flex-wrap: wrap;
 `;
 
 const VerifyOTPButton = styled.button`
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--color-primary-600);
-  color: white;
-  border: none;
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  transition: background 0.2s;
+  gap: 0.35rem;
+  height: 30px;
+  padding: 0 0.85rem;
+  background: #E8920A;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.12s;
 
-  &:hover {
-    background: var(--color-primary-700);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
+  &:hover { opacity: 0.85; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
 `;
 
 const DeleteButton = styled.button`
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--color-red-500);
-  color: white;
+  gap: 0.35rem;
+  height: 30px;
+  padding: 0 0.85rem;
+  background: #EF4444;
+  color: #FFFFFF;
   border: none;
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-sm);
+  border-radius: 8px;
+  font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: opacity 0.12s;
 
-  &:hover:not(:disabled) {
-    background: var(--color-red-600);
-    transform: translateY(-1px);
-  }
+  &:hover:not(:disabled) { opacity: 0.85; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  .spinner {
-    animation: spin 1s linear infinite;
-  }
-
-  @keyframes spin {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
-  }
+  .spinner { animation: spin 1s linear infinite; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 `;
 
 const ReversalButton = styled.button`
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--color-orange-500);
-  color: white;
+  gap: 0.35rem;
+  height: 30px;
+  padding: 0 0.85rem;
+  background: #F97316;
+  color: #FFFFFF;
   border: none;
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-sm);
+  border-radius: 8px;
+  font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: opacity 0.12s;
 
-  &:hover:not(:disabled) {
-    background: var(--color-orange-600);
-    transform: translateY(-1px);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
+  &:hover:not(:disabled) { opacity: 0.85; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
 `;
 
 const ReversalInfo = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-md);
-  background: var(--color-purple-50);
-  border: 1px solid var(--color-purple-200);
-  border-radius: var(--border-radius-md);
-  margin-top: var(--spacing-md);
-  color: var(--color-purple-900);
-  font-size: var(--font-size-sm);
-
-  svg {
-    margin-right: var(--spacing-xs);
-  }
+  gap: 0.3rem;
+  padding: 0.75rem 0.9rem;
+  background: #EDE9FE;
+  border: 0.5px solid #DDD6FE;
+  border-left: 3px solid #7C3AED;
+  border-radius: 9px;
+  margin-top: 0.75rem;
+  color: #5B21B6;
+  font-size: 0.875rem;
 `;
 
 const ReversalReason = styled.div`
-  font-size: var(--font-size-xs);
-  color: var(--color-purple-700);
-  margin-top: var(--spacing-xs);
+  font-size: 0.75rem;
+  color: #6D28D9;
   font-style: italic;
 `;
 
 const PinSubmissionSection = styled.div`
-  margin-top: var(--spacing-md);
-  padding: var(--spacing-md);
-  background: var(--color-blue-50);
-  border: 1px solid var(--color-blue-200);
-  border-radius: var(--border-radius-md);
+  margin-top: 0.75rem;
+  padding: 0.85rem 1rem;
+  background: #EFF6FF;
+  border: 0.5px solid #BFDBFE;
+  border-left: 3px solid #3B82F6;
+  border-radius: 9px;
 `;
 
 const PinInfo = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-md);
-  color: var(--color-blue-700);
-  font-size: var(--font-size-sm);
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  color: #1D4ED8;
+  font-size: 0.9rem;
 `;
 
 const PinInfoText = styled.span`
@@ -1381,58 +1375,47 @@ const PinInfoText = styled.span`
 
 const PinForm = styled.form`
   display: flex;
-  gap: var(--spacing-sm);
+  gap: 0.5rem;
   align-items: flex-start;
 `;
 
 const PinInput = styled.input`
   flex: 1;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid var(--color-grey-300);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-base);
+  height: 36px;
+  padding: 0 0.75rem;
+  border: 0.5px solid #BFDBFE;
+  border-radius: 9px;
+  font-size: 0.875rem;
   font-weight: 600;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.15em;
   text-align: center;
-  
-  &:focus {
-    outline: none;
-    border-color: var(--color-primary-500);
-    box-shadow: 0 0 0 3px var(--color-primary-100);
-  }
-  
-  &:disabled {
-    background: var(--color-grey-100);
-    cursor: not-allowed;
-  }
+  background: #FFFFFF;
+  outline: none;
+  transition: border-color 0.12s;
+
+  &:focus { border-color: #3B82F6; }
+  &:disabled { background: #F3F4F6; cursor: not-allowed; }
 `;
 
 const PinSubmitButton = styled.button`
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--color-primary-600);
-  color: white;
+  gap: 0.35rem;
+  height: 36px;
+  padding: 0 0.85rem;
+  background: #3B82F6;
+  color: #FFFFFF;
   border: none;
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-sm);
+  border-radius: 9px;
+  font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
   white-space: nowrap;
+  transition: opacity 0.12s;
 
-  &:hover:not(:disabled) {
-    background: var(--color-primary-700);
-    transform: translateY(-1px);
-  }
+  &:hover:not(:disabled) { opacity: 0.85; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  .spinner {
-    animation: spin 1s linear infinite;
-  }
+  .spinner { animation: spin 1s linear infinite; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 `;

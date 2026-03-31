@@ -288,6 +288,16 @@ api.interceptors.request.use((config) => {
     config.timeout = 30000; // 30s for auth
   }
 
+  // Category catalog can be large (limit 1000 + populate); cold DB / slow links exceed default 15s
+  const isCategoryGet =
+    method === 'get' &&
+    (normalizedPath === '/categories' ||
+      normalizedPath === '/categories/parents' ||
+      /^\/categories\//.test(normalizedPath));
+  if (isCategoryGet) {
+    config.timeout = 60000;
+  }
+
   // Enhanced logging for verify-otp requests
   if (import.meta.env.DEV && normalizedPath.includes('verify-otp')) {
     console.log(`[API] 🔍 Verify OTP request details:`, {
@@ -396,7 +406,13 @@ api.interceptors.response.use(
       const isLoginEndpoint =
         requestUrl.includes('/seller/login') || requestUrl.includes('/seller/register');
 
-      if (!isLoginEndpoint && !error.config?._authRetried) {
+      // Don't redirect for auth-check endpoints (/seller/me) — useAuth handles 401 gracefully.
+      // Redirecting on /seller/me causes an infinite reload loop on the login page.
+      const isAuthCheckEndpoint = requestUrl.includes('/seller/me') || requestUrl.includes('/auth/me');
+      const isAlreadyOnLogin = typeof window !== 'undefined' &&
+        (window.location.pathname === '/login' || window.location.pathname === '/');
+
+      if (!isLoginEndpoint && !isAuthCheckEndpoint && !isAlreadyOnLogin && !error.config?._authRetried) {
         error.config._authRetried = true;
         if (typeof sessionStorage !== 'undefined') {
           sessionStorage.setItem(

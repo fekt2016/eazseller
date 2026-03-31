@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FaCheckCircle, FaRedo, FaTimesCircle } from 'react-icons/fa';
 import styled from 'styled-components';
-import { PageContainer, Section } from '../../shared/components/ui/SpacingSystem';
 import { LoadingState, ErrorState } from '../../shared/components/ui/LoadingComponents';
 import Button from '../../shared/components/ui/Button';
 import { useTicketDetail, useReplyToTicket } from '../../shared/hooks/useSupport';
@@ -16,34 +15,39 @@ import TicketReplyBox from '../../shared/components/support/TicketReplyBox';
 import useDynamicPageTitle from '../../shared/hooks/useDynamicPageTitle';
 import { PATHS } from '../../routes/routePaths';
 
-const DetailContainer = styled(PageContainer)`
+const DetailContainer = styled.div`
+  display: grid;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: #F9F8F5;
   min-height: 100vh;
-  background: var(--color-grey-50);
 `;
 
-const ContentSection = styled(Section)`
-  padding: var(--spacing-lg);
-  margin-bottom: var(--spacing-lg);
+const ContentSection = styled.div`
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  padding: 1.25rem;
 `;
 
 const StatusActions = styled.div`
   display: flex;
-  gap: var(--spacing-sm);
+  gap: 0.5rem;
   flex-wrap: wrap;
-  padding: var(--spacing-md);
-  background: var(--color-grey-50);
-  border-radius: var(--border-radius-md);
-  border: 1px solid var(--color-grey-200);
-  margin-bottom: var(--spacing-lg);
+  align-items: center;
+  padding: 1rem 1.25rem;
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
 `;
 
 const StatusActionLabel = styled.span`
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-700);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #9CA3AF;
   display: flex;
   align-items: center;
-  font-family: var(--font-body);
+  margin-right: 0.25rem;
 `;
 
 /**
@@ -209,12 +213,7 @@ export default function SellerTicketDetailPage() {
 
       {!canReply && (
         <ContentSection>
-          <div style={{ 
-            textAlign: 'center', 
-            padding: 'var(--spacing-lg)',
-            color: 'var(--color-grey-600)',
-            fontFamily: 'var(--font-body)'
-          }}>
+          <div style={{ textAlign: 'center', padding: '1rem', color: '#9CA3AF', fontSize: '0.875rem' }}>
             This ticket is {ticket.status}. You cannot reply to closed or resolved tickets.
           </div>
         </ContentSection>
@@ -229,7 +228,7 @@ export default function SellerTicketDetailPage() {
             onClick={() => handleStatusUpdate('resolved')}
             disabled={isUpdatingStatus || updateStatusMutation.isPending}
             isLoading={isUpdatingStatus && updateStatusMutation.isPending}
-            style={{ background: 'var(--color-green-700)' }}
+            style={{ background: '#15803D' }}
           >
             <FaCheckCircle /> Mark as Resolved
           </Button>
@@ -252,7 +251,7 @@ export default function SellerTicketDetailPage() {
             onClick={() => handleStatusUpdate('closed')}
             disabled={isUpdatingStatus || updateStatusMutation.isPending}
             isLoading={isUpdatingStatus && updateStatusMutation.isPending}
-            style={{ background: 'var(--color-red-600)' }}
+            style={{ background: '#DC2626' }}
           >
             <FaTimesCircle /> Close Ticket
           </Button>

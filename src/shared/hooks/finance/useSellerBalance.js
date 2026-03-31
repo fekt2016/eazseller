@@ -8,7 +8,7 @@ import { useGetSellerBalance } from '../useBalance';
  * Provides:
  * - availableBalance: Amount available for withdrawal (withdrawableBalance)
  * - pendingBalance: Funds in withdrawal requests awaiting approval/OTP
- * - totalEarnings: Total revenue from all delivered orders (balance + totalWithdrawn)
+ * - totalEarnings: Total revenue from all delivered orders + admin adjustments (Transaction aggregate)
  * - withdrawnAmount: Total amount withdrawn by seller (all time)
  * - lockedBalance: Funds locked by admin due to disputes/issues
  * - balance: Total current balance (available + pending + locked)
@@ -42,7 +42,7 @@ export const useSellerBalance = () => {
     const lockedBalance = balanceData?.lockedBalance || 0; // Funds locked by admin
     const pendingBalance = balanceData?.pendingBalance || 0; // Funds in withdrawal requests
     const totalWithdrawn = balanceData?.totalWithdrawn || 0; // Total withdrawn (all time)
-    const totalRevenue = balanceData?.totalRevenue || 0; // Total earnings (balance + totalWithdrawn)
+    const totalRevenue = balanceData?.totalRevenue || 0; // Total earnings from Transaction aggregate
     
     // Available balance = withdrawableBalance (from API)
     // Formula: availableBalance = balance - lockedBalance - pendingBalance
@@ -50,10 +50,8 @@ export const useSellerBalance = () => {
                             balanceData?.availableBalance || 
                             Math.max(0, balance - lockedBalance - pendingBalance);
 
-    // Verify calculation consistency
-    // totalRevenue should equal balance + totalWithdrawn
-    const calculatedTotalRevenue = balance + totalWithdrawn;
-    const verifiedTotalRevenue = totalRevenue || calculatedTotalRevenue;
+    // totalRevenue comes directly from the Transaction aggregate (authoritative)
+    const verifiedTotalRevenue = totalRevenue;
 
     // Verify availableBalance calculation
     const calculatedAvailable = Math.max(0, balance - lockedBalance - pendingBalance);

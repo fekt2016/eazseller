@@ -51,11 +51,11 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--spacing-lg);
-  padding: var(--spacing-lg);
-  background: var(--color-white-0);
-  border-radius: var(--border-radius-lg);
-  border: 1px solid var(--color-grey-200);
+  gap: 1rem;
+  padding: 1rem;
+  background: #FFFFFF;
+  border-radius: 12px;
+  border: 1px solid #6B7280;
 `;
 
 const Instructions = styled.div`
@@ -64,15 +64,15 @@ const Instructions = styled.div`
 `;
 
 const Title = styled.h3`
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
-  margin-bottom: var(--spacing-sm);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #6B7280;
+  margin-bottom: 1rem;
 `;
 
 const Description = styled.p`
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-600);
+  font-size: 0.875rem;
+  color: #6B7280;
   line-height: 1.5;
 `;
 
@@ -80,10 +80,10 @@ const QRContainer = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: var(--spacing-md);
-  background: var(--color-white-0);
-  border-radius: var(--border-radius-md);
-  border: 1px solid var(--color-grey-200);
+  padding: 1rem;
+  background: #FFFFFF;
+  border-radius: 9px;
+  border: 1px solid #6B7280;
 `;
 
 const Placeholder = styled.div`
@@ -92,38 +92,38 @@ const Placeholder = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-grey-500);
-  font-size: var(--font-size-sm);
+  color: #6B7280;
+  font-size: 0.875rem;
 `;
 
 const SecretSection = styled.div`
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: 1rem;
 `;
 
 const SecretLabel = styled.label`
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-medium);
-  color: var(--color-grey-700);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6B7280;
 `;
 
 const SecretContainer = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--color-grey-50);
-  border-radius: var(--border-radius-md);
-  border: 1px solid var(--color-grey-200);
+  gap: 1rem;
+  padding: 1rem 1rem;
+  background: #6B7280;
+  border-radius: 9px;
+  border: 1px solid #6B7280;
 `;
 
 const SecretCode = styled.code`
   flex: 1;
   font-family: 'Courier New', monospace;
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-900);
+  font-size: 0.875rem;
+  color: #6B7280;
   word-break: break-all;
   user-select: all;
 `;
@@ -132,21 +132,21 @@ const CopyButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--spacing-xs);
+  padding: 1rem;
   background: transparent;
   border: none;
-  color: var(--color-grey-600);
+  color: #6B7280;
   cursor: pointer;
-  border-radius: var(--border-radius-sm);
+  border-radius: 6px;
   transition: all 0.2s ease;
 
   &:hover {
-    background: var(--color-grey-100);
-    color: var(--color-primary-600);
+    background: #6B7280;
+    color: #E8920A;
   }
 
   svg {
-    font-size: var(--font-size-md);
+    font-size: 0.9rem;
   }
 `;
 

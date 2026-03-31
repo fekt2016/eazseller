@@ -3,11 +3,12 @@ import styled from "styled-components";
 import useActivePromotions from "../../hooks/useActivePromotions";
 
 const BasicSection = () => {
-  const { register, watch, formState: { errors } } = useFormContext();
+  const { register, watch, setValue, formState: { errors } } = useFormContext();
   const { data: activePromotions = [], isLoading: promotionsLoading } = useActivePromotions();
   
   const name = watch("name") || "";
   const description = watch("description") || "";
+  const productStatus = watch("productStatus") || "active";
   const isPreOrder = watch("isPreOrder");
   const nameLength = name.length;
   const descriptionLength = description.length;
@@ -41,13 +42,43 @@ const BasicSection = () => {
         </Label>
         <TextArea
           {...register("description", {
+            required: "Description is required",
             maxLength: { value: 5000, message: "Description must be less than 5000 characters" }
           })}
           placeholder="Describe your product in detail. Include key features, benefits, and what makes it special..."
           rows={6}
           maxLength={5000}
+          $hasError={!!errors.description}
         />
+        {errors.description && (
+          <ErrorMessage>{errors.description.message}</ErrorMessage>
+        )}
         <HelperText>Provide detailed information to help customers make informed decisions</HelperText>
+      </FieldGroup>
+
+      <FieldGroup>
+        <Label>
+          Listing status <Required>*</Required>
+        </Label>
+        <SegmentedRow>
+          <SegmentedBtn
+            type="button"
+            $active={productStatus === "active"}
+            onClick={() => setValue("productStatus", "active", { shouldDirty: true, shouldValidate: true })}
+          >
+            Active
+          </SegmentedBtn>
+          <SegmentedBtn
+            type="button"
+            $active={productStatus === "draft"}
+            onClick={() => setValue("productStatus", "draft", { shouldDirty: true, shouldValidate: true })}
+          >
+            Draft
+          </SegmentedBtn>
+        </SegmentedRow>
+        <HelperText>
+          Draft products are saved but not visible to buyers until you publish (set to Active) after approval.
+        </HelperText>
       </FieldGroup>
 
       {/* Additional Information */}
@@ -272,7 +303,7 @@ const Input = styled.input`
 
   &:focus {
     outline: none;
-    border-color: ${props => props.$hasError ? '#e53e3e' : 'var(--color-primary-500)'};
+    border-color: ${props => props.$hasError ? '#e53e3e' : '#E8920A'};
     box-shadow: 0 0 0 3px ${props => props.$hasError ? 'rgba(229, 62, 62, 0.1)' : 'rgba(255, 196, 0, 0.1)'};
   }
 
@@ -305,7 +336,7 @@ const Select = styled.select`
 
   &:focus {
     outline: none;
-    border-color: ${props => props.$hasError ? '#e53e3e' : 'var(--color-primary-500)'};
+    border-color: ${props => props.$hasError ? '#e53e3e' : '#E8920A'};
     box-shadow: 0 0 0 3px ${props => props.$hasError ? 'rgba(229, 62, 62, 0.1)' : 'rgba(255, 196, 0, 0.1)'};
   }
 
@@ -371,10 +402,34 @@ const FormGroup = styled.div`
 //   }
 // `;
 
+const SegmentedRow = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+`;
+
+const SegmentedBtn = styled.button`
+  flex: 1;
+  min-width: 120px;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid ${({ $active }) => ($active ? '#e8920a' : '#e2e8f0')};
+  background: ${({ $active }) => ($active ? '#fdf3e3' : '#ffffff')};
+  color: ${({ $active }) => ($active ? '#854f0b' : '#64748b')};
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #e8920a;
+  }
+`;
+
 const TextArea = styled.textarea`
   width: 100%;
   padding: 0.875rem 1rem;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid ${(props) => (props.$hasError ? '#e53e3e' : '#e2e8f0')};
   border-radius: 8px;
   font-size: 1.0625rem;
   color: #1e293b;
@@ -387,7 +442,7 @@ const TextArea = styled.textarea`
 
   &:focus {
     outline: none;
-    border-color: var(--color-primary-500);
+    border-color: #E8920A;
     box-shadow: 0 0 0 3px rgba(255, 196, 0, 0.1);
   }
 
@@ -441,7 +496,7 @@ const CheckboxRow = styled.div`
 const Checkbox = styled.input`
   width: 1.25rem;
   height: 1.25rem;
-  accent-color: var(--color-primary-500);
+  accent-color: #E8920A;
   cursor: pointer;
   flex-shrink: 0;
 `;

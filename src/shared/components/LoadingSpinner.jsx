@@ -37,34 +37,10 @@ const Spinner = styled(BaseSpinner)`
         return "24px";
     }
   }};
-  border-top: 2px solid ${({ $color, theme }) => 
-    $color || 
-    (theme?.colors?.primary) || 
-    'var(--color-primary-500)' || 
-    'var(--primary)' || 
-    '#3b82f6'
-  };
-  border-right: 2px solid ${({ $color, theme }) => 
-    $color || 
-    (theme?.colors?.primary) || 
-    'var(--color-primary-500)' || 
-    'var(--primary)' || 
-    '#3b82f6'
-  };
-  border-bottom: 2px solid ${({ $color, theme }) => 
-    $color ? 'transparent' : 
-    (theme?.colors?.grey?.[300]) || 
-    'var(--color-grey-300)' || 
-    'var(--gray-300)' || 
-    '#d1d5db'
-  };
-  border-left: 2px solid ${({ $color, theme }) => 
-    $color ? 'transparent' : 
-    (theme?.colors?.grey?.[300]) || 
-    'var(--color-grey-300)' || 
-    'var(--gray-300)' || 
-    '#d1d5db'
-  };
+  border-top: 2px solid ${({ $color }) => $color || '#E8920A'};
+  border-right: 2px solid ${({ $color }) => $color || '#E8920A'};
+  border-bottom: 2px solid ${({ $color }) => $color ? 'transparent' : '#E5E7EB'};
+  border-left: 2px solid ${({ $color }) => $color ? 'transparent' : '#E5E7EB'};
 `;
 
 const Container = styled.div`
@@ -178,10 +154,10 @@ export const ButtonSpinner = styled(BaseSpinner)`
 export const PageSpinner = styled(BaseSpinner)`
   width: 60px;
   height: 60px;
-  border-top: 3px solid var(--primary);
-  border-right: 3px solid var(--primary);
-  border-bottom: 3px solid var(--gray-200);
-  border-left: 3px solid var(--gray-200);
+  border-top: 3px solid #E8920A;
+  border-right: 3px solid #E8920A;
+  border-bottom: 3px solid #E5E7EB;
+  border-left: 3px solid #E5E7EB;
 `;
 
 // Export SpinnerContainer for backward compatibility
@@ -189,7 +165,7 @@ export const SpinnerContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--space-md);
+  padding: 1rem;
   
   ${({ fullScreen }) => fullScreen && `
     position: fixed;

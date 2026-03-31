@@ -29,13 +29,13 @@ const PublicHeader = () => {
 };
 
 const Container = styled.header`
-  height: var(--header-height);
-  background: var(--color-white-0);
+  height: 64px;
+  background: #FFFFFF;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 2rem;
-  box-shadow: var(--shadow-sm);
+  
   position: sticky;
   top: 0;
   z-index: 1000;
@@ -72,14 +72,14 @@ const NavLinks = styled.nav`
 `;
 
 const NavLink = styled(Link)`
-  color: var(--color-grey-700);
+  color: #374151;
   text-decoration: none;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-medium);
-  transition: color var(--transition-base);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: color 0.12s;
   
   &:hover {
-    color: var(--color-primary-500);
+    color: #E8920A;
   }
 `;
 
@@ -90,31 +90,31 @@ const AuthLinks = styled.div`
 `;
 
 const LoginLink = styled(Link)`
-  color: var(--color-primary-500);
+  color: #E8920A;
   text-decoration: none;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-semibold);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--border-radius-md);
-  transition: var(--transition-base);
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 1rem 1rem;
+  border-radius: 9px;
+  transition: 0.12s;
 
   &:hover {
-    background: var(--color-primary-50);
+    background: #E8920A;
   }
 `;
 
 const SignupLink = styled(Link)`
-  color: var(--color-white-0);
-  background: var(--color-primary-500);
+  color: #FFFFFF;
+  background: #E8920A;
   text-decoration: none;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-semibold);
-  padding: var(--spacing-xs) var(--spacing-md);
-  border-radius: var(--border-radius-md);
-  transition: var(--transition-base);
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 1rem 1rem;
+  border-radius: 9px;
+  transition: 0.12s;
 
   &:hover {
-    background: var(--color-primary-600);
+    background: #E8920A;
   }
 `;
 

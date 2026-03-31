@@ -1,1080 +1,624 @@
-import { useMemo, useState } from "react";
-import styled, { keyframes } from "styled-components";
-import { Link } from "react-router-dom";
+import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import styled from 'styled-components';
 import {
-  FaRedo,
   FaWallet,
   FaDollarSign,
   FaShoppingCart,
-  FaBox,
+  FaList,
   FaChartLine,
-  FaArrowUp,
-  FaArrowDown,
-  FaEye,
-  FaLock,
-} from "react-icons/fa";
-import useProduct from '../../shared/hooks/useProduct';
+  FaPlus,
+  FaBoxOpen,
+} from 'react-icons/fa';
 import useAuth from '../../shared/hooks/useAuth';
+import useProduct from '../../shared/hooks/useProduct';
 import { useGetSellerOrders } from '../../shared/hooks/useOrder';
 import { useSellerBalance } from '../../shared/hooks/finance/useSellerBalance';
-import { formatDate } from '../../shared/utils/helpers';
-import useAnalytics from '../../shared/hooks/useAnalytics';
+import {
+  useSellerRevenueAnalytics,
+  useSellerOrderStatusAnalytics,
+  useSellerTopProducts,
+  useSellerTrafficAnalytics,
+} from '../../shared/hooks/useSellerAnalytics';
 import { PATHS } from '../../routes/routePaths';
 import {
-  PageContainer,
-  PageHeader,
-  TitleSection,
-  Section,
-  SectionHeader,
-  StatsGrid,
-} from '../../shared/components/ui/SpacingSystem';
-
-import ResponsiveDataTable from '../../shared/components/ui/ResponsiveDataTable';
-import Button from '../../shared/components/ui/Button';
-import StatCard from '../../shared/components/ui/StatCard';
-import { LoadingState, ErrorState } from '../../shared/components/ui/LoadingComponents';
-import { ButtonSpinner } from '../../shared/components/ButtonSpinner';
-import { toast } from 'react-toastify';
-import { getOptimizedImageUrl, IMAGE_SLOTS } from "../../shared/utils/cloudinaryConfig";
+  LoadingState,
+  ErrorState,
+  Skeleton,
+} from '../../shared/components/ui/LoadingComponents';
+import PeriodSelector from '../../components/shared/PeriodSelector';
+import KPICard from '../../components/shared/KPICard';
+import RevenueChart from '../../components/shared/RevenueChart';
+import RecentOrdersTable from '../../components/shared/RecentOrdersTable';
+import QuickActions from '../../components/shared/QuickActions';
+import TopProducts from '../../components/shared/TopProducts';
+import PendingOrdersAlert from '../../components/shared/PendingOrdersAlert';
+import { formatGHS } from '../../shared/utils/dashboardFormatters';
 import VerificationBanner from '../../shared/components/VerificationBanner';
+import { getAttentionCountsFromBreakdown, getAttentionCountsFromOrders } from '../../shared/utils/orderAttention';
 
-// Animations
-const fadeIn = keyframes`
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-`;
+const PERIOD_OPTIONS = [
+  { key: 'today', label: 'Today' },
+  { key: 'week', label: 'This week' },
+  { key: 'month', label: 'This month' },
+  { key: 'year', label: 'This year' },
+];
 
-const slideIn = keyframes`
-  from {
-    opacity: 0;
-    transform: translateX(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-`;
+const RANGE_MAP = {
+  today: 1,
+  week: 7,
+  month: 30,
+  year: 365,
+};
 
-const Dashboard = () => {
-  const [timeFilter, setTimeFilter] = useState("month");
-  const [retryCount, setRetryCount] = useState(0);
+const periodLabelMap = {
+  today: 'today',
+  week: 'this week',
+  month: 'this month',
+  year: 'this year',
+};
 
-  const { useGetAllProductBySeller } = useProduct();
-  const { useGetSellerProductViews } = useAnalytics();
-  const { seller, isLoading: isSellerLoading, error: sellerError } = useAuth();
-  const sellerId = useMemo(() => seller?._id ?? seller?.id ?? null, [seller]);
+const trendTone = (value) => (value > 0 ? 'up' : value < 0 ? 'down' : 'neutral');
 
-  // Get seller balance using unified hook
-  const {
-    availableBalance,
-    pendingBalance,
-    totalEarnings,
-    withdrawnAmount,
-    lockedBalance,
-    isLoading: isBalanceLoading,
-    error: balanceError
-  } = useSellerBalance();
+const periodSubtitle = (period) => {
+  if (period === 'today') return 'this day';
+  if (period === 'week') return 'this week';
+  if (period === 'month') return 'this month';
+  return 'this year';
+};
 
-  const {
-    data: ordersData,
-    isLoading: isOrdersLoading,
-    error: ordersError,
-    refetch: refetchOrders,
-  } = useGetSellerOrders();
+const labelForChart = (row, period) => {
+  const d = new Date(row?.date);
+  if (Number.isNaN(d.getTime())) return '•';
+  if (period === 'today') return d.toLocaleTimeString('en-US', { hour: '2-digit' });
+  if (period === 'week') return d.toLocaleDateString('en-US', { weekday: 'short' });
+  if (period === 'month') return `W${Math.floor((d.getDate() - 1) / 7) + 1}`;
+  return d.toLocaleDateString('en-US', { month: 'short' });
+};
 
-  const {
-    data: productData,
-    isLoading: isProductLoading,
-    error: productError,
-    refetch: refetchProducts,
-  } = useGetAllProductBySeller(sellerId, {
-    enabled: !!sellerId,
-  });
+const isDeliveredForRevenue = (order) => {
+  const sellerStatus = String(order?.status || '').toLowerCase();
+  const parentStatus = String(
+    order?.currentStatus || order?.orderStatus || order?.FulfillmentStatus || ''
+  ).toLowerCase();
+  const paymentStatus = String(
+    order?.paymentStatus || order?.order?.paymentStatus || ''
+  ).toLowerCase();
 
-  const { data: viewData } = useGetSellerProductViews(sellerId, {
-    enabled: !!sellerId,
-  });
-
-  const orders = useMemo(() => {
-    // Simplify data access
-    return ordersData?.orders || ordersData?.data?.orders || [];
-  }, [ordersData]);
-
-  const products = useMemo(() => {
-    // Simplify data access
-    const list = productData?.products || productData?.data || [];
-    return Array.isArray(list) ? list : [];
-  }, [productData]);
-
-  const totalProductCount = useMemo(() => {
-    // Simplify access
-    const total = productData?.total || productData?.count || productData?.data?.total;
-    if (typeof total === 'number' && total >= 0) return total;
-    return products.length;
-  }, [productData, products.length]);
-
-  const totalViews = useMemo(() => {
-    return viewData?.data?.views || [];
-  }, [viewData]);
-
-  // Total view count from API (number); API returns data.totalViews, not views.length
-  const totalViewsCount = useMemo(() => {
-    const count = viewData?.totalViews || viewData?.data?.totalViews;
-    return typeof count === 'number' && count >= 0 ? count : 0;
-  }, [viewData]);
-
-  // Map productId -> view count for product cards (API returns data.views per product)
-  const viewsByProductId = useMemo(() => {
-    const map = {};
-    const views = viewData?.views || viewData?.data?.views || [];
-    views.forEach((item) => {
-      const id = item.productId?.toString?.() ?? item.productId;
-      if (id) map[id] = (item.views || 0) + (map[id] || 0);
-    });
-    return map;
-  }, [viewData]);
-
-  // Calculate stats first to get totalRevenue
-  const stats = useMemo(() => {
-    const deliveredOrders = orders.filter(
-      (order) => {
-        const status = (order.status || order.currentStatus || order.orderStatus || '').toString().toLowerCase();
-        const currentStatus = (order.currentStatus || '').toString().toLowerCase();
-        const orderStatus = (order.orderStatus || '').toString().toLowerCase();
-        return status === 'delivered' || currentStatus === 'delivered' || orderStatus === 'completed';
-      }
-    );
-
-    const getDateRange = (period) => {
-      const now = new Date();
-      let start, end, prevStart, prevEnd;
-
-      switch (period) {
-        case "today":
-          start = new Date(now);
-          start.setHours(0, 0, 0, 0);
-          end = new Date(now);
-          end.setHours(23, 59, 59, 999);
-          prevStart = new Date(start);
-          prevStart.setDate(prevStart.getDate() - 1);
-          prevEnd = new Date(prevStart);
-          prevEnd.setHours(23, 59, 59, 999);
-          break;
-        case "week":
-          start = new Date(now);
-          start.setDate(now.getDate() - now.getDay());
-          start.setHours(0, 0, 0, 0);
-          end = new Date(start);
-          end.setDate(start.getDate() + 6);
-          end.setHours(23, 59, 59, 999);
-          prevStart = new Date(start);
-          prevStart.setDate(start.getDate() - 7);
-          prevEnd = new Date(end);
-          prevEnd.setDate(end.getDate() - 7);
-          break;
-        case "month":
-          start = new Date(now.getFullYear(), now.getMonth(), 1);
-          end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-          end.setHours(23, 59, 59, 999);
-          prevStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-          prevEnd = new Date(now.getFullYear(), now.getMonth(), 0);
-          prevEnd.setHours(23, 59, 59, 999);
-          break;
-        case "year":
-          start = new Date(now.getFullYear(), 0, 1);
-          end = new Date(now.getFullYear(), 11, 31);
-          end.setHours(23, 59, 59, 999);
-          prevStart = new Date(now.getFullYear() - 1, 0, 1);
-          prevEnd = new Date(now.getFullYear() - 1, 11, 31);
-          prevEnd.setHours(23, 59, 59, 999);
-          break;
-        default:
-          return { start, end, prevStart, prevEnd };
-      }
-
-      return { start, end, prevStart, prevEnd };
-    };
-
-    const { start, end, prevStart, prevEnd } = getDateRange(timeFilter);
-
-    const currentPeriodOrders = orders.filter(
-      (order) =>
-        new Date(order.createdAt) >= start && new Date(order.createdAt) <= end
-    );
-    const previousPeriodOrders = orders.filter(
-      (order) =>
-        new Date(order.createdAt) >= prevStart &&
-        new Date(order.createdAt) <= prevEnd
-    );
-
-    const orderChange =
-      previousPeriodOrders.length === 0
-        ? currentPeriodOrders.length > 0
-          ? 100
-          : 0
-        : ((currentPeriodOrders.length - previousPeriodOrders.length) /
-          previousPeriodOrders.length) *
-        100;
-
-    const currentPeriodRevenueOrders = deliveredOrders.filter(
-      (order) =>
-        new Date(order.createdAt) >= start && new Date(order.createdAt) <= end
-    );
-    const previousPeriodRevenueOrders = deliveredOrders.filter(
-      (order) =>
-        new Date(order.createdAt) >= prevStart &&
-        new Date(order.createdAt) <= prevEnd
-    );
-
-    const currentRevenue = currentPeriodRevenueOrders.reduce(
-      (sum, order) => sum + (order.subtotal || order.total || 0),
-      0
-    );
-    const previousRevenue = previousPeriodRevenueOrders.reduce(
-      (sum, order) => sum + (order.subtotal || order.total || 0),
-      0
-    );
-
-    const revenueChange =
-      previousRevenue === 0
-        ? currentRevenue > 0
-          ? 100
-          : 0
-        : ((currentRevenue - previousRevenue) / previousRevenue) * 100;
-
-    // API returns totalViews (number), not per-event list with viewedAt; use totalViewsCount for conversion
-    const conversionRate =
-      totalViewsCount > 0
-        ? (currentPeriodOrders.length / totalViewsCount) * 100
-        : 0;
-
-    const pendingOrders = orders.filter(
-      (order) => {
-        const status = order.currentStatus || order.status || 'pending';
-        return ['pending', 'pending_payment', 'payment_completed', 'confirmed', 'processing', 'preparing', 'ready_for_dispatch'].includes(status.toLowerCase());
-      }
-    ).length;
-
-    const completedOrders = orders.filter(
-      (order) => {
-        const status = (order.currentStatus || order.status || order.orderStatus || 'pending').toString().toLowerCase();
-        return status === 'delivered' || status === 'completed';
-      }
-    ).length;
-
-    const totalOrders = orders.length;
-    const outOfStock = products.filter((p) => (p.stock || p.totalStock || 0) === 0).length;
-
-    return {
-      totalRevenue: currentRevenue,
-      revenueChange: parseFloat(revenueChange.toFixed(1)),
-      pendingOrders,
-      completedOrders,
-      totalOrders,
-      totalProducts: totalProductCount,
-      outOfStock,
-      orderChange: parseFloat(orderChange.toFixed(1)),
-      conversionRate: parseFloat(conversionRate.toFixed(1)),
-      currentPeriodViews: totalViewsCount,
-      currentPeriodOrders: currentPeriodOrders.length,
-    };
-  }, [orders, products, timeFilter, totalViewsCount, totalProductCount]);
-
-  // Total revenue from unified hook (already calculated)
-  const totalRevenue = totalEarnings;
-
-  const isLoading = isOrdersLoading || isProductLoading || isSellerLoading;
-  const anyDataAvailable = orders.length > 0 || products.length > 0;
-  const hasError = !!(ordersError || productError || sellerError);
-
-  const handleRetry = () => {
-    refetchOrders();
-    refetchProducts();
-    setRetryCount((prev) => prev + 1);
-  };
-
-  // Order columns for ResponsiveDataTable
-  const orderColumns = [
-    {
-      key: 'orderNumber',
-      title: 'Order ID',
-      render: (order) => (
-        <OrderIdLink to={PATHS.ORDER_DETAIL.replace(':id', order._id)}>
-          #{order.orderNumber || order._id?.slice(-8)}
-        </OrderIdLink>
-      ),
-    },
-    {
-      key: 'customer',
-      title: 'Customer',
-      render: (order) => <CustomerName>{order.user?.name || 'N/A'}</CustomerName>,
-    },
-    {
-      key: 'date',
-      title: 'Date',
-      render: (order) => <DateText>{formatDate(order.createdAt)}</DateText>,
-    },
-    {
-      key: 'amount',
-      title: 'Amount',
-      align: 'right',
-      render: (order) => (
-        <AmountText>
-          Gh₵{(order.total || order.subtotal || 0).toFixed(2)}
-        </AmountText>
-      ),
-    },
-    {
-      key: 'status',
-      title: 'Status',
-      render: (order) => {
-        let status = order.orderStatus || order.currentStatus || order.status || 'pending';
-
-        if (status === 'delivered') {
-          status = 'completed';
-        } else if (status === 'out_for_delivery') {
-          status = 'shipped';
-        } else if (status === 'confirmed') {
-          status = 'confirmed';
-        } else if (['preparing', 'ready_for_dispatch'].includes(status)) {
-          status = 'processing';
-        } else if (status === 'pending_payment' || status === 'pending') {
-          status = 'pending';
-        }
-
-        return (
-          <StatusBadge $status={status.toLowerCase()}>
-            {status.charAt(0).toUpperCase() + status.slice(1)}
-          </StatusBadge>
-        );
-      },
-    },
-    {
-      key: 'actions',
-      title: 'Actions',
-      align: 'center',
-      render: (order) => (
-        <ActionButton as={Link} to={PATHS.ORDER_DETAIL.replace(':id', order._id)}>
-          View Details
-        </ActionButton>
-      ),
-    },
-  ];
-
-  if (isLoading && !anyDataAvailable && retryCount === 0) {
-    return (
-      <PageContainer>
-        <LoadingState message="Loading dashboard data..." />
-      </PageContainer>
-    );
-  }
-
-  if (!anyDataAvailable && hasError) {
-    return (
-      <PageContainer>
-        <ErrorState
-          title="Failed to load data"
-          message={
-            ordersError?.message ||
-            productError?.message ||
-            sellerError?.message ||
-            "Please check your connection and try again."
-          }
-          action={
-            <Button variant="primary" onClick={handleRetry}>
-              <FaRedo /> Try Again
-            </Button>
-          }
-        />
-      </PageContainer>
-    );
-  }
+  const deliveredStatuses = new Set([
+    'delivered',
+    'delievered',
+    'completed',
+    'payment_completed',
+    'paid',
+  ]);
+  const paidStatuses = new Set(['paid', 'completed', 'payment_completed']);
 
   return (
-    <DashboardContainer>
-      <VerificationBanner />
-
-      {/* Header Section */}
-      <HeaderSection>
-        <HeaderContent>
-          <WelcomeSection>
-            <WelcomeTitle>
-              Welcome back, <NameHighlight>{seller?.name?.split(" ")[0] || 'Seller'}</NameHighlight>
-            </WelcomeTitle>
-            <WelcomeSubtitle>Here's what's happening with your store today</WelcomeSubtitle>
-          </WelcomeSection>
-
-          <TimeFilterContainer>
-            {['today', 'week', 'month', 'year'].map((period) => (
-              <FilterButton
-                key={period}
-                $active={timeFilter === period}
-                onClick={() => setTimeFilter(period)}
-              >
-                {period === 'today' ? 'Today' :
-                  period === 'week' ? 'This Week' :
-                    period === 'month' ? 'This Month' : 'This Year'}
-              </FilterButton>
-            ))}
-          </TimeFilterContainer>
-        </HeaderContent>
-      </HeaderSection>
-
-      {/* Stats Grid */}
-      <StatsSection>
-        <EnhancedStatCard $variant="success" $delay="0">
-          <StatIconWrapper $variant="success">
-            <FaWallet />
-          </StatIconWrapper>
-          <StatContent>
-            <StatLabel>Available Balance</StatLabel>
-            <StatValue>
-              Gh₵{availableBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </StatValue>
-            <StatChange $positive={true}>
-              {lockedBalance > 0 ? (
-                <>
-                  <FaLock /> Gh₵{lockedBalance.toFixed(2)} locked
-                </>
-              ) : (
-                <>
-                  <FaArrowUp /> Available
-                </>
-              )}
-            </StatChange>
-          </StatContent>
-        </EnhancedStatCard>
-
-        <EnhancedStatCard $variant="primary" $delay="1">
-          <StatIconWrapper $variant="primary">
-            <FaDollarSign />
-          </StatIconWrapper>
-          <StatContent>
-            <StatLabel>Total Revenue</StatLabel>
-            <StatValue>
-              Gh₵{totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </StatValue>
-            <StatChange $positive={stats.revenueChange >= 0}>
-              {stats.revenueChange >= 0 ? <FaArrowUp /> : <FaArrowDown />}
-              {Math.abs(stats.revenueChange)}% from last period
-            </StatChange>
-          </StatContent>
-        </EnhancedStatCard>
-
-        <EnhancedStatCard $variant="info" $delay="2">
-          <StatIconWrapper $variant="info">
-            <FaShoppingCart />
-          </StatIconWrapper>
-          <StatContent>
-            <StatLabel>Total Orders</StatLabel>
-            <StatValue>{stats.totalOrders || 0}</StatValue>
-            <StatChange $positive={true}>
-              <FaArrowUp /> {stats.completedOrders || 0} completed
-            </StatChange>
-          </StatContent>
-        </EnhancedStatCard>
-
-        <EnhancedStatCard $variant="warning" $delay="3">
-          <StatIconWrapper $variant="warning">
-            <FaBox />
-          </StatIconWrapper>
-          <StatContent>
-            <StatLabel>Pending Orders</StatLabel>
-            <StatValue>{stats.pendingOrders || 0}</StatValue>
-            <StatChange $positive={stats.orderChange >= 0}>
-              {stats.orderChange >= 0 ? <FaArrowUp /> : <FaArrowDown />}
-              {Math.abs(stats.orderChange)}% change
-            </StatChange>
-          </StatContent>
-        </EnhancedStatCard>
-
-        <EnhancedStatCard $variant="primary" $delay="4">
-          <StatIconWrapper $variant="primary">
-            <FaBox />
-          </StatIconWrapper>
-          <StatContent>
-            <StatLabel>Products</StatLabel>
-            <StatValue>{stats.totalProducts || 0} listed</StatValue>
-            <StatChange $positive={stats.outOfStock === 0}>
-              {stats.outOfStock > 0 ? (
-                <>
-                  <FaArrowDown /> {stats.outOfStock} out of stock
-                </>
-              ) : (
-                <>
-                  <FaArrowUp /> All in stock
-                </>
-              )}
-            </StatChange>
-          </StatContent>
-        </EnhancedStatCard>
-
-        <EnhancedStatCard $variant="info" $delay="5">
-          <StatIconWrapper $variant="info">
-            <FaChartLine />
-          </StatIconWrapper>
-          <StatContent>
-            <StatLabel>Conversion Rate</StatLabel>
-            <StatValue>{stats.conversionRate.toFixed(1)}%</StatValue>
-            <StatChange $positive={stats.conversionRate > 0}>
-              <FaEye /> {stats.currentPeriodViews} views, {stats.currentPeriodOrders} orders
-            </StatChange>
-          </StatContent>
-        </EnhancedStatCard>
-      </StatsSection>
-
-      {/* Recent Orders Section */}
-      <ContentSection>
-        <StyledSectionHeader>
-          <SectionTitle>Recent Orders</SectionTitle>
-          <ViewAllButton as={Link} to={PATHS.ORDERS}>
-            View All <FaArrowUp style={{ transform: 'rotate(45deg)' }} />
-          </ViewAllButton>
-        </StyledSectionHeader>
-        <TableContainer>
-          <ResponsiveDataTable
-            data={orders.slice(0, 5)}
-            columns={orderColumns}
-            $padding="md"
-          />
-        </TableContainer>
-      </ContentSection>
-
-      {/* Top Products Section */}
-      <ContentSection>
-        <StyledSectionHeader>
-          <SectionTitle>Top Selling Products</SectionTitle>
-          <ViewAllButton as={Link} to={PATHS.PRODUCTS}>
-            View All <FaArrowUp style={{ transform: 'rotate(45deg)' }} />
-          </ViewAllButton>
-        </StyledSectionHeader>
-        <ProductsGrid>
-          {products.slice(0, 4).map((product) => {
-            const productIdStr = (product._id || product.id)?.toString?.() ?? (product._id || product.id);
-            const viewCount = viewsByProductId[productIdStr] ?? 0;
-            return (
-              <ProductCard key={product._id || product.id} as={Link} to={PATHS.PRODUCTS}>
-                <ProductImageWrapper>
-                  <ProductImage
-                    src={getOptimizedImageUrl(product.imageCover, IMAGE_SLOTS.TABLE_THUMB)}
-                    alt={product.name}
-                    onError={(e) => {
-                      if (e.target.dataset.fallbackAttempted !== 'true') {
-                        e.target.dataset.fallbackAttempted = 'true';
-                        e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="100%25" height="100%25"%3E%3Crect width="200" height="200" fill="%23f0f0f0"/%3E%3Ctext x="50%25" y="50%25" font-family="Arial" font-size="16" fill="%23999" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E';
-                      }
-                    }}
-                  />
-                  {(product.sales || product.totalSold) > 0 && (
-                    <SalesBadge>
-                      {product.sales || product.totalSold} sold
-                    </SalesBadge>
-                  )}
-                </ProductImageWrapper>
-                <ProductInfo>
-                  <ProductName>{product.name}</ProductName>
-                  <ProductMeta>
-                    <StockStatus $inStock={(product.stock || product.totalStock || 0) > 0}>
-                      {(product.stock || product.totalStock || 0) > 0
-                        ? `${product.stock || product.totalStock} in stock`
-                        : "Out of stock"}
-                    </StockStatus>
-                    {viewCount > 0 && (
-                      <ViewCount>
-                        <FaEye style={{ marginRight: '0.25rem' }} />
-                        {viewCount} {viewCount === 1 ? 'view' : 'views'}
-                      </ViewCount>
-                    )}
-                  </ProductMeta>
-                </ProductInfo>
-              </ProductCard>
-            );
-          })}
-        </ProductsGrid>
-      </ContentSection>
-    </DashboardContainer>
+    deliveredStatuses.has(sellerStatus) ||
+    deliveredStatuses.has(parentStatus) ||
+    paidStatuses.has(paymentStatus)
   );
 };
 
-// Styled Components
-const DashboardContainer = styled(PageContainer)`
-  animation: ${fadeIn} 0.6s ease-out;
+const getOrderRevenue = (order) => {
+  const candidates = [
+    order?.totalBasePrice,
+    order?.sellerRevenue,
+    order?.total,
+    order?.subtotal,
+    order?.totalPrice,
+  ];
+
+  for (const value of candidates) {
+    const num = Number(value);
+    if (Number.isFinite(num) && num > 0) return num;
+  }
+
+  const items = Array.isArray(order?.items) ? order.items : [];
+  let fromItems = 0;
+  items.forEach((item) => {
+    const quantity = Number(item?.quantity || 1);
+    const unit = Number(
+      item?.basePrice ?? item?.priceExVat ?? item?.price ?? 0
+    );
+    if (Number.isFinite(unit) && unit > 0 && Number.isFinite(quantity)) {
+      fromItems += quantity * unit;
+    }
+  });
+  return fromItems;
+};
+
+const isInPeriod = (order, period) => {
+  const date = new Date(order?.createdAt || order?.updatedAt || Date.now());
+  if (Number.isNaN(date.getTime())) return false;
+
+  const now = new Date();
+  const todayStart = new Date(now);
+  todayStart.setHours(0, 0, 0, 0);
+
+  if (period === 'today') {
+    return date >= todayStart;
+  }
+  if (period === 'week') {
+    const start = new Date(todayStart);
+    start.setDate(start.getDate() - 6);
+    return date >= start;
+  }
+  if (period === 'month') {
+    const start = new Date(todayStart);
+    start.setDate(start.getDate() - 29);
+    return date >= start;
+  }
+
+  const start = new Date(todayStart);
+  start.setDate(start.getDate() - 364);
+  return date >= start;
+};
+
+const Dashboard = () => {
+  const [period, setPeriod] = useState('month');
+  const { seller, isLoading: isSellerLoading } = useAuth();
+  const sellerId = useMemo(() => seller?._id || seller?.id || null, [seller]);
+  const { useGetAllProductBySeller } = useProduct();
+  const {
+    availableBalance,
+    isLoading: isBalanceLoading,
+  } = useSellerBalance();
+  const {
+    data: ordersResp,
+    isLoading: isOrdersLoading,
+    error: ordersError,
+  } = useGetSellerOrders();
+  const {
+    data: productResp,
+    isLoading: isProductsLoading,
+  } = useGetAllProductBySeller(sellerId, { enabled: !!sellerId });
+
+  const range = RANGE_MAP[period];
+  const { data: revenue, isLoading: isRevenueLoading } = useSellerRevenueAnalytics(range);
+  const { data: orderStatus, isLoading: isOrderStatusLoading } = useSellerOrderStatusAnalytics();
+  const { data: topProducts, isLoading: isTopProductsLoading } = useSellerTopProducts(5);
+  const { data: traffic, isLoading: isTrafficLoading } = useSellerTrafficAnalytics(range);
+
+  const orders = useMemo(() => {
+    if (Array.isArray(ordersResp?.data?.data?.orders)) return ordersResp.data.data.orders;
+    if (Array.isArray(ordersResp?.data?.orders)) return ordersResp.data.orders;
+    if (Array.isArray(ordersResp?.orders)) return ordersResp.orders;
+    return [];
+  }, [ordersResp]);
+
+  const products = useMemo(() => {
+    const source =
+      productResp?.data?.data ||
+      productResp?.data?.products ||
+      productResp?.products ||
+      productResp?.data ||
+      [];
+    return Array.isArray(source) ? source : [];
+  }, [productResp]);
+
+  const productCount = useMemo(() => {
+    const total = productResp?.total || productResp?.count || productResp?.data?.total;
+    return typeof total === 'number' ? total : products.length;
+  }, [productResp, products.length]);
+
+  const lowStockCount = useMemo(
+    () =>
+      products.filter((item) => {
+        const stock = Number(item?.stock ?? item?.totalStock ?? 0);
+        return stock > 0 && stock <= 10;
+      }).length,
+    [products]
+  );
+
+  const statusBreakdown = orderStatus?.statusBreakdown || {};
+  const localAttention = getAttentionCountsFromOrders(orders);
+  const breakdownAttention = getAttentionCountsFromBreakdown(statusBreakdown);
+
+  const pendingOrders =
+    orders.length > 0
+      ? localAttention.pending
+      : breakdownAttention.pending;
+  const confirmedOrders =
+    orders.length > 0
+      ? localAttention.confirmed
+      : breakdownAttention.confirmed;
+  const attentionOrders = pendingOrders + confirmedOrders;
+  const completedOrders = Number(
+    statusBreakdown?.delivered?.count ??
+      statusBreakdown?.delivered ??
+      statusBreakdown?.completed?.count ??
+      0
+  );
+  const totalOrders = Number(orderStatus?.totalOrders || orders.length || 0);
+
+  const trafficPayload = traffic?.data || traffic || {};
+  const revenuePayload = revenue?.data || revenue || {};
+
+  const fallbackViewsFromProducts = useMemo(
+    () =>
+      products.reduce(
+        (sum, item) => sum + Number(item?.totalViews || item?.views || 0),
+        0
+      ),
+    [products]
+  );
+
+  const totalViews = Math.max(
+    Number(trafficPayload?.totalViews || 0),
+    fallbackViewsFromProducts
+  );
+  const periodOrdersFromTraffic = Number(trafficPayload?.totalOrders || 0);
+  const derivedConversionRate =
+    totalViews > 0 ? (periodOrdersFromTraffic / totalViews) * 100 : 0;
+  const uniqueVisitors = Number(
+    trafficPayload?.uniqueVisitors || trafficPayload?.visitors || 0
+  );
+  const apiConversionRate = Number(trafficPayload?.conversionRate || 0);
+  const conversionRate =
+    Number.isFinite(apiConversionRate) && apiConversionRate > 0
+      ? apiConversionRate
+      : derivedConversionRate;
+  const apiTotalRevenue = Number(revenuePayload?.summary?.totalRevenue || 0);
+  const ordersRevenue = useMemo(
+    () =>
+      orders
+        .filter((order) => isDeliveredForRevenue(order) && isInPeriod(order, period))
+        .reduce((sum, order) => sum + getOrderRevenue(order), 0),
+    [orders, period]
+  );
+  const totalRevenue =
+    ordersRevenue > 0 ? ordersRevenue : apiTotalRevenue;
+  const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : null;
+  const revenueTrend = Number.isFinite(revenuePayload?.trend)
+    ? Number(revenuePayload.trend)
+    : null;
+  const chartData = (revenuePayload?.dailyRevenue || []).map((row) => ({
+    label: labelForChart(row, period),
+    amount: Number(row?.amount || 0),
+  }));
+  const recentOrders = [...orders]
+    .sort((a, b) => new Date(b?.createdAt) - new Date(a?.createdAt))
+    .slice(0, 5);
+  const topProductsPayload = topProducts?.data || topProducts || {};
+  const topSellingFromApi = Array.isArray(topProductsPayload?.topSellingProducts)
+    ? topProductsPayload.topSellingProducts
+    : [];
+  const topSellingFallback = useMemo(() => {
+    const map = new Map();
+    (Array.isArray(orders) ? orders : []).forEach((order) => {
+      const items = Array.isArray(order?.items) ? order.items : [];
+      items.forEach((item) => {
+        const productObj = item?.product || {};
+        const productId = String(
+          productObj?._id || item?.product || item?.productId || ''
+        );
+        if (!productId) return;
+
+        const productName = productObj?.name || item?.productName || 'Product';
+        const quantity = Number(item?.quantity || 1);
+        const unitRevenue = Number(
+          item?.basePrice ?? item?.priceExVat ?? item?.price ?? 0
+        );
+        const image =
+          productObj?.images?.[0]?.thumbnail ||
+          productObj?.images?.[0]?.url ||
+          productObj?.imageCover ||
+          null;
+
+        const prev = map.get(productId) || {
+          productId,
+          productName,
+          productImage: image,
+          totalSold: 0,
+          totalRevenue: 0,
+        };
+        prev.totalSold += quantity;
+        prev.totalRevenue += quantity * unitRevenue;
+        if (!prev.productImage && image) prev.productImage = image;
+        map.set(productId, prev);
+      });
+    });
+
+    return Array.from(map.values())
+      .sort((a, b) => Number(b.totalSold || 0) - Number(a.totalSold || 0))
+      .slice(0, 5);
+  }, [orders]);
+  const topSelling = topSellingFromApi.length > 0
+    ? topSellingFromApi
+    : topSellingFallback;
+  const hasTopSales = topSelling.some((item) => Number(item?.totalSold || item?.unitsSold || 0) > 0);
+  const firstName = String(seller?.name || seller?.shopName || 'Seller')
+    .trim()
+    .split(/\s+/)[0];
+
+  const isLoading =
+    isSellerLoading ||
+    isBalanceLoading ||
+    isOrdersLoading ||
+    isProductsLoading ||
+    isRevenueLoading ||
+    isOrderStatusLoading ||
+    isTopProductsLoading ||
+    isTrafficLoading;
+
+  if (ordersError && orders.length === 0 && !isLoading) {
+    return <ErrorState message={ordersError.message || 'Failed to load dashboard'} />;
+  }
+
+  const actions = [
+    { label: 'Add product', to: PATHS.ADD_PRODUCT, icon: <FaPlus size={13} />, toneBg: '#FDF3E3', toneColor: '#E8920A' },
+    { label: 'View orders', to: PATHS.ORDERS, icon: <FaShoppingCart size={13} />, toneBg: '#E6F1FB', toneColor: '#185FA5' },
+    { label: 'Withdraw', to: PATHS.WITHDRAWALS, icon: <FaWallet size={13} />, toneBg: '#EAF3DE', toneColor: '#3B6D11' },
+    { label: 'Manage listings', to: PATHS.PRODUCTS, icon: <FaBoxOpen size={13} />, toneBg: '#F1EFE8', toneColor: '#6B7280' },
+  ];
+
+    return (
+    <Wrap>
+      <VerificationBanner />
+      <Topbar>
+        <TopbarLeft>
+          <Title>Dashboard</Title>
+          <PeriodSelector options={PERIOD_OPTIONS} value={period} onChange={setPeriod} />
+        </TopbarLeft>
+      </Topbar>
+
+      <WelcomeRow>
+        <div>
+          <WelcomeText>
+            Welcome back, <WelcomeName>{firstName}</WelcomeName>
+          </WelcomeText>
+          <WelcomeSub>{`Here's what's happening with your store ${periodLabelMap[period]}`}</WelcomeSub>
+        </div>
+        <AddProductButton as={Link} to={PATHS.ADD_PRODUCT}>
+          + Add product
+        </AddProductButton>
+      </WelcomeRow>
+
+      {isLoading ? (
+        <LoadingGrid>
+          {Array.from({ length: 8 }).map((_, index) => (
+            <Skeleton key={index} height="108px" />
+          ))}
+          <Skeleton height="120px" />
+          <Skeleton height="220px" />
+          <Skeleton height="220px" />
+        </LoadingGrid>
+              ) : (
+                <>
+          <KpiGrid>
+            <KPICard
+              label="Available balance"
+              value={availableBalance}
+              icon={<FaWallet size={14} />}
+              tone="primary"
+              accent
+              currency
+              trendText="Available to withdraw"
+            />
+            <KPICard
+              label="Total revenue"
+              value={totalRevenue}
+              icon={<FaDollarSign size={14} />}
+              tone="primary"
+              accent
+              currency
+              trendText={
+                revenueTrend === null
+                  ? 'No previous period data'
+                  : `${revenueTrend > 0 ? '+' : ''}${revenueTrend.toFixed(1)}% from last period`
+              }
+              trendTone={revenueTrend === null ? 'neutral' : trendTone(revenueTrend)}
+            />
+            <KPICard
+              label="Total orders"
+              value={totalOrders}
+              icon={<FaShoppingCart size={14} />}
+              tone="info"
+              accent
+              trendText={`${completedOrders} completed`}
+              trendTone="up"
+            />
+            <KPICard
+              label="Products listed"
+              value={productCount}
+              icon={<FaList size={14} />}
+              tone="success"
+              accent
+              trendText={lowStockCount > 0 ? `${lowStockCount} low stock` : 'All in stock'}
+              trendTone={lowStockCount > 0 ? 'down' : 'up'}
+            />
+          </KpiGrid>
+
+          <KpiGrid>
+            <KPICard
+              label="Needs attention"
+              value={attentionOrders}
+              icon={<FaShoppingCart size={14} />}
+              tone="warning"
+              trendText={
+                attentionOrders > 0
+                  ? `${pendingOrders} pending · ${confirmedOrders} confirmed`
+                  : 'All clear'
+              }
+              trendTone={attentionOrders > 0 ? 'down' : 'up'}
+              smallValue
+            />
+            <KPICard
+              label="Conversion rate"
+              value={`${conversionRate.toFixed(1)}%`}
+              icon={<FaChartLine size={14} />}
+              tone="info"
+              trendText={`${totalViews} views · ${periodOrdersFromTraffic || totalOrders} orders`}
+              smallValue
+            />
+            <KPICard
+              label="Store views"
+              value={totalViews}
+              icon={<FaChartLine size={14} />}
+              tone="neutral"
+              trendText={`This ${periodLabelMap[period].replace('this ', '')}`}
+              smallValue
+            />
+            <KPICard
+              label="Avg. order value"
+              value={avgOrderValue == null ? '—' : formatGHS(avgOrderValue)}
+              icon={<FaDollarSign size={14} />}
+              tone="neutral"
+              trendText={`Based on ${totalOrders} orders`}
+              smallValue
+            />
+          </KpiGrid>
+
+          <MainGrid>
+            <LeftCol>
+              <RevenueChart
+                title="Revenue over time"
+                periodLabel={periodLabelMap[period]}
+                subtitle={periodSubtitle(period)}
+                totalRevenue={totalRevenue}
+                data={chartData}
+              />
+              <RecentOrdersTable
+                orders={recentOrders}
+                ordersPath={PATHS.ORDERS}
+                orderDetailPath={PATHS.ORDER_DETAIL}
+              />
+            </LeftCol>
+            <RightCol>
+              <QuickActions actions={actions} />
+              <PendingOrdersAlert
+                count={attentionOrders}
+                to={PATHS.ORDERS}
+              />
+              <TopProducts
+                products={topSelling}
+                hasSales={hasTopSales}
+                productsPath={PATHS.PRODUCTS}
+              />
+              <MiniInfo>{`Unique visitors: ${uniqueVisitors}`}</MiniInfo>
+            </RightCol>
+          </MainGrid>
+        </>
+      )}
+      {!isLoading && !orders.length ? (
+        <BottomHint>
+          <LoadingState message="No orders yet. Orders from buyers will appear here." />
+        </BottomHint>
+      ) : null}
+    </Wrap>
+  );
+};
+
+const Wrap = styled.div`
+  padding: 1rem 1.2rem;
 `;
 
-const HeaderSection = styled.div`
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border-radius: 16px;
-  padding: 2.4rem;
-  margin-bottom: 2.4rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  border: 1px solid var(--color-grey-200);
-  animation: ${slideIn} 0.5s ease-out;
-`;
-
-const HeaderContent = styled.div`
+const Topbar = styled.div`
+  height: 52px;
+  border-bottom: 0.5px solid #F1EFE8;
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 2rem;
-  flex-wrap: wrap;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-  }
+  margin-bottom: 1rem;
 `;
 
-const WelcomeSection = styled.div`
-  flex: 1;
+const TopbarLeft = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
 `;
 
-const WelcomeTitle = styled.h1`
-  font-size: 2.8rem;
-  font-weight: 500;
-  color: var(--color-grey-900);
-  margin-bottom: 0.8rem;
-  line-height: 1.2;
-  
-  @media (max-width: 768px) {
-    font-size: 2.2rem;
-  }
-`;
-
-const NameHighlight = styled.span`
-  color: var(--color-primary-600);
-  font-weight: 600;
-`;
-
-const WelcomeSubtitle = styled.p`
+const Title = styled.h1`
   font-size: 1.5rem;
-  color: var(--color-grey-600);
-  font-weight: 400;
-  margin: 0;
-`;
-
-const TimeFilterContainer = styled.div`
-  display: flex;
-  gap: 0.8rem;
-  background: var(--color-grey-100);
-  padding: 0.4rem;
-  border-radius: 12px;
-  flex-wrap: wrap;
-
-  @media (max-width: 768px) {
-    width: 100%;
-    
-    button {
-      flex: 1;
-      min-width: 0;
-    }
-  }
-`;
-
-const FilterButton = styled.button`
-  padding: 0.8rem 1.6rem;
-  border: none;
-  background: ${({ $active }) =>
-    $active ? 'var(--color-white-0)' : 'transparent'};
-  color: ${({ $active }) =>
-    $active ? 'var(--color-primary-600)' : 'var(--color-grey-600)'};
-  border-radius: 8px;
-  font-weight: ${({ $active }) => $active ? '600' : '400'};
-  font-size: 1.4rem;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  font-family: var(--font-body);
-  text-transform: capitalize;
-  box-shadow: ${({ $active }) =>
-    $active ? '0 2px 4px rgba(0, 0, 0, 0.1)' : 'none'};
-
-  &:hover {
-    background: ${({ $active }) =>
-    $active ? 'var(--color-white-0)' : 'rgba(255, 255, 255, 0.5)'};
-    color: var(--color-primary-600);
-  }
-`;
-
-const StatsSection = styled(StatsGrid)`
-  margin-bottom: 2.4rem;
-  gap: 1.6rem;
-  
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    gap: 1.2rem;
-  }
-`;
-
-const EnhancedStatCard = styled.div`
-  background: var(--color-white-0);
-  border: 1px solid var(--color-grey-200);
-  border-radius: 16px;
-  padding: 2rem;
-  display: flex;
-  align-items: flex-start;
-  gap: 1.6rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-  animation: ${fadeIn} 0.6s ease-out ${({ $delay }) => `${$delay * 0.1}s`} both;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 4px;
-    height: 100%;
-    background: ${({ $variant }) => {
-    switch ($variant) {
-      case 'success': return 'var(--color-green-500)';
-      case 'primary': return 'var(--color-primary-500)';
-      case 'warning': return 'var(--color-yellow-700)';
-      case 'info': return 'var(--color-blue-700)';
-      default: return 'var(--color-grey-400)';
-    }
-  }};
-  }
-
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    border-color: ${({ $variant }) => {
-    switch ($variant) {
-      case 'success': return 'var(--color-green-500)';
-      case 'primary': return 'var(--color-primary-500)';
-      case 'warning': return 'var(--color-yellow-700)';
-      case 'info': return 'var(--color-blue-700)';
-      default: return 'var(--color-grey-400)';
-    }
-  }};
-  }
-`;
-
-const StatIconWrapper = styled.div`
-  width: 4.8rem;
-  height: 4.8rem;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: ${({ $variant }) => {
-    switch ($variant) {
-      case 'success': return 'var(--color-green-100)';
-      case 'primary': return 'var(--color-primary-100)';
-      case 'warning': return 'var(--color-yellow-100)';
-      case 'info': return 'var(--color-blue-100)';
-      default: return 'var(--color-grey-100)';
-    }
-  }};
-  color: ${({ $variant }) => {
-    switch ($variant) {
-      case 'success': return 'var(--color-green-700)';
-      case 'primary': return 'var(--color-primary-600)';
-      case 'warning': return 'var(--color-yellow-700)';
-      case 'info': return 'var(--color-blue-700)';
-      default: return 'var(--color-grey-600)';
-    }
-  }};
-  font-size: 2rem;
-  flex-shrink: 0;
-`;
-
-const StatContent = styled.div`
-  flex: 1;
-  min-width: 0;
-`;
-
-const StatLabel = styled.div`
-  font-size: 1.3rem;
   font-weight: 500;
-  color: var(--color-grey-600);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 0.8rem;
+  color: #111827;
 `;
 
-const StatValue = styled.div`
-  font-size: 2.4rem;
-  font-weight: 600;
-  color: var(--color-grey-900);
-  font-family: var(--font-heading);
-  margin-bottom: 0.8rem;
-  line-height: 1.2;
-  
-  @media (max-width: 768px) {
-    font-size: 2rem;
-  }
-`;
-
-const StatChange = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-size: 1.3rem;
-  font-weight: 500;
-  color: ${({ $positive }) =>
-    $positive ? 'var(--color-green-700)' : 'var(--color-red-600)'};
-  
-  svg {
-    font-size: 1.2rem;
-  }
-`;
-
-const ContentSection = styled(Section)`
-  background: var(--color-white-0);
-  border: 1px solid var(--color-grey-200);
-  border-radius: 16px;
-  padding: 2.4rem;
-  margin-bottom: 2.4rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  animation: ${fadeIn} 0.6s ease-out 0.3s both;
-`;
-
-const StyledSectionHeader = styled.div`
+const WelcomeRow = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
   gap: 1rem;
+  align-items: center;
+  margin: 1rem 0;
 `;
 
-const SectionTitle = styled.h3`
+const WelcomeText = styled.h2`
   font-size: 2rem;
   font-weight: 500;
-  color: var(--color-grey-900);
-  margin: 0;
+  color: #111827;
 `;
 
-const ViewAllButton = styled(Link)`
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  color: var(--color-primary-600);
-  font-size: 1.4rem;
-  font-weight: 500;
-  text-decoration: none;
-  transition: all 0.2s ease;
-  padding: 0.6rem 1.2rem;
-  border-radius: 8px;
+const WelcomeName = styled.span`
+  color: #E8920A;
+`;
 
-  &:hover {
-    background: var(--color-primary-50);
-    color: var(--color-primary-700);
-  }
-
-  svg {
+const WelcomeSub = styled.p`
     font-size: 1.2rem;
-  }
+  color: #6B7280;
+  margin-top: 0.2rem;
 `;
 
-const TableContainer = styled.div`
-  overflow-x: auto;
-  border-radius: 12px;
-`;
-
-const OrderIdLink = styled(Link)`
-  color: var(--color-primary-600);
-  font-weight: 500;
-  text-decoration: none;
-  transition: color 0.2s ease;
-
-  &:hover {
-    color: var(--color-primary-700);
-    text-decoration: underline;
-  }
-`;
-
-const CustomerName = styled.span`
-  color: var(--color-grey-700);
-  font-weight: 400;
-`;
-
-const DateText = styled.span`
-  color: var(--color-grey-600);
-  font-size: 1.3rem;
-`;
-
-const AmountText = styled.span`
-  font-weight: 600;
-  color: var(--color-grey-900);
-  font-size: 1.4rem;
-`;
-
-const StatusBadge = styled.span`
-  display: inline-flex;
-  align-items: center;
-  padding: 0.4rem 1rem;
-  border-radius: 20px;
+const AddProductButton = styled.button`
+  border: none;
+  background: #E8920A;
+  color: #FFFFFF;
+  border-radius: 10px;
+  padding: 0.65rem 0.9rem;
   font-size: 1.2rem;
-  font-weight: 500;
-  text-transform: capitalize;
-  white-space: nowrap;
-
-  background-color: ${({ $status }) =>
-    $status === "completed" || $status === "delivered"
-      ? "var(--color-green-100)"
-      : $status === "shipped" || $status === "confirmed"
-        ? "var(--color-blue-100)"
-        : $status === "processing"
-          ? "var(--color-yellow-100)"
-          : "var(--color-red-100)"};
-
-  color: ${({ $status }) =>
-    $status === "completed" || $status === "delivered"
-      ? "var(--color-green-700)"
-      : $status === "shipped" || $status === "confirmed"
-        ? "var(--color-blue-700)"
-        : $status === "processing"
-          ? "var(--color-yellow-700)"
-          : "var(--color-red-700)"};
-`;
-
-const ActionButton = styled(Link)`
-  display: inline-flex;
-  align-items: center;
-  padding: 0.6rem 1.2rem;
-  background: var(--color-primary-50);
-  color: var(--color-primary-600);
-  border-radius: 8px;
-  font-size: 1.3rem;
-  font-weight: 500;
+  font-weight: 600;
+  cursor: pointer;
   text-decoration: none;
-  transition: all 0.2s ease;
+`;
 
-  &:hover {
-    background: var(--color-primary-100);
-    color: var(--color-primary-700);
-    transform: translateY(-1px);
+const KpiGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+
+  @media (max-width: 1080px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 `;
 
-const ProductsGrid = styled.div`
+const MainGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1.6rem;
-  
-  @media (max-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.2rem;
-  }
-  
-  @media (max-width: 480px) {
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 14px;
+  margin-top: 14px;
+
+  @media (max-width: 1080px) {
     grid-template-columns: 1fr;
   }
 `;
 
-const ProductCard = styled(Link)`
-  border: 1px solid var(--color-grey-200);
+const LeftCol = styled.div``;
+
+const RightCol = styled.div`
+  display: grid;
+  gap: 14px;
+  align-content: start;
+`;
+
+const LoadingGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+`;
+
+const MiniInfo = styled.div`
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
   border-radius: 12px;
-  overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  background: var(--color-white-0);
-  text-decoration: none;
-  display: block;
-
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    border-color: var(--color-primary-300);
-  }
-`;
-
-const ProductImageWrapper = styled.div`
-  position: relative;
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  background-color: #f8fafc;
-  padding: var(--spacing-sm);
-  border-bottom: 1px solid var(--color-grey-200);
-`;
-
-const ProductImage = styled.img`
-  width: auto;
-  height: auto;
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  display: block;
-  transition: transform 0.3s ease;
-
-  ${ProductCard}:hover & {
-    transform: scale(1.05);
-  }
-`;
-
-const SalesBadge = styled.div`
-  position: absolute;
-  top: 0.8rem;
-  right: 0.8rem;
-  background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-600));
-  color: var(--color-white-0);
+  padding: 0.8rem;
+  color: #6B7280;
   font-size: 1.1rem;
-  font-weight: 600;
-  padding: 0.4rem 0.8rem;
-  border-radius: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 `;
 
-const ProductInfo = styled.div`
-  padding: 1.6rem;
-`;
-
-const ProductName = styled.div`
-  font-weight: 500;
-  margin-bottom: 0.8rem;
-  color: var(--color-grey-900);
-  font-family: var(--font-heading);
-  font-size: 1.5rem;
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-`;
-
-const ProductMeta = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.5rem;
-`;
-
-const ViewCount = styled.span`
-  display: inline-flex;
-  align-items: center;
-  font-size: 0.85rem;
-  color: var(--color-grey-600, #64748b);
-  font-weight: 500;
-`;
-
-const StockStatus = styled.div`
-  color: ${({ $inStock }) =>
-    $inStock ? "var(--color-green-700)" : "var(--color-red-700)"};
-  font-weight: 500;
-  font-size: 1.3rem;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-
-  &::before {
-    content: '';
-    width: 0.8rem;
-    height: 0.8rem;
-    border-radius: 50%;
-    background: ${({ $inStock }) =>
-    $inStock ? "var(--color-green-500)" : "var(--color-red-600)"};
-  }
+const BottomHint = styled.div`
+  margin-top: 0.8rem;
 `;
 
 export default Dashboard;

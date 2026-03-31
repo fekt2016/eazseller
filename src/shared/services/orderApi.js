@@ -80,4 +80,8 @@ export const orderService = {
       throw error;
     }
   },
+  updateSellerOrderStatus: async (orderId, status) => {
+    const response = await api.post(`/order/${orderId}/status`, { status });
+    return response.data;
+  },
 };

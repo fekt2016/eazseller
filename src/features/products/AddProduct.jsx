@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import useAuth from '../../shared/hooks/useAuth';
 import useProduct from '../../shared/hooks/useProduct';
 import ProductForm from '../../shared/components/forms/ProductForm';
@@ -7,6 +7,26 @@ import styled from "styled-components";
 import { FaArrowLeft } from "react-icons/fa";
 import { compressImage } from '../../shared/utils/imageCompressor';
 import { toast } from 'react-toastify';
+import { productService } from '../../shared/services/productApi';
+import { PATHS } from '../../routes/routePaths';
+
+/** Upload at most N images at once to balance speed vs server load */
+const PRODUCT_IMAGE_UPLOAD_CONCURRENCY = 3;
+
+async function runWithConcurrency(taskFns, concurrency) {
+  const results = new Array(taskFns.length);
+  let nextIndex = 0;
+  async function worker() {
+    while (nextIndex < taskFns.length) {
+      const i = nextIndex;
+      nextIndex += 1;
+      results[i] = await taskFns[i]();
+    }
+  }
+  const n = Math.min(concurrency, taskFns.length);
+  await Promise.all(Array.from({ length: n }, () => worker()));
+  return results;
+}
 
 const AddProductPage = () => {
   const navigate = useNavigate();
@@ -32,7 +52,6 @@ const AddProductPage = () => {
       return;
     }
 
-    console.log("Form data before submission:", data.parentCategory);
     const formData = new FormData();
 
     try {
@@ -49,31 +68,68 @@ const AddProductPage = () => {
         return;
       }
 
-      // Process cover image
-      if (data.imageCover) {
-        try {
-          const compressedCover = await compressImage(data.imageCover);
-          formData.append("imageCover", compressedCover);
-        } catch (error) {
-          console.error("Cover image compression failed:", error);
-          formData.append("imageCover", data.imageCover);
-        }
-      }
+      // Use dedicated seller image upload endpoint for all product images
+      const coverSource = data.imageCover || data.images?.[0] || null;
+      const additionalSources = Array.isArray(data.images) ? data.images : [];
+      const combinedSources = [
+        ...(coverSource ? [coverSource] : []),
+        ...additionalSources.filter((img) => img !== coverSource),
+      ].slice(0, 8);
 
-      // Process additional images
-      if (data.images && data.images.length > 0) {
-        const compressionResults = await Promise.allSettled(
-          data.images.map(compressImage)
-        );
-
-        compressionResults.forEach((result, index) => {
-          if (result.status === "fulfilled") {
-            formData.append("newImages", result.value);
-          } else {
-            console.warn(`Image ${index} compression failed:`, result.reason);
-            formData.append("newImages", data.images[index]);
+      const imageTasks = combinedSources.map((source, i) => async () => {
+        let compressed = source;
+        if (source instanceof File) {
+          try {
+            compressed = await compressImage(source, {
+              quality: 0.85,
+              maxWidth: 1200,
+              maxHeight: 1200,
+            });
+          } catch {
+            compressed = source;
           }
-        });
+        }
+
+        if (compressed instanceof File) {
+          const uploaded = await productService.uploadProductImage(compressed);
+          return {
+            url: uploaded.url,
+            thumbnail: uploaded.thumbnail || uploaded.url,
+            medium: uploaded.medium || uploaded.url,
+            large: uploaded.large || uploaded.url,
+            publicId: uploaded.publicId,
+            blurhash: uploaded.blurhash || null,
+            position: i,
+            alt: data.name || "",
+          };
+        }
+        if (typeof compressed === "string" && compressed.trim()) {
+          return {
+            url: compressed,
+            thumbnail: compressed,
+            medium: compressed,
+            large: compressed,
+            publicId: null,
+            blurhash: null,
+            position: i,
+            alt: data.name || "",
+          };
+        }
+        return null;
+      });
+
+      const builtSlots = await runWithConcurrency(
+        imageTasks,
+        PRODUCT_IMAGE_UPLOAD_CONCURRENCY,
+      );
+      const uploadedImages = builtSlots
+        .filter(Boolean)
+        .sort((a, b) => a.position - b.position)
+        .map((img, idx) => ({ ...img, position: idx }));
+
+      if (uploadedImages.length === 0) {
+        toast.error("At least one product image is required");
+        return;
       }
 
       // Append basic product data
@@ -82,6 +138,8 @@ const AddProductPage = () => {
       formData.append("description", data.description);
       formData.append("parentCategory", data.parentCategory);
       formData.append("subCategory", data.subCategory);
+      formData.append("images", JSON.stringify(uploadedImages));
+      formData.append("imageCover", uploadedImages[0].url);
 
       // Calculate total stock and price
       let totalStock = 0;
@@ -150,7 +208,10 @@ const AddProductPage = () => {
         // Ensure attributes have values
         const attributes = variant.attributes.map((attr) => ({
           key: attr.key,
-          value: attr.value || "N/A", // Default value if empty
+          value:
+            attr.value != null && String(attr.value).trim() !== ''
+              ? String(attr.value).trim()
+              : '',
         }));
 
         // Separate existing images (strings) from new images (Files)
@@ -181,7 +242,7 @@ const AddProductPage = () => {
           });
         }
 
-        return {
+        const variantPayload = {
           ...variant,
           attributes,
           price: variant.price ? Number(variant.price) : 0,
@@ -194,9 +255,15 @@ const AddProductPage = () => {
               category: data.category,
               variants: variant,
             }),
-          // Include existing images (URLs) in the variant object
           images: existingVariantImages,
         };
+        const compareAt = parseFloat(variant.originalPrice);
+        if (!Number.isNaN(compareAt) && compareAt > 0) {
+          variantPayload.originalPrice = compareAt;
+        } else {
+          delete variantPayload.originalPrice;
+        }
+        return variantPayload;
       });
 
       // Wait for all variant image processing to complete
@@ -205,36 +272,45 @@ const AddProductPage = () => {
       // Append variants as JSON string
       formData.append("variants", JSON.stringify(formattedVariants));
 
-      // Append specifications - format correctly for backend
+      // Append specifications - align with Product model shape
       const specifications = {
-        material: (data.specifications?.material || []).map((mat) => ({
-          value: Array.isArray(mat.value) ? mat.value[0] || "" : (mat.value || ""),
-          hexCode: mat.hexCode || "",
-        })).filter((mat) => mat.value || mat.hexCode), // Filter out empty materials
-        weight: data.specifications?.weight ? (() => {
-          // Parse weight string (e.g., "0.5kg", "500g") into object
-          const weightStr = String(data.specifications.weight).trim();
-          if (!weightStr) return null;
-
-          const weightMatch = weightStr.match(/([\d.]+)\s*([a-z]+)/i);
-          if (weightMatch) {
-            return {
-              value: parseFloat(weightMatch[1]) || 0,
-              unit: weightMatch[2].toLowerCase() || 'g',
-            };
+        material: (data.specifications?.material || [])
+          .map((mat) => ({
+            value: Array.isArray(mat.value) ? mat.value[0] || '' : (mat.value || ''),
+            hexCode: mat.hexCode || '',
+          }))
+          .filter((mat) => mat.value || mat.hexCode),
+        weight: data.specifications?.weight?.value
+          ? {
+            value: Number(data.specifications.weight.value) || 0,
+            unit: data.specifications.weight.unit || 'kg',
           }
-          // If no unit found, try to extract number and default to 'g'
-          const numMatch = weightStr.match(/([\d.]+)/);
-          return {
-            value: numMatch ? parseFloat(numMatch[1]) : 0,
-            unit: 'g',
-          };
-        })() : null,
-        dimension: data.specifications?.dimension || "",
+          : null,
+        dimensions:
+          data.specifications?.dimensions &&
+          (data.specifications.dimensions.length ||
+            data.specifications.dimensions.width ||
+            data.specifications.dimensions.height)
+            ? {
+              length: Number(data.specifications.dimensions.length) || 0,
+              width: Number(data.specifications.dimensions.width) || 0,
+              height: Number(data.specifications.dimensions.height) || 0,
+              unit: data.specifications.dimensions.unit || 'cm',
+            }
+            : null,
       };
 
       formData.append("specifications", JSON.stringify(specifications));
       formData.append("manufacturer", data.manufacturer || "");
+      if (Array.isArray(data.tags) && data.tags.length > 0) {
+        formData.append('tags', JSON.stringify(data.tags));
+      }
+      if (data.metaTitle) {
+        formData.append('metaTitle', data.metaTitle.trim());
+      }
+      if (data.metaDescription) {
+        formData.append('metaDescription', data.metaDescription.trim());
+      }
 
       // Handle warranty - ensure it's ALWAYS sent as a plain string (backend will parse and convert to object)
       // This prevents validation errors from Mongoose trying to cast objects to strings
@@ -281,6 +357,7 @@ const AddProductPage = () => {
       if (data.promotionKey) {
         formData.append("promotionKey", data.promotionKey.trim());
       }
+      formData.append("status", data.productStatus || "active");
       // Append video if present
       if (data.video) {
         // If it's a File, multer will pick it up from req.files
@@ -291,15 +368,15 @@ const AddProductPage = () => {
       // Backend sets seller from auth; we append for consistency when we have it
       formData.append("seller", sellerId);
 
-      // Log form data for debugging
-      for (let [key, value] of formData.entries()) {
-        console.log(key, "→", value);
+      if (import.meta.env.DEV) {
+        // eslint-disable-next-line no-console
+        console.log('[AddProduct] submitting keys:', [...formData.keys()]);
       }
 
       // Submit form data
       createProduct.mutate(formData, {
         onSuccess: () => {
-          navigate("/dashboard/products");
+          navigate(PATHS.PRODUCTS);
         },
         onError: (error) => {
           console.error("Creation error:", error);
@@ -315,13 +392,20 @@ const AddProductPage = () => {
   return (
     <PageContainer>
       <HeaderContainer>
-        <BackButton onClick={() => navigate("/seller/dashboard/products")}>
+        <Breadcrumb aria-label="Breadcrumb">
+          <BreadcrumbLink to={PATHS.PRODUCTS}>
+            Products
+          </BreadcrumbLink>
+          <BreadcrumbSep>/</BreadcrumbSep>
+          <BreadcrumbCurrent>Add new product</BreadcrumbCurrent>
+        </Breadcrumb>
+        <BackButton type="button" onClick={() => navigate(PATHS.PRODUCTS)}>
           <FaArrowLeft />
           Back to Products
         </BackButton>
-        <PageTitle>Add New Product</PageTitle>
+        <PageTitle>Add new product</PageTitle>
         <HeaderDescription>
-          Fill out the form below to add a new product to your store
+          Fill out the form below to list a product in your store
         </HeaderDescription>
       </HeaderContainer>
 
@@ -330,6 +414,7 @@ const AddProductPage = () => {
           mode="add"
           onSubmit={handleSubmit}
           isSubmitting={createProduct.isPending}
+          hidePageHeader
         />
       </FormContainer>
     </PageContainer>
@@ -339,8 +424,8 @@ const AddProductPage = () => {
 export default AddProductPage;
 
 const PageContainer = styled.div`
-  padding: var(--spacing-md);
-  background-color: var(--color-grey-50);
+  padding: 1rem;
+  background-color: #F9F8F5;
   min-height: 100vh;
   max-width: 1200px;
   margin: 0 auto;
@@ -351,58 +436,78 @@ const HeaderContainer = styled.div`
   position: relative;
 `;
 
+const Breadcrumb = styled.nav`
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.8125rem;
+  margin-bottom: 0.75rem;
+`;
+
+const BreadcrumbLink = styled(Link)`
+  color: #6b7280;
+  text-decoration: none;
+  &:hover {
+    color: #e8920a;
+  }
+`;
+
+const BreadcrumbSep = styled.span`
+  color: #9ca3af;
+`;
+
+const BreadcrumbCurrent = styled.span`
+  color: #111827;
+  font-weight: 500;
+`;
+
 const BackButton = styled.button`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: var(--color-white-0);
-  border: 1px solid var(--color-grey-200);
+  background: #FFFFFF;
+  border: 1px solid #F1EFE8;
   border-radius: 6px;
-  padding: var(--spacing-sm) var(--spacing-md);
-  font-size: var(--font-size-md);
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
   font-weight: 400;
-  color: var(--color-grey-600);
+  color: #6B7280;
   cursor: pointer;
   transition: all 0.2s;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 
   &:hover {
-    background: var(--color-grey-100);
-    border-color: var(--color-grey-300);
+    background: #F9F8F5;
+    border-color: #E5E7EB;
     transform: translateY(-1px);
   }
 
   svg {
-    font-size: var(--font-size-sm);
+    font-size: 0.875rem;
   }
 `;
 
 const PageTitle = styled.h1`
-  font-size: var(--font-size-2xl);
+  font-size: 1.125rem;
   font-weight: 500;
-  color: var(--color-grey-900);
-  margin: var(--spacing-md) 0 var(--spacing-xs);
+  color: #111827;
+  margin: 1rem 0 0.375rem;
 `;
 
 const HeaderDescription = styled.p`
-  font-size: var(--font-size-lg);
+  font-size: 0.8125rem;
   font-weight: 400;
-  color: var(--color-grey-500);
+  color: #9CA3AF;
   max-width: 700px;
   line-height: 1.5;
 `;
 
 const FormContainer = styled.div`
-  background: var(--color-white-0);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-md);
-  padding: var(--spacing-lg);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-
-  &:hover {
-    box-shadow: var(--shadow-lg);
-    transform: translateY(-2px);
-  }
+  background: #ffffff;
+  border-radius: 12px;
+  border: 0.5px solid #e8e4dc;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  padding: 1.5rem;
 
   @media (max-width: 768px) {
     padding: 1.5rem;

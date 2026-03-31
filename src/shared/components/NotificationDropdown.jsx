@@ -74,18 +74,18 @@ const NotificationDropdown = ({ unreadCount }) => {
   const getNotificationColor = (type) => {
     switch (type) {
       case 'order':
-        return 'var(--color-primary-500, #007bff)';
+        return '#E8920A';
       case 'delivery':
-        return 'var(--color-blue-500, #17a2b8)';
+        return '#185FA5';
       case 'payout':
       case 'finance':
-        return 'var(--color-green-500, #28a745)';
+        return '#3B6D11';
       case 'support':
-        return 'var(--color-orange-500, #ffc107)';
+        return '#E8920A';
       case 'product':
-        return 'var(--color-purple-500, #6f42c1)';
+        return '#5B21B6';
       default:
-        return 'var(--color-grey-500, #6c757d)';
+        return '#9CA3AF';
     }
   };
 
@@ -309,21 +309,21 @@ const DropdownContainer = styled.div`
 
 const IconButton = styled.button`
   position: relative;
-  background: var(--color-grey-100, #f3f4f6);
+  background: #F9F8F5;
   border: none;
   width: 40px;
   height: 40px;
   border-radius: 10px;
   cursor: pointer;
   font-size: 18px;
-  color: var(--color-grey-900, #111827);
+  color: #111827;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s;
 
   &:hover {
-    background: var(--color-grey-200, #e5e7eb);
+    background: #F1EFE8;
   }
 `;
 
@@ -331,7 +331,7 @@ const NotificationBadge = styled.span`
   position: absolute;
   top: -5px;
   right: -5px;
-  background: var(--color-red-600, #dc2626);
+  background: #A32D2D;
   color: white;
   font-size: 10px;
   font-weight: 600;
@@ -353,7 +353,7 @@ const DropdownMenu = styled.div`
   background: white;
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-  border: 1px solid var(--color-grey-200, #e5e7eb);
+  border: 1px solid #F1EFE8;
   z-index: 1000;
   display: flex;
   flex-direction: column;
@@ -367,7 +367,7 @@ const DropdownMenu = styled.div`
 
 const DropdownHeader = styled.div`
   padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--color-grey-200, #e5e7eb);
+  border-bottom: 1px solid #F1EFE8;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -376,12 +376,12 @@ const DropdownHeader = styled.div`
     margin: 0;
     font-size: 1.125rem;
     font-weight: 600;
-    color: var(--color-grey-900, #111827);
+    color: #111827;
   }
 `;
 
 const UnreadBadge = styled.span`
-  background: var(--color-primary-500, #007bff);
+  background: #E8920A;
   color: white;
   padding: 0.25rem 0.75rem;
   border-radius: 12px;
@@ -404,15 +404,15 @@ const NotificationItem = styled.div`
   cursor: pointer;
   transition: background 0.2s;
   position: relative;
-  border-bottom: 1px solid var(--color-grey-100, #f3f4f6);
+  border-bottom: 1px solid #F9F8F5;
 
   ${props => props.unread && `
-    background: var(--color-primary-50, #f0f7ff);
-    border-left: 3px solid var(--color-primary-500, #007bff);
+    background: #FFFDF9;
+    border-left: 3px solid #E8920A;
   `}
 
   &:hover {
-    background: var(--color-grey-50, #f9fafb);
+    background: #F9F8F5;
   }
 
   &:last-child {
@@ -442,12 +442,12 @@ const NotificationTitle = styled.h4`
   margin: 0 0 0.25rem 0;
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--color-grey-900, #111827);
+  color: #111827;
 `;
 
 const NotificationMessage = styled.p`
   margin: 0 0 0.25rem 0;
-  color: var(--color-grey-600, #4b5563);
+  color: #6B7280;
   font-size: 0.8125rem;
   line-height: 1.4;
   display: -webkit-box;
@@ -457,7 +457,7 @@ const NotificationMessage = styled.p`
 `;
 
 const NotificationTime = styled.span`
-  color: var(--color-grey-500, #6b7280);
+  color: #9CA3AF;
   font-size: 0.75rem;
 `;
 
@@ -465,7 +465,7 @@ const UnreadDot = styled.div`
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--color-primary-500, #007bff);
+  background: #E8920A;
   flex-shrink: 0;
   margin-top: 0.5rem;
 `;
@@ -482,7 +482,7 @@ const DeleteButton = styled.button`
   height: 24px;
   border: none;
   background: transparent;
-  color: var(--color-grey-500, #6b7280);
+  color: #9CA3AF;
   border-radius: 4px;
   display: flex;
   align-items: center;
@@ -493,8 +493,8 @@ const DeleteButton = styled.button`
   opacity: 0.6;
 
   &:hover {
-    background: var(--color-red-100, #fee2e2);
-    color: var(--color-red-600, #dc2626);
+    background: #FCEBEB;
+    color: #A32D2D;
     opacity: 1;
   }
 `;
@@ -502,7 +502,7 @@ const DeleteButton = styled.button`
 const EmptyState = styled.div`
   padding: 3rem 1.25rem;
   text-align: center;
-  color: var(--color-grey-500, #6b7280);
+  color: #9CA3AF;
 
   svg {
     font-size: 2.5rem;
@@ -518,8 +518,8 @@ const EmptyState = styled.div`
 
 const DropdownFooter = styled.div`
   padding: 0.75rem 1.25rem;
-  border-top: 1px solid var(--color-grey-200, #e5e7eb);
-  background: var(--color-grey-50, #f9fafb);
+  border-top: 1px solid #F1EFE8;
+  background: #F9F8F5;
 `;
 
 const ViewAllButton = styled.button`
@@ -527,7 +527,7 @@ const ViewAllButton = styled.button`
   padding: 0.625rem;
   background: transparent;
   border: none;
-  color: var(--color-primary-500, #007bff);
+  color: #E8920A;
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
@@ -539,7 +539,7 @@ const ViewAllButton = styled.button`
   transition: background 0.2s;
 
   &:hover {
-    background: var(--color-primary-50, #f0f7ff);
+    background: #FFFDF9;
   }
 `;
 

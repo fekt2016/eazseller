@@ -5,47 +5,47 @@ import { Section } from '../ui/SpacingSystem';
 import Button from '../ui/Button';
 
 const ReplyContainer = styled(Section)`
-  padding: var(--spacing-lg);
+  padding: 1rem;
 `;
 
 const ReplyForm = styled.form`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 1rem;
 `;
 
 const TextArea = styled.textarea`
   width: 100%;
   min-height: 12rem;
-  padding: var(--spacing-md);
-  border: 1px solid var(--color-grey-300);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-md);
-  font-family: var(--font-body);
-  color: var(--color-grey-900);
-  background: var(--color-white-0);
+  padding: 1rem;
+  border: 1px solid #E5E7EB;
+  border-radius: 9px;
+  font-size: 0.9rem;
+  
+  color: #111827;
+  background: #FFFFFF;
   resize: vertical;
   transition: all 0.2s ease;
   
   &:focus {
     outline: none;
-    border-color: var(--color-primary-500);
+    border-color: #E8920A;
     box-shadow: 0 0 0 3px rgba(43, 122, 255, 0.1);
   }
   
   &::placeholder {
-    color: var(--color-grey-400);
+    color: #D1D5DB;
   }
 `;
 
 const AttachmentsSection = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-sm);
-  background: var(--color-grey-50);
-  border-radius: var(--border-radius-md);
-  border: 1px solid var(--color-grey-200);
+  gap: 1rem;
+  padding: 1rem;
+  background: #F9F8F5;
+  border-radius: 9px;
+  border: 1px solid #F1EFE8;
   min-height: 6rem;
   align-items: flex-start;
 `;
@@ -54,10 +54,10 @@ const AttachmentPreview = styled.div`
   position: relative;
   width: 8rem;
   height: 8rem;
-  border: 1px solid var(--color-grey-300);
-  border-radius: var(--border-radius-md);
+  border: 1px solid #E5E7EB;
+  border-radius: 9px;
   overflow: hidden;
-  background: var(--color-white-0);
+  background: #FFFFFF;
 `;
 
 const AttachmentImage = styled.img`
@@ -67,14 +67,14 @@ const AttachmentImage = styled.img`
 `;
 
 const AttachmentName = styled.div`
-  padding: var(--spacing-xs);
-  font-size: var(--font-size-xs);
-  color: var(--color-grey-700);
+  padding: 1rem;
+  font-size: 0.8rem;
+  color: #374151;
   text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  background: var(--color-white-0);
+  background: #FFFFFF;
 `;
 
 const RemoveButton = styled.button`
@@ -85,7 +85,7 @@ const RemoveButton = styled.button`
   height: 2.4rem;
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.6);
-  color: var(--color-white-0);
+  color: #FFFFFF;
   border: none;
   display: flex;
   align-items: center;
@@ -106,20 +106,20 @@ const FileInput = styled.input`
 const FileInputLabel = styled.label`
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--color-white-0);
-  border: 1px solid var(--color-grey-300);
-  border-radius: var(--border-radius-md);
-  color: var(--color-grey-700);
-  font-size: var(--font-size-sm);
+  gap: 1rem;
+  padding: 1rem 1rem;
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 9px;
+  color: #374151;
+  font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-family: var(--font-body);
+  
   
   &:hover {
-    background: var(--color-grey-50);
-    border-color: var(--color-primary-500);
+    background: #F9F8F5;
+    border-color: #E8920A;
   }
 `;
 
@@ -127,7 +127,7 @@ const ActionsRow = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: 1rem;
   
   @media (max-width: 640px) {
     flex-direction: column;

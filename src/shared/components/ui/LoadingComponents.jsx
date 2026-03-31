@@ -34,10 +34,10 @@ export const LoadingSpinner = styled(BaseSpinner)`
       default: return "24px";
     }
   }};
-  border-top: 2px solid var(--color-primary-500);
-  border-right: 2px solid var(--color-primary-500);
-  border-bottom: 2px solid var(--color-grey-300);
-  border-left: 2px solid var(--color-grey-300);
+  border-top: 2px solid #E8920A;
+  border-right: 2px solid #E8920A;
+  border-bottom: 2px solid #E5E7EB;
+  border-left: 2px solid #E5E7EB;
 `;
 
 // Button Spinner Component - Perfect for form submissions
@@ -68,10 +68,10 @@ export const ButtonSpinner = styled(BaseSpinner)`
 export const PageSpinner = styled(BaseSpinner)`
   width: 60px;
   height: 60px;
-  border-top: 3px solid var(--color-primary-500);
-  border-right: 3px solid var(--color-primary-500);
-  border-bottom: 3px solid var(--color-grey-200);
-  border-left: 3px solid var(--color-grey-200);
+  border-top: 3px solid #E8920A;
+  border-right: 3px solid #E8920A;
+  border-bottom: 3px solid #F1EFE8;
+  border-left: 3px solid #F1EFE8;
 `;
 
 // Dots Spinner Component - For modern UI
@@ -148,7 +148,7 @@ export const PulseSpinner = styled.div`
     }
   }};
   border-radius: 50%;
-  background: var(--color-primary-500);
+  background: #E8920A;
   animation: ${pulse} 2s infinite ease-in-out;
 `;
 
@@ -160,23 +160,23 @@ export const PulseSpinner = styled.div`
 export const Skeleton = styled.div`
   background: linear-gradient(
     90deg,
-    var(--color-grey-200) 25%,
-    var(--color-grey-300) 50%,
-    var(--color-grey-200) 75%
+    #F1EFE8 25%,
+    #E5E7EB 50%,
+    #F1EFE8 75%
   );
   background-size: 200% 100%;
   animation: ${shimmer} 2s infinite;
-  border-radius: var(--border-radius-md);
+  border-radius: ${({ circle, $radius }) => circle ? '50%' : $radius || '9px'};
+  flex-shrink: 0;
   ${({ width = "100%" }) => `width: ${width};`}
   ${({ height = "1rem" }) => `height: ${height};`}
-  ${({ circle }) => circle && "border-radius: 50%;"}
 `;
 
 // Skeleton Grid Component
 export const SkeletonGrid = ({
   count = 6,
   itemHeight = "200px",
-  gap = "var(--spacing-md)",
+  gap = "1rem",
   ...props
 }) => {
   return (
@@ -213,18 +213,110 @@ export const SkeletonCard = ({ ...props }) => {
 };
 
 const SkeletonCardWrapper = styled.div`
-  background: var(--color-white-0);
-  border-radius: var(--border-radius-xl);
+  background: #FFFFFF;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--color-grey-200);
+  
+  border: 1px solid #F1EFE8;
 `;
 
 const SkeletonCardContent = styled.div`
-  padding: var(--spacing-md);
+  padding: 1rem;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: 1rem;
+`;
+
+// ============================================
+// PAGE-LEVEL SKELETON LAYOUTS
+// ============================================
+
+// Row of KPI / stat card skeletons — for dashboards and summary sections
+export const SkeletonStatCards = ({ count = 4 }) => (
+  <SkeletonStatGrid $count={count}>
+    {Array.from({ length: count }).map((_, i) => (
+      <SkeletonStatBox key={i}>
+        <Skeleton width="40%" height="11px" />
+        <Skeleton width="55%" height="26px" />
+        <Skeleton width="45%" height="11px" />
+      </SkeletonStatBox>
+    ))}
+  </SkeletonStatGrid>
+);
+
+const SkeletonStatGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(${({ $count }) => $count}, minmax(0, 1fr));
+  gap: 12px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const SkeletonStatBox = styled.div`
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+`;
+
+// Table / list skeleton — for orders, transactions, tickets, variants, etc.
+export const SkeletonTableRows = ({ count = 6, hasImage = false }) => (
+  <SkeletonTableBox>
+    <SkeletonTHead>
+      {hasImage && <Skeleton width="44px" height="11px" />}
+      <Skeleton width="25%" height="11px" />
+      <Skeleton width="15%" height="11px" />
+      <Skeleton width="12%" height="11px" />
+      <Skeleton width="12%" height="11px" />
+      <Skeleton width="8%" height="11px" />
+    </SkeletonTHead>
+    {Array.from({ length: count }).map((_, i) => (
+      <SkeletonTRow key={i}>
+        {hasImage && <Skeleton width="44px" height="44px" $radius="9px" />}
+        <Skeleton width="30%" height="14px" />
+        <Skeleton width="18%" height="14px" />
+        <Skeleton width="14%" height="22px" $radius="20px" />
+        <Skeleton width="14%" height="22px" $radius="20px" />
+        <Skeleton width="10%" height="14px" />
+      </SkeletonTRow>
+    ))}
+  </SkeletonTableBox>
+);
+
+const SkeletonTableBox = styled.div`
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  overflow: hidden;
+`;
+
+const SkeletonTHead = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.75rem 1.25rem;
+  border-bottom: 0.5px solid #F1EFE8;
+  background: #FAFAF9;
+`;
+
+const SkeletonTRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.875rem 1.25rem;
+  border-bottom: 0.5px solid #F9F8F5;
+
+  &:last-child {
+    border-bottom: none;
+  }
 `;
 
 // ============================================
@@ -251,40 +343,40 @@ export const EmptyState = ({
 
 const EmptyStateWrapper = styled.div`
   text-align: center;
-  padding: var(--spacing-2xl);
-  color: var(--text-muted);
-  animation: ${fadeIn} var(--transition-normal) ease-out;
+  padding: 1rem;
+  color: #9CA3AF;
+  animation: ${fadeIn} 0.12s ease-out;
   max-width: 400px;
   margin: 0 auto;
-  font-family: var(--font-body);
+  
 `;
 
 const EmptyStateIcon = styled.div`
   font-size: 4rem;
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: 1rem;
   opacity: 0.5;
-  animation: ${float} 3s var(--transition-bounce) infinite;
-  color: var(--color-primary-500);
+  animation: ${float} 3s 0.12s infinite;
+  color: #E8920A;
 `;
 
 const EmptyStateTitle = styled.h3`
-  color: var(--text-secondary);
-  margin-bottom: var(--spacing-sm);
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-semibold);
-  font-family: var(--font-heading);
+  color: #6B7280;
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  
 `;
 
 const EmptyStateMessage = styled.p`
-  color: var(--text-muted);
-  margin-bottom: var(--spacing-xl);
-  font-size: var(--font-size-md);
-  font-family: var(--font-body);
+  color: #9CA3AF;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  
   line-height: 1.6;
 `;
 
 const EmptyStateAction = styled.div`
-  margin-top: var(--spacing-lg);
+  margin-top: 1rem;
 `;
 
 // Error State Component
@@ -306,19 +398,19 @@ export const ErrorState = ({
 };
 
 const ErrorStateWrapper = styled(EmptyStateWrapper)`
-  color: var(--color-red-600);
+  color: #A32D2D;
 `;
 
 const ErrorStateIcon = styled(EmptyStateIcon)`
-  color: var(--color-red-600);
+  color: #A32D2D;
 `;
 
 const ErrorStateTitle = styled(EmptyStateTitle)`
-  color: var(--color-red-600);
+  color: #A32D2D;
 `;
 
 const ErrorStateMessage = styled(EmptyStateMessage)`
-  color: var(--text-secondary);
+  color: #6B7280;
 `;
 
 const ErrorStateAction = styled(EmptyStateAction)``;
@@ -342,19 +434,19 @@ export const SuccessState = ({
 };
 
 const SuccessStateWrapper = styled(EmptyStateWrapper)`
-  color: var(--color-green-700);
+  color: #3B6D11;
 `;
 
 const SuccessStateIcon = styled(EmptyStateIcon)`
-  color: var(--color-green-700);
+  color: #3B6D11;
 `;
 
 const SuccessStateTitle = styled(EmptyStateTitle)`
-  color: var(--color-green-700);
+  color: #3B6D11;
 `;
 
 const SuccessStateMessage = styled(EmptyStateMessage)`
-  color: var(--text-secondary);
+  color: #6B7280;
 `;
 
 const SuccessStateAction = styled(EmptyStateAction)``;
@@ -390,19 +482,19 @@ const LoadingStateWrapper = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--spacing-2xl);
-  gap: var(--spacing-lg);
+  padding: 1rem;
+  gap: 1rem;
   text-align: center;
-  animation: ${fadeIn} var(--transition-normal) ease-out;
+  animation: ${fadeIn} 0.12s ease-out;
   min-height: 200px;
-  font-family: var(--font-body);
+  
 `;
 
 const LoadingMessage = styled.p`
-  color: var(--text-secondary);
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-medium);
-  font-family: var(--font-body);
+  color: #6B7280;
+  font-size: 1.1rem;
+  font-weight: 500;
+  
   margin: 0;
 `;
 
@@ -438,23 +530,23 @@ const ProgressBarWrapper = styled.div`
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 1rem;
   
   ${({ $size }) => {
     switch ($size) {
       case "sm":
-        return `font-size: var(--font-size-xs);`;
+        return `font-size: 0.8rem;`;
       case "lg":
-        return `font-size: var(--font-size-md);`;
+        return `font-size: 0.9rem;`;
       default:
-        return `font-size: var(--font-size-sm);`;
+        return `font-size: 0.875rem;`;
     }
   }}
 `;
 
 const ProgressLabel = styled.span`
-  font-weight: var(--font-semibold);
-  color: var(--text-secondary);
+  font-weight: 600;
+  color: #6B7280;
   font-size: inherit;
 `;
 
@@ -467,8 +559,8 @@ const ProgressTrack = styled.div`
       default: return "8px";
     }
   }};
-  background-color: var(--color-grey-200);
-  border-radius: var(--border-radius-full);
+  background-color: #F1EFE8;
+  border-radius: ;
   overflow: hidden;
   position: relative;
 `;
@@ -479,18 +571,18 @@ const ProgressFill = styled.div`
   background: ${({ $color }) => {
     switch ($color) {
       case "primary":
-        return "var(--color-primary-500)";
+        return "#E8920A";
       case "success":
-        return "var(--color-green-700)";
+        return "#3B6D11";
       case "danger":
-        return "var(--color-red-600)";
+        return "#A32D2D";
       case "warning":
-        return "var(--color-yellow-700)";
+        return "#854F0B";
       default:
-        return "var(--color-primary-500)";
+        return "#E8920A";
     }
   }};
-  border-radius: var(--border-radius-full);
+  border-radius: ;
   transition: width 0.3s ease;
   animation: ${fadeIn} 0.3s ease-out;
 `;
@@ -505,6 +597,8 @@ export default {
   Skeleton,
   SkeletonGrid,
   SkeletonCard,
+  SkeletonStatCards,
+  SkeletonTableRows,
   EmptyState,
   ErrorState,
   SuccessState,

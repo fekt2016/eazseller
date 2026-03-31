@@ -20,69 +20,55 @@ const Header = ({ user, onToggleSidebar, isSidebarOpen = false }) => {
       </LeftSection>
       <TopbarRight>
         {user ? (
-          <>
-            <UserProfile>
-              <UserAvatar className="avatar-container">
-                {user.avatar ? (
-                  <img
-                    src={getOptimizedImageUrl(user.avatar, IMAGE_SLOTS.AVATAR)}
-                    alt={user.name || 'User'}
-                    loading="eager"
-                    fetchpriority="high"
-                  />
-                ) : (
-                  user.name?.[0] || 'U'
-                )}
-              </UserAvatar>
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                <div style={{ fontWeight: 600 }}>{user.name || 'User'}</div>
-                <div style={{ fontSize: "12px", color: "var(--color-grey-500)" }}>
-                  {user.shopName || 'Seller'}
-                </div>
-              </div>
-            </UserProfile>
-          </>
+          <UserChip>
+            <UserAvatar className="avatar-container">
+              {user.avatar ? (
+                <img
+                  src={getOptimizedImageUrl(user.avatar, IMAGE_SLOTS.AVATAR)}
+                  alt={user.name || 'User'}
+                  loading="eager"
+                  fetchpriority="high"
+                />
+              ) : (
+                user.name?.[0] || 'U'
+              )}
+            </UserAvatar>
+            <UserTextWrap>
+              <UserName>{user.name || 'User'}</UserName>
+              <StoreName>{user.shopName || 'Seller'}</StoreName>
+            </UserTextWrap>
+          </UserChip>
         ) : (
-          <div style={{ display: "flex", alignItems: "center", gap: "var(--spacing-md)" }}>
-            <Link
-              to={PATHS.LOGIN}
-              style={{
-                color: "var(--color-primary-500)",
-                fontSize: "var(--font-size-sm)",
-                textDecoration: "none",
-                fontWeight: "var(--font-semibold)",
-                padding: "var(--spacing-xs) var(--spacing-sm)",
-                borderRadius: "var(--border-radius-md)",
-                transition: "var(--transition-base)"
-              }}
-              onMouseEnter={(e) => e.target.style.background = "var(--color-primary-50)"}
-              onMouseLeave={(e) => e.target.style.background = "transparent"}
-            >
+          <PublicActions>
+            <LoginLink to={PATHS.LOGIN}>
               Login
-            </Link>
-          </div>
+            </LoginLink>
+          </PublicActions>
         )}
       </TopbarRight>
     </Container>
   );
 };
 
-const UserProfile = styled.div`
+const UserChip = styled.div`
   display: flex;
   align-items: center;
   gap: 10px;
-  cursor: pointer;
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 9999px;
+  padding: 0.4rem 0.7rem 0.4rem 0.4rem;
 `;
 
 const UserAvatar = styled.div`
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: var(--color-primary-500);
+  background: #E8920A;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-white-0);
+  color: #FFFFFF;
   font-weight: 600;
   font-size: 18px;
   overflow: hidden;
@@ -109,13 +95,13 @@ const HamburgerButton = styled.button`
   border-radius: 10px;
   cursor: pointer;
   font-size: 20px;
-  color: var(--color-grey-900);
+  color: #111827;
   align-items: center;
   justify-content: center;
-  transition: var(--transition-base);
+  transition: 0.12s;
 
   &:hover {
-    background: var(--color-grey-100);
+    background: #F9F8F5;
   }
 
   @media ${devicesMax.md} {
@@ -130,19 +116,54 @@ const TopbarRight = styled.div`
 `;
 
 const Container = styled.header`
-  height: var(--header-height);
-  background: var(--color-white-0);
+  height: 52px;
+  background: #FFFFFF;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 2rem;
-  box-shadow: var(--shadow-sm);
+  padding: 0 1.2rem;
+  border-bottom: 0.5px solid #F1EFE8;
   position: sticky;
   top: 0;
   z-index: 1000;
 
   @media (max-width: 768px) {
     padding: 0 1rem;
+  }
+`;
+
+const UserTextWrap = styled.div`
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+`;
+
+const UserName = styled.div`
+  color: #111827;
+  font-size: 1.2rem;
+  font-weight: 600;
+`;
+
+const StoreName = styled.div`
+  color: #6B7280;
+  font-size: 1.1rem;
+`;
+
+const PublicActions = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
+const LoginLink = styled(Link)`
+  color: #E8920A;
+  font-size: 1.2rem;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 0.35rem 0.7rem;
+  border-radius: 8px;
+
+  &:hover {
+    background: #FDF3E3;
   }
 `;
 

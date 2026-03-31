@@ -243,146 +243,128 @@ export const SellerDiscountPage = () => {
   };
 
   return (
-    <DashboardContainer>
-      <ContentContainer>
-        <Title>
-          <span>Promotion Management</span>
-          <HeaderActions>
-            {activeTab === "discounts" ? (
-              <PrimaryButton onClick={() => openDiscountModal()}>
-                <FaPlus /> Create Discount
-              </PrimaryButton>
-            ) : (
-              <PrimaryButton onClick={openCouponModal}>
-                <FaPlus /> Create Coupon Batch
-              </PrimaryButton>
-            )}
-          </HeaderActions>
-        </Title>
-
-        <TabContainer>
-          <TabButton
-            active={activeTab === "discounts"}
+    <DiscountPage>
+      {/* ── Header: title + tabs + action ── */}
+      <PageHeader>
+        <PageTitle>Promotion Management</PageTitle>
+        <TabBar>
+          <TabSegment
+            $active={activeTab === "discounts"}
             onClick={() => setActiveTab("discounts")}
           >
-            <FaTag /> Discounts
-          </TabButton>
-          <TabButton
-            active={activeTab === "coupons"}
+            <FaTag size={11} /> Discounts
+            {discounts.length > 0 && (
+              <TabBadge $active={activeTab === "discounts"}>{discounts.length}</TabBadge>
+            )}
+          </TabSegment>
+          <TabSegment
+            $active={activeTab === "coupons"}
             onClick={() => setActiveTab("coupons")}
           >
-            <FaTicketAlt /> Coupons
-          </TabButton>
-        </TabContainer>
+            <FaTicketAlt size={11} /> Coupons
+          </TabSegment>
+        </TabBar>
+        <HeaderActions>
+          {activeTab === "discounts" ? (
+            <PrimaryButton onClick={() => openDiscountModal()}>
+              <FaPlus /> Create Discount
+            </PrimaryButton>
+          ) : (
+            <PrimaryButton onClick={openCouponModal}>
+              <FaPlus /> Create Coupon Batch
+            </PrimaryButton>
+          )}
+        </HeaderActions>
+      </PageHeader>
 
-        {activeTab === "discounts" ? (
-          <>
-            <ControlsContainer>
-              <SearchContainer>
-                <SearchIcon />
-                <SearchInput
-                  type="text"
-                  placeholder="Search discounts by name or code..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </SearchContainer>
+      {/* ── Tab content ── */}
+      {activeTab === "discounts" ? (
+        <ContentCard>
+          {/* Search + filters */}
+          <SearchRow>
+            <SearchContainer>
+              <SearchIcon />
+              <SearchInput
+                type="text"
+                placeholder="Search discounts by name or code..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </SearchContainer>
+            <StatusFilter>
+              {statusOptions.map((status) => (
+                <StatusButton
+                  key={status.id}
+                  $active={activeStatus === status.id}
+                  onClick={() => setActiveStatus(status.id)}
+                >
+                  {status.label}
+                </StatusButton>
+              ))}
+            </StatusFilter>
+          </SearchRow>
 
-              <StatusFilter>
-                {statusOptions.map((status) => (
-                  <StatusButton
-                    key={status.id}
-                    active={activeStatus === status.id}
-                    onClick={() => setActiveStatus(status.id)}
-                  >
-                    {status.label}
-                  </StatusButton>
-                ))}
-              </StatusFilter>
-            </ControlsContainer>
-
-            <DiscountsContainer>
-              {filteredDiscounts.length > 0 ? (
-                filteredDiscounts.map((discount) => (
-                  <DiscountItem key={discount.id}>
-                    <DiscountName>
-                      <div>{discount.name}</div>
-                      <DiscountId>
-                        ID: {generateDisplayId(discount.id)}
-                      </DiscountId>
-                    </DiscountName>
-
-                    <DiscountCode>
-                      <FaTag /> {discount.code}
-                    </DiscountCode>
-
-                    <DiscountValue>
-                      {discount.type === "percentage" ? (
-                        <FaPercentage />
-                      ) : (
-                        <FaDollarSign />
-                      )}
-                      {discount.type === "percentage"
-                        ? `${discount.value}% Off`
-                        : `$${discount.value} Off`}
-                    </DiscountValue>
-
-                    <DiscountDates>
-                      <DateRow>
-                        <FaCalendarAlt size={12} />
-                        {formatDate(discount.startDate)}
-                      </DateRow>
-                      <DateRow>
-                        <FaCalendarAlt size={12} />
-                        {formatDate(discount.endDate)}
-                      </DateRow>
-                    </DiscountDates>
-
-                    <DiscountStatus active={discount.active}>
-                      {discount.active ? "Active" : "Inactive"}
-                    </DiscountStatus>
-
-                    <DiscountUsage>
-                      Used {discount.usage} of {discount.maxUsage} times
-                    </DiscountUsage>
-
-                    <DiscountActions>
-                      <ActionButton
-                        title="Edit discount"
-                        onClick={() => openDiscountModal(discount)}
-                      >
-                        <FaEdit />
-                      </ActionButton>
-                      <ActionButton
-                        title="Delete discount"
-                        onClick={() =>
-                          handleDelete(discount._id, discount.name)
-                        }
-                      >
-                        <FaTrash />
-                      </ActionButton>
-                    </DiscountActions>
-                  </DiscountItem>
-                ))
-              ) : (
-                <EmptyState>
-                  <h3>No discounts found</h3>
-                  <p>Try adjusting your search or filter criteria</p>
-                  <PrimaryButton onClick={() => openDiscountModal()}>
-                    <FaPlus /> Create Your First Discount
-                  </PrimaryButton>
-                </EmptyState>
-              )}
-            </DiscountsContainer>
-          </>
-        ) : (
-          <CouponTab
-            couponSearchTerm={couponSearchTerm}
-            setCouponSearchTerm={setCouponSearchTerm}
-            openCouponModal={openCouponModal}
-            statusOptions={statusOptions}
-          />
-        )}
+          {/* Table */}
+          {filteredDiscounts.length > 0 ? (
+            <>
+              <DiscountHead>
+                <span>Discount</span>
+                <span>Value</span>
+                <span>Period</span>
+                <span>Status</span>
+                <span>Usage</span>
+                <span></span>
+              </DiscountHead>
+              {filteredDiscounts.map((discount) => (
+                <DiscountItem key={discount.id}>
+                  <DiscountNameCell>
+                    <DiscountName>{discount.name}</DiscountName>
+                    <DiscountCode><FaTag size={9} /> {discount.code}</DiscountCode>
+                  </DiscountNameCell>
+                  <DiscountValue>
+                    {discount.type === "percentage"
+                      ? `${discount.value}% Off`
+                      : `GH₵${discount.value} Off`}
+                  </DiscountValue>
+                  <DiscountDates>
+                    <DateRow><FaCalendarAlt size={11} /> {formatDate(discount.startDate)}</DateRow>
+                    <DateRow><FaCalendarAlt size={11} /> {formatDate(discount.endDate)}</DateRow>
+                  </DiscountDates>
+                  <DiscountStatus $active={discount.active}>
+                    {discount.active ? "Active" : "Inactive"}
+                  </DiscountStatus>
+                  <DiscountUsage>
+                    {discount.usage} / {discount.maxUsage ?? '∞'}
+                  </DiscountUsage>
+                  <DiscountActions>
+                    <ActionButton title="Edit discount" onClick={() => openDiscountModal(discount)}>
+                      <FaEdit />
+                    </ActionButton>
+                    <ActionButton title="Delete discount" onClick={() => handleDelete(discount._id, discount.name)}>
+                      <FaTrash />
+                    </ActionButton>
+                  </DiscountActions>
+                </DiscountItem>
+              ))}
+            </>
+          ) : (
+            <EmptyState>
+              <h3>No discounts found</h3>
+              <p>Try adjusting your search or filter criteria</p>
+              <PrimaryButton onClick={() => openDiscountModal()}>
+                <FaPlus /> Create Your First Discount
+              </PrimaryButton>
+            </EmptyState>
+          )}
+        </ContentCard>
+      ) : (
+        <CouponTab
+          couponSearchTerm={couponSearchTerm}
+          setCouponSearchTerm={setCouponSearchTerm}
+          openCouponModal={openCouponModal}
+          statusOptions={statusOptions}
+        />
+      )}
 
         {/* Modals */}
         {discountModal.isOpen && (
@@ -420,83 +402,326 @@ export const SellerDiscountPage = () => {
           confirmText={confirmationModal.confirmText}
           confirmColor={confirmationModal.confirmColor}
         />
-      </ContentContainer>
-    </DashboardContainer>
+    </DiscountPage>
   );
 };
 
 // Styled Components
-const DashboardContainer = styled.div`
+const DiscountPage = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  background: #F9F8F5;
   min-height: 100vh;
-  background-color: var(--color-grey-50);
-  padding: 20px;
-
-  @media (min-width: 768px) {
-    padding: var(--spacing-xl);
-  }
 `;
 
-const ContentContainer = styled.div`
-  max-width: 1200px;
-  margin: 0 auto;
-`;
-
-const Title = styled.h1`
-  font-size: 1.875rem;
-  font-weight: 700;
-  color: var(--color-grey-800);
-  margin-bottom: 32px;
+const PageHeader = styled.div`
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  padding: 0.75rem 1.25rem;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+`;
 
-  @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--spacing-md);
-  }
+const PageTitle = styled.h1`
+  font-size: 0.975rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+  flex: 1;
+  white-space: nowrap;
 `;
 
 const HeaderActions = styled.div`
   display: flex;
-  gap: var(--spacing-md);
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-left: auto;
+`;
 
-  @media (max-width: 480px) {
-    flex-direction: column;
-    width: 100%;
+const ContentCard = styled.div`
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  overflow: hidden;
+`;
+
+const SearchRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.85rem 1.25rem;
+  border-bottom: 0.5px solid #F1EFE8;
+`;
+
+const TabBar = styled.div`
+  display: inline-flex;
+  gap: 2px;
+  background: #F3F0EB;
+  border-radius: 9px;
+  padding: 3px;
+  align-self: flex-start;
+`;
+
+const TabSegment = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 28px;
+  padding: 0 0.9rem;
+  border: none;
+  border-radius: 7px;
+  font-size: 0.8rem;
+  font-weight: ${(p) => p.$active ? 600 : 400};
+  cursor: pointer;
+  transition: all 0.15s;
+  background: ${(p) => p.$active ? '#FFFFFF' : 'transparent'};
+  color: ${(p) => p.$active ? '#111827' : '#6B7280'};
+  box-shadow: ${(p) => p.$active ? '0 1px 3px rgba(0,0,0,0.08)' : 'none'};
+  white-space: nowrap;
+
+  &:hover { color: ${(p) => p.$active ? '#111827' : '#374151'}; }
+`;
+
+const TabBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  background: ${(p) => p.$active ? '#FDF3E3' : '#E5E1D8'};
+  color: ${(p) => p.$active ? '#E8920A' : '#9CA3AF'};
+`;
+
+
+export const SearchContainer = styled.div`
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+`;
+
+export const SearchInput = styled.input`
+  width: 100%;
+  height: 36px;
+  padding: 0 0.9rem 0 2.2rem;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 9px;
+  font-size: 0.875rem;
+  background: #F9F8F5;
+  color: #111827;
+  outline: none;
+  box-sizing: border-box;
+
+  &::placeholder { color: #9CA3AF; }
+  &:focus { border-color: #E8920A; background: #FFFFFF; }
+`;
+
+export const SearchIcon = styled(FaSearch)`
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9CA3AF;
+  font-size: 0.8rem;
+`;
+
+const StatusFilter = styled.div`
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+`;
+
+const StatusButton = styled.button`
+  height: 30px;
+  padding: 0 0.85rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.12s;
+  border: 0.5px solid ${(p) => p.$active ? '#E8920A' : '#F1EFE8'};
+  background: ${(p) => p.$active ? '#FDF3E3' : '#FFFFFF'};
+  color: ${(p) => p.$active ? '#E8920A' : '#6B7280'};
+
+  &:hover { border-color: #E8920A; color: #E8920A; }
+`;
+
+
+const DiscountHead = styled.div`
+  display: grid;
+  grid-template-columns: 2fr 0.7fr 1fr auto auto 64px;
+  gap: 0.75rem;
+  padding: 0.6rem 1.25rem;
+  background: #F9F8F5;
+  border-bottom: 0.5px solid #F1EFE8;
+
+  span {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #9CA3AF;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  @media (max-width: 1024px) { display: none; }
+`;
+
+const DiscountItem = styled.div`
+  display: grid;
+  grid-template-columns: 2fr 0.7fr 1fr auto auto 64px;
+  gap: 0.75rem;
+  padding: 0.9rem 1.25rem;
+  border-bottom: 0.5px solid #F1EFE8;
+  align-items: center;
+  transition: background 0.12s;
+
+  &:last-child { border-bottom: none; }
+  &:hover { background: #FFFDF9; }
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
   }
 `;
 
-const TabContainer = styled.div`
-  display: flex;
-  border-bottom: 1px solid var(--color-grey-200);
-  margin-bottom: 24px;
+const DiscountNameCell = styled.div``;
+
+const DiscountName = styled.div`
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #111827;
+  margin-bottom: 0.2rem;
 `;
 
-const TabButton = styled.button`
-  padding: 12px 24px;
-  background: ${({ active }) => (active ? "white" : "transparent")};
-  border: none;
-  border-bottom: 3px solid
-    ${({ active }) => (active ? "var(--color-primary-500)" : "transparent")};
-  font-weight: 500;
-  color: ${({ active }) => (active ? "var(--color-primary-500)" : "var(--color-grey-500)")};
-  cursor: pointer;
+const DiscountCode = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: 24px;
+  padding: 0 0.65rem;
+  background: #FDF3E3;
+  color: #E8920A;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: ui-monospace, 'Courier New', monospace;
+`;
+
+const DiscountValue = styled.div`
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #10B981;
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  transition: all 0.2s;
+  gap: 0.3rem;
+`;
 
-  &:hover {
-    color: var(--color-primary-500);
-    background-color: var(--color-grey-100);
+const DiscountDates = styled.div`
+  color: #9CA3AF;
+  font-size: 0.875rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+`;
+
+const DateRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+`;
+
+const DiscountStatus = styled.span`
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 0.6rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: ${(p) => p.$active ? '#D1FAE5' : '#FEE2E2'};
+  color: ${(p) => p.$active ? '#065F46' : '#991B1B'};
+`;
+
+const DiscountUsage = styled.div`
+  color: #9CA3AF;
+  font-size: 0.875rem;
+`;
+
+const DiscountActions = styled.div`
+  display: flex;
+  gap: 0.35rem;
+`;
+
+export const ActionButton = styled.button`
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  color: #6B7280;
+  cursor: pointer;
+  transition: all 0.12s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+
+  &:hover { background: #F9F8F5; border-color: #E8920A; color: #E8920A; }
+`;
+
+export const PrimaryButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 36px;
+  padding: 0 1rem;
+  background: #E8920A;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 9px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.12s;
+
+  &:hover { opacity: 0.88; }
+`;
+
+export const EmptyState = styled.div`
+  padding: 3rem 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+
+  h3 {
+    font-size: 0.975rem;
+    font-weight: 600;
+    color: #374151;
+    margin: 0;
+  }
+
+  p {
+    font-size: 0.8rem;
+    color: #9CA3AF;
+    margin: 0 0 1rem;
   }
 `;
 
 const ControlsContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-md);
+  gap: 16px;
   margin-bottom: 24px;
   align-items: center;
 
@@ -506,342 +731,111 @@ const ControlsContainer = styled.div`
   }
 `;
 
-export const SearchContainer = styled.div`
-  position: relative;
-  flex: 1;
-  max-width: 400px;
-
-  @media (max-width: 768px) {
-    max-width: 100%;
-  }
-`;
-
-export const SearchInput = styled.input`
-  width: 100%;
-  padding: 10px 16px 10px 40px;
-  border: 1px solid var(--color-grey-300);
-  border-radius: 6px;
-  font-size: 0.875rem;
-  transition: all 0.2s;
-
-  &:focus {
-    outline: none;
-    border-color: var(--color-primary-500);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-  }
-`;
-
-export const SearchIcon = styled(FaSearch)`
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--color-grey-400);
-`;
-
-const StatusFilter = styled.div`
-  display: flex;
-  gap: var(--spacing-sm);
-  flex-wrap: wrap;
-
-  @media (max-width: 768px) {
-    width: 100%;
-    justify-content: space-between;
-  }
-`;
-
-const StatusButton = styled.button`
-  padding: var(--spacing-sm) 16px;
-  border-radius: 20px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: 1px solid transparent;
-    background-color: ${({ active }) => (active ? "var(--color-primary-100)" : "var(--color-grey-100)")};
-    color: ${({ active }) => (active ? "var(--color-primary-700)" : "var(--color-grey-600)")};
-
-  &:hover {
-    background-color: var(--color-grey-200);
-  }
-`;
-
-const DiscountsContainer = styled.div`
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  overflow: hidden;
-  margin-bottom: 24px;
-`;
-
-const DiscountItem = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1.5fr 1fr 1fr auto;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md);
-  border-bottom: 1px solid var(--color-grey-200);
-  align-items: center;
-
-  @media (max-width: 1024px) {
-    grid-template-columns: 1fr 1fr;
-    grid-template-areas:
-      "name value"
-      "dates status"
-      "usage actions";
-  }
-
-  &:hover {
-    background-color: var(--color-grey-50);
-  }
-`;
-
-const DiscountName = styled.div`
-  font-weight: 600;
-  color: var(--color-grey-800);
-
-  @media (max-width: 1024px) {
-    grid-area: name;
-  }
-`;
-
-const DiscountId = styled.div`
-  font-size: 0.875rem;
-  color: var(--color-grey-500);
-`;
-
-const DiscountCode = styled.div`
-  color: var(--color-primary-500);
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-
-  @media (max-width: 1024px) {
-    grid-area: name;
-    justify-self: end;
-  }
-`;
-
-const DiscountValue = styled.div`
-  font-weight: 600;
-  color: var(--color-green-500);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-
-  @media (max-width: 1024px) {
-    grid-area: value;
-  }
-`;
-
-const DiscountDates = styled.div`
-  color: var(--color-grey-500);
-  font-size: 0.875rem;
-  display: flex;
-  flex-direction: column;
-
-  @media (max-width: 1024px) {
-    grid-area: dates;
-  }
-`;
-
-const DateRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 4px;
-`;
-
-const DiscountStatus = styled.div`
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  font-size: 0.875rem;
-  font-weight: 500;
-  padding: 4px 12px;
-  border-radius: 20px;
-  width: fit-content;
-  background-color: ${({ active }) => (active ? "var(--color-green-100)" : "var(--color-red-100)")};
-  color: ${({ active }) => (active ? "var(--color-green-700)" : "var(--color-red-700)")};
-
-  @media (max-width: 1024px) {
-    grid-area: status;
-    justify-self: end;
-  }
-`;
-
-const DiscountUsage = styled.div`
-  color: var(--color-grey-500);
-  font-size: 0.875rem;
-
-  @media (max-width: 1024px) {
-    grid-area: usage;
-  }
-`;
-
-const DiscountActions = styled.div`
-  display: flex;
-  gap: var(--spacing-sm);
-
-  @media (max-width: 1024px) {
-    grid-area: actions;
-    justify-self: end;
-  }
-`;
-
-export const ActionButton = styled.button`
-  padding: var(--spacing-sm);
-  border-radius: 6px;
-  background-color: white;
-  border: 1px solid var(--color-grey-200);
-  color: var(--color-grey-600);
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  &:hover {
-    background-color: var(--color-grey-50);
-    border-color: var(--color-grey-300);
-  }
-`;
-
-export const PrimaryButton = styled.button`
-  padding: 10px 16px;
-  background-color: var(--color-primary-500);
-  color: white;
-  border-radius: 6px;
-  font-weight: 500;
-  transition: all 0.2s;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-
-  &:hover {
-    background-color: var(--color-primary-600);
-  }
-`;
-
-export const EmptyState = styled.div`
-  text-align: center;
-  padding: var(--spacing-2xl);
-
-  h3 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin-bottom: 16px;
-  }
-
-  p {
-    color: var(--color-grey-500);
-    margin-bottom: 24px;
-  }
-`;
-
-export const CouponControlsContainer = styled(ControlsContainer)`
-  margin-bottom: 16px;
-`;
+export const CouponControlsContainer = styled(ControlsContainer)``;
 
 export const CouponBatchesContainer = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: 0.75rem;
 `;
 
 export const CouponBatchCard = styled.div`
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  padding: var(--spacing-lg);
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  padding: 1.25rem;
 `;
 
 export const BatchHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--color-grey-200);
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 0.5px solid #F1EFE8;
 `;
 
 export const BatchName = styled.h3`
-  font-size: 1.25rem;
+  font-size: 0.975rem;
   font-weight: 600;
-  color: var(--color-grey-800);
+  color: #111827;
+  margin: 0;
 `;
 
 export const BatchDiscount = styled.div`
-  padding: 6px 12px;
-  background-color: var(--color-green-100);
-  color: var(--color-green-700);
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 0.7rem;
+  background: #D1FAE5;
+  color: #065F46;
   border-radius: 20px;
+  font-size: 0.875rem;
   font-weight: 600;
 `;
 
 export const BatchDetails = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-md);
-  margin-bottom: 16px;
-  font-size: 0.875rem;
-  color: var(--color-grey-500);
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  font-size: 0.8rem;
+  color: #6B7280;
 
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-  }
+  @media (max-width: 768px) { grid-template-columns: 1fr; }
 `;
 
 export const DetailItem = styled.div``;
 
 export const DetailLabel = styled.span`
   font-weight: 500;
-  color: var(--color-grey-700);
+  color: #9CA3AF;
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: 0.2rem;
+  font-size: 0.75rem;
 `;
 
 export const CouponsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: var(--spacing-md);
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.5rem;
 `;
 
 export const CouponItem = styled.div`
-  border: 1px solid ${({ used }) => (used ? "var(--color-grey-200)" : "var(--color-primary-100)")};
-  background: ${({ used }) => (used ? "var(--color-grey-50)" : "var(--color-primary-50)")};
-  border-radius: 8px;
-  padding: var(--spacing-md);
+  border: 0.5px solid ${(p) => p.used ? '#F1EFE8' : '#FDE68A'};
+  background: ${(p) => p.used ? '#F9F8F5' : '#FFFDF9'};
+  border-radius: 9px;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
 `;
 
 export const CouponCode = styled.div`
-  font-family: monospace;
-  font-size: 1.1rem;
+  font-family: ui-monospace, 'Courier New', monospace;
+  font-size: 0.925rem;
   font-weight: 600;
-  color: var(--color-primary-800);
-  margin-bottom: 8px;
+  color: #E8920A;
+  margin-bottom: 0.5rem;
   word-break: break-all;
 `;
 
 export const CouponStatus = styled.div`
-  padding: 4px 8px;
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 0.55rem;
   border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 500;
+  font-size: 0.8rem;
+  font-weight: 600;
   width: fit-content;
-  background: ${({ used }) => (used ? "var(--color-red-100)" : "var(--color-green-100)")};
-  color: ${({ used }) => (used ? "var(--color-red-700)" : "var(--color-green-700)")};
+  background: ${(p) => p.used ? '#FEE2E2' : '#D1FAE5'};
+  color: ${(p) => p.used ? '#991B1B' : '#065F46'};
 `;
 
 export const CouponActions = styled.div`
   display: flex;
-  gap: var(--spacing-sm);
-  margin-top: 12px;
+  gap: 0.35rem;
+  margin-top: 0.75rem;
 `;
 
 export default SellerDiscountPage;

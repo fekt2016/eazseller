@@ -11,7 +11,7 @@ import {
 } from '../../../shared/components/ui/SpacingSystem';
 import Button from '../../../shared/components/ui/Button';
 import Card from '../../../components/ui/Card';
-import { LoadingState, EmptyState, ErrorState } from '../../../shared/components/ui/LoadingComponents';
+import { EmptyState, ErrorState, SkeletonTableRows } from '../../../shared/components/ui/LoadingComponents';
 import { usePickupLocations } from '../../../shared/hooks/pickup/usePickupLocations';
 import PickupLocationCard from '../../../components/store/pickup/PickupLocationCard';
 import { PATHS } from '../../../routes/routePaths';
@@ -39,7 +39,7 @@ const PickupLocationsListPage = () => {
   };
 
   if (isLoading) {
-    return <LoadingState message="Loading pickup locations..." />;
+    return <SkeletonTableRows count={4} />;
   }
 
   if (error) {
@@ -131,36 +131,36 @@ export default PickupLocationsListPage;
 // Styled Components
 const InfoBanner = styled.div`
   display: flex;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md) var(--spacing-lg);
-  background-color: var(--color-blue-50);
-  border: 1px solid var(--color-blue-200);
-  border-radius: var(--border-radius-lg);
-  margin-bottom: var(--spacing-xl);
+  gap: 1rem;
+  padding: 1rem 1rem;
+  background-color: #185FA5;
+  border: 1px solid #185FA5;
+  border-radius: 12px;
+  margin-bottom: 1rem;
 
   svg {
-    color: var(--color-blue-600);
-    font-size: var(--font-size-lg);
+    color: #185FA5;
+    font-size: 1.1rem;
     flex-shrink: 0;
     margin-top: 2px;
   }
 
   @media (max-width: 768px) {
     flex-direction: column;
-    gap: var(--spacing-sm);
+    gap: 1rem;
   }
 `;
 
 const InfoTitle = styled.h4`
-  font-size: var(--font-size-md);
-  font-weight: var(--font-semibold);
-  color: var(--color-blue-900);
-  margin: 0 0 var(--spacing-xs) 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #185FA5;
+  margin: 0 0 1rem 0;
 `;
 
 const InfoText = styled.p`
-  font-size: var(--font-size-sm);
-  color: var(--color-blue-800);
+  font-size: 0.875rem;
+  color: #185FA5;
   margin: 0;
   line-height: 1.6;
 `;
@@ -168,28 +168,28 @@ const InfoText = styled.p`
 const LocationsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: var(--spacing-lg);
+  gap: 1rem;
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
-    gap: var(--spacing-md);
+    gap: 1rem;
   }
 `;
 
 const LogisticsNote = styled.div`
-  margin-top: var(--spacing-xl);
+  margin-top: 1rem;
 `;
 
 const NoteTitle = styled.h4`
-  font-size: var(--font-size-md);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
-  margin: 0 0 var(--spacing-sm) 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 1rem 0;
 `;
 
 const NoteText = styled.p`
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-700);
+  font-size: 0.875rem;
+  color: #374151;
   margin: 0;
   line-height: 1.6;
 `;

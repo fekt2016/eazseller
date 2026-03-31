@@ -44,12 +44,14 @@ const TermsPage = lazy(() => import("../pages/policies/TermsPage"));
 const VatTaxPolicyPage = lazy(() => import("../pages/policies/VatTaxPolicyPage"));
 const SellerPrivacyPolicyPage = lazy(() => import("../pages/policies/SellerPrivacyPolicyPage"));
 const DataDeletionPage = lazy(() => import("../pages/policies/DataDeletionPage"));
+const CookiePolicyPage = lazy(() => import("../pages/policies/CookiePolicyPage"));
 const SellerEducationCenterPage = lazy(() => import("../pages/education/SellerEducationCenterPage"));
 const HelpCenterPage = lazy(() => import("../pages/help/HelpCenterPage"));
 const PickupLocationsListPage = lazy(() => import("../pages/store/pickup/PickupLocationsListPage"));
 const PickupLocationCreatePage = lazy(() => import("../pages/store/pickup/PickupLocationCreatePage"));
 const PickupLocationEditPage = lazy(() => import("../pages/store/pickup/PickupLocationEditPage"));
 const SellerReturnAndFundsPage = lazy(() => import("../features/sellerReturns/pages/SellerReturnAndFundsPage"));
+const TestimonialsPage = lazy(() => import("../features/testimonials/TestimonialsPage"));
 const SellerFundsPage = lazy(() => import("../features/sellerFunds/pages/SellerFundsPage"));
 const SellerNotificationsPage = lazy(() => import("../pages/notifications/SellerNotificationsPage"));
 const ForgotPasswordPage = lazy(() => import("../features/auth/ForgotPasswordPage"));
@@ -64,12 +66,12 @@ const TrackingRedirect = () => {
 export default function SellerRoutes() {
   return (
     <Routes>
-      {/* Home Page - Root Route - Public with Header, No Sidebar */}
+      {/* Home Page - Root Route - Public with Header, No Sidebar, Full Page (no inner scrollbar) */}
       <Route
         path={PATHS.LANDING}
         element={
           <Suspense fallback={<LoadingSpinner />}>
-            <DashboardLayout showSidebar={false} />
+            <DashboardLayout showSidebar={false} fullPage />
           </Suspense>
         }
       >
@@ -284,6 +286,25 @@ export default function SellerRoutes() {
           element={
             <Suspense fallback={<LoadingSpinner fullScreen />}>
               <VatTaxPolicyPage />
+            </Suspense>
+          }
+        />
+      </Route>
+
+      {/* Public Cookie Policy Page - Public with Header, No Sidebar */}
+      <Route
+        path={PATHS.COOKIE_POLICY}
+        element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <DashboardLayout showSidebar={false} />
+          </Suspense>
+        }
+      >
+        <Route
+          index
+          element={
+            <Suspense fallback={<LoadingSpinner fullScreen />}>
+              <CookiePolicyPage />
             </Suspense>
           }
         />
@@ -656,6 +677,18 @@ export default function SellerRoutes() {
               <SellerProtectedRoute allowedStage="verified">
                 <Suspense fallback={<LoadingSpinner fullScreen />}>
                   <ProductReviewsPage />
+                </Suspense>
+              </SellerProtectedRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="testimonials"
+          element={
+            <ProtectedRoute>
+              <SellerProtectedRoute allowedStage="verified">
+                <Suspense fallback={<LoadingSpinner fullScreen />}>
+                  <TestimonialsPage />
                 </Suspense>
               </SellerProtectedRoute>
             </ProtectedRoute>

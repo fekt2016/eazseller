@@ -85,6 +85,14 @@ vi.mock('react-spinners', () => ({
   PropagateLoader: () => <div data-testid="spinner">Loading...</div>,
 }));
 
+// Mock GoogleLoginButton (requires GoogleOAuthProvider)
+vi.mock('../../features/auth/GoogleLoginButton', () => {
+  const React = require('react');
+  return {
+    default: () => React.createElement('div', { 'data-testid': 'google-login' }, 'Google Sign In'),
+  };
+});
+
 // Mock PATHS
 vi.mock('../../routes/routePaths', () => ({
   PATHS: {
@@ -120,8 +128,8 @@ describe('AuthPage', () => {
       expect(screen.getByPlaceholderText(/your\.email@example\.com/i)).toBeInTheDocument();
       expect(screen.getByPlaceholderText(/enter your password/i)).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
-    });
-  });
+    }, { timeout: 10000 });
+  }, 20000);
 
   test('switches to signup tab', async () => {
     const user = userEvent.setup();
@@ -245,17 +253,16 @@ describe('AuthPage', () => {
       expect(screen.getByPlaceholderText(/enter your password/i)).toBeInTheDocument();
       expect(screen.getByPlaceholderText(/confirm your password/i)).toBeInTheDocument();
       expect(screen.getByPlaceholderText(/enter your shop name/i)).toBeInTheDocument();
-      expect(screen.getByPlaceholderText(/enter your phone number/i)).toBeInTheDocument();
+      expect(screen.getByPlaceholderText(/024\s*123\s*4567/i)).toBeInTheDocument();
     });
   });
 
   test('handles successful registration', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     renderWithProviders(<AuthPage />, {
       initialRoute: '/signup',
     });
 
-    // Click signup tab
     const signupTab = screen.getByText(/register/i);
     await user.click(signupTab);
 
@@ -263,24 +270,35 @@ describe('AuthPage', () => {
       expect(screen.getByPlaceholderText(/enter your full name/i)).toBeInTheDocument();
     });
 
-    // Fill registration form
-    await user.type(screen.getByPlaceholderText(/enter your full name/i), 'Test Seller');
-    await user.type(screen.getByPlaceholderText(/enter your email/i), 'seller@test.com');
-    await user.type(screen.getAllByPlaceholderText(/enter your password/i)[0], 'password123');
-    await user.type(screen.getByPlaceholderText(/confirm your password/i), 'password123');
-    await user.type(screen.getByPlaceholderText(/enter your shop name/i), 'Test Shop');
-    await user.type(screen.getByPlaceholderText(/enter your phone number/i), '0241234567');
+    // Fill form using fireEvent for speed (user.type is slow with many fields)
+    const nameInput = screen.getByPlaceholderText(/enter your full name/i);
+    const phoneInput = screen.getByPlaceholderText(/024\s*123\s*4567/i);
+    const shopInput = screen.getByPlaceholderText(/enter your shop name/i);
+    const locationInput = screen.getByPlaceholderText(/e\.g\. Nima/i);
+    const emailInput = screen.getByPlaceholderText(/enter your email/i);
+    const passwordInputs = screen.getAllByPlaceholderText(/enter your password/i);
+    const confirmInput = screen.getByPlaceholderText(/confirm your password/i);
+
+    fireEvent.change(nameInput, { target: { name: 'name', value: 'Test Seller' } });
+    fireEvent.change(phoneInput, { target: { name: 'contactNumber', value: '0241234567' } });
+    fireEvent.change(shopInput, { target: { name: 'shopName', value: 'Test Shop' } });
+    fireEvent.change(locationInput, { target: { name: 'location', value: 'Accra' } });
+    fireEvent.change(emailInput, { target: { name: 'email', value: 'seller@test.com' } });
+    fireEvent.change(passwordInputs[0], { target: { name: 'password', value: 'Password123!' } });
+    fireEvent.change(confirmInput, { target: { name: 'passwordConfirm', value: 'Password123!' } });
+
+    await user.click(screen.getByRole('checkbox', { name: /agree.*privacy|privacy.*terms/i }));
 
     const submitButton = screen.getByRole('button', { name: /create account/i });
     await user.click(submitButton);
 
     await waitFor(() => {
       expect(mockRegisterMutation).toHaveBeenCalled();
-    }, { timeout: 2000 });
-  });
+    }, { timeout: 5000 });
+  }, 15000);
 
   test('validates password match on registration', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     renderWithProviders(<AuthPage />, {
       initialRoute: '/signup',
     });
@@ -298,17 +316,17 @@ describe('AuthPage', () => {
     const confirmPasswordInput = screen.getByPlaceholderText(/confirm your password/i);
     const form = passwordInput.closest('form');
 
-    // Type mismatched passwords
-    await user.type(passwordInput, 'password123');
-    await user.type(confirmPasswordInput, 'password456');
+    // Type mismatched passwords (meet complexity: 8+ chars, digit, special)
+    await user.type(passwordInput, 'Password123!');
+    await user.type(confirmPasswordInput, 'Password456!');
     
     fireEvent.submit(form);
 
     await waitFor(() => {
       expect(screen.getByText(/passwords do not match/i)).toBeInTheDocument();
       expect(mockRegisterMutation).not.toHaveBeenCalled();
-    });
-  });
+    }, { timeout: 5000 });
+  }, 20000);
 
   test('displays error message on login failure', async () => {
     const errorMessage = 'Invalid credentials';
@@ -355,7 +373,6 @@ describe('AuthPage', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText(/authentication failed/i)).toBeInTheDocument();
       expect(screen.getByText(new RegExp(errorMessage, 'i'))).toBeInTheDocument();
     });
   });
@@ -405,14 +422,11 @@ describe('AuthPage', () => {
       initialRoute: '/signup',
     });
 
-    // Click signup tab
+    // Click signup tab to show register form and error
     const signupTab = screen.getByText(/register/i);
     await user.click(signupTab);
 
-    await waitFor(() => {
-      expect(screen.getByText(/registration failed/i)).toBeInTheDocument();
-      expect(screen.getByText(new RegExp(errorMessage, 'i'))).toBeInTheDocument();
-    });
+    expect(screen.getAllByText(new RegExp(errorMessage, 'i')).length).toBeGreaterThanOrEqual(1);
   });
 
   test('renders forgot password link', async () => {

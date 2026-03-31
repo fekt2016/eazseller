@@ -6,14 +6,14 @@ import { EmptyState } from '../ui/LoadingComponents';
 const MessagesContainer = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
-  padding: var(--spacing-lg);
+  gap: 1rem;
+  padding: 1rem;
 `;
 
 const MessageBubble = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 1rem;
   align-items: ${({ $isSeller }) => ($isSeller ? 'flex-end' : 'flex-start')};
   max-width: 75%;
   
@@ -25,8 +25,8 @@ const MessageBubble = styled.div`
 const MessageHeader = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-xs);
+  gap: 1rem;
+  margin-bottom: 1rem;
 `;
 
 const Avatar = styled.div`
@@ -34,9 +34,9 @@ const Avatar = styled.div`
   height: 3.2rem;
   border-radius: 50%;
   background: ${({ $isSeller }) =>
-    $isSeller ? 'var(--color-primary-100)' : 'var(--color-grey-200)'};
+    $isSeller ? '#E8920A' : '#F1EFE8'};
   color: ${({ $isSeller }) =>
-    $isSeller ? 'var(--color-primary-600)' : 'var(--color-grey-700)'};
+    $isSeller ? '#E8920A' : '#374151'};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -51,28 +51,28 @@ const MessageInfo = styled.div`
 `;
 
 const MessageSender = styled.span`
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
-  font-family: var(--font-heading);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+  
 `;
 
 const MessageTime = styled.span`
-  font-size: var(--font-size-xs);
-  color: var(--color-grey-600);
-  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: #6B7280;
+  
 `;
 
 const MessageContent = styled.div`
-  padding: var(--spacing-md);
-  border-radius: var(--border-radius-lg);
+  padding: 1rem;
+  border-radius: 12px;
   background: ${({ $isSeller }) =>
-    $isSeller ? 'var(--color-primary-500)' : 'var(--color-grey-100)'};
+    $isSeller ? '#E8920A' : '#F9F8F5'};
   color: ${({ $isSeller }) =>
-    $isSeller ? 'var(--color-white-0)' : 'var(--color-grey-900)'};
-  font-size: var(--font-size-md);
+    $isSeller ? '#FFFFFF' : '#111827'};
+  font-size: 0.9rem;
   line-height: 1.6;
-  font-family: var(--font-body);
+  
   word-wrap: break-word;
 `;
 

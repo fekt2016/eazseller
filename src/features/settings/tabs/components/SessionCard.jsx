@@ -94,16 +94,16 @@ export default SessionCard;
 const Card = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md);
-  background: var(--color-white-0);
-  border-radius: var(--border-radius-md);
-  border: 2px solid ${props => props.$isCurrent ? 'var(--color-primary-500)' : 'var(--color-grey-200)'};
+  gap: 1rem;
+  padding: 1rem;
+  background: #FFFFFF;
+  border-radius: 9px;
+  border: 2px solid ${props => props.$isCurrent ? '#E8920A' : '#6B7280'};
   transition: all 0.2s ease;
 
   &:hover {
-    border-color: ${props => props.$isCurrent ? 'var(--color-primary-600)' : 'var(--color-grey-300)'};
-    box-shadow: var(--shadow-sm);
+    border-color: ${props => props.$isCurrent ? '#E8920A' : '#6B7280'};
+    
   }
 `;
 
@@ -111,12 +111,12 @@ const Header = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: var(--spacing-md);
+  gap: 1rem;
 `;
 
 const DeviceInfo = styled.div`
   display: flex;
-  gap: var(--spacing-md);
+  gap: 1rem;
   flex: 1;
 `;
 
@@ -126,48 +126,48 @@ const DeviceIcon = styled.div`
   justify-content: center;
   width: 48px;
   height: 48px;
-  background: var(--color-grey-100);
-  border-radius: var(--border-radius-md);
-  color: var(--color-grey-600);
-  font-size: var(--font-size-xl);
+  background: #6B7280;
+  border-radius: 9px;
+  color: #6B7280;
+  font-size: 1.25rem;
   flex-shrink: 0;
 `;
 
 const DeviceDetails = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 1rem;
   flex: 1;
 `;
 
 const DeviceName = styled.div`
-  font-size: var(--font-size-md);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #6B7280;
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: 1rem;
 `;
 
 const CurrentBadge = styled.span`
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: 2px var(--spacing-xs);
-  background: var(--color-green-100);
-  color: var(--color-green-700);
-  border-radius: var(--border-radius-sm);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-medium);
+  gap: 1rem;
+  padding: 2px 1rem;
+  background: #3B6D11;
+  color: #3B6D11;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
 
   svg {
-    font-size: var(--font-size-xs);
+    font-size: 0.8rem;
   }
 `;
 
 const DeviceMeta = styled.div`
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-600);
+  font-size: 0.875rem;
+  color: #6B7280;
 `;
 
 const RevokeButton = styled(Button)`
@@ -177,9 +177,9 @@ const RevokeButton = styled(Button)`
 const Footer = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-md);
-  padding-top: var(--spacing-sm);
-  border-top: 1px solid var(--color-grey-200);
+  gap: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #6B7280;
 `;
 
 const InfoItem = styled.div`
@@ -189,13 +189,13 @@ const InfoItem = styled.div`
 `;
 
 const InfoLabel = styled.span`
-  font-size: var(--font-size-xs);
-  color: var(--color-grey-500);
-  font-weight: var(--font-medium);
+  font-size: 0.8rem;
+  color: #6B7280;
+  font-weight: 500;
 `;
 
 const InfoValue = styled.span`
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-700);
+  font-size: 0.875rem;
+  color: #6B7280;
 `;
 

@@ -71,48 +71,48 @@ export const useTransactionById = (transactionId) => {
   return useQuery({
     queryKey: ['sellerTransaction', transactionId],
     queryFn: async () => {
-      // Try direct endpoint first (if backend supports it)
+      // Try direct endpoint first
       try {
         const directResponse = await balanceApi.getTransactionById(transactionId);
-        if (directResponse?.data?.data || directResponse?.data) {
-          return directResponse.data.data || directResponse.data;
+        if (directResponse) {
+          const txData = directResponse?.data?.data || directResponse?.data;
+          // Validate it's actually a transaction object (has _id or amount)
+          if (txData && (txData._id || txData.id || txData.amount !== undefined)) {
+            return txData;
+          }
         }
-      } catch (error) {
-        // Endpoint doesn't exist, fall through to search method
+      } catch {
+        // Endpoint doesn't exist or failed, fall through to search method
       }
-      
-      // Fallback: Search through transactions
-      // Fetch transactions with a reasonable limit and find the matching one
+
+      // Fallback: search through paginated transactions
       let page = 1;
       let found = null;
-      const limit = 100;
-      const maxPages = 10; // Safety limit
-      
+      const limit = 50;
+      const maxPages = 5;
+
       while (!found && page <= maxPages) {
         const response = await balanceApi.getTransactions({ page, limit });
         const data = response?.data?.data || response?.data || response;
-        const transactions = data.transactions || data || [];
-        
-        found = transactions.find(t => 
+        const transactions = data.transactions || (Array.isArray(data) ? data : []);
+
+        found = transactions.find(t =>
           (t._id || t.id)?.toString() === transactionId
         );
-        
+
         if (found) break;
-        
-        // If we got fewer results than limit, we've reached the end
         if (transactions.length < limit) break;
-        
         page++;
       }
-      
+
       if (!found) {
         throw new Error('Transaction not found');
       }
-      
+
       return found;
     },
     enabled: !!transactionId,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5,
   });
 };
 

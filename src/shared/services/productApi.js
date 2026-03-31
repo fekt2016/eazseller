@@ -1,6 +1,17 @@
 import api from './api';
 
 export const productService = {
+  uploadProductImage: async (file, onUploadProgress) => {
+    const form = new FormData();
+    form.append('image', file);
+    const response = await api.post('/seller/products/upload-image', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      onUploadProgress,
+      timeout: 60000,
+    });
+    return response?.data?.data;
+  },
+
   getProductById: async (id) => {
     try {
       // Example implementation - replace with your actual API call

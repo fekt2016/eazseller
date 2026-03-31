@@ -4,36 +4,36 @@ import styled from 'styled-components';
 import { getOptimizedImageUrl, IMAGE_SLOTS } from '../../utils/cloudinaryConfig';
 
 const AttachmentsContainer = styled.div`
-  margin-top: var(--spacing-md);
-  padding-top: var(--spacing-md);
-  border-top: 1px solid var(--color-grey-200);
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #F1EFE8;
 `;
 
 const AttachmentsTitle = styled.h4`
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-700);
-  margin-bottom: var(--spacing-sm);
-  font-family: var(--font-heading);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 1rem;
+  
 `;
 
 const AttachmentsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: var(--spacing-sm);
+  gap: 1rem;
 `;
 
 const AttachmentItem = styled.div`
   position: relative;
-  border: 1px solid var(--color-grey-200);
-  border-radius: var(--border-radius-md);
+  border: 1px solid #F1EFE8;
+  border-radius: 9px;
   overflow: hidden;
   cursor: pointer;
   transition: all 0.2s ease;
   
   &:hover {
-    border-color: var(--color-primary-500);
-    box-shadow: var(--shadow-sm);
+    border-color: #E8920A;
+    
   }
 `;
 
@@ -43,7 +43,7 @@ const AttachmentThumbnail = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-grey-50);
+  background: #F9F8F5;
   position: relative;
   
   img {
@@ -55,18 +55,18 @@ const AttachmentThumbnail = styled.div`
 
 const AttachmentIcon = styled.div`
   font-size: 2.4rem;
-  color: var(--color-grey-400);
+  color: #D1D5DB;
 `;
 
 const AttachmentName = styled.div`
-  padding: var(--spacing-xs);
-  font-size: var(--font-size-xs);
-  color: var(--color-grey-700);
+  padding: 1rem;
+  font-size: 0.8rem;
+  color: #374151;
   text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-family: var(--font-body);
+  
 `;
 
 const ImagePreview = styled.div`
@@ -80,7 +80,7 @@ const ImagePreview = styled.div`
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: var(--spacing-lg);
+  padding: 1rem;
 `;
 
 const PreviewImage = styled.img`
@@ -91,9 +91,9 @@ const PreviewImage = styled.img`
 
 const CloseButton = styled.button`
   position: absolute;
-  top: var(--spacing-md);
-  right: var(--spacing-md);
-  background: var(--color-white-0);
+  top: 1rem;
+  right: 1rem;
+  background: #FFFFFF;
   border: none;
   border-radius: 50%;
   width: 4rem;
@@ -102,12 +102,12 @@ const CloseButton = styled.button`
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: var(--color-grey-900);
+  color: #111827;
   font-size: 1.6rem;
   transition: all 0.2s ease;
   
   &:hover {
-    background: var(--color-grey-100);
+    background: #F9F8F5;
   }
 `;
 

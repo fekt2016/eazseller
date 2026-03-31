@@ -27,36 +27,36 @@ const Container = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md);
-  background: var(--color-white-0);
-  border-radius: var(--border-radius-md);
-  border: 1px solid var(--color-grey-200);
+  gap: 1rem;
+  padding: 1rem;
+  background: #FFFFFF;
+  border-radius: 9px;
+  border: 1px solid #6B7280;
   transition: all 0.2s ease;
 
   &:hover {
-    border-color: var(--color-grey-300);
-    background: var(--color-grey-50);
+    border-color: #6B7280;
+    background: #6B7280;
   }
 `;
 
 const LabelSection = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 1rem;
   flex: 1;
 `;
 
 const Label = styled.label`
-  font-size: var(--font-size-md);
-  font-weight: var(--font-medium);
-  color: var(--color-grey-900);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #6B7280;
   cursor: pointer;
 `;
 
 const Description = styled.p`
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-600);
+  font-size: 0.875rem;
+  color: #6B7280;
   line-height: 1.4;
 `;
 
@@ -86,7 +86,7 @@ const SwitchSlider = styled.span`
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: ${props => props.$checked ? 'var(--color-primary-500)' : 'var(--color-grey-300)'};
+  background-color: ${props => props.$checked ? '#E8920A' : '#6B7280'};
   transition: 0.3s;
   border-radius: 24px;
   opacity: ${props => props.$disabled ? 0.5 : 1};
@@ -98,7 +98,7 @@ const SwitchSlider = styled.span`
     width: 18px;
     left: 3px;
     bottom: 3px;
-    background-color: var(--color-white-0);
+    background-color: #FFFFFF;
     transition: 0.3s;
     border-radius: 50%;
     transform: ${props => props.$checked ? 'translateX(24px)' : 'translateX(0)'};

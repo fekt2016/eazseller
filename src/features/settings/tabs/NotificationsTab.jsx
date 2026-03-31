@@ -79,7 +79,7 @@ const NotificationsTab = () => {
       {/* Email Notifications */}
       <Section>
         <SectionHeader>
-          <SectionIcon $color="blue">
+          <SectionIcon>
             <FaEnvelope />
           </SectionIcon>
           <SectionInfo>
@@ -126,7 +126,7 @@ const NotificationsTab = () => {
       {/* Push Notifications */}
       <Section>
         <SectionHeader>
-          <SectionIcon $color="green">
+          <SectionIcon>
             <FaBell />
           </SectionIcon>
           <SectionInfo>
@@ -161,7 +161,7 @@ const NotificationsTab = () => {
       {/* SMS Notifications */}
       <Section>
         <SectionHeader>
-          <SectionIcon $color="purple">
+          <SectionIcon>
             <FaMobile />
           </SectionIcon>
           <SectionInfo>
@@ -224,117 +224,108 @@ export default NotificationsTab;
 const Container = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xl);
+  gap: 1rem;
 `;
 
 const Header = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
-  padding-bottom: var(--spacing-lg);
-  border-bottom: 1px solid var(--color-grey-200);
+  gap: 0.3rem;
+  padding-bottom: 1rem;
+  border-bottom: 0.5px solid #F1EFE8;
 `;
 
 const Title = styled.h1`
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-bold);
-  color: var(--color-grey-900);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
 `;
 
 const Description = styled.p`
-  font-size: var(--font-size-md);
-  color: var(--color-grey-600);
-  line-height: 1.6;
+  font-size: 0.9rem;
+  color: #9CA3AF;
+  line-height: 1.5;
+  margin: 0;
 `;
 
 const Section = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
-  padding: var(--spacing-lg);
-  background: var(--color-white-0);
-  border-radius: var(--border-radius-lg);
-  border: 1px solid var(--color-grey-200);
+  gap: 0.85rem;
+  padding: 1.25rem;
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
 `;
 
 const SectionHeader = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
-  padding-bottom: var(--spacing-md);
-  border-bottom: 1px solid var(--color-grey-200);
+  gap: 0.85rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 0.5px solid #F1EFE8;
 `;
 
 const SectionIcon = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
-  background: ${props => {
-    if (props.$color === 'blue') return 'var(--color-blue-100)';
-    if (props.$color === 'green') return 'var(--color-green-100)';
-    if (props.$color === 'purple') return 'var(--color-indigo-100)';
-    return 'var(--color-grey-100)';
-  }};
-  border-radius: var(--border-radius-md);
-  color: ${props => {
-    if (props.$color === 'blue') return 'var(--color-blue-600)';
-    if (props.$color === 'green') return 'var(--color-green-600)';
-    if (props.$color === 'purple') return 'var(--color-indigo-600)';
-    return 'var(--color-grey-600)';
-  }};
-  font-size: var(--font-size-xl);
+  width: 38px;
+  height: 38px;
+  background: #FDF3E3;
+  border-radius: 9px;
+  color: #E8920A;
+  font-size: 1rem;
+  flex-shrink: 0;
 `;
 
 const SectionInfo = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 0.15rem;
   flex: 1;
 `;
 
 const SectionTitle = styled.h2`
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
 `;
 
 const SectionDescription = styled.p`
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-600);
+  font-size: 0.875rem;
+  color: #9CA3AF;
+  margin: 0;
 `;
 
 const SectionContent = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: 0.5rem;
 `;
 
 const Actions = styled.div`
   display: flex;
   justify-content: flex-end;
-  gap: var(--spacing-md);
-  padding: var(--spacing-lg);
-  background: var(--color-grey-50);
-  border-radius: var(--border-radius-lg);
-  border: 1px solid var(--color-grey-200);
+  gap: 0.5rem;
+  padding: 0.85rem 1.25rem;
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
 `;
 
 const SuccessMessage = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-md);
-  background: var(--color-green-50);
-  border: 1px solid var(--color-green-200);
-  border-radius: var(--border-radius-md);
-  color: var(--color-green-700);
-  font-size: var(--font-size-md);
-  font-weight: var(--font-medium);
-
-  svg {
-    font-size: var(--font-size-lg);
-  }
+  gap: 0.5rem;
+  padding: 0.85rem 1rem;
+  background: #D1FAE5;
+  border: 0.5px solid #A7F3D0;
+  border-radius: 9px;
+  color: #065F46;
+  font-size: 0.875rem;
+  font-weight: 500;
 `;
 

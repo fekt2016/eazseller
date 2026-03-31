@@ -667,51 +667,59 @@ const TrackingPage = () => {
 
 export default TrackingPage;
 
-// Styled Components (same as admin version)
+// Styled Components
 const PageContainer = styled.div`
+  display: grid;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: #F9F8F5;
   min-height: 100vh;
-  background: #f7fafc;
-  padding: 2rem;
 `;
 
 const Header = styled.div`
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  border-left: 3px solid #E8920A;
+  padding: 1.2rem 1.5rem;
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin-bottom: 2rem;
   flex-wrap: wrap;
 `;
 
 const BackButton = styled.button`
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  gap: 0.4rem;
+  height: 34px;
+  padding: 0 0.85rem;
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 9px;
   cursor: pointer;
-  font-size: 1rem;
-  color: #4a5568;
-  transition: all 0.2s;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #6B7280;
+  transition: border-color 0.12s, color 0.12s;
 
   &:hover {
-    background: #f7fafc;
-    border-color: #cbd5e0;
+    border-color: #E8920A;
+    color: #E8920A;
   }
 `;
 
 const Title = styled.h1`
-  font-size: 2rem;
-  font-weight: 700;
-  color: #1a202c;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
   margin: 0;
 `;
 
 const ContentGrid = styled.div`
   display: grid;
-  grid-template-columns: 1fr 400px;
-  gap: 2rem;
+  grid-template-columns: 1fr 380px;
+  gap: 1rem;
 
   @media (max-width: 1024px) {
     grid-template-columns: 1fr;
@@ -719,16 +727,16 @@ const ContentGrid = styled.div`
 `;
 
 const MainCard = styled.div`
-  background: white;
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  padding: 2rem;
+  padding: 1.5rem;
 `;
 
 const Sidebar = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
 
   @media (max-width: 1024px) {
     order: -1;
@@ -736,156 +744,158 @@ const Sidebar = styled.div`
 `;
 
 const SidebarCard = styled.div`
-  background: white;
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  padding: 1.5rem;
+  padding: 1.25rem;
 `;
 
 const CardTitle = styled.h3`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #1a202c;
-  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 1rem;
 `;
 
 const TrackingHeader = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  padding-bottom: 2rem;
-  border-bottom: 1px solid #e2e8f0;
-  margin-bottom: 2rem;
+  gap: 0.65rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 0.5px solid #F1EFE8;
+  margin-bottom: 1.25rem;
 `;
 
 const TrackingNumber = styled.div`
-  font-size: 1.25rem;
-  color: #4a5568;
+  font-size: 0.875rem;
+  color: #6B7280;
 
   strong {
-    color: #2d3748;
-    font-weight: 700;
+    color: #111827;
+    font-weight: 600;
   }
 `;
 
 const OrderNumber = styled.div`
-  font-size: 1rem;
-  color: #718096;
+  font-size: 0.9rem;
+  color: #9CA3AF;
 
   strong {
-    color: #4a5568;
+    color: #6B7280;
     font-weight: 600;
   }
 `;
 
 const EstimatedDeliveryHeader = styled.div`
-  font-size: 1rem;
-  color: #2d3748;
+  font-size: 0.9rem;
+  color: #111827;
   display: flex;
   align-items: center;
-  padding: 0.75rem 1rem;
-  background: #f0f9ff;
-  border-left: 4px solid #3182ce;
-  border-radius: 4px;
-  margin-top: 0.5rem;
+  padding: 0.6rem 0.85rem;
+  background: #EFF6FF;
+  border: 0.5px solid #BFDBFE;
+  border-left: 3px solid #3B82F6;
+  border-radius: 9px;
+  margin-top: 0.25rem;
 
   strong {
-    color: #1e40af;
+    color: #1D4ED8;
     font-weight: 700;
     margin-left: 0.25rem;
   }
 `;
 
 const CurrentStatus = styled.div`
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
 `;
 
 const StatusLabel = styled.div`
-  font-size: 0.875rem;
-  color: #718096;
+  font-size: 0.75rem;
+  color: #9CA3AF;
   margin-bottom: 0.5rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 `;
 
 const StatusBadge = styled.div`
   display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1rem 1.5rem;
-  background: ${(props) => `${props.$color}15`};
+  gap: 0.5rem;
+  padding: 0.6rem 0.9rem;
+  background: ${(props) => `${props.$color}18`};
   color: ${(props) => props.$color};
-  border-radius: 8px;
-  font-size: 1.125rem;
+  border-radius: 9px;
+  font-size: 0.875rem;
   font-weight: 600;
 
   svg {
-    font-size: 1.5rem;
+    font-size: 1rem;
   }
 `;
 
 const DeliveryEstimateSection = styled.div`
-  margin-bottom: 2rem;
-  padding: 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  margin-bottom: 1.25rem;
+  padding: 1rem 1.25rem;
+  background: #FDF3E3;
+  border: 0.5px solid #FDE3BB;
+  border-left: 3px solid #E8920A;
   border-radius: 12px;
-  color: white;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 `;
 
 const DeliveryEstimateLabel = styled.div`
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  margin-bottom: 0.5rem;
-  opacity: 0.9;
+  margin-bottom: 0.35rem;
+  color: #92400E;
   display: flex;
   align-items: center;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 `;
 
 const DeliveryEstimateValue = styled.div`
-  font-size: 1.5rem;
+  font-size: 1.1rem;
   font-weight: 700;
+  color: #E8920A;
   display: flex;
   align-items: center;
 `;
 
 const TimelineSection = styled.div`
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
 `;
 
 const TimelineTitle = styled.h2`
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1a202c;
-  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 1rem;
 `;
 
 const Timeline = styled.div`
   position: relative;
-  padding-left: 2rem;
+  padding-left: 1.5rem;
 `;
 
 const TimelineItem = styled.div`
   position: relative;
-  padding-bottom: 2rem;
-  padding-left: 3rem;
+  padding-bottom: 1.5rem;
+  padding-left: 2.5rem;
 
   &:not(:last-child)::before {
     content: "";
     position: absolute;
     left: 0.75rem;
-    top: 2.5rem;
+    top: 2rem;
     width: 2px;
-    height: calc(100% - 1rem);
+    height: calc(100% - 0.75rem);
     background: ${props => {
-    if (props.$completed) return '#F7C948';
-    if (props.$isActive) return '#2D7FF9';
+    if (props.$completed) return '#E8920A';
+    if (props.$isActive) return '#3B82F6';
     return '#E5E7EB';
   }};
   }
@@ -895,120 +905,122 @@ const TimelineIcon = styled.div`
   position: absolute;
   left: 0;
   top: 0;
-  width: 2rem;
-  height: 2rem;
+  width: 1.75rem;
+  height: 1.75rem;
   border-radius: 50%;
   background: ${(props) => {
-    if (props.$completed) return props.$bgColor || '#F7C948';
-    if (props.$isActive) return props.$bgColor || '#2D7FF9';
-    return props.$bgColor || '#E5E7EB';
+    if (props.$completed) return props.$bgColor || '#E8920A';
+    if (props.$isActive) return props.$bgColor || '#3B82F6';
+    return props.$bgColor || '#F3F4F6';
   }};
   color: ${(props) => {
-    if (props.$completed || props.$isActive) return "white";
+    if (props.$completed || props.$isActive) return "#FFFFFF";
     return "#9CA3AF";
   }};
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   z-index: 1;
-  border: 2px solid ${(props) => props.$color || '#D1D5DB'};
+  border: 2px solid ${(props) => props.$color || '#E5E7EB'};
 `;
 
 const TimelineContent = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.3rem;
 `;
 
 const TimelineStatus = styled.div`
-  font-size: 1.125rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  color: ${(props) => props.$color || '#1a202c'};
+  color: ${(props) => props.$color || '#111827'};
   display: flex;
   align-items: center;
 `;
 
 const TimelineMessage = styled.div`
-  font-size: 1rem;
-  color: #4a5568;
+  font-size: 0.9rem;
+  color: #6B7280;
   line-height: 1.5;
 `;
 
 const TimelineDate = styled.div`
-  font-size: 0.875rem;
-  color: #718096;
+  font-size: 0.75rem;
+  color: #9CA3AF;
 `;
 
 const TimelineLocation = styled.div`
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  color: #718096;
-  margin-top: 0.25rem;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  color: #9CA3AF;
+  margin-top: 0.15rem;
 
   svg {
-    font-size: 0.75rem;
+    font-size: 0.65rem;
   }
 `;
 
 const TimelineLine = styled.div`
   position: absolute;
   left: 0.75rem;
-  top: 2.5rem;
+  top: 2rem;
   width: 2px;
-  height: calc(100% - 1rem);
+  height: calc(100% - 0.75rem);
   background: ${(props) => props.$color || '#E5E7EB'};
   z-index: 0;
 `;
 
 const ShippingInfo = styled.div`
-  padding-top: 2rem;
-  border-top: 1px solid #e2e8f0;
+  padding-top: 1.25rem;
+  border-top: 0.5px solid #F1EFE8;
 `;
 
 const InfoTitle = styled.h3`
   display: flex;
   align-items: center;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #1a202c;
-  margin-bottom: 1rem;
+  gap: 0.4rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.85rem;
 `;
 
 const AddressGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
 `;
 
 const AddressItem = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.2rem;
   ${props => props.$fullWidth && 'grid-column: 1 / -1;'}
 `;
 
 const AddressLabel = styled.div`
-  font-size: 0.875rem;
-  color: #718096;
+  font-size: 0.75rem;
+  color: #9CA3AF;
   font-weight: 600;
 `;
 
 const AddressValue = styled.div`
-  font-size: 1rem;
-  color: #2d3748;
+  font-size: 0.9rem;
+  color: #111827;
   font-weight: 500;
 `;
 
 const EmptyAddress = styled.div`
   text-align: center;
-  padding: 2rem;
-  color: #718096;
+  padding: 1.25rem;
+  color: #9CA3AF;
+  font-size: 0.9rem;
   font-style: italic;
-  background: #f7fafc;
-  border-radius: 8px;
+  background: #F9F8F5;
+  border-radius: 9px;
 `;
 
 const ItemsList = styled.ul`
@@ -1017,49 +1029,51 @@ const ItemsList = styled.ul`
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.65rem;
 `;
 
 const ItemCard = styled.li`
   display: flex;
-  gap: 1rem;
-  padding: 1rem;
-  background: #f8fafc;
-  border-radius: 8px;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: #F9F8F5;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 9px;
 `;
 
 const ItemImage = styled.img`
-  width: 60px;
-  height: 60px;
+  width: 52px;
+  height: 52px;
   object-fit: contain;
   border-radius: 8px;
-  background-color: #f8fafc;
+  background-color: #FFFFFF;
 `;
 
 const ItemInfo = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.3rem;
 `;
 
 const ItemName = styled.div`
+  font-size: 0.9rem;
   font-weight: 600;
-  color: #1a202c;
+  color: #111827;
 `;
 
 const ItemDetails = styled.div`
   display: flex;
   justify-content: space-between;
   font-size: 0.875rem;
-  color: #718096;
+  color: #9CA3AF;
 `;
 
 const ItemQuantity = styled.span``;
 
 const ItemPrice = styled.span`
   font-weight: 600;
-  color: #2d3748;
+  color: #6B7280;
 `;
 
 const SummaryList = styled.ul`
@@ -1068,24 +1082,24 @@ const SummaryList = styled.ul`
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
 `;
 
 const SummaryRow = styled.li`
   display: flex;
   justify-content: space-between;
-  padding: ${props => props.$total ? '1rem 0' : '0.5rem 0'};
-  border-top: ${props => props.$total ? '2px solid #e2e8f0' : 'none'};
+  padding: ${props => props.$total ? '0.75rem 0' : '0.35rem 0'};
+  border-top: ${props => props.$total ? '0.5px solid #F1EFE8' : 'none'};
   font-weight: ${props => props.$total ? '700' : '500'};
-  font-size: ${props => props.$total ? '1.125rem' : '1rem'};
+  font-size: ${props => props.$total ? '0.875rem' : '0.8rem'};
 `;
 
 const SummaryLabel = styled.span`
-  color: #4a5568;
+  color: #6B7280;
 `;
 
 const SummaryValue = styled.span`
-  color: #1a202c;
+  color: #111827;
 `;
 
 const InfoList = styled.ul`
@@ -1094,67 +1108,69 @@ const InfoList = styled.ul`
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.65rem;
 `;
 
 const InfoRow = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.2rem;
   ${props => props.$fullWidth && 'grid-column: 1 / -1;'}
 `;
 
 const InfoLabel = styled.div`
-  font-size: 0.875rem;
-  color: #718096;
+  font-size: 0.75rem;
+  color: #9CA3AF;
   font-weight: 600;
   display: flex;
   align-items: center;
 `;
 
 const InfoValue = styled.div`
-  font-size: 1rem;
-  color: #2d3748;
+  font-size: 0.9rem;
+  color: #111827;
   font-weight: 500;
 `;
 
 const PickupMapLink = styled.a`
   display: inline-flex;
   align-items: center;
-  color: #3182ce;
+  gap: 0.3rem;
+  color: #E8920A;
   text-decoration: none;
+  font-size: 0.9rem;
   font-weight: 500;
-  transition: color 0.2s;
+  transition: opacity 0.12s;
 
   &:hover {
-    color: #2c5aa0;
+    opacity: 0.75;
     text-decoration: underline;
   }
 
   svg {
-    font-size: 0.875rem;
+    font-size: 0.75rem;
   }
 `;
 
 const ErrorContainer = styled.div`
   text-align: center;
-  padding: 3rem;
-  background: white;
+  padding: 2.5rem;
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  margin-bottom: 2rem;
 `;
 
 const ErrorTitle = styled.h2`
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #e74c3c;
-  margin-bottom: 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #EF4444;
+  margin: 0 0 0.5rem;
 `;
 
 const ErrorMessage = styled.p`
-  font-size: 1rem;
-  color: #718096;
+  font-size: 0.9rem;
+  color: #9CA3AF;
+  margin: 0;
 `;
 
 // Update Tracking Modal Component
@@ -1287,147 +1303,153 @@ const ModalOverlay = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: 2rem;
+  padding: 1.5rem;
 `;
 
 const ModalContent = styled.div`
-  background: white;
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
   border-radius: 12px;
   width: 100%;
-  max-width: 600px;
+  max-width: 560px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
 `;
 
 const ModalHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.5rem;
-  border-bottom: 1px solid #e2e8f0;
+  padding: 1.2rem 1.5rem;
+  border-bottom: 0.5px solid #F1EFE8;
 `;
 
 const ModalTitle = styled.h2`
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1a202c;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
   margin: 0;
 `;
 
 const CloseButton = styled.button`
   background: none;
   border: none;
-  font-size: 1.5rem;
-  color: #718096;
+  font-size: 1rem;
+  color: #9CA3AF;
   cursor: pointer;
-  padding: 0.5rem;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
-  transition: all 0.2s;
+  border-radius: 6px;
+  transition: background 0.12s, color 0.12s;
 
   &:hover {
-    background: #f7fafc;
-    color: #2d3748;
+    background: #F9F8F5;
+    color: #111827;
   }
 `;
 
 const Form = styled.form`
-  padding: 1.5rem;
+  padding: 1.25rem 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
 `;
 
 const FormGroup = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.35rem;
 `;
 
 const Label = styled.label`
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  color: #4a5568;
+  color: #374151;
 `;
 
 const Select = styled.select`
-  padding: 0.75rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 1rem;
-  color: #2d3748;
-  background: white;
+  height: 38px;
+  padding: 0 0.75rem;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 9px;
+  font-size: 0.9rem;
+  color: #111827;
+  background: #F9F8F5;
   cursor: pointer;
-  transition: border-color 0.2s;
+  outline: none;
+  transition: border-color 0.12s, background 0.12s;
 
   &:focus {
-    outline: none;
-    border-color: #3182ce;
-    box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+    border-color: #E8920A;
+    background: #FFFFFF;
   }
 `;
 
 const TextArea = styled.textarea`
-  padding: 0.75rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 1rem;
-  color: #2d3748;
+  padding: 0.65rem 0.75rem;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 9px;
+  font-size: 0.9rem;
+  color: #111827;
+  background: #F9F8F5;
   font-family: inherit;
   resize: vertical;
-  transition: border-color 0.2s;
+  outline: none;
+  transition: border-color 0.12s, background 0.12s;
 
   &:focus {
-    outline: none;
-    border-color: #3182ce;
-    box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+    border-color: #E8920A;
+    background: #FFFFFF;
   }
 `;
 
 const Input = styled.input`
-  padding: 0.75rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 1rem;
-  color: #2d3748;
-  transition: border-color 0.2s;
+  height: 38px;
+  padding: 0 0.75rem;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 9px;
+  font-size: 0.9rem;
+  color: #111827;
+  background: #F9F8F5;
+  outline: none;
+  transition: border-color 0.12s, background 0.12s;
 
   &:focus {
-    outline: none;
-    border-color: #3182ce;
-    box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1);
+    border-color: #E8920A;
+    background: #FFFFFF;
   }
 `;
 
 const ButtonGroup = styled.div`
   display: flex;
-  gap: 1rem;
+  gap: 0.5rem;
   justify-content: flex-end;
-  margin-top: 1rem;
+  margin-top: 0.5rem;
 `;
 
 const CancelButton = styled.button`
-  padding: 0.75rem 1.5rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background: white;
-  color: #4a5568;
-  font-size: 1rem;
+  height: 36px;
+  padding: 0 1rem;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 9px;
+  background: #FFFFFF;
+  color: #6B7280;
+  font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: border-color 0.12s, color 0.12s;
 
   &:hover:not(:disabled) {
-    background: #f7fafc;
-    border-color: #cbd5e0;
+    border-color: #D1D5DB;
+    color: #111827;
   }
 
   &:disabled {
@@ -1437,18 +1459,19 @@ const CancelButton = styled.button`
 `;
 
 const SubmitButton = styled.button`
-  padding: 0.75rem 1.5rem;
+  height: 36px;
+  padding: 0 1rem;
   border: none;
-  border-radius: 8px;
-  background: #3182ce;
-  color: white;
-  font-size: 1rem;
+  border-radius: 9px;
+  background: #E8920A;
+  color: #FFFFFF;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: opacity 0.12s;
 
   &:hover:not(:disabled) {
-    background: #2c5aa0;
+    opacity: 0.85;
   }
 
   &:disabled {
@@ -1460,24 +1483,25 @@ const SubmitButton = styled.button`
 const UpdateTrackingButton = styled.button`
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  background: #3182ce;
-  color: white;
+  gap: 0.4rem;
+  height: 34px;
+  padding: 0 0.9rem;
+  background: #E8920A;
+  color: #FFFFFF;
   border: none;
-  border-radius: 8px;
-  font-size: 1rem;
+  border-radius: 9px;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: opacity 0.12s;
   margin-left: auto;
 
   &:hover {
-    background: #2c5aa0;
+    opacity: 0.85;
   }
 
   svg {
-    font-size: 0.875rem;
+    font-size: 0.75rem;
   }
 `;
 

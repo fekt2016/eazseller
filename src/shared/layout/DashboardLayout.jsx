@@ -14,15 +14,11 @@ const HEADER_HEIGHT = "64px";
 const BREAKPOINT_MD = "768px";
 
 const DashboardWrapper = styled.div`
-  --sidebar-width: ${SIDEBAR_WIDTH};
-  --header-height: ${HEADER_HEIGHT};
-  
   display: flex;
   min-height: 100vh;
-  background-color: var(--color-grey-50);
-  font-family: var(--font-body);
-  color: var(--color-grey-700);
-  
+  background-color: #F9F8F5;
+  color: #374151;
+
   @media ${devicesMax.md} {
     flex-direction: column;
   }
@@ -31,14 +27,14 @@ const DashboardWrapper = styled.div`
     flex: 1;
     display: flex;
     flex-direction: column;
-    margin-left: var(--sidebar-width);
-    width: calc(100% - var(--sidebar-width));
-    
+    margin-left: ${SIDEBAR_WIDTH};
+    width: calc(100% - ${SIDEBAR_WIDTH});
+
     @media ${devicesMax.md} {
       margin-left: 0;
       width: 100%;
     }
-    
+
     &.no-sidebar {
       margin-left: 0;
       width: 100%;
@@ -49,27 +45,40 @@ const DashboardWrapper = styled.div`
     flex: 1;
     padding: 2rem;
     overflow-y: auto;
-    background: var(--color-grey-100);
-    max-height: calc(100vh - var(--header-height));
-    
+    background: #F9F8F5;
+    max-height: calc(100vh - ${HEADER_HEIGHT});
+
     &.no-header {
       max-height: 100vh;
       padding: 0;
     }
-    
+
+    &.full-page {
+      padding: 0;
+      overflow-y: visible;
+      max-height: none;
+      background: transparent;
+    }
+
     @media ${devicesMax.md} {
       padding: 1.5rem;
-      max-height: calc(100vh - var(--header-height) - 60px);
-      
+      max-height: calc(100vh - ${HEADER_HEIGHT} - 60px);
+
       &.no-header {
         padding: 0;
         max-height: 100vh;
+      }
+
+      &.full-page {
+        padding: 0;
+        overflow-y: visible;
+        max-height: none;
       }
     }
   }
 `;
 
-export default function DashboardLayout({ showSidebar = true, showHeader = true }) {
+export default function DashboardLayout({ showSidebar = true, showHeader = true, fullPage = false }) {
   const { seller, isLoading: isSellerLoading, error: sellerError } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -112,7 +121,7 @@ export default function DashboardLayout({ showSidebar = true, showHeader = true 
             <PublicHeader />
           )
         )}
-        <main className={`dashboard-main ${!showHeader ? 'no-header' : ''}`}>
+        <main className={`dashboard-main ${!showHeader ? 'no-header' : ''} ${fullPage ? 'full-page' : ''}`}>
           <Outlet />
         </main>
       </div>
@@ -124,8 +133,8 @@ export default function DashboardLayout({ showSidebar = true, showHeader = true 
 
 const ErrorContainer = styled.div`
   padding: 2rem;
-  color: var(--color-red-700);
-  background: var(--color-red-100);
+  color: #A32D2D;
+  background: #FCEBEB;
   text-align: center;
   font-size: 1.2rem;
   height: 100vh;

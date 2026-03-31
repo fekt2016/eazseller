@@ -8,23 +8,23 @@ const SelectContainer = styled.div`
 
 const StyledSelect = styled.select`
   width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid var(--color-grey-300);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-md);
-  font-family: var(--font-body);
-  color: var(--color-grey-900);
-  background-color: var(--color-white-0);
-  transition: all var(--transition-base);
+  padding: 1rem 1rem;
+  border: 1px solid #E5E7EB;
+  border-radius: 9px;
+  font-size: 0.9rem;
+  
+  color: #111827;
+  background-color: #FFFFFF;
+  transition: all 0.12s;
 
   &:focus {
     outline: none;
-    border-color: var(--color-primary-500);
-    box-shadow: 0 0 0 3px var(--color-primary-100);
+    border-color: #E8920A;
+    box-shadow: 0 0 0 3px #E8920A;
   }
 
   &:disabled {
-    background-color: var(--color-grey-100);
+    background-color: #F9F8F5;
     cursor: not-allowed;
     opacity: 0.6;
   }
@@ -32,24 +32,24 @@ const StyledSelect = styled.select`
 
 const Label = styled.label`
   display: block;
-  margin-bottom: var(--spacing-xs);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-700);
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
 `;
 
 const ErrorText = styled.span`
   display: block;
-  margin-top: var(--spacing-xs);
-  font-size: var(--font-size-xs);
-  color: var(--color-red-600);
+  margin-top: 1rem;
+  font-size: 0.8rem;
+  color: #A32D2D;
 `;
 
 const HelperText = styled.span`
   display: block;
-  margin-top: var(--spacing-xs);
-  font-size: var(--font-size-xs);
-  color: var(--color-grey-600);
+  margin-top: 1rem;
+  font-size: 0.8rem;
+  color: #6B7280;
 `;
 
 const GhanaRegionSelect = ({
@@ -70,7 +70,7 @@ const GhanaRegionSelect = ({
       {label && (
         <Label htmlFor={id}>
           {label}
-          {required && <span style={{ color: 'var(--color-red-600)' }}> *</span>}
+          {required && <span style={{ color: '#A32D2D' }}> *</span>}
         </Label>
       )}
       <StyledSelect

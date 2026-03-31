@@ -7,49 +7,49 @@ import TicketStatusBadge from './TicketStatusBadge';
 import { PATHS } from '../../../routes/routePaths';
 
 const HeaderContainer = styled.div`
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: 1rem;
 `;
 
 const BackButton = styled(Button)`
-  margin-bottom: var(--spacing-md);
+  margin-bottom: 1rem;
 `;
 
 const TitleRow = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: 1rem;
   flex-wrap: wrap;
-  margin-bottom: var(--spacing-sm);
+  margin-bottom: 1rem;
 `;
 
 const TicketTitle = styled.h1`
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-bold);
-  color: var(--color-grey-900);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
   margin: 0;
-  font-family: var(--font-heading);
+  
   flex: 1;
   min-width: 0;
   
   @media (max-width: 640px) {
-    font-size: var(--font-size-xl);
+    font-size: 1.25rem;
   }
 `;
 
 const TicketId = styled.span`
-  font-size: var(--font-size-md);
-  font-weight: var(--font-medium);
-  color: var(--color-grey-600);
-  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #6B7280;
+  
 `;
 
 const DateInfo = styled.div`
   display: flex;
-  gap: var(--spacing-md);
+  gap: 1rem;
   flex-wrap: wrap;
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-600);
-  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: #6B7280;
+  
 `;
 
 /**

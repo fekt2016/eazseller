@@ -5,18 +5,35 @@ import { FaCheck, FaEye, FaEyeSlash } from "react-icons/fa";
 import { PropagateLoader } from "react-spinners";
 import useAuth from '../../shared/hooks/useAuth';
 import { sanitizeName } from '../../shared/utils/helpers';
-import { detectGhanaNetwork, isValidGhanaPhone, normalizeGhanaPhone } from '../../shared/utils/detectGhanaNetwork';
-import NetworkBadge from '../../shared/components/ui/NetworkBadge';
 import { PATHS } from '../../routes/routePaths';
 import { ButtonSpinner } from '../../shared/components/ButtonSpinner';
 import { ErrorState } from '../../shared/components/ui/LoadingComponents';
-import Logo from '../../shared/components/Logo';
 import GoogleLoginButton from "./GoogleLoginButton";
 import { toast } from 'react-toastify';
+import { parsePhoneNumberFromString } from 'libphonenumber-js';
+
+const detectPhoneCountry = (phone) => {
+  const raw = String(phone || '').trim();
+  if (!raw) return null;
+
+  const normalized =
+    raw.startsWith('00') ? `+${raw.slice(2)}` : raw;
+
+  if (normalized.startsWith('+')) {
+    const parsed = parsePhoneNumberFromString(normalized);
+    if (!parsed?.country) {
+      return 'Country not recognized from dialing code';
+    }
+    const displayNames = new Intl.DisplayNames(['en'], { type: 'region' });
+    const countryName = displayNames.of(parsed.country) || parsed.country;
+    return `Detected country: ${countryName}`;
+  }
+
+  return 'Local format entered (country code not specified)';
+};
 
 // Auth Form Component
 const AuthPage = () => {
-  const [phoneNetwork, setPhoneNetwork] = useState("");
   const [activeTab, setActiveTab] = useState("login");
   const [loginClientError, setLoginClientError] = useState("");
   const [sessionMessage, setSessionMessage] = useState("");
@@ -42,7 +59,6 @@ const AuthPage = () => {
     passwordConfirm: "",
     shopName: "",
     location: "",
-    network: phoneNetwork,
     contactNumber: "",
     referral: "",
     agreeToTerms: false,
@@ -86,16 +102,6 @@ const AuthPage = () => {
       // ignore malformed data
     }
   }, []);
-
-  // Derive network from contactNumber for API (backend expects e.g. "mtn")
-  useEffect(() => {
-    const result = detectGhanaNetwork(formData.contactNumber);
-    if (result?.network) {
-      setPhoneNetwork(result.network.toLowerCase());
-    } else {
-      setPhoneNetwork("");
-    }
-  }, [formData.contactNumber]);
 
   // Normalize backend validation errors to field-level errors
   const normalizeFieldErrors = (error) => {
@@ -217,33 +223,46 @@ const AuthPage = () => {
     }
   };
 
-  // Format phone for display: "0241234567" -> "024 123 4567"
-  const formatPhoneDisplay = (stripped) => {
-    const d = normalizeGhanaPhone(stripped || '');
-    if (d.length <= 3) return d;
-    if (d.length <= 6) return `${d.slice(0, 3)} ${d.slice(3)}`;
-    return `${d.slice(0, 3)} ${d.slice(3, 6)} ${d.slice(6, 10)}`;
+  const normalizeInternationalPhoneDigits = (value) =>
+    String(value || '').replace(/\D/g, '');
+
+  const formatPhoneForSubmission = (value) => {
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+
+    const normalized =
+      raw.startsWith('00') ? `+${raw.slice(2)}` : raw;
+
+    if (normalized.startsWith('+')) {
+      const parsed = parsePhoneNumberFromString(normalized);
+      if (parsed?.isValid()) {
+        return parsed.number;
+      }
+    }
+
+    return raw;
   };
 
-  // Phone input: strip/normalize and save stripped; accept paste and +233/233
+  // Phone input: allow international numbers, keep digits and optional leading +
   const handlePhoneChange = (e) => {
     const raw = e.target.value;
-    const stripped = normalizeGhanaPhone(raw);
-    let limited = stripped;
-    if (!stripped) limited = '';
-    else if (stripped.startsWith('0')) limited = stripped.slice(0, 10);
-    else limited = ('0' + stripped).slice(0, 10);
-    setFormData((prev) => ({ ...prev, contactNumber: limited }));
+    const trimmed = raw.trim();
+    const sanitized = trimmed
+      // Keep only digits and plus
+      .replace(/[^\d+]/g, '')
+      // Allow plus only at the start
+      .replace(/(?!^)\+/g, '');
+
+    setFormData((prev) => ({ ...prev, contactNumber: sanitized }));
     if (fieldErrors.contactNumber) {
       setFieldErrors((prev) => ({ ...prev, contactNumber: undefined }));
     }
   };
 
-  // Derived: network result for badge (null if < 3 digits)
-  const phoneNetworkResult = formData.contactNumber ? detectGhanaNetwork(formData.contactNumber) : null;
-  const phoneDigits = normalizeGhanaPhone(formData.contactNumber);
-  const phoneLengthError = phoneDigits.length >= 3 && phoneDigits.length !== 10;
-  const phoneUnknownError = phoneDigits.length === 10 && phoneNetworkResult && !phoneNetworkResult.isValid;
+  const phoneDigits = normalizeInternationalPhoneDigits(formData.contactNumber);
+  const phoneLengthError =
+    phoneDigits.length > 0 && (phoneDigits.length < 7 || phoneDigits.length > 15);
+  const detectedPhoneCountry = detectPhoneCountry(formData.contactNumber);
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
@@ -478,11 +497,9 @@ const AuthPage = () => {
     if (!formData.contactNumber.trim()) {
       clientErrors.contactNumber = 'Phone number is required';
     } else {
-      const digits = normalizeGhanaPhone(formData.contactNumber);
-      if (digits.length !== 10) {
-        clientErrors.contactNumber = 'Phone number must be 10 digits';
-      } else if (!isValidGhanaPhone(formData.contactNumber)) {
-        clientErrors.contactNumber = 'Please enter a valid Ghana mobile number';
+      const digits = normalizeInternationalPhoneDigits(formData.contactNumber);
+      if (digits.length < 7 || digits.length > 15) {
+        clientErrors.contactNumber = 'Please enter a valid phone number (7-15 digits)';
       }
     }
 
@@ -534,12 +551,11 @@ const AuthPage = () => {
       const registrationData = {
         name: sanitizeName(formData.name),
         email: formData.email,
-        phone: formData.contactNumber,
+        phone: formatPhoneForSubmission(formData.contactNumber),
         password: formData.password,
         passwordConfirm: formData.passwordConfirm,
         shopName: formData.shopName,
         shopLocation: shopLocation,
-        network: phoneNetwork,
         referral: formData.referral,
       };
 
@@ -576,15 +592,25 @@ const AuthPage = () => {
 
 
   return (
-    <Container>
-      <AuthCard>
-        <LogoContainer>
-          <LogoLink to={PATHS.LANDING}>
-            <Logo />
-          </LogoLink>
-        </LogoContainer>
+    <PageWrapper>
+      {/* Left brand panel — desktop only */}
+      <BrandPanel>
+        <Link to={PATHS.LANDING} style={{ display: 'inline-block' }}>
+          <BrandLogoImg src="/newSaiisaiLogo.png" alt="Saiisai — Back to Home" />
+        </Link>
+      </BrandPanel>
 
-        <Tabs>
+      {/* Right form panel */}
+      <FormPanel>
+        <FormCard>
+          {/* Mobile logo — hidden on desktop */}
+          <MobileLogoRow>
+            <Link to={PATHS.LANDING}>
+              <MobileLogoImg src="/newSaiisaiLogo.png" alt="Saiisai — Back to Home" />
+            </Link>
+          </MobileLogoRow>
+
+          <Tabs>
           <Tab
             $active={activeTab === "login"}
             onClick={() => {
@@ -670,7 +696,7 @@ const AuthPage = () => {
                       setLoginClientError("");
                       setLoginState({ ...loginState, email: e.target.value });
                     }}
-                    placeholder="your.email@example.com"
+                    placeholder="Enter your email address (e.g. seller@example.com)"
                     required
                     autoComplete="email"
                   />
@@ -687,7 +713,7 @@ const AuthPage = () => {
                         setLoginClientError("");
                         setLoginState({ ...loginState, password: e.target.value });
                       }}
-                      placeholder="Enter your password"
+                      placeholder="Enter your account password"
                       required
                       autoComplete="current-password"
                       $hasToggle
@@ -803,7 +829,7 @@ const AuthPage = () => {
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                placeholder="Enter your full name"
+                placeholder="Enter your full name (e.g. Kwame Mensah)"
                 required
                 style={fieldErrors.name ? { borderColor: '#dc2626' } : {}}
               />
@@ -815,33 +841,27 @@ const AuthPage = () => {
                 Contact Number <span>*</span>
               </Label>
               <PhoneInputWrapper>
-                <PhoneInputContainer $hasError={!!(fieldErrors.contactNumber || phoneLengthError || phoneUnknownError)}>
-                  <PhonePrefix>🇬🇭</PhonePrefix>
+                <PhoneInputContainer $hasError={!!(fieldErrors.contactNumber || phoneLengthError)}>
                   <PhoneInput
                     type="text"
                     name="contactNumber"
-                    value={formatPhoneDisplay(formData.contactNumber)}
+                    value={formData.contactNumber}
                     onChange={handlePhoneChange}
-                    placeholder="024 123 4567"
+                    placeholder="Enter phone number (e.g. +233241234567)"
                     required
                     inputMode="tel"
                     autoComplete="tel"
                   />
-                  {phoneNetworkResult && (
-                    <PhoneBadgeSlot>
-                      <NetworkBadge network={phoneNetworkResult} />
-                    </PhoneBadgeSlot>
-                  )}
                 </PhoneInputContainer>
                 {fieldErrors.contactNumber && <ErrorText>{fieldErrors.contactNumber}</ErrorText>}
                 {!fieldErrors.contactNumber && phoneLengthError && (
-                  <ErrorText>Phone number must be 10 digits</ErrorText>
+                  <ErrorText>Please enter a valid phone number (7-15 digits)</ErrorText>
                 )}
-                {!fieldErrors.contactNumber && !phoneLengthError && phoneUnknownError && (
-                  <ErrorText>Please enter a valid Ghana mobile number</ErrorText>
-                )}
-                {!fieldErrors.contactNumber && !phoneLengthError && !phoneUnknownError && (
-                  <HelpText>Enter Ghanaian number (MTN, Telecel, or AirtelTigo)</HelpText>
+                {!fieldErrors.contactNumber && !phoneLengthError && (
+                  <HelpText>
+                    Enter any regional or international phone number.
+                    {detectedPhoneCountry ? ` ${detectedPhoneCountry}.` : ''}
+                  </HelpText>
                 )}
               </PhoneInputWrapper>
             </InputGroup>
@@ -855,7 +875,7 @@ const AuthPage = () => {
                 name="shopName"
                 value={formData.shopName}
                 onChange={handleChange}
-                placeholder="Enter your shop name"
+                placeholder="Enter your shop name (e.g. Kofi Tech Store)"
                 required
                 minLength={3}
                 maxLength={50}
@@ -873,7 +893,7 @@ const AuthPage = () => {
                 name="location"
                 value={formData.location}
                 onChange={handleChange}
-                placeholder="e.g. Nima, Newtown, Adabraka, or your area"
+                placeholder="Enter your shop location (e.g. East Legon, Accra)"
                 required
                 minLength={2}
                 maxLength={120}
@@ -895,7 +915,7 @@ const AuthPage = () => {
                 name="referral"
                 value={formData.referral}
                 onChange={handleChange}
-                placeholder="Enter referral code or name"
+                placeholder="Enter referral code (optional)"
               />
             </InputGroup>
 
@@ -906,7 +926,7 @@ const AuthPage = () => {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="Enter your email"
+                placeholder="Enter your business email address"
                 required
                 style={fieldErrors.email ? { borderColor: '#dc2626' } : {}}
               />
@@ -921,7 +941,7 @@ const AuthPage = () => {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder="Enter your password"
+                  placeholder="Create a strong password"
                   required
                   style={fieldErrors.password ? { borderColor: '#dc2626' } : {}}
                   $hasToggle
@@ -945,7 +965,7 @@ const AuthPage = () => {
                   name="passwordConfirm"
                   value={formData.passwordConfirm}
                   onChange={handleChange}
-                  placeholder="Confirm your password"
+                  placeholder="Re-enter your password to confirm"
                   required
                   style={fieldErrors.passwordConfirm ? { borderColor: '#dc2626' } : {}}
                   $hasToggle
@@ -972,7 +992,7 @@ const AuthPage = () => {
                     onChange={handleChange}
                   />
                   <TermsCheckboxBox $checked={formData.agreeToTerms}>
-                    {formData.agreeToTerms && <FaCheck size={10} color="#667eea" />}
+                    {formData.agreeToTerms && <FaCheck size={10} color="#E8920A" />}
                   </TermsCheckboxBox>
                 </TermsCheckboxContainer>
                 <TermsLabelText>
@@ -1035,8 +1055,9 @@ const AuthPage = () => {
             </>
           )}
         </FooterText>
-      </AuthCard>
-    </Container>
+        </FormCard>
+      </FormPanel>
+    </PageWrapper>
   );
 };
 
@@ -1044,118 +1065,123 @@ export default AuthPage;
 
 // Styled Components
 const fadeIn = keyframes`
-  from { 
-    opacity: 0; 
-    transform: translateY(20px) scale(0.98); 
-  }
-  to { 
-    opacity: 1; 
-    transform: translateY(0) scale(1); 
-  }
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
 `;
 
 const slideIn = keyframes`
-  from {
-    opacity: 0;
-    transform: translateX(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  from { opacity: 0; transform: translateX(-10px); }
+  to   { opacity: 1; transform: translateX(0); }
 `;
 
-const Container = styled.div`
+/* ── Page layout ─────────────────────────────────────────── */
+const PageWrapper = styled.div`
   display: flex;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
-  font-family: var(--font-body);
-  padding: 2rem;
+  background: #F9F8F5;
+`;
+
+const BrandPanel = styled.div`
+  display: none;
+  @media (min-width: 900px) {
+    display: flex;
+    flex: 0 0 420px;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(160deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+    padding: 3rem 2.5rem;
+    position: relative;
+    overflow: hidden;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -80px;
+      right: -80px;
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      background: rgba(232, 146, 10, 0.12);
+      pointer-events: none;
+    }
+    &::before {
+      content: '';
+      position: absolute;
+      top: -60px;
+      left: -60px;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: rgba(232, 146, 10, 0.07);
+      pointer-events: none;
+    }
+  }
+`;
+
+
+const BrandLogoImg = styled.img`
+  width: 180px;
+  height: 180px;
+  object-fit: contain;
+  border-radius: 32px;
+  filter: drop-shadow(0 8px 32px rgba(232, 146, 10, 0.4));
+`;
+
+/* ── Form panel ───────────────────────────────────────────── */
+const FormPanel = styled.div`
+  flex: 1;
+  display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
-  overflow: hidden;
+  padding: 2rem 1.5rem;
+  overflow-y: auto;
 
-  &::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255, 196, 0, 0.05) 0%, transparent 70%);
-    pointer-events: none;
-  }
-
-  @media (max-width: 768px) {
-    padding: 1rem;
+  @media (max-width: 640px) {
+    padding: 1.5rem 1rem;
     align-items: flex-start;
-    padding-top: 3rem;
-  }
-
-  /* Mobile phone optimizations */
-  @media (max-width: 640px) {
-    padding: 1rem 0.75rem;
-    padding-top: 2rem;
-  }
-
-  @media (max-width: 480px) {
-    padding: 0.75rem 0.5rem;
-    padding-top: 1.5rem;
+    padding-top: 2.5rem;
   }
 `;
 
-const AuthCard = styled.div`
-  background: white;
-  border-radius: 24px;
-  box-shadow: 
-    0 20px 60px rgba(0, 0, 0, 0.08),
-    0 0 0 1px rgba(0, 0, 0, 0.04);
-  padding: 3.5rem;
+const FormCard = styled.div`
+  background: #ffffff;
+  border-radius: 16px;
+  border: 0.5px solid #F1EFE8;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  padding: 2.5rem 2rem;
   width: 100%;
-  max-width: 480px;
-  animation: ${fadeIn} 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-  position: relative;
-  z-index: 1;
-  backdrop-filter: blur(10px);
+  max-width: 460px;
+  animation: ${fadeIn} 0.4s ease-out;
 
-  @media (max-width: 768px) {
-    padding: 2rem 1.5rem;
-    border-radius: 20px;
-    max-width: 100%;
-  }
-
-  /* Mobile phone optimizations */
   @media (max-width: 640px) {
-    padding: 2.5rem 1.75rem;
-    border-radius: 18px;
-  }
-
-  @media (max-width: 480px) {
     padding: 2rem 1.5rem;
-    border-radius: 16px;
+    border-radius: 14px;
+  }
+  @media (max-width: 480px) {
+    padding: 1.75rem 1.25rem;
   }
 `;
 
-const LogoContainer = styled.div`
-  text-align: center;
-  margin-bottom: 2.5rem;
-  animation: ${slideIn} 0.5s ease-out 0.1s both;
-`;
+/* ── Mobile logo (hidden on desktop) ─────────────────────── */
+const MobileLogoRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  margin-bottom: 1.75rem;
 
-const LogoLink = styled(Link)`
-  display: inline-block;
-  text-decoration: none;
-  transition: transform 0.2s ease;
-
-  &:hover {
-    transform: scale(1.05);
-  }
-
-  &:active {
-    transform: scale(0.98);
+  @media (min-width: 900px) {
+    display: none;
   }
 `;
+
+const MobileLogoImg = styled.img`
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  border-radius: 10px;
+`;
+
 
 const Title = styled.h2`
   text-align: center;
@@ -1259,7 +1285,7 @@ const Tab = styled.button`
   padding: 0.75rem 1.75rem;
   font-size: clamp(0.95rem, 2.5vw, 1rem);
   font-weight: ${(props) => (props.$active ? "500" : "400")};
-  color: ${(props) => (props.$active ? "var(--color-primary-600)" : "#64748b")};
+  color: ${(props) => (props.$active ? "#E8920A" : "#64748b")};
   cursor: pointer;
   position: relative;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1269,7 +1295,7 @@ const Tab = styled.button`
   min-height: 44px; /* Minimum touch target */
 
   &:hover {
-    color: ${(props) => (props.$active ? "var(--color-primary-700)" : "var(--color-primary-600)")};
+    color: ${(props) => (props.$active ? "#D97706" : "#E8920A")};
   }
 
   /* Mobile phone optimizations */
@@ -1335,11 +1361,11 @@ const PasswordToggleBtn = styled.button`
   }
 
   &:hover {
-    color: var(--color-primary-600, #667eea);
+    color: #E8920A;
   }
 
   &:focus {
-    outline: 2px solid var(--color-primary-500, #667eea);
+    outline: 2px solid #E8920A;
     outline-offset: 2px;
     border-radius: 4px;
   }
@@ -1403,7 +1429,7 @@ const Input = styled.input`
   min-height: 44px; /* Minimum touch target size */
 
   &:focus {
-    border-color: var(--color-primary-500);
+    border-color: #E8920A;
     box-shadow: 
       0 0 0 4px rgba(255, 196, 0, 0.1),
       0 2px 8px rgba(0, 0, 0, 0.04);
@@ -1447,7 +1473,7 @@ const ForgotPasswordLink = styled(Link)`
   margin-top: -0.5rem;
   margin-bottom: 0.5rem;
   font-size: clamp(0.875rem, 2.5vw, 0.9375rem);
-  color: var(--color-primary-600);
+  color: #E8920A;
   text-decoration: none;
   font-weight: 400;
   transition: all 0.2s ease;
@@ -1459,12 +1485,12 @@ const ForgotPasswordLink = styled(Link)`
   align-items: center;
 
   &:hover {
-    color: var(--color-primary-700);
+    color: #D97706;
     background: rgba(255, 196, 0, 0.08);
   }
 
   &:focus {
-    outline: 2px solid var(--color-primary-500);
+    outline: 2px solid #E8920A;
     outline-offset: 2px;
     border-radius: 6px;
   }
@@ -1521,7 +1547,7 @@ const OtpInput = styled.input`
 
   &:focus {
     outline: none;
-    border-color: var(--color-primary-500);
+    border-color: #E8920A;
     box-shadow: 
       0 0 0 4px rgba(255, 196, 0, 0.1),
       0 2px 8px rgba(0, 0, 0, 0.04);
@@ -1553,7 +1579,7 @@ const OtpInput = styled.input`
 const BackButton = styled.button`
   background: none;
   border: none;
-  color: var(--color-primary-600);
+  color: #E8920A;
   font-size: clamp(0.875rem, 2.5vw, 0.9375rem);
   cursor: pointer;
   padding: 0.5rem 0.75rem;
@@ -1567,7 +1593,7 @@ const BackButton = styled.button`
   min-height: 44px; /* Minimum touch target */
 
   &:hover {
-    color: var(--color-primary-700);
+    color: #D97706;
     background: rgba(255, 196, 0, 0.08);
   }
 
@@ -1586,7 +1612,7 @@ const BackButton = styled.button`
 `;
 
 const SubmitButton = styled.button`
-  background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-600));
+  background: linear-gradient(135deg, #E8920A, #E8920A);
   color: white;
   border: none;
   padding: 0.9375rem 1.5rem;
@@ -1618,7 +1644,7 @@ const SubmitButton = styled.button`
   }
 
   &:hover:not(:disabled) {
-    background: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-700));
+    background: linear-gradient(135deg, #E8920A, #D97706);
     transform: translateY(-1px);
     box-shadow: 
       0 4px 16px rgba(255, 196, 0, 0.35),
@@ -1716,7 +1742,7 @@ const TermsCheckboxBox = styled.div`
   width: 20px;
   height: 20px;
   background: white;
-  border: 2px solid ${(props) => (props.$checked ? "#667eea" : "#ddd")};
+  border: 2px solid ${(props) => (props.$checked ? "#E8920A" : "#ddd")};
   border-radius: 6px;
   display: flex;
   justify-content: center;
@@ -1726,7 +1752,7 @@ const TermsCheckboxBox = styled.div`
   z-index: 1;
 
   ${TermsCheckboxLabel}:hover > div > & {
-    border-color: #667eea;
+    border-color: #E8920A;
   }
 `;
 
@@ -1736,7 +1762,7 @@ const TermsLabelText = styled.span`
   line-height: 1.5;
 
   a {
-    color: var(--color-primary-600);
+    color: #E8920A;
     text-decoration: none;
     font-weight: 500;
 
@@ -1832,7 +1858,7 @@ const SocialButton = styled.button`
   }
 
   &:focus {
-    outline: 2px solid var(--color-primary-500, #667eea);
+    outline: 2px solid #E8920A;
     outline-offset: 2px;
   }
 
@@ -1851,7 +1877,7 @@ const FooterText = styled.p`
   font-weight: 400;
 
   a {
-    color: var(--color-primary-600);
+    color: #E8920A;
     text-decoration: none;
     font-weight: 500;
     padding: 0.25rem 0.5rem;
@@ -1863,7 +1889,7 @@ const FooterText = styled.p`
     align-items: center;
 
     &:hover {
-      color: var(--color-primary-700);
+      color: #D97706;
       background: rgba(255, 196, 0, 0.08);
     }
   }
@@ -1922,7 +1948,7 @@ const PhoneInputContainer = styled.div`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0 0.75rem 0 0;
+  padding: 0 0.875rem;
   border: 1.5px solid ${(p) => (p.$hasError ? '#dc2626' : '#e2e8f0')};
   border-radius: 12px;
   background: #ffffff;
@@ -1930,7 +1956,7 @@ const PhoneInputContainer = styled.div`
   min-height: 44px;
 
   &:focus-within {
-    border-color: ${(p) => (p.$hasError ? '#dc2626' : 'var(--color-primary-500)')};
+    border-color: ${(p) => (p.$hasError ? '#dc2626' : '#E8920A')};
     box-shadow: 0 0 0 4px rgba(255, 196, 0, 0.1);
   }
 
@@ -1958,7 +1984,7 @@ const PhonePrefix = styled.span`
 `;
 
 const PhoneInput = styled.input`
-  padding: 0.875rem 0.5rem 0.875rem 0;
+  padding: 0.875rem 0.5rem;
   border: none;
   font-size: clamp(0.95rem, 2.5vw, 1rem);
   transition: all 0.2s ease;
@@ -1977,12 +2003,12 @@ const PhoneInput = styled.input`
   }
 
   @media (max-width: 640px) {
-    padding: 1rem 0.5rem 1rem 0;
+    padding: 1rem 0.5rem;
     font-size: clamp(1rem, 3vw, 1.0625rem);
   }
 
   @media (max-width: 480px) {
-    padding: 1.125rem 0.5rem 1.125rem 0;
+    padding: 1.125rem 0.5rem;
     font-size: clamp(1.0625rem, 3.5vw, 1.125rem);
   }
 `;

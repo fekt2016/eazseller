@@ -96,31 +96,31 @@ export default FundsSummaryCard;
 const SummaryGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: var(--spacing-lg);
-  margin-bottom: var(--spacing-xl);
+  gap: 1rem;
+  margin-bottom: 1rem;
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
-    gap: var(--spacing-md);
+    gap: 1rem;
   }
 `;
 
 const SummaryCard = styled.div`
-  background: var(--color-white-0);
-  border-radius: var(--border-radius-lg);
-  padding: var(--spacing-lg);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--color-grey-200);
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 1rem;
+  
+  border: 1px solid #F1EFE8;
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-lg);
-  border: 1px solid var(--color-grey-200);
-  transition: all var(--transition-base);
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid #F1EFE8;
+  transition: all 0.12s;
   grid-column: ${({ $fullWidth }) => ($fullWidth ? '1 / -1' : 'auto')};
 
   &:hover {
-    box-shadow: var(--shadow-md);
+    
     transform: translateY(-2px);
   }
 `;
@@ -131,40 +131,40 @@ const CardIcon = styled.div`
   justify-content: center;
   width: 4.8rem;
   height: 4.8rem;
-  border-radius: var(--border-radius-lg);
+  border-radius: 12px;
   background-color: ${({ $color }) => {
     switch ($color) {
       case 'primary':
-        return 'var(--color-primary-100)';
+        return '#FEF3C7';
       case 'success':
-        return 'var(--color-green-100)';
+        return '#DCFCE7';
       case 'warning':
-        return 'var(--color-yellow-100)';
+        return '#FAEEDA';
       case 'error':
-        return 'var(--color-red-100)';
+        return '#FCEBEB';
       case 'info':
-        return 'var(--color-blue-100)';
+        return '#E6F1FB';
       default:
-        return 'var(--color-grey-100)';
+        return '#F9F8F5';
     }
   }};
   color: ${({ $color }) => {
     switch ($color) {
       case 'primary':
-        return 'var(--color-primary-600)';
+        return '#E8920A';
       case 'success':
-        return 'var(--color-green-600)';
+        return '#3B6D11';
       case 'warning':
-        return 'var(--color-yellow-600)';
+        return '#D97706';
       case 'error':
-        return 'var(--color-red-600)';
+        return '#A32D2D';
       case 'info':
-        return 'var(--color-blue-600)';
+        return '#185FA5';
       default:
-        return 'var(--color-grey-600)';
+        return '#6B7280';
     }
   }};
-  font-size: var(--font-size-xl);
+  font-size: 1.25rem;
   flex-shrink: 0;
 `;
 
@@ -172,33 +172,33 @@ const CardContent = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 1rem;
 `;
 
 const CardLabel = styled.span`
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-medium);
-  color: var(--color-grey-600);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6B7280;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 `;
 
 const CardValue = styled.span`
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-bold);
-  color: var(--color-grey-900);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
   line-height: 1.2;
 `;
 
 const CardDescription = styled.span`
-  font-size: var(--font-size-xs);
-  color: var(--color-grey-500);
+  font-size: 0.8rem;
+  color: #9CA3AF;
 `;
 
 const LoadingCard = styled.div`
-  padding: var(--spacing-xl);
+  padding: 1rem;
   text-align: center;
-  color: var(--color-grey-600);
-  font-size: var(--font-size-md);
+  color: #6B7280;
+  font-size: 0.9rem;
 `;
 

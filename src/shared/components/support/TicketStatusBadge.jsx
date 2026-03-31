@@ -4,17 +4,17 @@ import { STATUS_COLORS } from '../../../pages/support/supportTypes';
 const Badge = styled.span`
   display: inline-flex;
   align-items: center;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--border-radius-sm);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-semibold);
+  padding: 1rem 1rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
   text-transform: capitalize;
   background: ${({ $status }) => {
     const color = STATUS_COLORS[$status] || STATUS_COLORS.open;
     return `${color}15`;
   }};
   color: ${({ $status }) => STATUS_COLORS[$status] || STATUS_COLORS.open};
-  font-family: var(--font-body);
+  
 `;
 
 /**

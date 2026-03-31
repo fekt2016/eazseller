@@ -57,7 +57,7 @@ const PickupLocationCard = ({ location, onDelete }) => {
             $iconOnly
             onClick={handleDelete}
             title="Delete Location"
-            style={{ color: 'var(--color-red-600)' }}
+            style={{ color: '#A32D2D' }}
           >
             <FaTrash />
           </Button>
@@ -147,11 +147,11 @@ export default PickupLocationCard;
 
 // Styled Components
 const StyledCard = styled(Card)`
-  transition: all var(--transition-base);
-  border: 1px solid var(--color-grey-200);
+  transition: all 0.12s;
+  border: 1px solid #F1EFE8;
 
   &:hover {
-    box-shadow: var(--shadow-md);
+    
     transform: translateY(-2px);
   }
 `;
@@ -160,79 +160,79 @@ const CardHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: var(--spacing-md);
-  padding-bottom: var(--spacing-md);
-  border-bottom: 1px solid var(--color-grey-200);
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #F1EFE8;
 `;
 
 const LocationName = styled.h3`
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
+  gap: 1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111827;
   margin: 0;
   flex: 1;
 
   svg {
-    color: var(--color-primary-500);
-    font-size: var(--font-size-md);
+    color: #E8920A;
+    font-size: 0.9rem;
   }
 `;
 
 const DefaultBadge = styled.span`
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  background-color: var(--color-green-100);
-  color: var(--color-green-700);
-  border-radius: var(--border-radius-cir);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-semibold);
-  margin-left: var(--spacing-sm);
+  gap: 1rem;
+  padding: 1rem 1rem;
+  background-color: #3B6D11;
+  color: #3B6D11;
+  border-radius: 50%;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-left: 1rem;
 
   svg {
-    font-size: var(--font-size-xs);
+    font-size: 0.8rem;
   }
 `;
 
 const CardActions = styled.div`
   display: flex;
-  gap: var(--spacing-xs);
+  gap: 1rem;
 `;
 
 const CardContent = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: 1rem;
 `;
 
 const InfoRow = styled.div`
   display: flex;
-  gap: var(--spacing-sm);
+  gap: 1rem;
   align-items: flex-start;
 
   @media (max-width: 768px) {
     flex-direction: column;
-    gap: var(--spacing-xs);
+    gap: 1rem;
   }
 `;
 
 const InfoLabel = styled.span`
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-700);
+  gap: 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
   min-width: 120px;
   flex-shrink: 0;
 
   svg {
-    color: var(--color-grey-500);
-    font-size: var(--font-size-xs);
+    color: #9CA3AF;
+    font-size: 0.8rem;
   }
 
   @media (max-width: 768px) {
@@ -241,49 +241,49 @@ const InfoLabel = styled.span`
 `;
 
 const InfoValue = styled.span`
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-900);
+  font-size: 0.875rem;
+  color: #111827;
   flex: 1;
   word-break: break-word;
 `;
 
 const PhoneLink = styled.a`
-  color: var(--color-primary-600);
+  color: #E8920A;
   text-decoration: none;
-  transition: color var(--transition-base);
+  transition: color 0.12s;
 
   &:hover {
-    color: var(--color-primary-700);
+    color: #E8920A;
     text-decoration: underline;
   }
 `;
 
 const Divider = styled.hr`
   border: none;
-  border-top: 1px dashed var(--color-grey-200);
-  margin: var(--spacing-sm) 0;
+  border-top: 1px dashed #F1EFE8;
+  margin: 1rem 0;
 `;
 
 const CardFooter = styled.div`
-  margin-top: var(--spacing-md);
-  padding-top: var(--spacing-md);
-  border-top: 1px solid var(--color-grey-200);
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #F1EFE8;
 `;
 
 const DefaultNotice = styled.div`
   display: flex;
   align-items: flex-start;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-sm);
-  background-color: var(--color-green-50);
-  border: 1px solid var(--color-green-200);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-sm);
-  color: var(--color-green-800);
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #3B6D11;
+  border: 1px solid #3B6D11;
+  border-radius: 9px;
+  font-size: 0.875rem;
+  color: #3B6D11;
 
   svg {
-    color: var(--color-green-600);
-    font-size: var(--font-size-md);
+    color: #3B6D11;
+    font-size: 0.9rem;
     flex-shrink: 0;
     margin-top: 2px;
   }

@@ -1,8 +1,7 @@
-import { Link } from "react-router-dom";
+import { NavLink as RouterNavLink } from "react-router-dom";
 import styled, { css } from "styled-components";
 import {
   FaSignOutAlt,
-  FaUsersCog,
   FaBoxes,
   FaShoppingCart,
   FaStore,
@@ -19,19 +18,14 @@ import {
 import useAuth from '../hooks/useAuth';
 import { PATHS } from '../../routes/routePaths';
 import { devicesMax } from '../styles/breakpoint';
-import Logo from '../components/Logo';
 import { useSellerBalance } from '../hooks/finance/useSellerBalance';
 import useMediaQuery from '../hooks/useMediaQuery';
 
-export default function Sidebar({ role, isOpen, onClose }) {
+export default function Sidebar({ isOpen, onClose }) {
   const { logout, seller } = useAuth();
   const isMobile = useMediaQuery(devicesMax.md);
-
-  // Get seller balance using the same hook as other pages for consistency
   const { availableBalance, isLoading: isBalanceLoading } = useSellerBalance();
 
-  // Combine role-specific menu with common menu
-  // For public pages, only show public navigation items
   const publicMenuItems = [
     { path: PATHS.SHIPPING_INFO, label: "Shipping Info", icon: <FaTruck /> },
     { path: PATHS.TERMS, label: "Terms of Service", icon: <FaFileAlt /> },
@@ -41,127 +35,79 @@ export default function Sidebar({ role, isOpen, onClose }) {
 
   const menuItems = [
     { path: PATHS.DASHBOARD, label: "Dashboard", icon: <FaStore /> },
-    {
-      path: PATHS.ADD_PRODUCT,
-      label: "Add Product",
-      icon: <FaBoxes />,
-    },
-    {
-      path: PATHS.PRODUCTS,
-      label: "My Products",
-      icon: <FaBoxes />,
-    },
-    {
-      path: PATHS.ORDERS,
-      label: "Orders",
-      icon: <FaShoppingCart />,
-    },
-    {
-      path: PATHS.REVIEWS,
-      label: "Reviews",
-      icon: <FaStar />,
-    },
-    {
-      path: PATHS.DISCOUNT_PRODUCTS,
-      label: "Discounts / Coupons",
-      icon: <FaBoxes />,
-    },
-    {
-      path: PATHS.FINANCE,
-      label: "Wallet",
-      icon: <FaWallet />,
-    },
-    {
-      path: PATHS.TRANSACTIONS,
-      label: "Transactions",
-      icon: <FaReceipt />,
-    },
-    {
-      path: PATHS.RETURNS,
-      label: "Returns",
-      icon: <FaUndo />,
-    },
-    {
-      path: PATHS.SUPPORT,
-      label: "Support",
-      icon: <FaHeadset />,
-    },
-    {
-      path: PATHS.PICKUP_LOCATIONS,
-      label: "Pickup Locations",
-      icon: <FaMapMarkerAlt />,
-    },
-    {
-      path: PATHS.SETTINGS,
-      label: "Settings",
-      icon: <FaCog />,
-    },
+    { path: PATHS.ADD_PRODUCT, label: "Add Product", icon: <FaBoxes /> },
+    { path: PATHS.PRODUCTS, label: "My Products", icon: <FaBoxes /> },
+    { path: PATHS.ORDERS, label: "Orders", icon: <FaShoppingCart /> },
+    { path: PATHS.REVIEWS, label: "Reviews", icon: <FaStar /> },
+    { path: PATHS.DISCOUNT_PRODUCTS, label: "Discounts", icon: <FaBoxes /> },
+    { path: PATHS.FINANCE, label: "Wallet", icon: <FaWallet /> },
+    { path: PATHS.TRANSACTIONS, label: "Transactions", icon: <FaReceipt /> },
+    { path: PATHS.RETURNS, label: "Returns", icon: <FaUndo /> },
+    { path: PATHS.SUPPORT, label: "Support", icon: <FaHeadset /> },
+    { path: PATHS.PICKUP_LOCATIONS, label: "Pickup Locations", icon: <FaMapMarkerAlt /> },
+    { path: PATHS.SETTINGS, label: "Settings", icon: <FaCog /> },
   ];
-  const handleLogout = () => {
-    logout.mutate();
+
+  const handleNavClick = () => {
+    if (isMobile && onClose) onClose();
   };
 
-  // Close sidebar when clicking on a nav item on mobile
-  const handleNavClick = () => {
-    if (isMobile && onClose) {
-      onClose();
-    }
-  };
+  const balanceText = isBalanceLoading
+    ? '...'
+    : `GH₵ ${(availableBalance || 0).toLocaleString('en-GH', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`;
 
   return (
     <Container $isOpen={isOpen}>
       <SidebarHeader>
-        <Logo variant="compact" />
+        <BrandWrap>
+          <BrandIcon>
+            <FaStore />
+          </BrandIcon>
+          <BrandText>Saiisai</BrandText>
+        </BrandWrap>
       </SidebarHeader>
 
-      {/* Balance Display */}
-      {seller && (
+      {seller ? (
         <BalanceSection>
           <BalanceLabel>Available Balance</BalanceLabel>
-          <BalanceAmount>
-            {isBalanceLoading ? (
-              <BalanceLoading>...</BalanceLoading>
-            ) : (
-              `GH₵${(availableBalance || 0).toFixed(2)}`
-            )}
-          </BalanceAmount>
+          <BalanceAmount>{balanceText}</BalanceAmount>
         </BalanceSection>
-      )}
+      ) : null}
 
       <MenuList>
-        {/* Show public menu items for unauthenticated users, full menu for authenticated */}
         {(seller ? menuItems : publicMenuItems).map((item) => (
           <MenuItem key={item.path}>
             <NavLink
               to={item.path}
-              className={({ isActive }) => (isActive ? "active" : "")}
+              end
+              className={({ isActive }) => (isActive ? "active" : undefined)}
               onClick={handleNavClick}
             >
               <MenuIcon>{item.icon}</MenuIcon>
-              {item.label}
-              {item.badge && item.badge > 0 && (
-                <Badge>{item.badge > 99 ? '99+' : item.badge}</Badge>
-              )}
+              <span>{item.label}</span>
             </NavLink>
           </MenuItem>
         ))}
       </MenuList>
-      {seller && (
-        <LogoutButton onClick={handleLogout}>
+
+      {seller ? (
+        <LogoutButton onClick={() => logout.mutate()}>
           <FaSignOutAlt />
-          {logout.isloading ? "Logging out..." : "Logout"}
+          <span>{logout.isloading ? "Logging out..." : "Logout"}</span>
         </LogoutButton>
-      )}
+      ) : null}
     </Container>
   );
 }
 
-// Sidebar Component
 const Container = styled.aside`
-  width: var(--sidebar-width);
+  width: 240px;
   height: 100vh;
-  background: var(--color-primary-500);
-  color: var(--color-white-0);
+  background: #E8920A;
+  color: #FFFFFF;
   position: fixed;
   top: 0;
   left: 0;
@@ -173,36 +119,60 @@ const Container = styled.aside`
 
   @media ${devicesMax.md} {
     transform: translateX(-100%);
-    
-    ${props => props.$isOpen && css`
-      transform: translateX(0);
-    `}
-  }
-`;
-const NavLink = styled(Link)`
-  color: var(--color-grey-500);
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: var(--transition-base);
-
-  &:hover {
-    color: var(--color-primary-500);
-  }
-
-  &.active {
-    color: var(--color-primary-500);
-    font-weight: 500;
+    ${({ $isOpen }) =>
+      $isOpen &&
+      css`
+        transform: translateX(0);
+      `}
   }
 `;
 
 const SidebarHeader = styled.div`
   padding: 0 1.5rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.2rem;
   display: flex;
   align-items: center;
-  justify-content: center;
+`;
+
+const BrandWrap = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+`;
+
+const BrandIcon = styled.span`
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.24);
+  display: grid;
+  place-items: center;
+`;
+
+const BrandText = styled.span`
+  font-size: 1.6rem;
+  font-weight: 700;
+`;
+
+const BalanceSection = styled.div`
+  padding: 0.9rem 1rem;
+  margin: 0 1rem 1rem;
+  background: rgba(0, 0, 0, 0.24);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+`;
+
+const BalanceLabel = styled.div`
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.82);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+`;
+
+const BalanceAmount = styled.div`
+  margin-top: 0.25rem;
+  font-size: 1.4rem;
+  font-weight: 700;
 `;
 
 const MenuList = styled.ul`
@@ -213,91 +183,52 @@ const MenuList = styled.ul`
 `;
 
 const MenuItem = styled.li`
-  a {
-    color: rgba(255, 255, 255, 0.8);
-    text-decoration: none;
-    padding: 0.75rem 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    transition: var(--transition-base);
+  padding: 0 0.8rem 0.25rem;
+`;
 
-    &:hover {
-      background: var(--color-primary-600);
-      color: var(--color-white-0);
-    }
+const NavLink = styled(RouterNavLink)`
+  color: rgba(255, 255, 255, 0.88);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  border-radius: 10px;
+  padding: 0.72rem 0.95rem;
+  transition: 0.2s ease;
 
-    &.active {
-      background: var(--color-primary-600);
-      color: var(--color-white-0);
-      border-left: 4px solid var(--color-white-0);
-    }
+  &:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #FFFFFF;
+  }
+
+  &.active {
+    background: rgba(255, 255, 255, 0.95);
+    color: #E8920A;
+    font-weight: 600;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
   }
 `;
 
 const MenuIcon = styled.span`
   font-size: 1.2rem;
-  display: flex;
-`;
-
-const Badge = styled.span`
-  background: var(--color-red-600);
-  color: var(--color-white-0);
-  font-size: 0.75rem;
-  font-weight: var(--font-semibold);
-  padding: 0.125rem 0.5rem;
-  border-radius: var(--border-radius-full);
-  min-width: 1.25rem;
-  height: 1.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: auto;
-`;
-
-const BalanceSection = styled.div`
-  padding: 1rem 1.5rem;
-  margin: 0 1rem 1rem;
-  background: var(--color-primary-600);
-  border-radius: var(--border-radius-md);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-`;
-
-const BalanceLabel = styled.div`
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.7);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 0.5rem;
-`;
-
-const BalanceAmount = styled.div`
-  font-size: 1.5rem;
-  font-weight: var(--font-bold);
-  color: var(--color-white-0);
-  display: flex;
-  align-items: center;
-`;
-
-const BalanceLoading = styled.span`
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 1rem;
+  display: inline-flex;
 `;
 
 const LogoutButton = styled.button`
-  background: var(--color-primary-600);
-  color: var(--color-white-0);
+  margin: 1rem 1rem 0;
+  background: transparent;
+  color: #FFFFFF;
   border: none;
-  padding: 1rem 1.5rem;
-  margin: 1rem;
-  border-radius: var(--border-radius-md);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 1rem 0.2rem 0.2rem;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.8rem;
   cursor: pointer;
-  transition: var(--transition-base);
+  transition: 0.2s ease;
 
   &:hover {
-    background: var(--color-primary-700);
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
   }
 `;

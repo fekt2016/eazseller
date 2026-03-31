@@ -4,6 +4,12 @@ import react from "@vitejs/plugin-react";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  server: {
+    // Must match backend dev CORS allowlist for seller:
+    // http://localhost:5175
+    port: 5175,
+    strictPort: true,
+  },
   build: {
     rollupOptions: {
       output: {

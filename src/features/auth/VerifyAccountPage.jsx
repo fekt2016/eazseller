@@ -11,20 +11,20 @@ const Container = styled.div`
   max-width: 480px;
   margin: 4rem auto;
   padding: 3rem 2.5rem;
-  background: var(--color-white-0);
+  background: #FFFFFF;
   border-radius: 1.6rem;
-  box-shadow: var(--shadow-lg);
+  
 `;
 
 const Title = styled.h2`
   font-size: 2.2rem;
   margin-bottom: 0.5rem;
-  color: var(--color-grey-900);
+  color: #111827;
 `;
 
 const Subtitle = styled.p`
   font-size: 1.4rem;
-  color: var(--color-grey-600);
+  color: #6B7280;
   margin-bottom: 2rem;
 `;
 
@@ -43,19 +43,19 @@ const InputGroup = styled.div`
 const Label = styled.label`
   font-size: 1.3rem;
   font-weight: 500;
-  color: var(--color-grey-800);
+  color: #1F2937;
 `;
 
 const Input = styled.input`
   padding: 1rem 1.2rem;
   border-radius: 0.8rem;
-  border: 1px solid var(--color-grey-300);
+  border: 1px solid #E5E7EB;
   font-size: 1.4rem;
   outline: none;
 
   &:focus {
-    border-color: var(--color-primary-500);
-    box-shadow: 0 0 0 1px var(--color-primary-200);
+    border-color: #E8920A;
+    box-shadow: 0 0 0 1px #FDE68A;
   }
 `;
 
@@ -71,7 +71,7 @@ const ResendLink = styled.button`
   border: none;
   padding: 0;
   font-size: 1.3rem;
-  color: var(--color-primary-600);
+  color: #E8920A;
   cursor: pointer;
   text-decoration: underline;
 `;
@@ -84,10 +84,10 @@ const SubmitButton = styled.button`
   border: none;
   background: linear-gradient(
     135deg,
-    var(--color-primary-500),
-    var(--color-primary-700)
+    #E8920A,
+    #D97706
   );
-  color: var(--color-white-0);
+  color: #FFFFFF;
   font-size: 1.5rem;
   font-weight: 600;
   cursor: pointer;
@@ -105,12 +105,12 @@ const SubmitButton = styled.button`
 const HelperText = styled.p`
   margin-top: 1.5rem;
   font-size: 1.3rem;
-  color: var(--color-grey-600);
+  color: #6B7280;
   text-align: center;
 `;
 
 const SmallLink = styled(Link)`
-  color: var(--color-primary-600);
+  color: #E8920A;
   text-decoration: underline;
 `;
 
@@ -236,7 +236,7 @@ function VerifyAccountPage() {
       )}
 
       {infoMessage && (
-        <p style={{ color: "var(--color-green-600)", marginBottom: "1rem" }}>
+        <p style={{ color: "#3B6D11", marginBottom: "1rem" }}>
           {infoMessage}
         </p>
       )}
@@ -268,7 +268,7 @@ function VerifyAccountPage() {
             required
           />
           <ActionsRow>
-            <span style={{ fontSize: "1.2rem", color: "var(--color-grey-500)" }}>
+            <span style={{ fontSize: "1.2rem", color: "#9CA3AF" }}>
               Didn&apos;t receive the code?
             </span>
             <ResendLink type="button" onClick={handleResend} disabled={isResending}>

@@ -243,11 +243,11 @@ const SellerSupportPage = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        style={{ marginBottom: 'var(--spacing-2xl)' }}
+        style={{ marginBottom: '1rem' }}
       >
         <SectionTitle>My Support Tickets</SectionTitle>
-        <div style={{ textAlign: 'center', marginTop: 'var(--spacing-lg)' }}>
-          <p style={{ color: 'var(--color-grey-600)', marginBottom: 'var(--spacing-md)' }}>
+        <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+          <p style={{ color: '#6B7280', marginBottom: '1rem' }}>
             View and manage all your support tickets
           </p>
           <div style={{ display: 'flex', gap: '1.2rem', justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -280,10 +280,10 @@ const SellerSupportPage = () => {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.3 }}
         >
-          <h3 style={{ fontSize: 'var(--font-size-xl)', marginBottom: 'var(--spacing-sm)' }}>
+          <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>
             Need Immediate Assistance?
           </h3>
-          <p style={{ color: 'var(--color-grey-600)', marginBottom: 'var(--spacing-md)' }}>
+          <p style={{ color: '#6B7280', marginBottom: '1rem' }}>
             Chat with our support agents in real-time for instant help
           </p>
           <ChatButton

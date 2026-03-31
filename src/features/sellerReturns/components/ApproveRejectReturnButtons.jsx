@@ -155,14 +155,14 @@ export default ApproveRejectReturnButtons;
 
 // Styled Components
 const ActionsContainer = styled.div`
-  margin-top: var(--spacing-lg);
-  padding-top: var(--spacing-lg);
-  border-top: 1px solid var(--color-grey-200);
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #F1EFE8;
 `;
 
 const ButtonGroup = styled.div`
   display: flex;
-  gap: var(--spacing-md);
+  gap: 1rem;
   justify-content: flex-end;
 
   @media (max-width: 768px) {
@@ -177,48 +177,48 @@ const ButtonGroup = styled.div`
 const ApproveChoiceForm = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: 1rem;
 `;
 
 const ChoiceRow = styled.div`
   display: flex;
-  gap: var(--spacing-md);
+  gap: 1rem;
   flex-wrap: wrap;
 `;
 
 const ChoiceButton = styled.button`
   flex: 1;
   min-width: 140px;
-  padding: var(--spacing-md);
-  border: 2px solid ${(p) => (p.$active ? 'var(--color-primary-500)' : 'var(--color-grey-300)')};
-  border-radius: var(--border-radius-md);
-  background: ${(p) => (p.$active ? 'var(--color-primary-50)' : 'var(--color-white-0)')};
-  color: ${(p) => (p.$active ? 'var(--color-primary-700)' : 'var(--color-grey-700)')};
-  font-weight: var(--font-semibold);
+  padding: 1rem;
+  border: 2px solid ${(p) => (p.$active ? '#E8920A' : '#E5E7EB')};
+  border-radius: 9px;
+  background: ${(p) => (p.$active ? '#FFFDF9' : '#FFFFFF')};
+  color: ${(p) => (p.$active ? '#D97706' : '#374151')};
+  font-weight: 600;
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all 0.12s;
   &:hover {
-    border-color: var(--color-primary-500);
-    background: var(--color-primary-50);
+    border-color: #E8920A;
+    background: #FFFDF9;
   }
 `;
 
 const RejectForm = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: 1rem;
 `;
 
 const FormLabel = styled.label`
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-700);
-  margin-bottom: var(--spacing-xs);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 1rem;
 `;
 
 const FormActions = styled.div`
   display: flex;
-  gap: var(--spacing-sm);
+  gap: 1rem;
   justify-content: flex-end;
 
   @media (max-width: 768px) {
@@ -232,31 +232,31 @@ const FormActions = styled.div`
 
 const StyledTextarea = styled.textarea`
   width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid var(--color-grey-300);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-md);
-  font-family: var(--font-body);
-  color: var(--color-grey-900);
-  background-color: var(--color-white-0);
-  transition: all var(--transition-base);
+  padding: 1rem 1rem;
+  border: 1px solid #E5E7EB;
+  border-radius: 9px;
+  font-size: 0.9rem;
+  
+  color: #111827;
+  background-color: #FFFFFF;
+  transition: all 0.12s;
   resize: vertical;
-  margin-bottom: var(--spacing-sm);
+  margin-bottom: 1rem;
 
   &:focus {
     outline: none;
-    border-color: var(--color-primary-500);
-    box-shadow: 0 0 0 3px var(--color-primary-100);
+    border-color: #E8920A;
+    box-shadow: 0 0 0 3px #FEF3C7;
   }
 
   &:disabled {
-    background-color: var(--color-grey-100);
+    background-color: #F9F8F5;
     cursor: not-allowed;
     opacity: 0.6;
   }
 
   &::placeholder {
-    color: var(--color-grey-400);
+    color: #D1D5DB;
   }
 `;
 

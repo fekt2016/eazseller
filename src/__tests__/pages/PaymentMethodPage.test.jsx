@@ -156,23 +156,34 @@ describe('PaymentMethodPage', () => {
   });
 
   test('renders payment method page', async () => {
+    mockUseGetPaymentMethods.mockReturnValue({
+      data: [],
+      isLoading: false,
+      refetch: vi.fn(),
+    });
+
     renderWithProviders(<PaymentMethodPage />, {
       initialRoute: '/dashboard/settings',
     });
 
     await waitFor(() => {
-      // Component renders form fields, check for account name label
+      // When no payment methods, form with account name is shown
       expect(screen.getByLabelText(/account name/i)).toBeInTheDocument();
     });
   });
 
   test('displays tabs', async () => {
+    mockUseGetPaymentMethods.mockReturnValue({
+      data: [],
+      isLoading: false,
+      refetch: vi.fn(),
+    });
+
     renderWithProviders(<PaymentMethodPage />, {
       initialRoute: '/dashboard/settings',
     });
 
     await waitFor(() => {
-      // Tabs are rendered as buttons
       const bankTab = screen.getByRole('button', { name: /bank account/i });
       const mobileTab = screen.getByRole('button', { name: /mobile money/i });
       expect(bankTab).toBeInTheDocument();
@@ -181,7 +192,13 @@ describe('PaymentMethodPage', () => {
   });
 
   test('handles tab switching', async () => {
-    const user = userEvent.setup();
+    mockUseGetPaymentMethods.mockReturnValue({
+      data: [],
+      isLoading: false,
+      refetch: vi.fn(),
+    });
+
+    const user = userEvent.setup({ delay: null });
 
     renderWithProviders(<PaymentMethodPage />, {
       initialRoute: '/dashboard/settings',
@@ -191,7 +208,6 @@ describe('PaymentMethodPage', () => {
       expect(screen.getByLabelText(/account name/i)).toBeInTheDocument();
     });
 
-    // Click mobile money tab
     const mobileTab = screen.getByRole('button', { name: /mobile money/i });
     await user.click(mobileTab);
 
@@ -233,12 +249,17 @@ describe('PaymentMethodPage', () => {
   });
 
   test('handles embedded mode', async () => {
+    mockUseGetPaymentMethods.mockReturnValue({
+      data: [],
+      isLoading: false,
+      refetch: vi.fn(),
+    });
+
     renderWithProviders(<PaymentMethodPage embedded />, {
       initialRoute: '/dashboard/settings',
     });
 
     await waitFor(() => {
-      // In embedded mode, check for form fields
       expect(screen.getByLabelText(/account name/i)).toBeInTheDocument();
     });
   });

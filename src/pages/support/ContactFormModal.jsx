@@ -17,7 +17,7 @@ const ContactFormModal = ({
   role = 'seller',
   departments = [],
   showPriority = false,
-  primaryColor = 'var(--color-primary-500)',
+  primaryColor = '#E8920A',
   relatedOrderId = null, // Order ID if ticket is related to an order
 }) => {
   const { mutateAsync: submitTicket, isPending: isSubmitting } = useCreateTicket();
@@ -295,9 +295,9 @@ const ContactFormModal = ({
                         $hasError={!!errors.relatedOrderId}
                       />
                       <p style={{ 
-                        fontSize: 'var(--font-size-xs)', 
-                        color: 'var(--color-grey-600)', 
-                        marginTop: 'var(--spacing-xs)' 
+                        fontSize: '0.8rem', 
+                        color: '#6B7280', 
+                        marginTop: '1rem' 
                       }}>
                         This ticket is linked to order: {relatedOrderId}
                       </p>
@@ -346,27 +346,27 @@ const ContactFormModal = ({
                       </Select>
                       {isLoadingOrders && (
                         <p style={{ 
-                          fontSize: 'var(--font-size-xs)', 
-                          color: 'var(--color-grey-600)', 
-                          marginTop: 'var(--spacing-xs)' 
+                          fontSize: '0.8rem', 
+                          color: '#6B7280', 
+                          marginTop: '1rem' 
                         }}>
                           Loading your orders...
                         </p>
                       )}
                       {ordersError && (
                         <p style={{ 
-                          fontSize: 'var(--font-size-xs)', 
-                          color: 'var(--color-red-600)', 
-                          marginTop: 'var(--spacing-xs)' 
+                          fontSize: '0.8rem', 
+                          color: '#A32D2D', 
+                          marginTop: '1rem' 
                         }}>
                           Unable to load orders. You can still create a ticket without selecting an order.
                         </p>
                       )}
                       {!isLoadingOrders && !ordersError && orders.length > 0 && (
                         <p style={{ 
-                          fontSize: 'var(--font-size-xs)', 
-                          color: 'var(--color-grey-600)', 
-                          marginTop: 'var(--spacing-xs)' 
+                          fontSize: '0.8rem', 
+                          color: '#6B7280', 
+                          marginTop: '1rem' 
                         }}>
                           Select an order if this ticket is related to a specific order
                         </p>
@@ -518,14 +518,14 @@ const ModalOverlay = styled(motion.div)`
   align-items: center;
   justify-content: center;
   z-index: 2000;
-  padding: var(--spacing-md);
+  padding: 1rem;
   backdrop-filter: blur(4px);
 `;
 
 const ModalContainer = styled(motion.div)`
-  background: var(--color-white-0);
-  border-radius: var(--border-radius-xl);
-  box-shadow: var(--shadow-lg);
+  background: #FFFFFF;
+  border-radius: 16px;
+  
   width: 100%;
   max-width: 60rem;
   max-height: 90vh;
@@ -538,35 +538,35 @@ const ModalHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-lg) var(--spacing-xl);
-  border-bottom: 1px solid var(--color-grey-200);
-  background: var(--color-grey-50);
+  padding: 1rem 1rem;
+  border-bottom: 1px solid #F1EFE8;
+  background: #F9F8F5;
 `;
 
 const ModalTitle = styled.h2`
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-bold);
-  color: var(--color-grey-800);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1F2937;
   margin: 0;
-  font-family: var(--font-heading);
+  
 `;
 
 const CloseButton = styled.button`
   background: none;
   border: none;
-  font-size: var(--font-size-lg);
-  color: var(--color-grey-500);
+  font-size: 1.1rem;
+  color: #9CA3AF;
   cursor: pointer;
-  padding: var(--spacing-xs);
+  padding: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--border-radius-sm);
-  transition: all var(--transition-base);
+  border-radius: 6px;
+  transition: all 0.12s;
 
   &:hover {
-    background: var(--color-grey-200);
-    color: var(--color-grey-700);
+    background: #F1EFE8;
+    color: #374151;
   }
 `;
 
@@ -578,89 +578,89 @@ const Form = styled.form`
 `;
 
 const FormBody = styled.div`
-  padding: var(--spacing-xl);
+  padding: 1rem;
   overflow-y: auto;
   flex: 1;
 `;
 
 const FormGroup = styled.div`
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: 1rem;
 `;
 
 const Label = styled.label`
   display: block;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-700);
-  margin-bottom: var(--spacing-xs);
-  font-family: var(--font-heading);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 1rem;
+  
 `;
 
 const Required = styled.span`
-  color: var(--color-red-600);
+  color: #A32D2D;
 `;
 
 const Input = styled.input`
   width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: 1rem 1rem;
   border: 2px solid
     ${(props) =>
-      props.$hasError ? 'var(--color-red-500)' : 'var(--color-grey-300)'};
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-md);
-  font-family: var(--font-body);
-  color: var(--color-grey-900);
-  transition: all var(--transition-base);
+      props.$hasError ? '#A32D2D' : '#E5E7EB'};
+  border-radius: 9px;
+  font-size: 0.9rem;
+  
+  color: #111827;
+  transition: all 0.12s;
 
   &:focus {
     outline: none;
-    border-color: ${(props) => props.$primaryColor || 'var(--color-primary-500)'};
+    border-color: ${(props) => props.$primaryColor || '#E8920A'};
     box-shadow: 0 0 0 3px
       ${(props) =>
         props.$hasError
-          ? 'var(--color-red-100)'
+          ? '#A32D2D'
           : props.$primaryColor
           ? `${props.$primaryColor}20`
-          : 'var(--color-primary-100)'};
+          : '#FEF3C7'};
   }
 
   &:disabled {
-    background: var(--color-grey-100);
+    background: #F9F8F5;
     cursor: not-allowed;
     opacity: 0.6;
   }
 
   &::placeholder {
-    color: var(--color-grey-400);
+    color: #D1D5DB;
   }
 `;
 
 const Select = styled.select`
   width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: 1rem 1rem;
   border: 2px solid
     ${(props) =>
-      props.$hasError ? 'var(--color-red-500)' : 'var(--color-grey-300)'};
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-md);
-  font-family: var(--font-body);
-  color: var(--color-grey-900);
-  background: var(--color-white-0);
+      props.$hasError ? '#A32D2D' : '#E5E7EB'};
+  border-radius: 9px;
+  font-size: 0.9rem;
+  
+  color: #111827;
+  background: #FFFFFF;
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all 0.12s;
 
   &:focus {
     outline: none;
-    border-color: var(--color-primary-500);
+    border-color: #E8920A;
     box-shadow: 0 0 0 3px
       ${(props) =>
         props.$hasError
-          ? 'var(--color-red-100)'
-          : 'var(--color-primary-100)'};
+          ? '#A32D2D'
+          : '#FEF3C7'};
   }
 
   &:disabled {
-    background: var(--color-grey-100);
+    background: #F9F8F5;
     cursor: not-allowed;
     opacity: 0.6;
   }
@@ -668,36 +668,36 @@ const Select = styled.select`
 
 const TextArea = styled.textarea`
   width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: 1rem 1rem;
   border: 2px solid
     ${(props) =>
-      props.$hasError ? 'var(--color-red-500)' : 'var(--color-grey-300)'};
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-md);
-  font-family: var(--font-body);
-  color: var(--color-grey-900);
+      props.$hasError ? '#A32D2D' : '#E5E7EB'};
+  border-radius: 9px;
+  font-size: 0.9rem;
+  
+  color: #111827;
   resize: vertical;
   min-height: 12rem;
-  transition: all var(--transition-base);
+  transition: all 0.12s;
 
   &:focus {
     outline: none;
-    border-color: var(--color-primary-500);
+    border-color: #E8920A;
     box-shadow: 0 0 0 3px
       ${(props) =>
         props.$hasError
-          ? 'var(--color-red-100)'
-          : 'var(--color-primary-100)'};
+          ? '#A32D2D'
+          : '#FEF3C7'};
   }
 
   &:disabled {
-    background: var(--color-grey-100);
+    background: #F9F8F5;
     cursor: not-allowed;
     opacity: 0.6;
   }
 
   &::placeholder {
-    color: var(--color-grey-400);
+    color: #D1D5DB;
   }
 `;
 
@@ -717,46 +717,46 @@ const FileInput = styled.input`
 const FileInputLabel = styled.label`
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-md);
-  border: 2px dashed var(--color-grey-300);
-  border-radius: var(--border-radius-md);
-  background: var(--color-grey-50);
+  gap: 1rem;
+  padding: 1rem;
+  border: 2px dashed #E5E7EB;
+  border-radius: 9px;
+  background: #F9F8F5;
   cursor: pointer;
-  transition: all var(--transition-base);
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-700);
+  transition: all 0.12s;
+  font-size: 0.875rem;
+  color: #374151;
 
   &:hover {
-    border-color: var(--color-primary-500);
-    background: var(--color-primary-50);
-    color: var(--color-primary-700);
+    border-color: #E8920A;
+    background: #FFFDF9;
+    color: #D97706;
   }
 
   svg {
-    font-size: var(--font-size-md);
+    font-size: 0.9rem;
   }
 `;
 
 const ScreenshotPreview = styled.div`
   position: relative;
-  margin-top: var(--spacing-sm);
+  margin-top: 1rem;
   display: inline-block;
 `;
 
 const PreviewImage = styled.img`
   max-width: 20rem;
   max-height: 15rem;
-  border-radius: var(--border-radius-md);
-  border: 1px solid var(--color-grey-300);
+  border-radius: 9px;
+  border: 1px solid #E5E7EB;
 `;
 
 const RemoveButton = styled.button`
   position: absolute;
   top: -0.8rem;
   right: -0.8rem;
-  background: var(--color-red-600);
-  color: var(--color-white-0);
+  background: #A32D2D;
+  color: #FFFFFF;
   border: none;
   border-radius: 50%;
   width: 2.4rem;
@@ -765,30 +765,30 @@ const RemoveButton = styled.button`
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: var(--font-size-sm);
-  transition: all var(--transition-base);
+  font-size: 0.875rem;
+  transition: all 0.12s;
 
   &:hover {
-    background: var(--color-red-700);
+    background: #A32D2D;
     transform: scale(1.1);
   }
 `;
 
 const ErrorMessage = styled.span`
   display: block;
-  margin-top: var(--spacing-xs);
-  font-size: var(--font-size-xs);
-  color: var(--color-red-600);
+  margin-top: 1rem;
+  font-size: 0.8rem;
+  color: #A32D2D;
 `;
 
 const ModalFooter = styled.div`
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: var(--spacing-md);
-  padding: var(--spacing-lg) var(--spacing-xl);
-  border-top: 1px solid var(--color-grey-200);
-  background: var(--color-grey-50);
+  gap: 1rem;
+  padding: 1rem 1rem;
+  border-top: 1px solid #F1EFE8;
+  background: #F9F8F5;
 
   @media (max-width: 768px) {
     flex-direction: column-reverse;
@@ -800,19 +800,19 @@ const ModalFooter = styled.div`
 `;
 
 const CancelButton = styled.button`
-  padding: var(--spacing-sm) var(--spacing-lg);
-  background: var(--color-white-0);
-  color: var(--color-grey-700);
-  border: 1px solid var(--color-grey-300);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-md);
-  font-weight: var(--font-semibold);
+  padding: 1rem 1rem;
+  background: #FFFFFF;
+  color: #374151;
+  border: 1px solid #E5E7EB;
+  border-radius: 9px;
+  font-size: 0.9rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all 0.12s;
 
   &:hover:not(:disabled) {
-    background: var(--color-grey-50);
-    border-color: var(--color-grey-400);
+    background: #F9F8F5;
+    border-color: #D1D5DB;
   }
 
   &:disabled {
@@ -822,18 +822,18 @@ const CancelButton = styled.button`
 `;
 
 const SubmitButton = styled.button`
-  padding: var(--spacing-sm) var(--spacing-lg);
-  background: ${(props) => props.$primaryColor || 'var(--color-primary-500)'};
-  color: var(--color-white-0);
+  padding: 1rem 1rem;
+  background: ${(props) => props.$primaryColor || '#E8920A'};
+  color: #FFFFFF;
   border: none;
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-md);
-  font-weight: var(--font-semibold);
+  border-radius: 9px;
+  font-size: 0.9rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all 0.12s;
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: 1rem;
   justify-content: center;
 
   &:hover:not(:disabled) {

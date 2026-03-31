@@ -93,37 +93,37 @@ export default function ShippingStatusFlow() {
 const StatusFlowContainer = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 1rem;
 `;
 
 const SectionTitle = styled.h3`
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-bold);
-  color: var(--color-grey-900);
-  font-family: var(--font-heading);
-  margin-bottom: var(--spacing-xs);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  
+  margin-bottom: 1rem;
 `;
 
 const Description = styled.p`
-  font-size: var(--font-size-md);
-  color: var(--color-grey-600);
-  font-family: var(--font-body);
-  margin-bottom: var(--spacing-lg);
+  font-size: 0.9rem;
+  color: #6B7280;
+  
+  margin-bottom: 1rem;
 `;
 
 const StatusList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 1rem;
   position: relative;
 `;
 
 const StatusItem = styled.div`
   display: flex;
   align-items: flex-start;
-  gap: var(--spacing-md);
+  gap: 1rem;
   position: relative;
-  padding-left: var(--spacing-sm);
+  padding-left: 1rem;
 `;
 
 const StatusIcon = styled.div`
@@ -133,48 +133,48 @@ const StatusIcon = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--border-radius-cir);
+  border-radius: 50%;
   background: ${({ $color }) => {
     switch ($color) {
-      case 'green': return 'var(--color-green-100)';
-      case 'blue': return 'var(--color-blue-100)';
-      case 'primary': return 'var(--color-primary-100)';
-      case 'yellow': return 'var(--color-yellow-100)';
-      case 'red': return 'var(--color-red-100)';
-      default: return 'var(--color-grey-100)';
+      case 'green': return '#3B6D11';
+      case 'blue': return '#185FA5';
+      case 'primary': return '#E8920A';
+      case 'yellow': return '#854F0B';
+      case 'red': return '#A32D2D';
+      default: return '#F9F8F5';
     }
   }};
   color: ${({ $color }) => {
     switch ($color) {
-      case 'green': return 'var(--color-green-700)';
-      case 'blue': return 'var(--color-blue-700)';
-      case 'primary': return 'var(--color-primary-700)';
-      case 'yellow': return 'var(--color-yellow-700)';
-      case 'red': return 'var(--color-red-700)';
-      default: return 'var(--color-grey-700)';
+      case 'green': return '#3B6D11';
+      case 'blue': return '#185FA5';
+      case 'primary': return '#E8920A';
+      case 'yellow': return '#854F0B';
+      case 'red': return '#A32D2D';
+      default: return '#374151';
     }
   }};
-  font-size: var(--font-size-lg);
+  font-size: 1.1rem;
   z-index: 2;
 `;
 
 const StatusContent = styled.div`
   flex: 1;
-  padding-top: var(--spacing-xs);
+  padding-top: 1rem;
 `;
 
 const StatusLabel = styled.h4`
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
-  font-family: var(--font-heading);
-  margin-bottom: var(--spacing-xs);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111827;
+  
+  margin-bottom: 1rem;
 `;
 
 const StatusDescription = styled.p`
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-600);
-  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: #6B7280;
+  
   line-height: 1.5;
   margin: 0;
 `;
@@ -184,8 +184,8 @@ const ConnectorLine = styled.div`
   left: 23px;
   top: 48px;
   width: 2px;
-  height: calc(100% + var(--spacing-md));
-  background: var(--color-grey-300);
+  height: calc(100% + 1rem);
+  background: #E5E7EB;
   z-index: 1;
 `;
 

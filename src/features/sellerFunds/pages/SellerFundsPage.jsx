@@ -9,7 +9,7 @@ import {
   SectionHeader,
 } from '../../../shared/components/ui/SpacingSystem';
 import Button from '../../../shared/components/ui/Button';
-import { LoadingState, ErrorState } from '../../../shared/components/ui/LoadingComponents';
+import { ErrorState, SkeletonStatCards, SkeletonTableRows } from '../../../shared/components/ui/LoadingComponents';
 import { useSellerFunds } from '../hooks/useSellerFunds';
 import { useGetPaymentRequests, useDeletePaymentRequest } from '../../../shared/hooks/usePaymentRequest';
 import { useGetPaymentMethods } from '../../../shared/hooks/usePaymentMethod';
@@ -101,7 +101,12 @@ const SellerFundsPage = () => {
   };
 
   if (isBalanceLoading) {
-    return <LoadingState message="Loading wallet information..." />;
+    return (
+      <PageContainer>
+        <SkeletonStatCards count={3} />
+        <SkeletonTableRows count={6} />
+      </PageContainer>
+    );
   }
 
   return (
@@ -215,72 +220,72 @@ export default SellerFundsPage;
 const WithdrawalsList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 1rem;
 `;
 
 const WithdrawalCard = styled.div`
-  background: var(--color-white-0);
-  border-radius: var(--border-radius-lg);
-  padding: var(--spacing-md);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--color-grey-200);
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 1rem;
+  
+  border: 1px solid #F1EFE8;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-md);
-  border: 1px solid var(--color-grey-200);
-  transition: all var(--transition-base);
+  padding: 1rem;
+  border: 1px solid #F1EFE8;
+  transition: all 0.12s;
 
   &:hover {
-    box-shadow: var(--shadow-md);
+    
   }
 
   @media (max-width: 768px) {
     flex-direction: column;
     align-items: stretch;
-    gap: var(--spacing-md);
+    gap: 1rem;
   }
 `;
 
 const WithdrawalInfo = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 1rem;
   flex: 1;
 `;
 
 const WithdrawalAmount = styled.span`
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-bold);
-  color: var(--color-grey-900);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
 `;
 
 const WithdrawalMeta = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: 1rem;
   flex-wrap: wrap;
 `;
 
 const WithdrawalStatus = styled.span`
   display: inline-flex;
   align-items: center;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--border-radius-cir);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-semibold);
+  padding: 1rem 1rem;
+  border-radius: 50%;
+  font-size: 0.8rem;
+  font-weight: 600;
   text-transform: uppercase;
-  background-color: var(--color-yellow-100);
-  color: var(--color-yellow-700);
+  background-color: #FAEEDA;
+  color: #854F0B;
 `;
 
 const WithdrawalDate = styled.span`
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-600);
+  font-size: 0.875rem;
+  color: #6B7280;
 `;
 
 const WithdrawalActions = styled.div`
   display: flex;
-  gap: var(--spacing-sm);
+  gap: 1rem;
 `;
 

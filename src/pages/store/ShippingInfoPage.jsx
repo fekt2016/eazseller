@@ -362,128 +362,128 @@ export default function ShippingInfoPage() {
 
 // Styled Components
 const SectionTitle = styled.h2`
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-bold);
-  color: var(--color-grey-900);
-  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: 1rem;
   
   svg {
-    color: var(--color-primary-500);
+    color: #E8920A;
   }
 `;
 
 const SectionContent = styled.div`
-  padding: var(--spacing-lg);
+  padding: 1rem;
 `;
 
 const InfoCard = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 1rem;
 `;
 
 const InfoTitle = styled.h3`
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
-  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111827;
+  
 `;
 
 const InfoText = styled.p`
-  font-size: var(--font-size-md);
-  color: var(--color-grey-700);
-  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: #374151;
+  
   line-height: 1.6;
   margin: 0;
   
   strong {
-    font-weight: var(--font-bold);
-    color: var(--color-grey-900);
+    font-weight: 700;
+    color: #111827;
   }
 `;
 
 const ResponsibilityList = styled.ul`
   list-style: none;
   padding: 0;
-  margin: var(--spacing-md) 0;
+  margin: 1rem 0;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: 1rem;
 `;
 
 const ResponsibilityItem = styled.li`
-  font-size: var(--font-size-md);
-  color: var(--color-grey-700);
-  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: #374151;
+  
   line-height: 1.6;
-  padding-left: var(--spacing-lg);
+  padding-left: 1rem;
   position: relative;
   
   &::before {
     content: "✓";
     position: absolute;
     left: 0;
-    color: var(--color-green-600);
-    font-weight: var(--font-bold);
+    color: #3B6D11;
+    font-weight: 700;
   }
   
   strong {
-    font-weight: var(--font-semibold);
-    color: var(--color-grey-900);
+    font-weight: 600;
+    color: #111827;
   }
 `;
 
 const DeliveryGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-lg);
+  gap: 1rem;
+  margin-bottom: 1rem;
 `;
 
 const DeliveryRegion = styled.div`
-  padding: var(--spacing-md);
-  background: var(--color-grey-50);
-  border-radius: var(--border-radius-md);
-  border: 1px solid var(--color-grey-200);
+  padding: 1rem;
+  background: #F9F8F5;
+  border-radius: 9px;
+  border: 1px solid #F1EFE8;
 `;
 
 const RegionName = styled.h4`
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
-  font-family: var(--font-heading);
-  margin-bottom: var(--spacing-xs);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111827;
+  
+  margin-bottom: 1rem;
 `;
 
 const RegionTimeline = styled.div`
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-bold);
-  color: var(--color-primary-600);
-  font-family: var(--font-heading);
-  margin-bottom: var(--spacing-xs);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #E8920A;
+  
+  margin-bottom: 1rem;
 `;
 
 const RegionDescription = styled.p`
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-600);
-  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: #6B7280;
+  
   margin: 0;
 `;
 
 const TimelineNote = styled.div`
   display: flex;
   align-items: flex-start;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-md);
-  background: var(--color-yellow-50);
-  border: 1px solid var(--color-yellow-200);
-  border-radius: var(--border-radius-md);
-  color: var(--color-yellow-800);
-  font-size: var(--font-size-sm);
-  font-family: var(--font-body);
+  gap: 1rem;
+  padding: 1rem;
+  background: #FAEEDA;
+  border: 1px solid #FDE68A;
+  border-radius: 9px;
+  color: #854F0B;
+  font-size: 0.875rem;
+  
   
   svg {
     flex-shrink: 0;
@@ -494,49 +494,49 @@ const TimelineNote = styled.div`
 const ResponsibilityCard = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 1rem;
 `;
 
 const ResponsibilityTitle = styled.h3`
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
-  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111827;
+  
 `;
 
 const LegalNote = styled.div`
-  padding: var(--spacing-md);
-  background: var(--color-red-50);
-  border: 1px solid var(--color-red-200);
-  border-radius: var(--border-radius-md);
-  color: var(--color-red-800);
-  font-size: var(--font-size-sm);
-  font-family: var(--font-body);
-  margin-top: var(--spacing-md);
+  padding: 1rem;
+  background: #A32D2D;
+  border: 1px solid #A32D2D;
+  border-radius: 9px;
+  color: #A32D2D;
+  font-size: 0.875rem;
+  
+  margin-top: 1rem;
 `;
 
 const PickupCard = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: 1rem;
 `;
 
 const PickupTitle = styled.h3`
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
-  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111827;
+  
 `;
 
 const PickupSteps = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 1rem;
 `;
 
 const PickupStep = styled.div`
   display: flex;
-  gap: var(--spacing-md);
+  gap: 1rem;
   align-items: flex-start;
 `;
 
@@ -547,12 +547,12 @@ const StepNumber = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-primary-500);
-  color: var(--color-white-0);
-  border-radius: var(--border-radius-cir);
-  font-weight: var(--font-bold);
-  font-size: var(--font-size-md);
-  font-family: var(--font-heading);
+  background: #E8920A;
+  color: #FFFFFF;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 0.9rem;
+  
 `;
 
 const StepContent = styled.div`
@@ -560,35 +560,35 @@ const StepContent = styled.div`
 `;
 
 const StepTitle = styled.h4`
-  font-size: var(--font-size-md);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
-  font-family: var(--font-heading);
-  margin-bottom: var(--spacing-xs);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #111827;
+  
+  margin-bottom: 1rem;
 `;
 
 const StepDescription = styled.p`
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-600);
-  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: #6B7280;
+  
   line-height: 1.5;
   margin: 0;
 `;
 
 const PackagingGuidelines = styled.div`
-  padding: var(--spacing-md);
-  background: var(--color-blue-50);
-  border: 1px solid var(--color-blue-200);
-  border-radius: var(--border-radius-md);
-  margin-top: var(--spacing-md);
+  padding: 1rem;
+  background: #185FA5;
+  border: 1px solid #185FA5;
+  border-radius: 9px;
+  margin-top: 1rem;
 `;
 
 const GuidelinesTitle = styled.h4`
-  font-size: var(--font-size-md);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
-  font-family: var(--font-heading);
-  margin-bottom: var(--spacing-sm);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #111827;
+  
+  margin-bottom: 1rem;
 `;
 
 const GuidelinesList = styled.ul`
@@ -597,86 +597,86 @@ const GuidelinesList = styled.ul`
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 1rem;
 `;
 
 const GuidelineItem = styled.li`
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-700);
-  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: #374151;
+  
   line-height: 1.5;
 `;
 
 const FeeCard = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 1rem;
 `;
 
 const FeeTitle = styled.h3`
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
-  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111827;
+  
 `;
 
 const FeeInfo = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 1rem;
 `;
 
 const FeeItem = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-md);
-  background: var(--color-grey-50);
-  border-radius: var(--border-radius-md);
+  gap: 1rem;
+  padding: 1rem;
+  background: #F9F8F5;
+  border-radius: 9px;
 `;
 
 const FeeLabel = styled.div`
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-700);
-  font-family: var(--font-heading);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  
   text-transform: uppercase;
   letter-spacing: 0.5px;
 `;
 
 const FeeValue = styled.div`
-  font-size: var(--font-size-md);
-  color: var(--color-grey-800);
-  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: #1F2937;
+  
   line-height: 1.6;
   
   strong {
-    font-weight: var(--font-semibold);
-    color: var(--color-grey-900);
+    font-weight: 600;
+    color: #111827;
   }
 `;
 
 const SupportCard = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
-  padding: var(--spacing-lg);
-  background: var(--color-primary-50);
-  border: 1px solid var(--color-primary-200);
-  border-radius: var(--border-radius-lg);
+  gap: 1rem;
+  padding: 1rem;
+  background: #E8920A;
+  border: 1px solid #E8920A;
+  border-radius: 12px;
 `;
 
 const SupportTitle = styled.h3`
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
-  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111827;
+  
 `;
 
 const SupportText = styled.p`
-  font-size: var(--font-size-md);
-  color: var(--color-grey-700);
-  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: #374151;
+  
   margin: 0;
 `;
 
@@ -686,54 +686,54 @@ const SupportList = styled.ul`
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 1rem;
 `;
 
 const SupportItem = styled.li`
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-700);
-  font-family: var(--font-body);
-  padding-left: var(--spacing-lg);
+  font-size: 0.875rem;
+  color: #374151;
+  
+  padding-left: 1rem;
   position: relative;
   
   &::before {
     content: "•";
     position: absolute;
     left: 0;
-    color: var(--color-primary-500);
-    font-weight: var(--font-bold);
+    color: #E8920A;
+    font-weight: 700;
   }
 `;
 
 const SupportAction = styled.div`
-  margin-top: var(--spacing-sm);
+  margin-top: 1rem;
 `;
 
 const FAQList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: 1rem;
 `;
 
 const FAQItem = styled.div`
-  padding: var(--spacing-md);
-  background: var(--color-white-0);
-  border: 1px solid var(--color-grey-200);
-  border-radius: var(--border-radius-md);
+  padding: 1rem;
+  background: #FFFFFF;
+  border: 1px solid #F1EFE8;
+  border-radius: 9px;
 `;
 
 const FAQQuestion = styled.h4`
-  font-size: var(--font-size-md);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
-  font-family: var(--font-heading);
-  margin-bottom: var(--spacing-sm);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #111827;
+  
+  margin-bottom: 1rem;
 `;
 
 const FAQAnswer = styled.p`
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-700);
-  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: #374151;
+  
   line-height: 1.6;
   margin: 0;
 `;

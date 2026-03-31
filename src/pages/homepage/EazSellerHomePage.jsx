@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import {
   FaStore,
   FaChartLine,
@@ -12,9 +12,15 @@ import {
   FaDollarSign,
   FaBars,
   FaTimes,
+  FaArrowRight,
+  FaCheckCircle,
+  FaStar,
+  FaShieldAlt,
+  FaRocket,
 } from 'react-icons/fa';
 import usePageTitle from '../../shared/hooks/usePageTitle';
 import { PATHS } from '../../routes/routePaths';
+import { useGetPublicTestimonials } from '../../shared/hooks/useTestimonial';
 import {
   LandingContainer,
   NavButton,
@@ -25,6 +31,7 @@ import {
   HeroContent,
   HeroLeft,
   HeroIcon,
+  HeroTag,
   HeroTitle,
   HeroSubtitle,
   HeroButtons,
@@ -32,7 +39,11 @@ import {
   SecondaryButton,
   HeroRight,
   HeroIllustration,
+  FloatingCard,
+  FloatingCardIcon,
+  FloatingCardText,
   SectionWrapper,
+  SectionTag,
   SectionTitle,
   SectionDescription,
   BenefitsGrid,
@@ -40,6 +51,7 @@ import {
   BenefitIcon,
   BenefitTitle,
   BenefitDescription,
+  BenefitTextWrapper,
   StepsSection,
   StepsContainer,
   StepsGrid,
@@ -53,6 +65,13 @@ import {
   TrustCard,
   TrustNumber,
   TrustLabel,
+  TestimonialSection,
+  TestimonialGrid,
+  TestimonialCard,
+  TestimonialQuote,
+  TestimonialAuthor,
+  TestimonialAvatar,
+  TestimonialInfo,
   CTASection,
   CTAContainer,
   CTATitle,
@@ -68,24 +87,18 @@ import {
 } from './homepage.styles';
 
 
-/**
- * Saiisai Seller Home Page
- * Pre-login homepage for sellers to learn about the platform
- */
 const EazSellerHomePage = () => {
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { data: liveTestimonials } = useGetPublicTestimonials({ limit: 3 });
 
-  // SEO
   usePageTitle({
-    title: 'Sell on Saiisai • Saiisai Seller',
-    description: 'Join thousands of sellers on Saiisai. Create your store, list products, and start selling.',
-    keywords: 'Saiisai Seller, sell on Saiisai, seller portal, marketplace, online selling',
+    title: 'Sell on Saiisai - Start Your Online Store Today',
+    description: 'Join thousands of sellers on Saiisai. Create your store, list products, and start selling to customers across Ghana.',
+    keywords: 'Saiisai Seller, sell online Ghana, seller portal, marketplace, e-commerce',
   });
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
+  const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
 
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
@@ -95,10 +108,20 @@ const EazSellerHomePage = () => {
     }
   };
 
-  // Animation variants
+  // ── Animation Variants ──────────────────────────────────────────
   const fadeUp = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+    hidden: { opacity: 0, y: 40 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] } },
+  };
+
+  const fadeUpDelay = (delay = 0) => ({
+    hidden: { opacity: 0, y: 40 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.7, delay, ease: [0.25, 0.46, 0.45, 0.94] } },
+  });
+
+  const fadeInScale = {
+    hidden: { opacity: 0, scale: 0.92 },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] } },
   };
 
   const staggerContainer = {
@@ -106,74 +129,126 @@ const EazSellerHomePage = () => {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2,
+        staggerChildren: 0.12,
+        delayChildren: 0.15,
       },
     },
   };
 
   const staggerItem = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] },
+    },
   };
 
-  // Benefits data
+  const slideInLeft = {
+    hidden: { opacity: 0, x: -50 },
+    visible: { opacity: 1, x: 0, transition: { duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] } },
+  };
+
+  const slideInRight = {
+    hidden: { opacity: 0, x: 50 },
+    visible: { opacity: 1, x: 0, transition: { duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] } },
+  };
+
+  // ── Data ────────────────────────────────────────────────────────
   const benefits = [
     {
-      icon: <FaStore />,
-      title: 'Open Your Store Instantly',
-      description: 'Set up your seller account and start selling in minutes.',
+      icon: <FaRocket />,
+      title: 'Launch in Minutes',
+      description: 'Set up your seller profile, add payment details, and start listing products — no technical skills needed.',
     },
     {
       icon: <FaChartLine />,
-      title: 'Reach More Customers',
-      description: 'Sell to thousands of buyers on Saiisai daily.',
+      title: 'Grow Your Reach',
+      description: 'Access thousands of active buyers across Ghana who are ready to discover and purchase your products.',
     },
     {
       icon: <FaTruck />,
-      title: 'Simple Order & Shipping Flow',
-      description: 'Manage orders, shipping, and returns easily.',
+      title: 'Effortless Fulfillment',
+      description: 'Manage orders, track shipments, and handle returns with our streamlined logistics flow.',
     },
     {
-      icon: <FaWallet />,
-      title: 'Fast & Secure Payouts',
-      description: 'Receive your earnings quickly through multiple payment options.',
+      icon: <FaShieldAlt />,
+      title: 'Secure Payouts',
+      description: 'Get paid directly to your mobile money or bank account with transparent fees and fast settlements.',
     },
   ];
 
-  // Steps data
   const steps = [
     {
       number: '1',
       icon: <FaUserPlus />,
-      title: 'Create an Account',
-      description: 'Sign up as a seller and complete your profile verification.',
+      title: 'Create Your Account',
+      description: 'Sign up for free and verify your seller profile in just a few minutes.',
     },
     {
       number: '2',
       icon: <FaBox />,
-      title: 'Add Your Products',
-      description: 'List your products with images, descriptions, and pricing.',
+      title: 'List Your Products',
+      description: 'Upload photos, set prices, and describe your products to attract buyers.',
     },
     {
       number: '3',
       icon: <FaDollarSign />,
-      title: 'Receive Orders & Get Paid',
-      description: 'Start receiving orders and get paid securely through our platform.',
+      title: 'Start Earning',
+      description: 'Receive orders, fulfill them, and watch your earnings grow in real-time.',
     },
   ];
 
-  // Trust metrics
   const metrics = [
     { number: '500+', label: 'Active Sellers' },
     { number: '10,000+', label: 'Monthly Orders' },
     { number: '95%', label: 'Seller Satisfaction' },
   ];
 
+  const staticTestimonials = [
+    {
+      quote: 'Saiisai made it so easy for me to go from a physical market stall to selling online. My revenue doubled in the first month!',
+      name: 'Ama K.',
+      shop: 'Ama Fashion House',
+      initials: 'AK',
+      rating: 5,
+    },
+    {
+      quote: 'The payout system is incredibly fast. I receive my earnings the same day. Best marketplace platform in Ghana.',
+      name: 'Kwame O.',
+      shop: 'KO Electronics',
+      initials: 'KO',
+      rating: 5,
+    },
+    {
+      quote: 'Simple to use, great customer base, and the support team is always there when I need help. Highly recommend!',
+      name: 'Efua M.',
+      shop: 'Efua Natural Beauty',
+      initials: 'EM',
+      rating: 5,
+    },
+  ];
+
+  const testimonials = (liveTestimonials && liveTestimonials.length > 0)
+    ? liveTestimonials.map((t) => {
+        const name = t.seller?.businessName || 'Seller';
+        const words = name.trim().split(' ');
+        const initials = words.length >= 2
+          ? `${words[0][0]}${words[1][0]}`.toUpperCase()
+          : name.slice(0, 2).toUpperCase();
+        return {
+          quote: t.content,
+          name,
+          shop: t.seller?.businessName || 'Saiisai Seller',
+          initials,
+          rating: t.rating,
+        };
+      })
+    : staticTestimonials;
+
   return (
     <LandingContainer>
-      {/* Header is now provided by DashboardLayout */}
-      {/* Mobile Menu - Keep for mobile navigation if needed */}
+      {/* Mobile Menu */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <MobileMenu
@@ -182,39 +257,13 @@ const EazSellerHomePage = () => {
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.2 }}
           >
-            <MobileNavLink onClick={() => scrollToSection('benefits')}>
-              Features
-            </MobileNavLink>
-            <MobileNavLink onClick={() => scrollToSection('steps')}>
-              How It Works
-            </MobileNavLink>
-            <MobileNavLink onClick={() => scrollToSection('trust')}>
-              Why Choose Us
-            </MobileNavLink>
-            <MobileNavLink onClick={() => {
-              navigate(PATHS.EDUCATION);
-              setIsMobileMenuOpen(false);
-            }}>
-              Education
-            </MobileNavLink>
-            <MobileNavLink
-              onClick={() => {
-                navigate(PATHS.HELP);
-                setIsMobileMenuOpen(false);
-              }}
-              aria-label="Help Center"
-            >
-              Help Center
-            </MobileNavLink>
+            <MobileNavLink onClick={() => scrollToSection('benefits')}>Features</MobileNavLink>
+            <MobileNavLink onClick={() => scrollToSection('steps')}>How It Works</MobileNavLink>
+            <MobileNavLink onClick={() => scrollToSection('trust')}>Community</MobileNavLink>
+            <MobileNavLink onClick={() => { navigate(PATHS.EDUCATION); setIsMobileMenuOpen(false); }}>Education</MobileNavLink>
+            <MobileNavLink onClick={() => { navigate(PATHS.HELP); setIsMobileMenuOpen(false); }}>Help Center</MobileNavLink>
             <MobileNavButtons>
-              <NavButton
-                $variant="outline"
-                onClick={() => {
-                  navigate(PATHS.LOGIN);
-                  setIsMobileMenuOpen(false);
-                }}
-                style={{ width: '100%', justifyContent: 'center' }}
-              >
+              <NavButton $variant="outline" onClick={() => { navigate(PATHS.LOGIN); setIsMobileMenuOpen(false); }} style={{ width: '100%', justifyContent: 'center' }}>
                 Login
               </NavButton>
             </MobileNavButtons>
@@ -222,93 +271,141 @@ const EazSellerHomePage = () => {
         )}
       </AnimatePresence>
 
-      {/* Hero Section */}
-      <HeroSection
-        initial="hidden"
-        animate="visible"
-        variants={fadeUp}
-      >
+      {/* ── Hero Section ──────────────────────────────────────────── */}
+      <HeroSection initial="hidden" animate="visible" variants={staggerContainer}>
         <HeroContent>
           <HeroLeft>
-            <HeroIcon variants={fadeUp} $align="flex-start">
-              <FaStore />
-            </HeroIcon>
-            <HeroTitle variants={fadeUp}>
-              Grow Your Business with Saiisai Seller
+            <HeroTag variants={staggerItem}>
+              <FaStar /> Trusted by 500+ sellers
+            </HeroTag>
+
+            <HeroTitle variants={staggerItem}>
+              Turn Your Products Into a <span>Thriving Online Business</span>
             </HeroTitle>
-            <HeroSubtitle variants={fadeUp}>
-              Create your store, manage your orders, and reach thousands of customers on Saiisai.
+
+            <HeroSubtitle variants={staggerItem}>
+              Join Ghana's fastest-growing marketplace. Set up your store, reach thousands of buyers, and get paid securely.
             </HeroSubtitle>
-            <HeroButtons variants={fadeUp} $justify="flex-start">
-              <SecondaryButton
+
+            <HeroButtons variants={staggerItem} $justify="flex-start">
+              <PrimaryButton
                 onClick={() => navigate(PATHS.SIGNUP)}
-                whileHover={{ scale: 1.02 }}
+                whileHover={{ scale: 1.03, y: -2 }}
                 whileTap={{ scale: 0.98 }}
               >
-                Create Seller Account
+                Start Selling Free <FaArrowRight />
+              </PrimaryButton>
+              <SecondaryButton
+                onClick={() => scrollToSection('steps')}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                See How It Works
               </SecondaryButton>
             </HeroButtons>
           </HeroLeft>
+
           <HeroRight>
-            <HeroIllustration
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-            >
-              <FaShoppingBag />
-            </HeroIllustration>
+            <motion.div style={{ position: 'relative' }} variants={slideInRight}>
+              <HeroIllustration
+                initial={{ opacity: 0, scale: 0.9, rotateY: 8 }}
+                animate={{ opacity: 1, scale: 1, rotateY: 0 }}
+                transition={{ duration: 1, delay: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+              >
+                <FaShoppingBag />
+              </HeroIllustration>
+
+              {/* Floating metric cards */}
+              <FloatingCard
+                $position="top-right"
+                initial={{ opacity: 0, x: 30, y: -10 }}
+                animate={{ opacity: 1, x: 0, y: 0 }}
+                transition={{ duration: 0.7, delay: 0.8 }}
+              >
+                <FloatingCardIcon $bg="rgba(0,200,150,0.1)" $color="#00C896">
+                  <FaChartLine />
+                </FloatingCardIcon>
+                <FloatingCardText>
+                  <div className="value">+240%</div>
+                  <div className="label">Avg. Growth</div>
+                </FloatingCardText>
+              </FloatingCard>
+
+              <FloatingCard
+                $position="bottom-left"
+                initial={{ opacity: 0, x: -30, y: 10 }}
+                animate={{ opacity: 1, x: 0, y: 0 }}
+                transition={{ duration: 0.7, delay: 1.0 }}
+              >
+                <FloatingCardIcon $bg="rgba(251,191,36,0.1)" $color="#f59e0b">
+                  <FaCheckCircle />
+                </FloatingCardIcon>
+                <FloatingCardText>
+                  <div className="value">Same-Day</div>
+                  <div className="label">Payouts</div>
+                </FloatingCardText>
+              </FloatingCard>
+            </motion.div>
           </HeroRight>
         </HeroContent>
       </HeroSection>
 
-      {/* Benefits Section */}
+      {/* ── Benefits Section ───────────────────────────────────────── */}
       <SectionWrapper
         id="benefits"
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
+        viewport={{ once: true, amount: 0.15 }}
         variants={staggerContainer}
       >
-        <SectionTitle>Why Choose Saiisai Seller?</SectionTitle>
-        <SectionDescription>
-          Everything you need to grow your online business
+        <SectionTag variants={staggerItem}>Why Saiisai</SectionTag>
+        <SectionTitle variants={staggerItem}>
+          Everything You Need to <span>Succeed</span>
+        </SectionTitle>
+        <SectionDescription variants={staggerItem}>
+          From store setup to secure payments, we handle the heavy lifting so you can focus on growing.
         </SectionDescription>
+
         <BenefitsGrid>
           {benefits.map((benefit, index) => (
             <BenefitCard
               key={index}
               variants={staggerItem}
-              whileHover={{ y: -4 }}
-              transition={{ duration: 0.2 }}
+              whileHover={{ y: -6, transition: { duration: 0.3 } }}
             >
               <BenefitIcon>{benefit.icon}</BenefitIcon>
-              <BenefitTitle>{benefit.title}</BenefitTitle>
-              <BenefitDescription>{benefit.description}</BenefitDescription>
+              <BenefitTextWrapper>
+                <BenefitTitle>{benefit.title}</BenefitTitle>
+                <BenefitDescription>{benefit.description}</BenefitDescription>
+              </BenefitTextWrapper>
             </BenefitCard>
           ))}
         </BenefitsGrid>
       </SectionWrapper>
 
-      {/* Steps Section */}
+      {/* ── Steps Section ──────────────────────────────────────────── */}
       <StepsSection
         id="steps"
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
+        viewport={{ once: true, amount: 0.15 }}
         variants={staggerContainer}
       >
         <StepsContainer>
-          <SectionTitle>Get Started in 3 Simple Steps</SectionTitle>
-          <SectionDescription>
-            Start selling on Saiisai today
+          <SectionTag variants={staggerItem}>How It Works</SectionTag>
+          <SectionTitle variants={staggerItem}>
+            Get Started in <span>3 Easy Steps</span>
+          </SectionTitle>
+          <SectionDescription variants={staggerItem}>
+            From sign-up to first sale — it only takes minutes.
           </SectionDescription>
+
           <StepsGrid>
             {steps.map((step, index) => (
               <StepCard
                 key={index}
                 variants={staggerItem}
-                whileHover={{ y: -4 }}
-                transition={{ duration: 0.2 }}
+                whileHover={{ y: -8, transition: { duration: 0.3 } }}
               >
                 <StepNumber>{step.number}</StepNumber>
                 <StepIcon>{step.icon}</StepIcon>
@@ -320,25 +417,28 @@ const EazSellerHomePage = () => {
         </StepsContainer>
       </StepsSection>
 
-      {/* Trust Section */}
+      {/* ── Trust / Metrics Section ────────────────────────────────── */}
       <TrustSection
         id="trust"
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
+        viewport={{ once: true, amount: 0.15 }}
         variants={staggerContainer}
       >
-        <SectionTitle>Join a Growing Community</SectionTitle>
-        <SectionDescription>
-          Trusted by sellers across the region
+        <SectionTag variants={staggerItem}>Our Community</SectionTag>
+        <SectionTitle variants={staggerItem}>
+          Join a <span>Growing Network</span> of Sellers
+        </SectionTitle>
+        <SectionDescription variants={staggerItem}>
+          Trusted by entrepreneurs and businesses across Ghana
         </SectionDescription>
+
         <TrustGrid>
           {metrics.map((metric, index) => (
             <TrustCard
               key={index}
               variants={staggerItem}
-              whileHover={{ scale: 1.05 }}
-              transition={{ duration: 0.2 }}
+              whileHover={{ scale: 1.04, transition: { duration: 0.3 } }}
             >
               <TrustNumber>{metric.number}</TrustNumber>
               <TrustLabel>{metric.label}</TrustLabel>
@@ -347,7 +447,49 @@ const EazSellerHomePage = () => {
         </TrustGrid>
       </TrustSection>
 
-      {/* Final CTA Section */}
+      {/* ── Testimonials Section ───────────────────────────────────── */}
+      <TestimonialSection
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.15 }}
+        variants={staggerContainer}
+      >
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <SectionTag variants={staggerItem}>Seller Stories</SectionTag>
+          <SectionTitle variants={staggerItem}>
+            Hear From Our <span>Sellers</span>
+          </SectionTitle>
+          <SectionDescription variants={staggerItem}>
+            Real stories from real people building businesses on Saiisai
+          </SectionDescription>
+        </div>
+
+        <TestimonialGrid>
+          {testimonials.map((t, index) => (
+            <TestimonialCard
+              key={index}
+              variants={staggerItem}
+              whileHover={{ y: -4, transition: { duration: 0.3 } }}
+            >
+              <div style={{ display: 'flex', gap: '2px', marginBottom: '0.75rem' }}>
+                {[1,2,3,4,5].map((s) => (
+                  <FaStar key={s} size={13} color={s <= (t.rating || 5) ? '#E8920A' : '#E5E7EB'} />
+                ))}
+              </div>
+              <TestimonialQuote>"{t.quote}"</TestimonialQuote>
+              <TestimonialAuthor>
+                <TestimonialAvatar>{t.initials}</TestimonialAvatar>
+                <TestimonialInfo>
+                  <div className="name">{t.name}</div>
+                  <div className="shop">{t.shop}</div>
+                </TestimonialInfo>
+              </TestimonialAuthor>
+            </TestimonialCard>
+          ))}
+        </TestimonialGrid>
+      </TestimonialSection>
+
+      {/* ── CTA Section ────────────────────────────────────────────── */}
       <CTASection
         initial="hidden"
         whileInView="visible"
@@ -355,23 +497,30 @@ const EazSellerHomePage = () => {
         variants={fadeUp}
       >
         <CTAContainer>
-          <CTATitle>Ready to Start Selling?</CTATitle>
+          <CTATitle>Ready to Build Your Online Store?</CTATitle>
           <CTASubtitle>
-            Join the Saiisai marketplace today and start growing your business.
+            Join hundreds of successful sellers on Saiisai. It's free to start — no monthly fees, no hidden charges.
           </CTASubtitle>
           <CTAButtons>
-            <CTAButtonSecondary
+            <CTAButtonPrimary
               onClick={() => navigate(PATHS.SIGNUP)}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.97 }}
             >
-              Create Seller Account
+              Create Free Account <FaArrowRight />
+            </CTAButtonPrimary>
+            <CTAButtonSecondary
+              onClick={() => navigate(PATHS.LOGIN)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              I Already Have an Account
             </CTAButtonSecondary>
           </CTAButtons>
         </CTAContainer>
       </CTASection>
 
-      {/* Footer */}
+      {/* ── Footer ─────────────────────────────────────────────────── */}
       <FooterSection
         initial="hidden"
         whileInView="visible"
@@ -380,38 +529,17 @@ const EazSellerHomePage = () => {
       >
         <FooterContent>
           <FooterLinks>
-            <FooterLink as={Link} to={PATHS.PRIVACY}>
-              Privacy Policy
-            </FooterLink>
-            <FooterLink as={Link} to={PATHS.TERMS}>
-              Terms of Service
-            </FooterLink>
-            <FooterLink as={Link} to={PATHS.DATA_DELETION}>
-              Data Deletion
-            </FooterLink>
-            <FooterLink as={Link} to={PATHS.VAT_TAX_POLICY}>
-              VAT & Tax Policy
-            </FooterLink>
-            <FooterLink as={Link} to={PATHS.EDUCATION}>
-              Education
-            </FooterLink>
-            <FooterLink
-              as={Link}
-              to={PATHS.HELP}
-              aria-label="Help Center"
-            >
-              Help Center
-            </FooterLink>
-            <FooterLink
-              as={Link}
-              to={PATHS.SHIPPING_INFO}
-              aria-label="Shipping Information"
-            >
-              Shipping Info
-            </FooterLink>
+            <FooterLink as={Link} to={PATHS.PRIVACY}>Privacy Policy</FooterLink>
+            <FooterLink as={Link} to={PATHS.TERMS}>Terms of Service</FooterLink>
+            <FooterLink as={Link} to={PATHS.DATA_DELETION}>Data Deletion</FooterLink>
+            <FooterLink as={Link} to={PATHS.VAT_TAX_POLICY}>VAT & Tax Policy</FooterLink>
+            <FooterLink as={Link} to={PATHS.COOKIE_POLICY}>Cookie Policy</FooterLink>
+            <FooterLink as={Link} to={PATHS.EDUCATION}>Education</FooterLink>
+            <FooterLink as={Link} to={PATHS.HELP}>Help Center</FooterLink>
+            <FooterLink as={Link} to={PATHS.SHIPPING_INFO}>Shipping Info</FooterLink>
           </FooterLinks>
           <FooterCopyright>
-            © {new Date().getFullYear()} Saiisai. All rights reserved.
+            &copy; {new Date().getFullYear()} Saiisai. All rights reserved.
           </FooterCopyright>
         </FooterContent>
       </FooterSection>
@@ -420,4 +548,3 @@ const EazSellerHomePage = () => {
 };
 
 export default EazSellerHomePage;
-

@@ -6,6 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 import GlobalStyles from "./shared/styles/GlobalStyles";
 import SellerRoutes from "./routes/SellerRoutes";
 import ScrollToTop from "./shared/ScrollToTop";
+import CookieConsentBanner from "./shared/components/CookieConsentBanner/CookieConsentBanner";
 import queryClient from "./api/queryClient";
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
       >
         <ScrollToTop />
         <SellerRoutes />
+        <CookieConsentBanner />
       </BrowserRouter>
       <ReactQueryDevtools initialIsOpen={false} />
       <ToastContainer

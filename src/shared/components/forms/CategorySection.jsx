@@ -415,7 +415,7 @@ const Select = styled.select`
   transition: border-color 0.2s;
   
   &:focus {
-    border-color: ${props => props.$hasError ? '#e53e3e' : 'var(--color-primary-600)'};
+    border-color: ${props => props.$hasError ? '#e53e3e' : '#E8920A'};
     outline: none;
     box-shadow: 0 0 0 3px ${props => props.$hasError ? 'rgba(229, 62, 62, 0.1)' : 'rgba(49, 130, 206, 0.1)'};
   }

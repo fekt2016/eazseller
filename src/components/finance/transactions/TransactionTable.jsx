@@ -2,14 +2,14 @@ import { useMemo } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import TransactionRow from './TransactionRow';
-import { LoadingState, EmptyState } from '../../../shared/components/ui/LoadingComponents';
+import { EmptyState, SkeletonTableRows } from '../../../shared/components/ui/LoadingComponents';
 import { devicesMax } from '../../../shared/styles/breakpoint';
 
 const TableContainer = styled.div`
-  background: var(--color-white-0);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--color-grey-200);
+  background: #FFFFFF;
+  border-radius: 12px;
+  
+  border: 1px solid #F1EFE8;
   overflow: hidden;
 `;
 
@@ -23,8 +23,8 @@ const Table = styled.table`
 `;
 
 const TableHeader = styled.thead`
-  background: var(--color-grey-50);
-  border-bottom: 2px solid var(--color-grey-200);
+  background: #F9F8F5;
+  border-bottom: 2px solid #F1EFE8;
   
   @media ${devicesMax.sm} {
     display: none;
@@ -34,12 +34,12 @@ const TableHeader = styled.thead`
 const HeaderRow = styled.tr``;
 
 const HeaderCell = styled.th`
-  padding: var(--spacing-md);
+  padding: 1rem;
   text-align: left;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-700);
-  font-family: var(--font-heading);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  
   text-transform: uppercase;
   letter-spacing: 0.05em;
   
@@ -60,14 +60,14 @@ const TransactionTable = ({ transactions, isLoading, error }) => {
   const handleRowClick = (transaction) => {
     const transactionId = transaction._id || transaction.id;
     if (transactionId) {
-      navigate(`/dashboard/finance/transactions/${transactionId}`);
+      navigate(`/dashboard/finance/transactions/${transactionId}`, { state: { transaction } });
     }
   };
 
   if (isLoading) {
     return (
       <TableContainer>
-        <LoadingState message="Loading transactions..." />
+        <SkeletonTableRows count={7} />
       </TableContainer>
     );
   }

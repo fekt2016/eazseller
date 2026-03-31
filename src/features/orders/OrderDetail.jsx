@@ -1,943 +1,444 @@
-import { useMemo, useState } from "react";
-import styled from "styled-components";
-import {
-  FaChevronLeft,
-  FaPrint,
-  FaDownload,
-  FaEllipsisV,
-  FaBox,
-  FaTruck,
-  FaCheckCircle,
-  FaCreditCard,
-  FaUser,
-  FaMapMarkerAlt,
-  // FaHistory,
-  // FaBell,
-  FaShoppingBag,
-  FaTag,
-  FaCalendarAlt,
-  FaMoneyBillWave,
-  FaClipboardList,
-  FaEdit,
-  // FaEnvelope,
-  // FaPhone,
-  FaExclamationTriangle,
-  FaClock,
-} from "react-icons/fa";
-import { useParams, useNavigate } from "react-router-dom";
-import { PATHS } from "../../routes/routePaths";
-import { useGetSellerOrder } from '../../shared/hooks/useOrder';
-import useDynamicPageTitle from '../../shared/hooks/useDynamicPageTitle';
-// const order = [];
-// Admin Order Details Component
-function OrderDetails() {
-  const [showEdit, setShowEdit] = useState(false);
-  const { id: orderId } = useParams();
+import { useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import styled from 'styled-components';
+import { FaCalendarAlt, FaClipboard, FaMapMarkerAlt, FaMoneyBillWave, FaPrint, FaTruck, FaUser } from 'react-icons/fa';
+import BreadcrumbNav from '../../components/shared/BreadcrumbNav';
+import DispatchInstructions from '../../components/shared/DispatchInstructions';
+import EarningsPanel from '../../components/shared/EarningsPanel';
+import InfoCard from '../../components/shared/InfoCard';
+import InfoRow from '../../components/shared/InfoRow';
+import OrderItemsList from '../../components/shared/OrderItemsList';
+import OrderTimeline from '../../components/shared/OrderTimeline';
+import StatusBadge from '../../components/shared/StatusBadge';
+import { formatOrderDate, formatOrderNumber } from '../../shared/utils/dashboardFormatters';
+import { PATHS } from '../../routes/routePaths';
+import { useGetSellerOrder, useUpdateSellerOrderStatus } from '../../shared/hooks/useOrder';
+import { useGetEarningsByOrder } from '../../shared/hooks/useBalance';
 
+const DELIVERY_LABELS = {
+  saiisai_dispatch_rider: 'Saiisai Dispatch Rider',
+  pickup: 'Store Pickup',
+  pickup_center: 'Store Pickup',
+  dispatch: 'Saiisai Dispatch Rider',
+  seller_delivery: 'Seller delivery',
+  eazshop_dispatch: 'Eazshop Dispatch',
+};
+
+const NEXT_STATUS_MAP = {
+  pending: { label: 'Confirm order', next: 'confirmed' },
+  pending_payment: { label: 'Confirm order', next: 'confirmed' },
+  confirmed: { label: 'Mark as processing', next: 'processing' },
+  processing: { label: 'Mark as shipped', next: 'shipped' },
+  preparing: { label: 'Mark as shipped', next: 'shipped' },
+  ready_for_dispatch: { label: 'Mark as shipped', next: 'shipped' },
+  shipped: { label: 'Mark as delivered', next: 'delivered' },
+  out_for_delivery: { label: 'Mark as delivered', next: 'delivered' },
+  delivered: null,
+  completed: null,
+  cancelled: null,
+};
+
+const normalizeStatus = (status) => {
+  const raw = String(status || '').toLowerCase();
+  if (!raw) return 'pending';
+  if (raw === 'delievered') return 'delivered';
+  return raw;
+};
+
+const formatDateTime = (value) => {
+  if (!value) return 'Not provided';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Not provided';
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
+};
+
+const addressToText = (address) => {
+  if (!address) return 'Not provided';
+  const parts = [
+    address.streetAddress || address.street,
+    address.area || address.landmark,
+    address.city,
+    address.region || address.state,
+  ].filter(Boolean);
+  return parts.length ? parts.join(', ') : 'Not provided';
+};
+
+export default function OrderDetailPage() {
+  const { id: sellerOrderId } = useParams();
   const navigate = useNavigate();
+  const [actionError, setActionError] = useState('');
+  const [copied, setCopied] = useState(false);
+  const { data, isLoading, isError, error, refetch } = useGetSellerOrder(sellerOrderId);
+  const { mutateAsync: updateStatus, isPending: isUpdating } = useUpdateSellerOrderStatus();
+  const { data: earningsData, isLoading: isEarningsLoading } = useGetEarningsByOrder(sellerOrderId);
 
-  const {
-    data: orderData,
-    isLoading,
-    isError,
-    error,
-  } = useGetSellerOrder(orderId);
+  const sellerOrder = useMemo(() => data?.data?.data?.order || null, [data]);
+  const parentOrder = sellerOrder?.order || {};
+  const buyer = parentOrder?.user || {};
 
-  const order = useMemo(() => {
-    return orderData?.data.data.order || [];
-  }, [orderData]);
+  const orderNumberDisplay = formatOrderNumber(
+    parentOrder?.orderNumber || sellerOrder?.orderNumber,
+    sellerOrder?._id || parentOrder?._id
+  );
+  const orderStatus = normalizeStatus(
+    parentOrder?.currentStatus || sellerOrder?.status || parentOrder?.status
+  );
+  const paymentStatus = normalizeStatus(parentOrder?.paymentStatus);
+  const payoutStatus = normalizeStatus(
+    sellerOrder?.payoutStatus || parentOrder?.sellerPayoutStatus
+  );
+  const deliveryMethod = parentOrder?.deliveryMethod || sellerOrder?.deliveryMethod;
+  const trackingNumber = parentOrder?.trackingNumber || sellerOrder?.tracking?.number || '';
+  const nextAction = NEXT_STATUS_MAP[orderStatus] || null;
 
-  // SEO - Update page title and meta tags based on order data
-  useDynamicPageTitle({
-    title: "Seller Order",
-    dynamicTitle: order?.order && `Seller Order #${order.order.orderNumber || order.order._id?.slice(-8) || order.order._id}`,
-    description: "View customer order details.",
-    defaultTitle: "Saiisai Seller Orders",
-  });
+  const earningsPayload =
+    earningsData?.data || earningsData || null;
+
+  const handleUpdateStatus = async (status) => {
+    if (!parentOrder?._id || !status) return;
+    setActionError('');
+    try {
+      await updateStatus({ orderId: parentOrder._id, status });
+      await refetch();
+    } catch (e) {
+      setActionError(e?.message || 'Failed to update status');
+    }
+  };
+
+  const handleCancel = async () => {
+    if (!parentOrder?._id) return;
+    const ok = window.confirm('Cancel this order? This action cannot be undone.');
+    if (!ok) return;
+    await handleUpdateStatus('cancelled');
+  };
+
+  const handleCopyTracking = async () => {
+    if (!trackingNumber) return;
+    try {
+      await navigator.clipboard.writeText(trackingNumber);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1200);
+    } catch {
+      setActionError('Could not copy tracking number');
+    }
+  };
 
   if (isLoading) {
-    return <div>Loading order details...</div>;
+    return (
+      <StateCard>
+        <h3>Loading order details...</h3>
+      </StateCard>
+    );
   }
 
   if (isError) {
-    return <div>Error loading order: {error?.message}</div>;
+    return (
+      <StateCard>
+        <h3>Failed to load order</h3>
+        <p>{error?.message || 'Something went wrong'}</p>
+        <ActionBtn type="button" onClick={() => refetch()}>
+          Try again
+        </ActionBtn>
+      </StateCard>
+    );
   }
 
-  console.log("order", order);
-  console.log("Order status fields:", {
-    currentStatus: order?.currentStatus,
-    status: order?.status,
-    orderStatus: order?.orderStatus,
-    FulfillmentStatus: order?.FulfillmentStatus,
-    payoutStatus: order?.payoutStatus,
-    sellerPaymentStatus: order?.sellerPaymentStatus,
-  });
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const handlePrint = () => {
-    window.print();
-  };
-
-  const handleBack = () => {
-    navigate("/orders");
-  };
-  if (isLoading) return <p>Loading...</p>;
-  if (isError) return <p>Error: {error.message}</p>;
-  if (!order) return <p>No order data found.</p>; // Prevent undefined access
+  if (!sellerOrder?._id) {
+    return (
+      <StateCard>
+        <h3>Order not found</h3>
+        <ActionBtn type="button" onClick={() => navigate(PATHS.ORDERS)}>
+          Back to orders
+        </ActionBtn>
+      </StateCard>
+    );
+  }
 
   return (
-    <>
-      <Container>
+    <Page>
+      <Topbar>
+        <BreadcrumbNav orderNumber={orderNumberDisplay} ordersPath={PATHS.ORDERS} />
+      </Topbar>
+
         <Header>
-          <HeaderLeft>
-            <BackButton onClick={handleBack}>
-              <FaChevronLeft /> Back to Orders
-            </BackButton>
-            <OrderTitle>
-              Order <span>#{order.order.orderNumber}</span>
-            </OrderTitle>
-            <OrderStatus status={(() => {
-              // Use orderStatus as primary source (set to 'confirmed' after payment)
-              let status = order.orderStatus || order.currentStatus || order.status || 'pending';
-              if (status === 'delivered') return 'completed';
-              if (status === 'out_for_delivery') return 'shipped';
-              if (status === 'confirmed') return 'confirmed'; // Show confirmed, not processing
-              if (['preparing', 'ready_for_dispatch'].includes(status)) return 'processing';
-              if (status === 'pending_payment' || status === 'pending') return 'pending';
-              return status.toLowerCase();
-            })()}>
-              {(() => {
-                const status = order.orderStatus || order.currentStatus || order.status || 'pending';
-                if (status === 'delivered' || status === 'completed') return <FaCheckCircle />;
-                if (status === 'out_for_delivery' || status === 'shipped') return <FaTruck />;
-                if (status === 'confirmed') return <FaCheckCircle />; // Confirmed uses check icon
-                if (['preparing', 'ready_for_dispatch'].includes(status)) return <FaBox />;
-                if (status === 'cancelled' || status === 'refunded') return <FaExclamationTriangle />;
-                return <FaClock />;
-              })()}
-              {(() => {
-                let status = order.orderStatus || order.currentStatus || order.status || 'pending';
-                if (status === 'delivered') status = 'completed';
-                if (status === 'out_for_delivery') status = 'shipped';
-                if (status === 'confirmed') status = 'confirmed'; // Keep as confirmed
-                if (['preparing', 'ready_for_dispatch'].includes(status)) status = 'processing';
-                if (status === 'pending_payment' || status === 'pending') status = 'pending';
-                return status.toUpperCase();
-              })()}
-            </OrderStatus>
-          </HeaderLeft>
-          <HeaderRight>
-            <IconButton onClick={handlePrint}>
-              <FaPrint />
-            </IconButton>
-            <IconButton>
-              <FaDownload />
-            </IconButton>
-            <IconButton>
-              <FaEllipsisV />
-            </IconButton>
-          </HeaderRight>
+        <div>
+          <Title>{orderNumberDisplay}</Title>
+          <Sub>{formatOrderDate(parentOrder?.createdAt || sellerOrder?.createdAt)}</Sub>
+        </div>
+        <HeaderActions>
+          <GhostBtn type="button" onClick={() => window.print()}>
+            <FaPrint size={12} />
+            <span>Print Invoice</span>
+          </GhostBtn>
+          {nextAction ? (
+            <ActionBtn
+              type="button"
+              disabled={isUpdating}
+              onClick={() => handleUpdateStatus(nextAction.next)}
+            >
+              {isUpdating ? 'Updating...' : nextAction.label}
+            </ActionBtn>
+          ) : null}
+        </HeaderActions>
         </Header>
 
-        <MainContent>
-          <div>
-            <OrderSection>
-              <SectionHeader>
-                <SectionTitle>
-                  <FaShoppingBag /> Order Items
-                </SectionTitle>
-                <EditButton onClick={() => setShowEdit(!showEdit)}>
-                  <FaEdit /> Edit
-                </EditButton>
-              </SectionHeader>
+      {actionError ? <ErrorText>{actionError}</ErrorText> : null}
 
-              <ItemsTable>
-                <thead>
-                  <tr>
-                    <TableHeader>Product</TableHeader>
-                    <TableHeader>SKU</TableHeader>
-                    <TableHeader>Price</TableHeader>
-                    <TableHeader>Qty</TableHeader>
-                    <TableHeader>Total</TableHeader>
-                  </tr>
-                </thead>
-                <tbody>
-                  {order.items?.map((item) => {
-                    // console.log("item", item.product.variants);
-                    // const variant = JSON.parse(item.product.variants);
-                    return (
-                      <TableRow key={item._id}>
-                        <TableCell>
-                          <ProductImage
-                            src={item.product?.imageCover || item.product?.images?.[0]}
-                            alt={item.product?.name}
-                            onError={(e) => {
-                              if (e.target.dataset.fallbackAttempted !== 'true') {
-                                e.target.dataset.fallbackAttempted = 'true';
-                                e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="50" height="50"%3E%3Crect width="50" height="50" fill="%23f0f0f0"/%3E%3Ctext x="50%25" y="50%25" font-family="Arial" font-size="10" fill="%23999" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E';
-                              }
-                            }}
-                          />
-                          <ProductDetails>
-                            <ProductName>
-                              {item.product?.name || "Product"}
-                            </ProductName>
-                            {/* <ProductSku>
-                              {variant.map((v) => v.sku) || "N/A"}
-                            </ProductSku> */}
-                          </ProductDetails>
-                        </TableCell>
-                        {/* <TableCell>
-                          {variant.map((v) => v.sku) || "N/A"}
-                        </TableCell> */}
-                        <TableCell>
-                          GH₵{(item.price || 0).toFixed(2)}
-                        </TableCell>
-                        <TableCell>{item.quantity || 0}</TableCell>
-                        <TableCell>
-                          GH₵{((item.price || 0) * (item.quantity || 0)).toFixed(2)}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </tbody>
-              </ItemsTable>
-            </OrderSection>
+      <OrderTimeline status={orderStatus} paymentStatus={paymentStatus} />
 
-            <OrderDetailsGrid>
-              <OrderSection>
-                <SectionHeader>
-                  <SectionTitle>
-                    <FaUser /> Customer Information
-                  </SectionTitle>
-                </SectionHeader>
-
-                <SectionContent>
-                  <InfoCard>
-                    <InfoLabel>
-                      <FaUser size={14} /> Customer
-                    </InfoLabel>
-                    <InfoValue>{order.order.user?.name || "N/A"}</InfoValue>
+      <Grid>
+        <InfoCard icon={<FaUser size={12} />} title="Customer information">
+          <InfoRow label="Customer" value={buyer?.name || 'Not provided'} />
+          <InfoRow label="Email" value={buyer?.email || 'Not provided'} />
+          <InfoRow label="Phone" value={buyer?.phone || 'Not provided'} />
+          <InfoRow label="Shipping address" value={addressToText(parentOrder?.shippingAddress)} />
+          <InfoRow label="Billing address" value={addressToText(parentOrder?.billingAddress)} last />
                   </InfoCard>
 
-                  <InfoCard>
-                    <InfoLabel>
-                      <FaTag size={14} /> Contact
-                    </InfoLabel>
-                    <InfoValue>{order.order.user?.email || "N/A"}</InfoValue>
-                    <InfoValue>{order.order.user?.phone || "N/A"}</InfoValue>
+        <InfoCard icon={<FaCalendarAlt size={12} />} title="Order information">
+          <InfoRow
+            label="Order date"
+            value={formatDateTime(parentOrder?.createdAt || sellerOrder?.createdAt)}
+          />
+          <InfoRow
+            label="Delivery method"
+            value={DELIVERY_LABELS[deliveryMethod] || deliveryMethod || 'Not provided'}
+          />
+          <InfoRow label="Payment method" value={parentOrder?.paymentMethod || 'Not provided'} />
+          <InfoRow
+            label="Payment status"
+            valueAs={<StatusBadge status={paymentStatus} />}
+          />
+          <InfoRow
+            label="Payout status"
+            valueAs={<StatusBadge status={payoutStatus} />}
+          />
+          <InfoRow
+            label="Tracking number"
+            valueAs={
+              trackingNumber ? (
+                <TrackWrap>
+                  <TrackCode>{trackingNumber}</TrackCode>
+                  <CopyBtn type="button" onClick={handleCopyTracking} aria-label="Copy tracking number">
+                    <FaClipboard size={11} />
+                    <span>{copied ? 'Copied' : 'Copy'}</span>
+                  </CopyBtn>
+                </TrackWrap>
+              ) : (
+                'Not provided'
+              )
+            }
+            last
+          />
+          <DispatchWrap>
+            <DispatchInstructions deliveryMethod={deliveryMethod} />
+          </DispatchWrap>
                   </InfoCard>
 
-                  <InfoCard>
-                    <InfoLabel>
-                      <FaMapMarkerAlt size={14} /> Shipping Address
-                    </InfoLabel>
-                    <InfoValue>
-                      {order.order.shippingAddress ? (
-                        <>
-                          {order.order.shippingAddress.streetAddress && (
-                            <span style={{ display: 'block' }}>{order.order.shippingAddress.streetAddress}</span>
-                          )}
-                          {order.order.shippingAddress.landmark && (
-                            <span style={{ display: 'block', color: 'var(--color-grey-500)', fontSize: '0.9em' }}>
-                              Near: {order.order.shippingAddress.landmark}
-                            </span>
-                          )}
-                          <span style={{ display: 'block' }}>
-                            {order.order.shippingAddress.city && `${order.order.shippingAddress.city}, `}
-                            {order.order.shippingAddress.region}
-                          </span>
-                          {order.order.shippingAddress.contactPhone && (
-                            <span style={{ display: 'block' }}>
-                              📞 {order.order.shippingAddress.contactPhone}
-                            </span>
-                          )}
-                        </>
-                      ) : (
-                        'N/A'
-                      )}
-                    </InfoValue>
-                  </InfoCard>
+        <RightColumn>
+          <EarningsPanel
+            earnings={earningsPayload}
+            isLoading={isEarningsLoading}
+          />
 
-                  <InfoCard>
-                    <InfoLabel>
-                      <FaMapMarkerAlt size={14} /> Billing Address
-                    </InfoLabel>
-                    <InfoValue>
-                      {/* {order.order.shippingAddress} */}
-                      {/* {order.billingAddress?.street &&
-                        `${order.billingAddress.street}, `}
-                      {order.billingAddress?.city &&
-                        `${order.billingAddress.city}, `}
-                      {order.billingAddress?.state &&
-                        `${order.billingAddress.state}, `}
-                      {order.billingAddress?.postalCode} */}
-                    </InfoValue>
-                  </InfoCard>
-                </SectionContent>
-              </OrderSection>
+          <ActionCard>
+            <ActionTitle>Order status action</ActionTitle>
+            <ActionRow>
+              <span>Current status</span>
+              <StatusBadge status={orderStatus} />
+            </ActionRow>
+            {nextAction ? (
+              <ActionBtn
+                type="button"
+                disabled={isUpdating}
+                onClick={() => handleUpdateStatus(nextAction.next)}
+              >
+                {isUpdating ? 'Updating...' : nextAction.label}
+              </ActionBtn>
+            ) : (
+              <Muted>Final state reached</Muted>
+            )}
+            {(orderStatus === 'pending' || orderStatus === 'confirmed') ? (
+              <DangerGhostBtn type="button" onClick={handleCancel} disabled={isUpdating}>
+                Cancel order
+              </DangerGhostBtn>
+            ) : null}
+          </ActionCard>
 
-              <OrderSection>
-                <SectionHeader>
-                  <SectionTitle>
-                    <FaClipboardList /> Order Information
-                  </SectionTitle>
-                </SectionHeader>
-
-                <SectionContent>
-                  <InfoCard>
-                    <InfoLabel>
-                      <FaCalendarAlt size={14} /> Order Date
-                    </InfoLabel>
-                    <InfoValue>{formatDate(order.createdAt)}</InfoValue>
-                  </InfoCard>
-
-                  <InfoCard>
-                    <InfoLabel>
-                      <FaTruck size={14} /> Delivery Method
-                    </InfoLabel>
-                    <InfoValue>
-                      {order.order?.deliveryMethod === 'pickup_center' && 'Pickup from Saiisai Center'}
-                      {order.order?.deliveryMethod === 'dispatch' && 'Saiisai Dispatch Rider'}
-                      {order.order?.deliveryMethod === 'seller_delivery' && "Seller's Own Delivery"}
-                      {!order.order?.deliveryMethod && 'Standard Shipping'}
-                    </InfoValue>
-                  </InfoCard>
-
-                  {/* Delivery Instructions */}
-                  {order.order?.deliveryMethod && (
-                    <InfoCard style={{ gridColumn: '1 / -1', marginTop: '10px' }}>
-                      <InfoLabel style={{ marginBottom: '12px', fontSize: '15px', fontWeight: '600' }}>
-                        <FaTruck size={16} /> Delivery Instructions
-                      </InfoLabel>
-                      {order.order.deliveryMethod === 'pickup_center' && order.order.pickupCenterId && (
-                        <DeliveryInstructions>
-                          <InstructionTitle>📦 Send item to Saiisai Pickup Center:</InstructionTitle>
-                          <InstructionText>
-                            <strong>{order.order.pickupCenterId.pickupName}</strong>
-                          </InstructionText>
-                          <InstructionText>
-                            {order.order.pickupCenterId.address}
-                          </InstructionText>
-                          <InstructionText>
-                            {order.order.pickupCenterId.area}, {order.order.pickupCenterId.city}
-                          </InstructionText>
-                          {order.order.pickupCenterId.openingHours && (
-                            <InstructionText style={{ marginTop: '8px', fontStyle: 'italic' }}>
-                              Opening Hours: {order.order.pickupCenterId.openingHours}
-                            </InstructionText>
-                          )}
-                          {order.order.pickupCenterId.googleMapLink && (
-                            <MapLink
-                              href={order.order.pickupCenterId.googleMapLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
-                              View on Google Maps →
-                            </MapLink>
-                          )}
-                        </DeliveryInstructions>
-                      )}
-                      {order.order.deliveryMethod === 'dispatch' && (
-                        <DeliveryInstructions>
-                          <InstructionTitle>🚚 Wait for Saiisai rider to pick item</InstructionTitle>
-                          <InstructionText>
-                            A Saiisai dispatch rider will come to your location to pick up the item.
-                            Please have the order ready for pickup.
-                          </InstructionText>
-                        </DeliveryInstructions>
-                      )}
-                      {order.order.deliveryMethod === 'seller_delivery' && (
-                        <DeliveryInstructions>
-                          <InstructionTitle>🏍️ Deliver to buyer using your own rider</InstructionTitle>
-                          <InstructionText>
-                            <strong>Delivery Address:</strong>
-                          </InstructionText>
-                          {order.order.shippingAddress && (
-                            <>
-                              {order.order.shippingAddress.streetAddress && (
-                                <InstructionText>
-                                  {order.order.shippingAddress.streetAddress}
-                                </InstructionText>
-                              )}
-                              {order.order.shippingAddress.landmark && (
-                                <InstructionText>
-                                  {order.order.shippingAddress.landmark}
-                                </InstructionText>
-                              )}
-                              <InstructionText>
-                                {order.order.shippingAddress.city && `${order.order.shippingAddress.city}, `}
-                                {order.order.shippingAddress.region}
-                              </InstructionText>
-                              {order.order.shippingAddress.contactPhone && (
-                                <InstructionText style={{ marginTop: '8px' }}>
-                                  <strong>Contact:</strong> {order.order.shippingAddress.contactPhone}
-                                </InstructionText>
-                              )}
-                            </>
-                          )}
-                        </DeliveryInstructions>
-                      )}
-                    </InfoCard>
-                  )}
-
-                  <InfoCard>
-                    <InfoLabel>
-                      <FaCreditCard size={14} /> Payment Method
-                    </InfoLabel>
-                    <InfoValue>
-                      {order.paymentMethod || "Credit Card"}
-                    </InfoValue>
-                  </InfoCard>
-
-                  <InfoCard>
-                    <InfoLabel>
-                      <FaMoneyBillWave size={14} /> Customer Payment Status
-                    </InfoLabel>
-                    <InfoValue
-                      style={{
-                        color:
-                          (order.order?.paymentStatus === "completed" || order.paymentStatus === "completed")
-                            ? "var(--color-green-700)"
-                            : "var(--color-red-600)",
-                      }}
-                    >
-                      {(order.order?.paymentStatus === "completed" || order.paymentStatus === "completed") ? "Paid" : "Pending"}
-                    </InfoValue>
-                  </InfoCard>
-                  <InfoCard>
-                    <InfoLabel>
-                      <FaMoneyBillWave size={14} /> Your Payout Status
-                    </InfoLabel>
-                    <InfoValue
-                      style={{
-                        color:
-                          order.payoutStatus === "paid"
-                            ? "var(--color-green-700)"
-                            : "var(--color-yellow-600)",
-                      }}
-                    >
-                      {order.payoutStatus || "Pending"}
-                    </InfoValue>
-                  </InfoCard>
-
-                  <InfoCard>
-                    <InfoLabel>
-                      <FaTruck size={14} /> Tracking Number
-                    </InfoLabel>
-                    <InfoValue>
-                      {order.order?.trackingNumber || order.trackingNumber ? (
-                        <TrackingLink
-                          onClick={() => navigate(PATHS.TRACKING.replace(':trackingNumber', order.order?.trackingNumber || order.trackingNumber))}
-                          title="Track Order"
-                        >
-                          {order.order?.trackingNumber || order.trackingNumber}
-                        </TrackingLink>
-                      ) : (
-                        "Not available"
-                      )}
-                    </InfoValue>
-                  </InfoCard>
-                </SectionContent>
-              </OrderSection>
-            </OrderDetailsGrid>
-          </div>
-
-          <div>
-            <OrderSummary>
-              <SectionHeader>
-                <SectionTitle>
-                  <FaClipboardList /> Order Summary
-                </SectionTitle>
-              </SectionHeader>
-
-              <SummaryItem>
-                <SummaryLabel>Subtotal</SummaryLabel>
-                <SummaryValue>
-                  GH₵{(order.subtotal || 0).toFixed(2)}
-                </SummaryValue>
-              </SummaryItem>
-
-              <SummaryItem>
-                <SummaryLabel>Shipping</SummaryLabel>
-                <SummaryValue>
-                  GH₵{(order.shippingCost || 0).toFixed(2)}
-                </SummaryValue>
-              </SummaryItem>
-
-              <SummaryItem>
-                <SummaryLabel>Tax</SummaryLabel>
-                <SummaryValue>GH₵{(order.tax || 0).toFixed(2)}</SummaryValue>
-              </SummaryItem>
-
-              {/* Calculate discount if applicable (subtotal before discount - subtotal after discount) */}
-              {(order.order?.discountAmount || order.order?.discount || 0) > 0 && (
-                <SummaryItem>
-                  <SummaryLabel>Discount</SummaryLabel>
-                  <SummaryValue style={{ color: "var(--color-green-700)" }}>
-                    -GH₵{(order.order?.discountAmount || order.order?.discount || 0).toFixed(2)}
-                  </SummaryValue>
-                </SummaryItem>
-              )}
-
-              <TotalRow>
-                <SummaryLabel>Total</SummaryLabel>
-                <SummaryValue>
-                  GH₵{(order.total || 0).toFixed(2)}
-                </SummaryValue>
-              </TotalRow>
-
-              {/* Seller Earnings (after platform commission from order/API) */}
-              <SummaryItem style={{ marginTop: '15px', paddingTop: '15px', borderTop: '2px solid var(--color-grey-300)' }}>
-                <SummaryLabel style={{ fontWeight: '600' }}>Your Earnings</SummaryLabel>
-                <SummaryValue style={{ fontWeight: '700', color: 'var(--color-green-700)' }}>
-                  GH₵{((order.total || 0) - ((order.total || 0) * (order.commissionRate ?? 0))).toFixed(2)}
-                </SummaryValue>
-              </SummaryItem>
-
-              <SummaryItem>
-                <SummaryLabel style={{ fontSize: '13px', color: 'var(--color-grey-500)' }}>Platform Fee ({(order.commissionRate ?? 0) * 100}%)</SummaryLabel>
-                <SummaryValue style={{ fontSize: '13px', color: 'var(--color-grey-600)' }}>
-                  GH₵{((order.total || 0) * (order.commissionRate ?? 0)).toFixed(2)}
-                </SummaryValue>
-              </SummaryItem>
-
-              <StatusButton status={order.status}>
-                {order.status === "completed" && <FaCheckCircle />}
-                {order.status === "processing" && <FaBox />}
-                {order.status === "shipped" && <FaTruck />}
-                {order.status === "cancelled" && <FaExclamationTriangle />}
-                {order.status?.charAt(0).toUpperCase() +
-                  order.status?.slice(1) || "N/A"}
-              </StatusButton>
-
-              <ActionButton onClick={handlePrint}>
-                <FaPrint /> Print Invoice
-              </ActionButton>
-            </OrderSummary>
-          </div>
-        </MainContent>
-      </Container>
-    </>
+          <OrderItemsList items={sellerOrder?.items || []} />
+        </RightColumn>
+      </Grid>
+    </Page>
   );
 }
 
-export default OrderDetails;
-
-
-
-// Theme variables removed - using CSS variables from GlobalStyles
-
-// Main container
-const Container = styled.div`
-  max-width: 1200px;
+const Page = styled.div`
+  max-width: 1320px;
   margin: 0 auto;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-  overflow: hidden;
+  display: grid;
+  gap: 1rem;
 `;
 
-// Header styles
+const Topbar = styled.div`
+  height: 52px;
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+`;
+
 const Header = styled.div`
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  padding: 1rem 1.2rem;
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
-  padding: 20px 30px;
-  background: white;
-  border-bottom: 1px solid var(--color-grey-200);
+  gap: 1rem;
 `;
 
-const HeaderLeft = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 15px;
-`;
-
-const BackButton = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--color-primary-100);
-  color: var(--color-primary-500);
-  border: none;
-  border-radius: 8px;
-  padding: 8px 15px;
+const Title = styled.h1`
+  color: #111827;
+  font-size: 1.8rem;
   font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &:hover {
-    background: var(--color-primary-500);
-    color: white;
-  }
 `;
 
-const OrderTitle = styled.h1`
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--color-grey-900);
-
-  span {
-    color: var(--color-grey-500);
-    font-weight: 500;
-  }
+const Sub = styled.p`
+  color: #6B7280;
+  font-size: 1.2rem;
+  margin-top: 0.2rem;
 `;
 
-const OrderStatus = styled.div`
+const HeaderActions = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+`;
+
+const BaseBtn = styled.button`
+  height: 36px;
+  border-radius: 9px;
+  padding: 0 1rem;
+  font-size: 1.2rem;
+  font-weight: 600;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  border-radius: 20px;
-  background: ${(props) =>
-    props.status === "completed"
-      ? "var(--success-light)"
-      : props.status === "processing"
-        ? "var(--warning-light)"
-        : props.status === "shipped"
-          ? "var(--info-light)"
-          : props.status === "cancelled"
-            ? "var(--error-light)"
-            : "var(--neutral-100)"};
-  color: ${(props) =>
-    props.status === "completed"
-      ? "var(--success)"
-      : props.status === "processing"
-        ? "var(--warning)"
-        : props.status === "shipped"
-          ? "var(--info)"
-          : props.status === "cancelled"
-            ? "var(--error)"
-            : "var(--neutral-600)"};
-  font-size: 14px;
-  font-weight: 600;
-  margin-left: 15px;
-`;
-
-const HeaderRight = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 15px;
-`;
-
-const IconButton = styled.button`
-  background: var(--color-grey-50);
-  border: 1px solid var(--color-grey-200);
-  border-radius: 8px;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  gap: 0.45rem;
   cursor: pointer;
-  color: var(--color-grey-700);
-  transition: all 0.2s;
-
-  &:hover {
-    background: var(--color-primary-100);
-    color: var(--color-primary-500);
-    border-color: var(--color-primary-500);
-  }
+  border: 0.5px solid transparent;
 `;
 
-// Main content
-const MainContent = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 350px;
-  gap: 25px;
-  padding: 30px;
+const GhostBtn = styled(BaseBtn)`
+  background: #FFFFFF;
+  color: #374151;
+  border-color: #F1EFE8;
+`;
 
-  @media (max-width: 900px) {
+const ActionBtn = styled(BaseBtn)`
+  background: #E8920A;
+  color: #FFFFFF;
+`;
+
+const DangerGhostBtn = styled(BaseBtn)`
+  width: 100%;
+  justify-content: center;
+  background: #FFFFFF;
+  color: #A32D2D;
+  border-color: #FCEBEB;
+`;
+
+const ErrorText = styled.div`
+  color: #A32D2D;
+  font-size: 1.2rem;
+`;
+
+const Grid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr 300px;
+  gap: 1rem;
+
+  @media (max-width: 1160px) {
     grid-template-columns: 1fr;
   }
 `;
 
-// Order details grid container
-const OrderDetailsGrid = styled.div`
+const RightColumn = styled.div`
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 25px;
-
-  @media (max-width: 600px) {
-    grid-template-columns: 1fr;
-  }
+  gap: 1rem;
+  align-content: start;
 `;
 
-// Order details section
-const OrderSection = styled.div`
-  background: white;
+const ActionCard = styled.section`
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
   border-radius: 12px;
-  padding: 25px;
-  margin-bottom: 25px;
-  position: relative;
+  padding: 1.2rem;
 `;
 
-const SectionHeader = styled.div`
+const ActionTitle = styled.h3`
+  font-size: 1.2rem;
+  color: #111827;
+  margin-bottom: 0.8rem;
+`;
+
+const ActionRow = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid var(--color-grey-200);
+  margin-bottom: 0.9rem;
+  color: #6B7280;
+  font-size: 1.2rem;
 `;
 
-const SectionTitle = styled.h2`
-  display: flex;
+const Muted = styled.div`
+  color: #6B7280;
+  font-size: 1.2rem;
+`;
+
+const TrackWrap = styled.div`
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--color-grey-900);
+  gap: 0.55rem;
 `;
 
-const EditButton = styled.button`
-  background: var(--color-primary-100);
-  color: var(--color-primary-500);
-  border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-size: 14px;
-  font-weight: 500;
+const TrackCode = styled.code`
+  font-size: 1.2rem;
+  color: #185FA5;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+`;
+
+const CopyBtn = styled.button`
+  border: 0.5px solid #F1EFE8;
+  background: #FFFFFF;
+  border-radius: 9px;
+  height: 28px;
+  padding: 0 0.5rem;
+  color: #374151;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.2s;
-
-  &:hover {
-    background: var(--color-primary-500);
-    color: white;
-  }
 `;
 
-const SectionContent = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 25px;
+const DispatchWrap = styled.div`
+  margin-top: 0.8rem;
 `;
 
-const InfoCard = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-`;
-
-const InfoLabel = styled.div`
-  font-size: 14px;
-  color: var(--color-grey-500);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`;
-
-const InfoValue = styled.div`
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--color-grey-700);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`;
-
-// Items table
-const ItemsTable = styled.table`
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 15px;
-`;
-
-const TableHeader = styled.th`
-  text-align: left;
-  padding: 12px 15px;
-  background: var(--color-primary-100);
-  color: var(--color-primary-500);
-  font-weight: 600;
-  border-bottom: 2px solid var(--color-primary-500);
-`;
-
-const TableRow = styled.tr`
-  &:nth-child(even) {
-    background-color: #f8fafc;
-  }
-
-  &:hover {
-    background-color: var(--color-primary-100);
-  }
-`;
-
-const TableCell = styled.td`
-  padding: 15px;
-  border-bottom: 1px solid var(--color-grey-200);
-  color: var(--color-grey-700);
-
-  &:first-child {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-  }
-`;
-
-const ProductImage = styled.img`
-  width: 50px;
-  height: 50px;
-  border-radius: 8px;
-  object-fit: contain;
-  aspect-ratio: 1 / 1;
-  background-color: #f8fafc;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  border: 1px solid var(--color-grey-200);
-`;
-
-const ProductDetails = styled.div`
-  display: flex;
-  flex-direction: column;
-`;
-
-const ProductName = styled.div`
-  font-weight: 600;
-  margin-bottom: 3px;
-`;
-
-const ProductSku = styled.div`
-  font-size: 13px;
-  color: var(--color-grey-500);
-`;
-
-// Order summary
-const OrderSummary = styled.div`
-  background: white;
+const StateCard = styled.div`
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
   border-radius: 12px;
-  padding: 25px;
-  position: sticky;
-  top: 20px;
-`;
-
-const SummaryItem = styled.div`
-  display: flex;
-  justify-content: space-between;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--color-grey-200);
-
-  &:last-child {
-    border-bottom: none;
-  }
-`;
-
-const SummaryLabel = styled.div`
-  color: var(--color-grey-500);
-`;
-
-const SummaryValue = styled.div`
-  font-weight: 600;
-  color: var(--color-grey-700);
-`;
-
-const TotalRow = styled(SummaryItem)`
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--color-grey-900);
-  padding: 15px 0;
-`;
-
-const ActionButton = styled.button`
-  width: 100%;
-  padding: 14px;
-  border: none;
-  border-radius: 10px;
-  background: var(--color-primary-500);
-  color: white;
-  font-size: 16px;
-  font-weight: 600;
-  margin-top: 20px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  transition: all 0.2s;
-
-  &:hover {
-    background: var(--color-grey-600);
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
-  }
-`;
-
-const StatusButton = styled(ActionButton)`
-  background: ${(props) =>
-    props.status === "completed"
-      ? "var(--color-green-700)"
-      : props.status === "processing"
-        ? "var(--color-yellow-700)"
-        : props.status === "shipped"
-          ? "var(--color-primary-500)"
-          : props.status === "cancelled"
-            ? "var(--color-red-600)"
-            : "#94a3b8"};
-  margin-top: 10px;
-`;
-
-const DeliveryInstructions = styled.div`
-  background: var(--color-primary-100);
-  padding: 15px;
-  border-radius: 8px;
-  border-left: 4px solid var(--color-primary-500);
-`;
-
-const InstructionTitle = styled.div`
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--color-primary-500);
-  margin-bottom: 10px;
-`;
-
-const InstructionText = styled.div`
-  font-size: 14px;
-  color: var(--color-grey-700);
-  line-height: 1.6;
-  margin-bottom: 6px;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
-`;
-
-const MapLink = styled.a`
-  display: inline-block;
-  margin-top: 10px;
-  color: var(--color-primary-500);
-  text-decoration: none;
-  font-weight: 500;
-  font-size: 14px;
-  transition: all 0.2s;
-
-  &:hover {
-    text-decoration: underline;
-    color: var(--color-primary-600);
-  }
-`;
-
-const TrackingLink = styled.span`
-  color: #3498db;
-  cursor: pointer;
-  text-decoration: underline;
-  font-weight: 500;
-  transition: color 0.2s;
-
-  &:hover {
-    color: #2980b9;
-  }
+  padding: 1.8rem;
+  text-align: center;
+  display: grid;
+  gap: 0.8rem;
 `;

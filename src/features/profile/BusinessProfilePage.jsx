@@ -6,7 +6,7 @@ import useAuth from '../../shared/hooks/useAuth';
 import useSellerStatus from '../../shared/hooks/useSellerStatus';
 import { PATHS } from '../../routes/routePaths';
 import Button from '../../shared/components/ui/Button';
-import { LoadingState } from '../../shared/components/ui/LoadingComponents';
+import { SkeletonTableRows } from '../../shared/components/ui/LoadingComponents';
 import { PageContainer, PageHeader, TitleSection, Section, SectionHeader } from '../../shared/components/ui/SpacingSystem';
 import { compressImage } from '../../shared/utils/imageCompressor';
 import { COUNTRIES } from '../../shared/constants/countries';
@@ -518,9 +518,7 @@ const BusinessProfilePage = ({ embedded = false }) => {
   };
 
   if (!seller) {
-    return (
-      <LoadingState message="Loading seller information..." />
-    );
+    return <SkeletonTableRows count={5} />;
   }
 
   const content = (
@@ -840,7 +838,7 @@ const BusinessProfilePage = ({ embedded = false }) => {
         <Section id="verification-documents" $marginBottom="lg">
           <SectionHeader $padding="md">
             <h3>Verification Documents</h3>
-            <HelperText style={{ margin: 0, fontSize: 'var(--font-size-xs)' }}>
+            <HelperText style={{ margin: 0, fontSize: '0.8rem' }}>
               Upload documents for account verification (Images or PDF, max 5MB each)
             </HelperText>
           </SectionHeader>
@@ -865,7 +863,7 @@ const BusinessProfilePage = ({ embedded = false }) => {
               <FormContent>
                 {/* Status Card: Show if any document has been submitted */}
                 {hasAnyDocument && (
-                  <VerificationStatusCard $verified={isVerified} style={{ marginBottom: 'var(--spacing-lg)' }}>
+                  <VerificationStatusCard $verified={isVerified} style={{ marginBottom: '1.5rem' }}>
                     <StatusIcon $verified={isVerified}>
                       {isVerified ? <FaCheckCircle /> : <FaClock />}
                     </StatusIcon>
@@ -888,7 +886,7 @@ const BusinessProfilePage = ({ embedded = false }) => {
                 )}
 
                 {/* ID Proof Section */}
-                <h4 style={{ marginTop: 'var(--spacing-sm)', marginBottom: 'var(--spacing-sm)', color: 'var(--color-grey-800)' }}>Verify the seller id</h4>
+                <h4 style={{ marginTop: '0.5rem', marginBottom: '0.5rem', color: '#1F2937' }}>Verify the seller id</h4>
                 <FormGroup>
                   <Label htmlFor="idProof">
                     <FaFileAlt /> Identity Proof (Ghana Card) <Required>*</Required>
@@ -952,7 +950,7 @@ const BusinessProfilePage = ({ embedded = false }) => {
                 </FormGroup>
 
                 {/* Business Section */}
-                <h4 style={{ marginTop: 'var(--spacing-lg)', marginBottom: 'var(--spacing-sm)', color: 'var(--color-grey-800)' }}>Verify the seller business</h4>
+                <h4 style={{ marginTop: '1.5rem', marginBottom: '0.5rem', color: '#1F2937' }}>Verify the seller business</h4>
 
                 {/* Business Certificate */}
                 <FormGroup>
@@ -1018,7 +1016,7 @@ const BusinessProfilePage = ({ embedded = false }) => {
                 </FormGroup>
 
                 {/* Business Certificate Form A */}
-                <FormGroup style={{ marginTop: 'var(--spacing-md)' }}>
+                <FormGroup style={{ marginTop: '1rem' }}>
                   <Label htmlFor="businessCertFormA">
                     <FaFile /> Business Certificate (Form A) (Optional)
                   </Label>
@@ -1123,193 +1121,157 @@ export default BusinessProfilePage;
 const Form = styled.form`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: 1rem;
 `;
 
 const FormContent = styled.div`
-  padding: var(--spacing-lg);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 1rem;
 `;
 
 const FormRow = styled.div`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: var(--spacing-md);
+  gap: 0.75rem;
 
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-  }
+  @media (max-width: 768px) { grid-template-columns: 1fr; }
 `;
 
 const FormGroup = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 0.35rem;
 `;
 
 const Label = styled.label`
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-700);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #374151;
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: 0.35rem;
 
-  svg {
-    color: var(--color-grey-500);
-  }
+  svg { color: #9CA3AF; }
 `;
 
 const Required = styled.span`
-  color: var(--color-red-500);
+  color: #EF4444;
 `;
 
 const Input = styled.input`
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid var(--color-grey-300);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-md);
-  font-family: var(--font-body);
-  color: var(--color-grey-900);
-  transition: all 0.2s ease;
+  height: 38px;
+  padding: 0 0.85rem;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 9px;
+  font-size: 0.875rem;
+  background: #F9F8F5;
+  color: #111827;
+  outline: none;
 
-  &:focus {
-    outline: none;
-    border-color: var(--color-primary-500);
-    box-shadow: 0 0 0 3px var(--color-primary-100);
-  }
-
-  &::placeholder {
-    color: var(--color-grey-400);
-  }
-
-  &:disabled {
-    background: var(--color-grey-100);
-    cursor: not-allowed;
-  }
+  &:focus { border-color: #E8920A; background: #FFFFFF; }
+  &::placeholder { color: #9CA3AF; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
 `;
 
 const TextArea = styled.textarea`
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid var(--color-grey-300);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-md);
-  font-family: var(--font-body);
-  color: var(--color-grey-900);
+  padding: 0.65rem 0.85rem;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 9px;
+  font-size: 0.875rem;
+  background: #F9F8F5;
+  color: #111827;
   resize: vertical;
-  transition: all 0.2s ease;
+  outline: none;
+  min-height: 80px;
 
-  &:focus {
-    outline: none;
-    border-color: var(--color-primary-500);
-    box-shadow: 0 0 0 3px var(--color-primary-100);
-  }
-
-  &::placeholder {
-    color: var(--color-grey-400);
-  }
-
-  &:disabled {
-    background: var(--color-grey-100);
-    cursor: not-allowed;
-  }
+  &:focus { border-color: #E8920A; background: #FFFFFF; }
+  &::placeholder { color: #9CA3AF; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
 `;
 
 const Select = styled.select`
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid var(--color-grey-300);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-md);
-  font-family: var(--font-body);
-  color: var(--color-grey-900);
-  background: white;
-  transition: all 0.2s ease;
+  height: 38px;
+  padding: 0 0.85rem;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 9px;
+  font-size: 0.875rem;
+  background: #F9F8F5;
+  color: #111827;
+  outline: none;
+  cursor: pointer;
 
-  &:focus {
-    outline: none;
-    border-color: var(--color-primary-500);
-    box-shadow: 0 0 0 3px var(--color-primary-100);
-  }
-
-  &:disabled {
-    background: var(--color-grey-100);
-    cursor: not-allowed;
-  }
+  &:focus { border-color: #E8920A; background: #FFFFFF; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
 `;
 
 const HelperText = styled.p`
-  font-size: var(--font-size-xs);
-  color: var(--color-grey-500);
-  margin-top: var(--spacing-xs);
+  font-size: 0.75rem;
+  color: #9CA3AF;
+  margin: 0;
 `;
 
 const ActionSection = styled.div`
   display: flex;
-  gap: var(--spacing-md);
+  gap: 0.5rem;
   justify-content: flex-end;
-  padding-top: var(--spacing-lg);
-  border-top: 1px solid var(--color-grey-200);
+  padding-top: 1rem;
+  border-top: 0.5px solid #F1EFE8;
 
   @media (max-width: 768px) {
     flex-direction: column-reverse;
-
-    button {
-      width: 100%;
-    }
+    button { width: 100%; }
   }
 `;
 
 const SuccessBanner = styled.div`
-  background: linear-gradient(135deg, var(--color-green-500), var(--color-green-600));
-  color: white;
-  padding: var(--spacing-md) var(--spacing-lg);
-  border-radius: var(--border-radius-lg);
-  margin-bottom: var(--spacing-lg);
+  background: #D1FAE5;
+  border: 0.5px solid #A7F3D0;
+  border-left: 3px solid #10B981;
+  color: #065F46;
+  padding: 0.85rem 1rem;
+  border-radius: 9px;
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
-  box-shadow: var(--shadow-md);
+  gap: 0.75rem;
 `;
 
 const SuccessTitle = styled.h3`
-  margin: 0 0 var(--spacing-xs) 0;
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-semibold);
+  margin: 0 0 0.2rem;
+  font-size: 0.9rem;
+  font-weight: 600;
 `;
 
 const SuccessMessage = styled.p`
   margin: 0;
-  font-size: var(--font-size-sm);
-  opacity: 0.95;
+  font-size: 0.8rem;
 `;
 
 const ErrorBanner = styled.div`
-  background: var(--color-red-50);
-  border: 1px solid var(--color-red-200);
-  color: var(--color-red-700);
-  padding: var(--spacing-md) var(--spacing-lg);
-  border-radius: var(--border-radius-lg);
-  margin-bottom: var(--spacing-lg);
+  background: #FEF2F2;
+  border: 0.5px solid #FECACA;
+  border-left: 3px solid #EF4444;
+  color: #991B1B;
+  padding: 0.85rem 1rem;
+  border-radius: 9px;
 `;
 
 const ErrorTitle = styled.h3`
-  margin: 0 0 var(--spacing-xs) 0;
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-semibold);
+  margin: 0 0 0.2rem;
+  font-size: 0.9rem;
+  font-weight: 600;
 `;
 
 const ErrorMessage = styled.p`
   margin: 0;
-  font-size: var(--font-size-sm);
+  font-size: 0.8rem;
 `;
 
 // File Upload Styled Components
 const FileUploadContainer = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: 0.5rem;
 `;
 
 const FileInputWrapper = styled.div`
@@ -1328,45 +1290,35 @@ const HiddenFileInput = styled.input`
 const FileUploadButton = styled.button`
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--color-primary-500);
-  color: white;
+  gap: 0.4rem;
+  height: 36px;
+  padding: 0 1rem;
+  background: #E8920A;
+  color: #FFFFFF;
   border: none;
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-medium);
+  border-radius: 9px;
+  font-size: 0.8rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: opacity 0.12s;
 
-  &:hover:not(:disabled) {
-    background: var(--color-primary-600);
-    transform: translateY(-1px);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  svg {
-    font-size: var(--font-size-md);
-  }
+  &:hover:not(:disabled) { opacity: 0.88; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
 `;
 
 const FileInfo = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--color-grey-50);
-  border: 1px solid var(--color-grey-200);
-  border-radius: var(--border-radius-md);
+  gap: 0.65rem;
+  padding: 0.65rem 0.85rem;
+  background: #F9F8F5;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 9px;
 `;
 
 const FileIcon = styled.div`
-  color: var(--color-primary-500);
-  font-size: var(--font-size-lg);
+  color: #E8920A;
+  font-size: 1.1rem;
   display: flex;
   align-items: center;
 `;
@@ -1375,55 +1327,45 @@ const FileDetails = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 0.15rem;
 `;
 
 const FileName = styled.span`
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-medium);
-  color: var(--color-grey-900);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #374151;
   word-break: break-all;
 `;
 
 const FileSize = styled.span`
-  font-size: var(--font-size-xs);
-  color: var(--color-grey-500);
+  font-size: 0.72rem;
+  color: #9CA3AF;
 `;
 
 const RemoveFileButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
+  width: 28px;
+  height: 28px;
   padding: 0;
-  background: var(--color-red-50);
-  color: var(--color-red-600);
-  border: 1px solid var(--color-red-200);
-  border-radius: var(--border-radius-sm);
+  background: #FEE2E2;
+  color: #991B1B;
+  border: 0.5px solid #FECACA;
+  border-radius: 7px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.12s;
+  flex-shrink: 0;
 
-  &:hover:not(:disabled) {
-    background: var(--color-red-100);
-    border-color: var(--color-red-300);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-  svg {
-    font-size: var(--font-size-sm);
-  }
+  &:hover:not(:disabled) { background: #FECACA; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
 `;
 
 const DocumentPreviewWrapper = styled.div`
-  margin-top: var(--spacing-md);
+  margin-top: 0.75rem;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: 0.5rem;
 `;
 
 const PreviewImage = styled.img`
@@ -1431,18 +1373,14 @@ const PreviewImage = styled.img`
   max-width: 500px;
   max-height: 400px;
   object-fit: contain;
-  border-radius: var(--border-radius-md);
-  border: 2px solid var(--color-grey-200);
-  background: var(--color-grey-50);
-  padding: var(--spacing-xs);
+  border-radius: 9px;
+  border: 0.5px solid #F1EFE8;
+  background: #F9F8F5;
+  padding: 0.25rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: border-color 0.12s;
 
-  &:hover {
-    border-color: var(--color-primary-500);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    transform: scale(1.02);
-  }
+  &:hover { border-color: #E8920A; }
 `;
 
 const PDFPreview = styled.div`
@@ -1450,99 +1388,80 @@ const PDFPreview = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-xl);
-  background: var(--color-grey-50);
-  border: 2px dashed var(--color-grey-300);
-  border-radius: var(--border-radius-md);
-  min-height: 200px;
-  color: var(--color-grey-600);
+  gap: 0.5rem;
+  padding: 1.5rem;
+  background: #F9F8F5;
+  border: 1px dashed #D1D5DB;
+  border-radius: 9px;
+  min-height: 160px;
+  color: #9CA3AF;
 `;
 
 const PDFText = styled.span`
-  font-size: var(--font-size-md);
-  font-weight: var(--font-medium);
-  color: var(--color-grey-700);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6B7280;
 `;
 
 const PreviewLink = styled.a`
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--color-accent-50);
-  color: white;
+  gap: 0.4rem;
+  height: 34px;
+  padding: 0 0.9rem;
+  background: #E8920A;
+  color: #FFFFFF;
   text-decoration: none;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-medium);
-  border-radius: var(--border-radius-md);
-  transition: all 0.3s ease;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 9px;
+  transition: opacity 0.12s;
   width: fit-content;
 
-  &:hover {
-    background: var(--color-accent-100);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(255, 87, 51, 0.3);
-  }
-
-  svg {
-    font-size: var(--font-size-sm);
-  }
+  &:hover { opacity: 0.88; }
 `;
 
 const LocationButton = styled.button`
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  margin-left: var(--spacing-sm);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  background: var(--color-primary-50);
-  color: var(--color-primary-600);
-  border: 1px solid var(--color-primary-200);
-  border-radius: var(--border-radius-sm);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-medium);
+  gap: 0.3rem;
+  margin-left: 0.5rem;
+  height: 26px;
+  padding: 0 0.65rem;
+  background: #FDF3E3;
+  color: #E8920A;
+  border: 0.5px solid #FDE68A;
+  border-radius: 7px;
+  font-size: 0.72rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.12s;
 
-  &:hover:not(:disabled) {
-    background: var(--color-primary-100);
-    border-color: var(--color-primary-300);
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  svg {
-    font-size: var(--font-size-sm);
-  }
+  &:hover:not(:disabled) { background: #FEF3C7; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
 `;
 
 const ErrorText = styled.span`
-  color: var(--color-red-600);
-  font-size: var(--font-size-xs);
-  margin-top: var(--spacing-xs);
+  color: #EF4444;
+  font-size: 0.75rem;
   display: block;
 `;
 
-const PhoneInputWrapper = styled.div`
-  margin-top: var(--spacing-xs);
-`;
+const PhoneInputWrapper = styled.div``;
 
 const PhoneInputContainer = styled.div`
   display: flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0 0.75rem 0 0;
-  border: 2px solid ${(p) => (p.$hasError ? 'var(--color-red-500)' : 'var(--color-grey-300)')};
-  border-radius: var(--border-radius-md);
-  background: #fff;
-  min-height: 44px;
+  border: 0.5px solid ${(p) => (p.$hasError ? '#EF4444' : '#F1EFE8')};
+  border-radius: 9px;
+  background: #F9F8F5;
+  min-height: 38px;
+
   &:focus-within {
-    border-color: ${(p) => (p.$hasError ? 'var(--color-red-500)' : 'var(--color-primary-500)')};
-    box-shadow: 0 0 0 3px var(--color-primary-100);
+    border-color: ${(p) => (p.$hasError ? '#EF4444' : '#E8920A')};
+    background: #FFFFFF;
   }
 `;
 
@@ -1553,104 +1472,76 @@ const PhoneBadgeSlot = styled.span`
 `;
 
 const PhonePrefix = styled.span`
-  color: var(--color-grey-700);
-  font-size: var(--font-size-md);
-  padding-left: var(--spacing-md);
+  color: #374151;
+  font-size: 0.875rem;
+  padding-left: 0.75rem;
   flex-shrink: 0;
 `;
 
 const PhoneInput = styled.input`
-  padding: var(--spacing-md) 0.5rem var(--spacing-md) 0;
+  padding: 0 0.5rem;
   border: none;
-  font-size: var(--font-size-md);
+  font-size: 0.875rem;
   flex: 1;
   min-width: 0;
   background: transparent;
-  color: var(--color-grey-900);
-  &:focus {
-    outline: none;
-  }
-  &::placeholder {
-    color: var(--color-grey-400);
-  }
-  &:disabled {
-    background: transparent;
-    cursor: not-allowed;
-    opacity: 0.6;
-  }
+  color: #111827;
+  outline: none;
+
+  &::placeholder { color: #9CA3AF; }
+  &:disabled { cursor: not-allowed; opacity: 0.6; }
 `;
 
 const VerificationStatusCard = styled.div`
   display: flex;
   align-items: flex-start;
-  gap: var(--spacing-lg);
-  padding: var(--spacing-xl);
-  background: ${props => props.$verified
-    ? 'linear-gradient(135deg, var(--color-green-50) 0%, var(--color-green-100) 100%)'
-    : 'linear-gradient(135deg, var(--color-blue-50) 0%, var(--color-blue-100) 100%)'};
-  border: 2px solid ${props => props.$verified
-    ? 'var(--color-green-300)'
-    : 'var(--color-blue-300)'};
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-sm);
-  transition: all 0.3s ease;
-  
-  &:hover {
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
-  }
+  gap: 1rem;
+  padding: 1.25rem;
+  background: ${(p) => p.$verified ? '#F0FDF4' : '#EFF6FF'};
+  border: 0.5px solid ${(p) => p.$verified ? '#BBF7D0' : '#BFDBFE'};
+  border-left: 3px solid ${(p) => p.$verified ? '#10B981' : '#3B82F6'};
+  border-radius: 12px;
+  transition: border-color 0.12s;
 `;
 
 const StatusIcon = styled.div`
   flex-shrink: 0;
-  width: 60px;
-  height: 60px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  background: ${props => props.$verified
-    ? 'var(--color-green-500)'
-    : 'var(--color-blue-500)'};
-  color: white;
+  background: ${(p) => p.$verified ? '#10B981' : '#3B82F6'};
+  color: #FFFFFF;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
-  box-shadow: 0 4px 12px ${props => props.$verified
-    ? 'rgba(34, 197, 94, 0.3)'
-    : 'rgba(59, 130, 246, 0.3)'};
+  font-size: 1.1rem;
 `;
 
 const StatusContent = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: 0.3rem;
 `;
 
 const StatusTitle = styled.h4`
   margin: 0;
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-bold);
-  color: ${props => props.$verified
-    ? 'var(--color-green-700)'
-    : 'var(--color-blue-700)'};
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: ${(p) => p.$verified ? '#065F46' : '#1E40AF'};
 `;
 
 const StatusMessage = styled.p`
   margin: 0;
-  font-size: var(--font-size-md);
-  color: ${props => props.$verified
-    ? 'var(--color-green-800)'
-    : 'var(--color-blue-800)'};
-  line-height: 1.6;
+  font-size: 0.8rem;
+  color: ${(p) => p.$verified ? '#047857' : '#1D4ED8'};
+  line-height: 1.5;
 `;
 
 const StatusNote = styled.p`
-  margin: var(--spacing-sm) 0 0 0;
-  font-size: var(--font-size-sm);
-  color: ${props => props.$verified
-    ? 'var(--color-green-700)'
-    : 'var(--color-blue-700)'};
+  margin: 0.2rem 0 0 0;
+  font-size: 0.75rem;
+  color: ${(p) => p.$verified ? '#065F46' : '#1E40AF'};
   font-style: italic;
-  opacity: 0.8;
   line-height: 1.5;
 `;

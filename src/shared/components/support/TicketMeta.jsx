@@ -5,49 +5,49 @@ import TicketStatusBadge from './TicketStatusBadge';
 const MetaContainer = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--spacing-md);
-  padding: var(--spacing-lg);
-  background: var(--color-grey-50);
-  border-radius: var(--border-radius-md);
-  border: 1px solid var(--color-grey-200);
+  gap: 1rem;
+  padding: 1rem;
+  background: #F9F8F5;
+  border-radius: 9px;
+  border: 1px solid #F1EFE8;
 `;
 
 const MetaItem = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 1rem;
 `;
 
 const MetaLabel = styled.span`
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-600);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #6B7280;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  font-family: var(--font-body);
+  
 `;
 
 const MetaValue = styled.span`
-  font-size: var(--font-size-md);
-  font-weight: var(--font-medium);
-  color: var(--color-grey-900);
-  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #111827;
+  
 `;
 
 const PriorityBadge = styled.span`
   display: inline-flex;
   align-items: center;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--border-radius-sm);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-semibold);
+  padding: 1rem 1rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
   text-transform: capitalize;
   background: ${({ $priority }) => {
     const color = PRIORITY_COLORS[$priority] || PRIORITY_COLORS.medium;
     return `${color}15`;
   }};
   color: ${({ $priority }) => PRIORITY_COLORS[$priority] || PRIORITY_COLORS.medium};
-  font-family: var(--font-body);
+  
   width: fit-content;
 `;
 

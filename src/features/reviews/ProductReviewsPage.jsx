@@ -1,8 +1,33 @@
 import styled from "styled-components";
 import { useState, useMemo } from "react";
-import { FaStar, FaReply, FaFlag } from "react-icons/fa";
+import { FaStar, FaReply, FaBoxOpen, FaTimes } from "react-icons/fa";
 import { useGetSellerReviews, useReplyToReview } from "../../shared/hooks/useReview";
-import { LoadingState, ErrorState } from "../../shared/components/ui/LoadingComponents";
+import { ErrorState, SkeletonTableRows, EmptyState } from "../../shared/components/ui/LoadingComponents";
+
+const FILTERS = [
+  { key: "all",      label: "All" },
+  { key: "pending",  label: "Pending" },
+  { key: "approved", label: "Approved" },
+  { key: "flagged",  label: "Flagged" },
+];
+
+const STATUS_CONFIG = {
+  approved: { bg: "#DCFCE7", color: "#15803D" },
+  pending:  { bg: "#FEF3C7", color: "#B45309" },
+  flagged:  { bg: "#FEE2E2", color: "#B91C1C" },
+  rejected: { bg: "#FEE2E2", color: "#B91C1C" },
+};
+
+function getInitials(name = "") {
+  return name.trim().split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase() || "?";
+}
+
+function avatarColor(name = "") {
+  const colors = ["#E8920A", "#185FA5", "#15803D", "#6D28D9", "#B45309", "#0E7490"];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return colors[Math.abs(hash) % colors.length];
+}
 
 export default function ProductReviewsPage() {
   const [filter, setFilter] = useState("all");
@@ -22,529 +47,659 @@ export default function ProductReviewsPage() {
     return reviewsData?.results || [];
   }, [reviewsData]);
 
+  const avgRating = reviews.length
+    ? (reviews.reduce((s, r) => s + (r.rating || 0), 0) / reviews.length).toFixed(1)
+    : "0.0";
+
   const handleReply = async () => {
     if (!replyText.trim() || !selectedReview) return;
-
     try {
       await replyMutation.mutateAsync({
         id: selectedReview._id || selectedReview.id,
         reply: replyText.trim(),
       });
-      setShowReplyModal(false);
-      setSelectedReview(null);
-      setReplyText("");
-    } catch (error) {
-      console.error("Failed to reply:", error);
+      closeModal();
+    } catch (err) {
+      console.error("Failed to reply:", err);
     }
   };
 
-  const renderStars = (rating) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <StarIcon key={i} filled={i < rating} />
-    ));
+  const closeModal = () => {
+    setShowReplyModal(false);
+    setSelectedReview(null);
+    setReplyText("");
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "approved":
-        return "#166534";
-      case "pending":
-        return "#854d0e";
-      case "rejected":
-        return "#b91c1c";
-      case "flagged":
-        return "#92400e";
-      default:
-        return "#64748b";
-    }
-  };
+  const renderStars = (rating, size = "0.85rem") => (
+    <Stars>
+      {Array.from({ length: 5 }, (_, i) => (
+        <FaStar key={i} style={{ color: i < rating ? "#F59E0B" : "#E5E7EB", fontSize: size }} />
+      ))}
+    </Stars>
+  );
 
-  if (isLoading) return <LoadingState message="Loading reviews..." />;
+  if (isLoading) return <Page><SkeletonTableRows count={6} /></Page>;
 
   return (
-    <Container>
-      <Header>
-        <Title>Product Reviews</Title>
-        <FilterSelect value={filter} onChange={(e) => setFilter(e.target.value)}>
-          <option value="all">All Reviews</option>
-          <option value="pending">Pending</option>
-          <option value="approved">Approved</option>
-          <option value="flagged">Flagged</option>
-        </FilterSelect>
-      </Header>
+    <Page>
+      {/* Header */}
+      <PageHeader>
+        <HeaderLeft>
+          <PageTitle>Product Reviews</PageTitle>
+          <PageSub>Monitor and respond to customer feedback</PageSub>
+        </HeaderLeft>
+        <FilterTabs>
+          {FILTERS.map((f) => (
+            <FilterTab key={f.key} $active={filter === f.key} onClick={() => setFilter(f.key)}>
+              {f.label}
+              {f.key === "all" && reviews.length > 0 && (
+                <FilterCount $active={filter === f.key}>{reviews.length}</FilterCount>
+              )}
+            </FilterTab>
+          ))}
+        </FilterTabs>
+      </PageHeader>
 
+      {/* Stats */}
       <StatsGrid>
-        <StatCard>
+        <StatCard $accent="#E8920A">
+          <StatTop>
+            <StatLabel>Total Reviews</StatLabel>
+          </StatTop>
           <StatValue>{reviews.length}</StatValue>
-          <StatLabel>Total Reviews</StatLabel>
         </StatCard>
-        <StatCard>
-          <StatValue>
-            {reviews.length > 0
-              ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1)
-              : "0.0"}
-          </StatValue>
-          <StatLabel>Average Rating</StatLabel>
+        <StatCard $accent="#F59E0B">
+          <StatTop>
+            <StatLabel>Average Rating</StatLabel>
+            {renderStars(Math.round(parseFloat(avgRating)))}
+          </StatTop>
+          <StatValue>{avgRating}<StatUnit>/5</StatUnit></StatValue>
         </StatCard>
-        <StatCard>
-          <StatValue>
-            {reviews.filter((r) => r.rating === 5).length}
-          </StatValue>
-          <StatLabel>5-Star Reviews</StatLabel>
+        <StatCard $accent="#15803D">
+          <StatTop>
+            <StatLabel>5-Star Reviews</StatLabel>
+          </StatTop>
+          <StatValue>{reviews.filter((r) => r.rating === 5).length}</StatValue>
         </StatCard>
-        <StatCard>
-          <StatValue>
-            {reviews.filter((r) => r.rating <= 2).length}
-          </StatValue>
-          <StatLabel>Low Ratings (≤2)</StatLabel>
+        <StatCard $accent="#B91C1C">
+          <StatTop>
+            <StatLabel>Low Ratings (≤2)</StatLabel>
+          </StatTop>
+          <StatValue>{reviews.filter((r) => r.rating <= 2).length}</StatValue>
         </StatCard>
       </StatsGrid>
 
-      <ReviewsList>
-        {reviews.length === 0 ? (
-          <EmptyState>
-            <EmptyMessage>No reviews found for your products</EmptyMessage>
-          </EmptyState>
-        ) : (
-          reviews.map((review) => (
-            <ReviewCard key={review._id || review.id}>
-              <ReviewHeader>
-                <ProductInfo>
-                  <ProductName>{review.product?.name || "Unknown Product"}</ProductName>
-                  <ReviewerName>{review.user?.name || "Anonymous"}</ReviewerName>
-                </ProductInfo>
-                <Rating>
-                  {renderStars(review.rating || 0)}
-                  <RatingValue>{review.rating || 0}/5</RatingValue>
-                </Rating>
-              </ReviewHeader>
-              <ReviewBody>
-                <ReviewTitle>{review.title || "No title"}</ReviewTitle>
-                <ReviewText>{review.review || review.comment || "No review text"}</ReviewText>
-                <ReviewMeta>
-                  <StatusBadge $color={getStatusColor(review.status || "pending")}>
-                    {(review.status || "pending").toUpperCase()}
-                  </StatusBadge>
+      {/* Reviews list */}
+      {reviews.length === 0 ? (
+        <EmptyState
+          icon={<FaStar size={40} />}
+          title="No reviews yet"
+          message="Customer reviews for your products will appear here."
+        />
+      ) : (
+        <ReviewsList>
+          {reviews.map((review) => {
+            const name = review.user?.name || "Anonymous";
+            const status = review.status || "pending";
+            const cfg = STATUS_CONFIG[status] || { bg: "#F3F4F6", color: "#6B7280" };
+
+            return (
+              <ReviewCard key={review._id || review.id}>
+                {/* Top row: avatar + reviewer + product + rating + badge */}
+                <ReviewTop>
+                  <Avatar $bg={avatarColor(name)}>{getInitials(name)}</Avatar>
+                  <ReviewerBlock>
+                    <ReviewerName>{name}</ReviewerName>
+                    <ProductTag>{review.product?.name || "Unknown Product"}</ProductTag>
+                  </ReviewerBlock>
+                  <ReviewMeta>
+                    {renderStars(review.rating || 0)}
+                    <RatingNum>{review.rating || 0}/5</RatingNum>
+                  </ReviewMeta>
+                  <StatusBadge $bg={cfg.bg} $color={cfg.color}>{status}</StatusBadge>
                   <ReviewDate>
-                    {new Date(review.reviewDate || review.createdAt).toLocaleDateString()}
+                    {new Date(review.reviewDate || review.createdAt).toLocaleDateString("en-GB", {
+                      day: "numeric", month: "short", year: "numeric",
+                    })}
                   </ReviewDate>
-                </ReviewMeta>
-              </ReviewBody>
-              {review.sellerReply ? (
-                <SellerReply>
-                  <ReplyLabel>Your Reply:</ReplyLabel>
-                  <ReplyText>{review.sellerReply.reply}</ReplyText>
-                  <ReplyDate>
-                    {new Date(review.sellerReply.repliedAt).toLocaleDateString()}
-                  </ReplyDate>
-                </SellerReply>
-              ) : (
-                <ReviewActions>
-                  <ReplyButton
-                    onClick={() => {
-                      setSelectedReview(review);
-                      setShowReplyModal(true);
-                    }}
-                  >
-                    <FaReply /> Reply
-                  </ReplyButton>
-                </ReviewActions>
-              )}
-            </ReviewCard>
-          ))
-        )}
-      </ReviewsList>
+                </ReviewTop>
+
+                {/* Review content */}
+                <ReviewContent>
+                  {review.title && <ReviewTitle>{review.title}</ReviewTitle>}
+                  <ReviewText>{review.review || review.comment || "No review text provided."}</ReviewText>
+                </ReviewContent>
+
+                {/* Seller reply or reply button */}
+                {review.sellerReply ? (
+                  <SellerReply>
+                    <ReplyMeta>
+                      <ReplyLabel>Your reply</ReplyLabel>
+                      <ReplyDate>
+                        {new Date(review.sellerReply.repliedAt).toLocaleDateString("en-GB", {
+                          day: "numeric", month: "short", year: "numeric",
+                        })}
+                      </ReplyDate>
+                    </ReplyMeta>
+                    <ReplyText>{review.sellerReply.reply}</ReplyText>
+                  </SellerReply>
+                ) : (
+                  <ReviewActions>
+                    <ReplyButton onClick={() => { setSelectedReview(review); setShowReplyModal(true); }}>
+                      <FaReply size={12} /> Reply
+                    </ReplyButton>
+                  </ReviewActions>
+                )}
+              </ReviewCard>
+            );
+          })}
+        </ReviewsList>
+      )}
 
       {/* Reply Modal */}
       {showReplyModal && selectedReview && (
-        <ModalOverlay onClick={() => {
-          setShowReplyModal(false);
-          setSelectedReview(null);
-          setReplyText("");
-        }}>
+        <ModalOverlay onClick={closeModal}>
           <ModalContent onClick={(e) => e.stopPropagation()}>
             <ModalHeader>
               <ModalTitle>Reply to Review</ModalTitle>
-              <CloseButton onClick={() => {
-                setShowReplyModal(false);
-                setSelectedReview(null);
-                setReplyText("");
-              }}>×</CloseButton>
+              <CloseButton onClick={closeModal}><FaTimes size={13} /></CloseButton>
             </ModalHeader>
             <ModalBody>
               <ReviewPreview>
-                <ReviewPreviewText>"{selectedReview.review || selectedReview.comment}"</ReviewPreviewText>
-                <ReviewPreviewAuthor>- {selectedReview.user?.name || "Anonymous"}</ReviewPreviewAuthor>
+                <ReviewPreviewText>
+                  "{selectedReview.review || selectedReview.comment}"
+                </ReviewPreviewText>
+                <ReviewPreviewAuthor>— {selectedReview.user?.name || "Anonymous"}</ReviewPreviewAuthor>
               </ReviewPreview>
               <ReplyTextArea
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
-                placeholder="Write your reply..."
-                rows={5}
+                placeholder="Write your reply…"
+                rows={4}
               />
               <ModalActions>
-                <ModalButton $secondary onClick={() => {
-                  setShowReplyModal(false);
-                  setSelectedReview(null);
-                  setReplyText("");
-                }}>
-                  Cancel
-                </ModalButton>
-                <ModalButton
-                  $primary
+                <CancelBtn onClick={closeModal}>Cancel</CancelBtn>
+                <SubmitBtn
                   onClick={handleReply}
                   disabled={!replyText.trim() || replyMutation.isPending}
                 >
-                  {replyMutation.isPending ? "Posting..." : "Post Reply"}
-                </ModalButton>
+                  {replyMutation.isPending ? "Posting…" : "Post Reply"}
+                </SubmitBtn>
               </ModalActions>
             </ModalBody>
           </ModalContent>
         </ModalOverlay>
       )}
-    </Container>
+    </Page>
   );
 }
 
-// Styled Components
-const Container = styled.div`
-  padding: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
-`;
-
-const Header = styled.div`
+/* ── Layout ──────────────────────────────────────────────────────────────── */
+const Page = styled.div`
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: #F9F8F5;
+  min-height: 100vh;
+`;
+
+const PageHeader = styled.div`
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  border-left: 3px solid #E8920A;
+  padding: 1rem 1.5rem;
+  display: flex;
   align-items: center;
-  margin-bottom: 2rem;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
 `;
 
-const Title = styled.h1`
-  font-size: 2rem;
-  font-weight: 700;
-  color: #1e293b;
+const HeaderLeft = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
 `;
 
-const FilterSelect = styled.select`
-  padding: 0.75rem 1rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 1rem;
+const PageTitle = styled.h1`
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+`;
+
+const PageSub = styled.p`
+  font-size: 0.8rem;
+  color: #9CA3AF;
+  margin: 0;
+`;
+
+const FilterTabs = styled.div`
+  display: flex;
+  gap: 0.375rem;
+  flex-wrap: wrap;
+`;
+
+const FilterTab = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  height: 32px;
+  padding: 0 0.875rem;
+  border-radius: 20px;
+  border: 0.5px solid ${({ $active }) => $active ? "#E8920A" : "#F1EFE8"};
+  background: ${({ $active }) => $active ? "#FDF3E3" : "#FFFFFF"};
+  color: ${({ $active }) => $active ? "#E8920A" : "#6B7280"};
+  font-size: 0.8rem;
+  font-weight: ${({ $active }) => $active ? "600" : "400"};
+  font-family: inherit;
   cursor: pointer;
+  transition: all 0.12s;
+
+  &:hover {
+    border-color: #E8920A;
+    color: #E8920A;
+  }
 `;
 
+const FilterCount = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  background: ${({ $active }) => $active ? "#E8920A" : "#F1EFE8"};
+  color: ${({ $active }) => $active ? "#FFFFFF" : "#6B7280"};
+`;
+
+/* ── Stats ───────────────────────────────────────────────────────────────── */
 const StatsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+
+  @media (max-width: 768px) { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 480px) { grid-template-columns: 1fr; }
 `;
 
 const StatCard = styled.div`
-  background: white;
-  padding: 1.5rem;
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
   border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e2e8f0;
+  border-left: 3px solid ${({ $accent }) => $accent};
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 `;
 
-const StatValue = styled.div`
-  font-size: 2rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 0.5rem;
+const StatTop = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 `;
 
 const StatLabel = styled.div`
-  font-size: 0.875rem;
-  color: #64748b;
+  font-size: 0.75rem;
+  color: #9CA3AF;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.04em;
 `;
 
+const StatValue = styled.div`
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1;
+`;
+
+const StatUnit = styled.span`
+  font-size: 1rem;
+  font-weight: 400;
+  color: #9CA3AF;
+`;
+
+const Stars = styled.div`
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+`;
+
+/* ── Review cards ────────────────────────────────────────────────────────── */
 const ReviewsList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 0.75rem;
 `;
 
 const ReviewCard = styled.div`
-  background: white;
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
   border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e2e8f0;
-`;
-
-const ReviewHeader = styled.div`
+  padding: 1.25rem;
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1rem;
+  flex-direction: column;
+  gap: 0.875rem;
+  transition: border-color 0.12s;
+
+  &:hover { border-color: #E8920A; }
 `;
 
-const ProductInfo = styled.div``;
+const ReviewTop = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+`;
 
-const ProductName = styled.div`
-  font-weight: 600;
-  color: #1e293b;
-  margin-bottom: 0.25rem;
+const Avatar = styled.div`
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: ${({ $bg }) => $bg};
+  color: #FFFFFF;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+`;
+
+const ReviewerBlock = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  flex: 1;
+  min-width: 0;
 `;
 
 const ReviewerName = styled.div`
   font-size: 0.875rem;
-  color: #64748b;
+  font-weight: 600;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
-const Rating = styled.div`
-  display: flex;
+const ProductTag = styled.div`
+  display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-`;
-
-const StarIcon = styled(FaStar)`
-  color: ${({ filled }) => (filled ? "#fbbf24" : "#e2e8f0")};
-  font-size: 1rem;
-`;
-
-const RatingValue = styled.span`
-  font-weight: 600;
-  color: #475569;
-`;
-
-const ReviewBody = styled.div`
-  margin-bottom: 1rem;
-`;
-
-const ReviewTitle = styled.h3`
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #1e293b;
-  margin-bottom: 0.5rem;
-`;
-
-const ReviewText = styled.p`
-  color: #64748b;
-  line-height: 1.6;
-  margin-bottom: 1rem;
+  height: 18px;
+  padding: 0 0.5rem;
+  background: #F9F8F5;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  color: #6B7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
 `;
 
 const ReviewMeta = styled.div`
   display: flex;
-  gap: 1rem;
   align-items: center;
+  gap: 0.375rem;
+`;
+
+const RatingNum = styled.span`
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #6B7280;
 `;
 
 const StatusBadge = styled.span`
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 0.625rem;
+  border-radius: 20px;
+  font-size: 0.72rem;
   font-weight: 600;
-  background: ${({ $color }) => $color}20;
+  text-transform: capitalize;
+  background: ${({ $bg }) => $bg};
   color: ${({ $color }) => $color};
 `;
 
 const ReviewDate = styled.span`
-  font-size: 0.875rem;
-  color: #94a3b8;
-`;
-
-const SellerReply = styled.div`
-  background: #f8fafc;
-  padding: 1rem;
-  border-radius: 8px;
-  border-left: 3px solid #6366f1;
-  margin-top: 1rem;
-`;
-
-const ReplyLabel = styled.div`
   font-size: 0.75rem;
-  font-weight: 600;
-  color: #64748b;
-  text-transform: uppercase;
-  margin-bottom: 0.5rem;
+  color: #9CA3AF;
+  margin-left: auto;
+  white-space: nowrap;
 `;
 
-const ReplyText = styled.p`
-  color: #1e293b;
-  margin-bottom: 0.5rem;
+const ReviewContent = styled.div`
+  padding-left: 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+`;
+
+const ReviewTitle = styled.h3`
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+`;
+
+const ReviewText = styled.p`
+  font-size: 0.875rem;
+  color: #6B7280;
+  line-height: 1.6;
+  margin: 0;
+`;
+
+/* ── Seller reply ────────────────────────────────────────────────────────── */
+const SellerReply = styled.div`
+  margin-left: 3rem;
+  background: #F9F8F5;
+  border: 0.5px solid #F1EFE8;
+  border-left: 3px solid #E8920A;
+  border-radius: 9px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+`;
+
+const ReplyMeta = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const ReplyLabel = styled.span`
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #E8920A;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 `;
 
 const ReplyDate = styled.span`
-  font-size: 0.75rem;
-  color: #94a3b8;
+  font-size: 0.72rem;
+  color: #9CA3AF;
+`;
+
+const ReplyText = styled.p`
+  font-size: 0.875rem;
+  color: #374151;
+  margin: 0;
+  line-height: 1.5;
 `;
 
 const ReviewActions = styled.div`
-  display: flex;
-  gap: 0.5rem;
+  padding-left: 3rem;
 `;
 
 const ReplyButton = styled.button`
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: #6366f1;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
+  gap: 0.375rem;
+  height: 30px;
+  padding: 0 0.875rem;
+  background: transparent;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 9px;
+  color: #6B7280;
+  font-size: 0.8rem;
   font-weight: 500;
-  transition: all 0.2s;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.12s;
 
   &:hover {
-    background: #4f46e5;
+    background: #FDF3E3;
+    border-color: #E8920A;
+    color: #E8920A;
   }
 `;
 
-const EmptyState = styled.div`
-  text-align: center;
-  padding: 3rem;
-  background: white;
-  border-radius: 12px;
-`;
-
-const EmptyMessage = styled.p`
-  color: #64748b;
-  font-size: 1.125rem;
-`;
-
+/* ── Modal ───────────────────────────────────────────────────────────────── */
 const ModalOverlay = styled.div`
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  padding: 1.5rem;
 `;
 
 const ModalContent = styled.div`
-  background: white;
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
   border-radius: 12px;
-  width: 90%;
-  max-width: 600px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 520px;
 `;
 
 const ModalHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem;
-  border-bottom: 1px solid #e2e8f0;
+  padding: 1rem 1.25rem;
+  border-bottom: 0.5px solid #F1EFE8;
 `;
 
 const ModalTitle = styled.h2`
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1e293b;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
   margin: 0;
 `;
 
 const CloseButton = styled.button`
-  background: none;
-  border: none;
-  font-size: 2rem;
-  color: #64748b;
-  cursor: pointer;
-  padding: 0;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: none;
+  border: none;
   border-radius: 6px;
+  color: #9CA3AF;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
 
-  &:hover {
-    background: #f1f5f9;
-  }
+  &:hover { background: #F9F8F5; color: #111827; }
 `;
 
 const ModalBody = styled.div`
-  padding: 1.5rem;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
 `;
 
-const ReviewPreview = styled.div`
-  background: #f8fafc;
-  padding: 1rem;
-  border-radius: 8px;
-  margin-bottom: 1rem;
+const ReviewPreview = styled.blockquote`
+  background: #F9F8F5;
+  border: 0.5px solid #F1EFE8;
+  border-left: 3px solid #E8920A;
+  border-radius: 9px;
+  padding: 0.75rem 1rem;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
 `;
 
 const ReviewPreviewText = styled.p`
-  color: #1e293b;
+  font-size: 0.875rem;
+  color: #374151;
   font-style: italic;
-  margin-bottom: 0.5rem;
+  margin: 0;
+  line-height: 1.5;
 `;
 
-const ReviewPreviewAuthor = styled.div`
-  font-size: 0.875rem;
-  color: #64748b;
-  text-align: right;
+const ReviewPreviewAuthor = styled.span`
+  font-size: 0.8rem;
+  color: #9CA3AF;
 `;
 
 const ReplyTextArea = styled.textarea`
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 1rem;
+  padding: 0.65rem 0.75rem;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 9px;
+  font-size: 0.875rem;
+  color: #111827;
+  background: #F9F8F5;
   font-family: inherit;
   resize: vertical;
-  margin-bottom: 1rem;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.12s, background 0.12s;
 
-  &:focus {
-    outline: none;
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-  }
+  &:focus { border-color: #E8920A; background: #FFFFFF; }
+  &::placeholder { color: #9CA3AF; }
 `;
 
 const ModalActions = styled.div`
   display: flex;
-  gap: 1rem;
+  gap: 0.5rem;
   justify-content: flex-end;
 `;
 
-const ModalButton = styled.button`
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
+const CancelBtn = styled.button`
+  height: 36px;
+  padding: 0 1rem;
+  border-radius: 9px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: inherit;
   cursor: pointer;
-  border: none;
-  transition: all 0.2s;
+  background: #F3F4F6;
+  color: #374151;
+  border: 0.5px solid #F1EFE8;
+  transition: background 0.12s;
 
-  ${({ $primary, $secondary }) => {
-    if ($primary) {
-      return `
-        background: #6366f1;
-        color: white;
-        &:hover:not(:disabled) {
-          background: #4f46e5;
-        }
-      `;
-    }
-    if ($secondary) {
-      return `
-        background: #f1f5f9;
-        color: #475569;
-        &:hover:not(:disabled) {
-          background: #e2e8f0;
-        }
-      `;
-    }
-  }}
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
+  &:hover { background: #E5E7EB; }
 `;
 
+const SubmitBtn = styled.button`
+  height: 36px;
+  padding: 0 1.25rem;
+  border-radius: 9px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  background: #E8920A;
+  color: #FFFFFF;
+  border: none;
+  transition: opacity 0.12s;
+
+  &:hover:not(:disabled) { opacity: 0.85; }
+  &:disabled { opacity: 0.45; cursor: not-allowed; }
+`;

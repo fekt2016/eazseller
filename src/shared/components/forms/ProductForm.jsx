@@ -6,6 +6,7 @@ import CategorySection from "./CategorySection";
 import VariantSection from "./VariantSection";
 import ImageSection from "./ImageSection";
 import SpecificationSection from "./SpecificationSection";
+import PublishingChecklist from "./PublishingChecklist";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { FaArrowLeft } from "react-icons/fa";
 import { LoadingSpinner } from "../LoadingSpinner";
@@ -13,8 +14,18 @@ import { generateSKU } from '../../utils/helpers';
 import useAuth from '../../hooks/useAuth';
 import { toast } from 'react-toastify';
 
-const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onFormChange }) => {
-  console.log("Initial data:", initialData);
+const ProductForm = ({
+  initialData,
+  onSubmit,
+  isSubmitting,
+  mode = "add",
+  onFormChange,
+  hidePageHeader = false,
+}) => {
+  if (import.meta.env.DEV && initialData) {
+    // eslint-disable-next-line no-console
+    console.log("ProductForm initialData keys:", Object.keys(initialData));
+  }
   const { seller } = useAuth();
 
   const { getCategories, getParentCategories } = useCategory();
@@ -71,14 +82,18 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
       images: [],
       parentCategory: "",
       subCategory: "",
+      productStatus: "active",
       variants: [
         {
+          name: "",
           images: [],
           attributes: [],
           price: 0,
           stock: 0,
           sku: "",
           status: "active",
+          condition: "new",
+          originalPrice: "",
         },
       ],
       brand: "",
@@ -92,9 +107,12 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
       condition: "new",
       specifications: {
         material: [{ value: "", hexCode: "" }],
-        weight: "",
-        dimension: "",
+        weight: { value: '', unit: 'kg' },
+        dimensions: { length: '', width: '', height: '', unit: 'cm' },
       },
+      tags: [],
+      metaTitle: '',
+      metaDescription: '',
       video: "",
     };
 
@@ -119,19 +137,31 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
         preOrderNote: initialData.preOrderNote || "",
         promotionKey: initialData.promotionKey || "",
         condition: initialData.condition || "new",
+        productStatus:
+          initialData.status && ["active", "draft", "inactive", "out_of_stock", "archived"].includes(
+            initialData.status
+          )
+            ? initialData.status
+            : "active",
         variants:
           (initialData.variants && Array.isArray(initialData.variants) && initialData.variants.length > 0)
             ? initialData.variants.map((variant) => ({
               ...variant,
+              name: variant.name ?? "",
               images: Array.isArray(variant.images) ? variant.images : [],
               price:
                 typeof variant.price === "number"
                   ? variant.price
                   : parseFloat(variant.price) || 0,
+              originalPrice:
+                variant.originalPrice != null && variant.originalPrice !== ""
+                  ? variant.originalPrice
+                  : "",
               stock:
                 typeof variant.stock === "number"
                   ? variant.stock
                   : parseInt(variant.stock) || 0,
+              condition: variant.condition || "new",
               attributes:
                 variant.attributes?.map((attr) => ({
                   key: attr.key,
@@ -140,8 +170,20 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
             }))
             : defaults.variants,
         specifications: {
-          weight: initialData.specifications?.weight || "",
-          dimension: initialData.specifications?.dimension || "",
+          weight: initialData.specifications?.weight && typeof initialData.specifications.weight === 'object'
+            ? {
+              value: initialData.specifications.weight.value ?? '',
+              unit: initialData.specifications.weight.unit || 'kg',
+            }
+            : defaults.specifications.weight,
+          dimensions: initialData.specifications?.dimensions && typeof initialData.specifications.dimensions === 'object'
+            ? {
+              length: initialData.specifications.dimensions.length ?? '',
+              width: initialData.specifications.dimensions.width ?? '',
+              height: initialData.specifications.dimensions.height ?? '',
+              unit: initialData.specifications.dimensions.unit || 'cm',
+            }
+            : defaults.specifications.dimensions,
           material: initialData.specifications?.material?.length
             ? initialData.specifications.material.map((m) => ({
               value: m.value || "",
@@ -149,6 +191,9 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
             }))
             : defaults.specifications.material,
         },
+        tags: Array.isArray(initialData.tags) ? initialData.tags : [],
+        metaTitle: initialData.metaTitle || '',
+        metaDescription: initialData.metaDescription || '',
         video: initialData.video || "",
       };
     }
@@ -243,7 +288,7 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
   // Validate step 1 fields before proceeding
   const validateStep1 = async () => {
     // Validate basic fields first
-    const basicFields = ['name', 'parentCategory', 'subCategory'];
+    const basicFields = ['name', 'description', 'parentCategory', 'subCategory', 'returnWindowDays'];
     const basicValid = await trigger(basicFields);
 
     if (!basicValid) {
@@ -339,7 +384,7 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
 
   return (
     <ProductFormContainer>
-      {!isEditMode && (
+      {!isEditMode && !hidePageHeader && (
         <>
           <FormHeader>
             <BackButton onClick={handleHeaderBack}>
@@ -362,6 +407,18 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
         </>
       )}
 
+      {!isEditMode && hidePageHeader && (
+        <StepperContainer>
+          <Step $active={step === 1}>
+            {step === 1 ? "1. Product Details" : "✓ Product Details"}
+          </Step>
+          <StepDivider $completed={step === 2} />
+          <Step $active={step === 2}>
+            {step === 2 ? "2. Media & Specifications" : "Media & Specifications"}
+          </Step>
+        </StepperContainer>
+      )}
+
       <FormProvider {...methods}>
         <StyledForm
           onSubmit={handleSubmit(async (values) => {
@@ -370,8 +427,10 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
               // Validate all required fields before submission
               const allFields = [
                 'name',
+                'description',
                 'parentCategory',
                 'subCategory',
+                'returnWindowDays',
                 'imageCover'
               ];
 
@@ -429,80 +488,98 @@ const ProductForm = ({ initialData, onSubmit, isSubmitting, mode = "add", onForm
           })}
         >
           {(step === 1 || isEditMode) && (
-            <Step1Content>
+            <StepGrid $twoCol={!isEditMode}>
+              <StepGridMain>
+                <Step1Content>
+                  {!isEditMode && (
+                    <StepHeader>
+                      <StepNumber>Step 1 of 2</StepNumber>
+                      <StepDescription>Enter basic product information, category, and variants</StepDescription>
+                    </StepHeader>
+                  )}
+
+                  <SectionContainer>
+                    <SectionTitle>
+                      <span>Basic Information</span>
+                    </SectionTitle>
+                    <BasicSection />
+                  </SectionContainer>
+
+                  <SectionContainer>
+                    <SectionTitle>
+                      <span>Category</span>
+                    </SectionTitle>
+                    {allCategories.length === 0 && parentCategoriesFromEndpoint.length === 0 ? (
+                      <div style={{ padding: '1rem', color: '#718096', textAlign: 'center' }}>
+                        {isLoading || isLoadingParents
+                          ? 'Loading categories...'
+                          : 'No categories available. Please ask an admin to add categories first.'}
+                      </div>
+                    ) : (
+                      <CategorySection
+                        categories={allCategories}
+                        parentCategories={parentCategoriesFromEndpoint}
+                        parentCategory={parentCategory}
+                        subCategory={subCategory}
+                      />
+                    )}
+                  </SectionContainer>
+
+                  <SectionContainer>
+                    <SectionTitle>
+                      <span>Variants</span>
+                    </SectionTitle>
+                    <VariantSection
+                      variantAttributes={variantAttributes}
+                      seller={seller}
+                      categoryNameForSku={getCategoryName(subCategory) || "GENERAL"}
+                    />
+                  </SectionContainer>
+                </Step1Content>
+              </StepGridMain>
               {!isEditMode && (
-                <StepHeader>
-                  <StepNumber>Step 1 of 2</StepNumber>
-                  <StepDescription>Enter basic product information, category, and variants</StepDescription>
-                </StepHeader>
+                <StepGridAside>
+                  <PublishingChecklist step={step} />
+                </StepGridAside>
               )}
-
-              <SectionContainer>
-                <SectionTitle>
-                  <span>Basic Information</span>
-                </SectionTitle>
-                <BasicSection />
-              </SectionContainer>
-
-              <SectionContainer>
-                <SectionTitle>
-                  <span>Category</span>
-                </SectionTitle>
-                {allCategories.length === 0 && parentCategoriesFromEndpoint.length === 0 ? (
-                  <div style={{ padding: '1rem', color: '#718096', textAlign: 'center' }}>
-                    {isLoading || isLoadingParents
-                      ? 'Loading categories...'
-                      : 'No categories available. Please ask an admin to add categories first.'}
-                  </div>
-                ) : (
-                  <CategorySection
-                    categories={allCategories}
-                    parentCategories={parentCategoriesFromEndpoint}
-                    parentCategory={parentCategory}
-                    subCategory={subCategory}
-                  />
-                )}
-              </SectionContainer>
-
-              <SectionContainer>
-                <SectionTitle>
-                  <span>Variants</span>
-                </SectionTitle>
-                <VariantSection
-                  variantAttributes={variantAttributes}
-                  seller={seller}
-                  categoryNameForSku={getCategoryName(subCategory) || "GENERAL"}
-                />
-              </SectionContainer>
-            </Step1Content>
+            </StepGrid>
           )}
 
           {(step === 2 || isEditMode) && (
-            <Step2Content>
+            <StepGrid $twoCol={!isEditMode}>
+              <StepGridMain>
+                <Step2Content>
+                  {!isEditMode && (
+                    <StepHeader>
+                      <StepNumber>Step 2 of 2</StepNumber>
+                      <StepDescription>Add product images and specifications</StepDescription>
+                    </StepHeader>
+                  )}
+
+                  <SectionContainer>
+                    <SectionTitle>
+                      <span>Product Images</span>
+                    </SectionTitle>
+                    <ImageSection
+                      isSubmitting={isSubmitting}
+                      initialData={initialData}
+                    />
+                  </SectionContainer>
+
+                  <SectionContainer>
+                    <SectionTitle>
+                      <span>Specifications</span>
+                    </SectionTitle>
+                    <SpecificationSection />
+                  </SectionContainer>
+                </Step2Content>
+              </StepGridMain>
               {!isEditMode && (
-                <StepHeader>
-                  <StepNumber>Step 2 of 2</StepNumber>
-                  <StepDescription>Add product images and specifications</StepDescription>
-                </StepHeader>
+                <StepGridAside>
+                  <PublishingChecklist step={step} />
+                </StepGridAside>
               )}
-
-              <SectionContainer>
-                <SectionTitle>
-                  <span>Product Images</span>
-                </SectionTitle>
-                <ImageSection
-                  isSubmitting={isSubmitting}
-                  initialData={initialData}
-                />
-              </SectionContainer>
-
-              <SectionContainer>
-                <SectionTitle>
-                  <span>Specifications</span>
-                </SectionTitle>
-                <SpecificationSection />
-              </SectionContainer>
-            </Step2Content>
+            </StepGrid>
           )}
 
           <FormActions>
@@ -672,10 +749,10 @@ const Step = styled.div`
   border-radius: 8px;
   font-size: 1rem;
   font-weight: 400;
-  background: ${(p) => (p.$active ? "var(--color-primary-600)" : "#ffffff")};
+  background: ${(p) => (p.$active ? "#E8920A" : "#ffffff")};
   color: ${(p) => (p.$active ? "#ffffff" : "#64748b")};
   border: 2px solid
-    ${(p) => (p.$active ? "var(--color-primary-600)" : "#e2e8f0")};
+    ${(p) => (p.$active ? "#E8920A" : "#e2e8f0")};
   transition: all 0.3s ease;
   position: relative;
   
@@ -690,11 +767,37 @@ const StepDivider = styled.div`
   height: 2px;
   background: linear-gradient(
     to right,
-    ${(p) => p.$completed ? "var(--color-primary-400)" : "rgba(148, 163, 184, 0.3)"},
+    ${(p) => p.$completed ? "#E8920A" : "rgba(148, 163, 184, 0.3)"},
     rgba(148, 163, 184, 0.1)
   );
   border-radius: 2px;
   transition: background 0.3s ease;
+`;
+
+const StepGrid = styled.div`
+  display: grid;
+  grid-template-columns: ${({ $twoCol }) => ($twoCol ? 'minmax(0, 1fr) 300px' : '1fr')};
+  gap: 16px;
+  align-items: start;
+
+  @media (max-width: 1100px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const StepGridMain = styled.div`
+  min-width: 0;
+`;
+
+const StepGridAside = styled.div`
+  position: sticky;
+  top: 12px;
+  align-self: start;
+
+  @media (max-width: 1100px) {
+    position: static;
+    order: -1;
+  }
 `;
 
 const FormActions = styled.div`
@@ -710,6 +813,9 @@ const FormActions = styled.div`
   margin-right: -1.75rem;
   margin-bottom: -1.75rem;
   border-radius: 0 0 12px 12px;
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
   
   @media (max-width: 768px) {
     flex-direction: column-reverse;
@@ -722,7 +828,7 @@ const FormActions = styled.div`
 `;
 
 const PrimaryButton = styled.button`
-  background: var(--color-primary-600);
+  background: #E8920A;
   color: white;
   border: none;
   border-radius: 8px;
@@ -739,7 +845,7 @@ const PrimaryButton = styled.button`
   min-height: 44px; /* Touch-friendly */
 
   &:hover:not(:disabled) {
-    background: var(--color-primary-700);
+    background: #E8920A;
     transform: translateY(-1px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   }
@@ -834,7 +940,7 @@ const StepHeader = styled.div`
 const StepNumber = styled.div`
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--color-primary-600);
+  color: #E8920A;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 0.5rem;

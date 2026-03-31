@@ -223,9 +223,9 @@ const ModalContainer = styled(motion.div)`
   width: 90%;
   max-width: 800px;
   max-height: min(90vh, calc(100vh - 4rem));
-  background: var(--color-white-0);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-xl);
+  background: #FFFFFF;
+  border-radius: 12px;
+  
   z-index: 1001;
   display: flex;
   flex-direction: column;
@@ -242,71 +242,71 @@ const ModalHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-lg);
-  border-bottom: 1px solid var(--color-grey-200);
-  background: var(--color-grey-50);
+  padding: 1rem;
+  border-bottom: 1px solid #F1EFE8;
+  background: #F9F8F5;
 `;
 
 const ModalTitle = styled.h2`
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
   margin: 0;
 `;
 
 const CloseButton = styled.button`
   background: none;
   border: none;
-  font-size: var(--font-size-lg);
-  color: var(--color-grey-600);
+  font-size: 1.1rem;
+  color: #6B7280;
   cursor: pointer;
-  padding: var(--spacing-xs);
+  padding: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--border-radius-md);
-  transition: all var(--transition-base);
+  border-radius: 9px;
+  transition: all 0.12s;
 
   &:hover {
-    background: var(--color-grey-200);
-    color: var(--color-grey-900);
+    background: #F1EFE8;
+    color: #111827;
   }
 `;
 
 const ModalContent = styled.div`
-  padding: var(--spacing-lg);
+  padding: 1rem;
   overflow-y: auto;
   flex: 1;
 `;
 
 const StatusBanner = styled.div`
-  padding: var(--spacing-md);
-  border-radius: var(--border-radius-md);
-  margin-bottom: var(--spacing-lg);
+  padding: 1rem;
+  border-radius: 9px;
+  margin-bottom: 1rem;
   background-color: ${({ $type }) =>
-    $type === 'success' ? 'var(--color-green-50)' : 'var(--color-red-50)'};
+    $type === 'success' ? '#3B6D11' : '#FCEBEB'};
   border: 1px solid
-    ${({ $type }) => ($type === 'success' ? 'var(--color-green-200)' : 'var(--color-red-200)')};
+    ${({ $type }) => ($type === 'success' ? '#BBF7D0' : '#FECACA')};
 
   strong {
     display: block;
     color: ${({ $type }) =>
-      $type === 'success' ? 'var(--color-green-800)' : 'var(--color-red-800)'};
-    margin-bottom: var(--spacing-xs);
+      $type === 'success' ? '#3B6D11' : '#A32D2D'};
+    margin-bottom: 1rem;
   }
 
   p {
     margin: 0;
     color: ${({ $type }) =>
-      $type === 'success' ? 'var(--color-green-700)' : 'var(--color-red-700)'};
-    font-size: var(--font-size-sm);
+      $type === 'success' ? '#3B6D11' : '#A32D2D'};
+    font-size: 0.875rem;
   }
 `;
 
 const InfoSection = styled.div`
-  margin-bottom: var(--spacing-lg);
-  padding-bottom: var(--spacing-lg);
-  border-bottom: 1px solid var(--color-grey-200);
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #F1EFE8;
 
   &:last-child {
     border-bottom: none;
@@ -318,21 +318,21 @@ const InfoSection = styled.div`
 const SectionTitle = styled.h3`
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  font-size: var(--font-size-md);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
-  margin: 0 0 var(--spacing-md) 0;
+  gap: 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 1rem 0;
 
   svg {
-    color: var(--color-primary-500);
+    color: #E8920A;
   }
 `;
 
 const InfoGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: var(--spacing-md);
+  gap: 1rem;
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
@@ -342,28 +342,28 @@ const InfoGrid = styled.div`
 const InfoItem = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: 1rem;
   grid-column: ${({ $fullWidth }) => ($fullWidth ? '1 / -1' : 'auto')};
 `;
 
 const InfoLabel = styled.span`
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-700);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
 `;
 
 const InfoValue = styled.span`
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-900);
+  font-size: 0.875rem;
+  color: #111827;
 `;
 
 const StatusBadge = styled.span`
   display: inline-flex;
   align-items: center;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--border-radius-cir);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-semibold);
+  padding: 1rem 1rem;
+  border-radius: 50%;
+  font-size: 0.8rem;
+  font-weight: 600;
   text-transform: uppercase;
   white-space: nowrap;
   width: fit-content;
@@ -372,13 +372,13 @@ const StatusBadge = styled.span`
     switch ($status) {
       case 'approved':
       case 'refunded':
-        return 'var(--color-green-100)';
+        return '#DCFCE7';
       case 'pending':
-        return 'var(--color-yellow-100)';
+        return '#FAEEDA';
       case 'rejected':
-        return 'var(--color-red-100)';
+        return '#FCEBEB';
       default:
-        return 'var(--color-grey-100)';
+        return '#F9F8F5';
     }
   }};
 
@@ -386,46 +386,46 @@ const StatusBadge = styled.span`
     switch ($status) {
       case 'approved':
       case 'refunded':
-        return 'var(--color-green-700)';
+        return '#3B6D11';
       case 'pending':
-        return 'var(--color-yellow-700)';
+        return '#854F0B';
       case 'rejected':
-        return 'var(--color-red-700)';
+        return '#A32D2D';
       default:
-        return 'var(--color-grey-700)';
+        return '#374151';
     }
   }};
 `;
 
 const ReasonBox = styled.div`
-  padding: var(--spacing-md);
-  background: var(--color-grey-50);
-  border-radius: var(--border-radius-md);
-  border: 1px solid var(--color-grey-200);
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-900);
+  padding: 1rem;
+  background: #F9F8F5;
+  border-radius: 9px;
+  border: 1px solid #F1EFE8;
+  font-size: 0.875rem;
+  color: #111827;
   line-height: 1.6;
   white-space: pre-wrap;
 `;
 
 const RefundAmount = styled.span`
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-bold);
-  color: var(--color-primary-600);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #E8920A;
 `;
 
 const PhotoGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: var(--spacing-md);
+  gap: 1rem;
 `;
 
 const PhotoItem = styled.div`
   position: relative;
   aspect-ratio: 1;
-  border-radius: var(--border-radius-md);
+  border-radius: 9px;
   overflow: hidden;
-  border: 1px solid var(--color-grey-200);
+  border: 1px solid #F1EFE8;
 `;
 
 const PhotoImage = styled.img`
@@ -433,7 +433,7 @@ const PhotoImage = styled.img`
   height: 100%;
   object-fit: cover;
   cursor: pointer;
-  transition: transform var(--transition-base);
+  transition: transform 0.12s;
 
   &:hover {
     transform: scale(1.05);

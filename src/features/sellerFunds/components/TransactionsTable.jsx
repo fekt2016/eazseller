@@ -109,10 +109,10 @@ export default TransactionsTable;
 const TableContainer = styled.div`
   width: 100%;
   overflow-x: auto;
-  background: var(--color-white-0);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--color-grey-200);
+  background: #FFFFFF;
+  border-radius: 12px;
+  
+  border: 1px solid #F1EFE8;
 `;
 
 const StyledTable = styled.table`
@@ -126,16 +126,16 @@ const StyledTable = styled.table`
 `;
 
 const TableHead = styled.thead`
-  background-color: var(--color-grey-50);
-  border-bottom: 2px solid var(--color-grey-200);
+  background-color: #F9F8F5;
+  border-bottom: 2px solid #F1EFE8;
 `;
 
 const TableHeader = styled.th`
-  padding: var(--spacing-md);
+  padding: 1rem;
   text-align: left;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-700);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 `;
@@ -143,11 +143,11 @@ const TableHeader = styled.th`
 const TableBody = styled.tbody``;
 
 const TableRow = styled.tr`
-  border-bottom: 1px solid var(--color-grey-200);
-  transition: background-color var(--transition-base);
+  border-bottom: 1px solid #F1EFE8;
+  transition: background-color 0.12s;
 
   &:hover {
-    background-color: var(--color-grey-50);
+    background-color: #F9F8F5;
   }
 
   &:last-child {
@@ -156,21 +156,21 @@ const TableRow = styled.tr`
 `;
 
 const TableCell = styled.td`
-  padding: var(--spacing-md);
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-700);
+  padding: 1rem;
+  font-size: 0.875rem;
+  color: #374151;
 `;
 
 const AmountCell = styled.span`
-  font-weight: var(--font-semibold);
+  font-weight: 600;
   color: ${({ $type }) =>
     $type === 'credit' || $type === 'ORDER_EARNING'
-      ? 'var(--color-green-600)'
-      : 'var(--color-red-600)'};
+      ? '#3B6D11'
+      : '#A32D2D'};
 `;
 
 const DescriptionText = styled.span`
-  color: var(--color-grey-600);
+  color: #6B7280;
   max-width: 300px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -179,17 +179,17 @@ const DescriptionText = styled.span`
 `;
 
 const LoadingMessage = styled.div`
-  padding: var(--spacing-xl);
+  padding: 1rem;
   text-align: center;
-  color: var(--color-grey-600);
-  font-size: var(--font-size-md);
+  color: #6B7280;
+  font-size: 0.9rem;
 `;
 
 const EmptyMessage = styled.div`
-  padding: var(--spacing-xl);
+  padding: 1rem;
   text-align: center;
-  color: var(--color-grey-600);
-  font-size: var(--font-size-md);
+  color: #6B7280;
+  font-size: 0.9rem;
 `;
 
 // Mobile Styles
@@ -199,58 +199,58 @@ const MobileCardList = styled.div`
   @media ${devicesMax.md} {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-md);
-    padding: var(--spacing-md);
+    gap: 1rem;
+    padding: 1rem;
   }
 `;
 
 const MobileCard = styled.div`
-  background: var(--color-white-0);
-  border: 1px solid var(--color-grey-200);
-  border-radius: var(--border-radius-lg);
-  padding: var(--spacing-md);
-  box-shadow: var(--shadow-sm);
+  background: #FFFFFF;
+  border: 1px solid #F1EFE8;
+  border-radius: 12px;
+  padding: 1rem;
+  
 `;
 
 const CardHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--spacing-md);
-  padding-bottom: var(--spacing-sm);
-  border-bottom: 1px solid var(--color-grey-200);
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #F1EFE8;
 `;
 
 const CardTitle = styled.h4`
-  font-size: var(--font-size-md);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #111827;
   margin: 0;
 `;
 
 const CardContent = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: 1rem;
 `;
 
 const InfoRow = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: 1rem;
 `;
 
 const InfoLabel = styled.span`
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-700);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
   min-width: 100px;
 `;
 
 const InfoValue = styled.span`
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-900);
+  font-size: 0.875rem;
+  color: #111827;
   text-align: right;
   flex: 1;
 `;

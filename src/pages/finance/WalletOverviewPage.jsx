@@ -4,33 +4,61 @@ import styled from 'styled-components';
 import { FaWallet, FaLock, FaClock, FaDollarSign, FaArrowDown, FaMoneyBillWave } from 'react-icons/fa';
 import useDynamicPageTitle from '../../shared/hooks/useDynamicPageTitle';
 import { useSellerBalance } from '../../shared/hooks/finance/useSellerBalance';
-import { PageContainer, PageHeader, TitleSection, ActionSection, StatsGrid } from '../../shared/components/ui/SpacingSystem';
 import Button from '../../shared/components/ui/Button';
 import BalanceSummaryCard from '../../components/finance/BalanceSummaryCard';
 import QuickActionsPanel from '../../components/finance/QuickActionsPanel';
 import TransactionList from '../../components/finance/TransactionList';
-import { LoadingState, ErrorState } from '../../shared/components/ui/LoadingComponents';
-import { devicesMax } from '../../shared/styles/breakpoint';
+import { ErrorState, SkeletonStatCards, SkeletonTableRows } from '../../shared/components/ui/LoadingComponents';
 import { PATHS } from '../../routes/routePaths';
+
+const WalletPage = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  background: #F9F8F5;
+  min-height: 100vh;
+`;
+
+const WalletHeader = styled.div`
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  padding: 0.85rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+`;
+
+const WalletTitle = styled.h1`
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 0.2rem;
+`;
+
+const WalletSubtitle = styled.p`
+  font-size: 0.875rem;
+  color: #9CA3AF;
+  margin: 0;
+`;
 
 const ContentGrid = styled.div`
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: var(--spacing-xl);
-  margin-bottom: var(--spacing-xl);
-  
-  @media ${devicesMax.lg} {
+  gap: 0.75rem;
+
+  @media (max-width: 1024px) {
     grid-template-columns: 1fr;
   }
 `;
 
-const BalanceCardsGrid = styled(StatsGrid)`
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  margin-bottom: var(--spacing-xl);
-  
-  @media ${devicesMax.sm} {
-    grid-template-columns: 1fr;
-  }
+const BalanceCardsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
 `;
 
 const WalletOverviewPage = () => {
@@ -53,45 +81,43 @@ const WalletOverviewPage = () => {
 
   if (isLoading) {
     return (
-      <PageContainer>
-        <LoadingState message="Loading wallet information..." />
-      </PageContainer>
+      <WalletPage>
+        <SkeletonStatCards count={3} />
+        <SkeletonTableRows count={6} />
+      </WalletPage>
     );
   }
 
   if (error) {
     return (
-      <PageContainer>
+      <WalletPage>
         <ErrorState
           title="Failed to load wallet data"
           message={error?.message || 'Please try again later'}
         />
-      </PageContainer>
+      </WalletPage>
     );
   }
 
   return (
-    <PageContainer>
-      <PageHeader $padding="lg" $marginBottom="lg">
-        <TitleSection>
-          <h1>Wallet Overview</h1>
-          <p>Manage your earnings and withdrawals</p>
-        </TitleSection>
-        <ActionSection>
-          <Button
-            as={Link}
-            to={PATHS.WITHDRAWALS}
-            variant="primary"
-            size="lg"
-            gradient
-          >
-            <FaMoneyBillWave /> Withdrawals
-          </Button>
-        </ActionSection>
-      </PageHeader>
+    <WalletPage>
+      <WalletHeader>
+        <div>
+          <WalletTitle>Wallet Overview</WalletTitle>
+          <WalletSubtitle>Manage your earnings and withdrawals</WalletSubtitle>
+        </div>
+        <Button
+          as={Link}
+          to={PATHS.WITHDRAWALS}
+          variant="primary"
+          size="md"
+        >
+          <FaMoneyBillWave /> Withdrawals
+        </Button>
+      </WalletHeader>
 
       {/* Balance Summary Cards */}
-      <BalanceCardsGrid $gap="md" $marginBottom="lg">
+      <BalanceCardsGrid>
         <BalanceSummaryCard
           label="Available Balance"
           amount={availableBalance}
@@ -117,23 +143,19 @@ const WalletOverviewPage = () => {
 
       {/* Main Content Grid */}
       <ContentGrid>
-        {/* Left Column: Transactions */}
         <div>
           <TransactionList limit={10} />
         </div>
-
-        {/* Right Column: Quick Actions */}
         <div>
           <QuickActionsPanel availableBalance={availableBalance} />
         </div>
       </ContentGrid>
 
-      {/* Additional Info */}
       {lockedBalance > 0 && (
         <InfoBanner>
           <FaLock />
           <InfoText>
-            <strong>Locked Balance:</strong> GH₵{lockedBalance.toFixed(2)} is currently locked. 
+            <strong>Locked Balance:</strong> GH₵{lockedBalance.toFixed(2)} is currently locked.
             Contact support if you have questions.
           </InfoText>
         </InfoBanner>
@@ -144,43 +166,39 @@ const WalletOverviewPage = () => {
           Last updated: {lastUpdated.toLocaleString()}
         </LastUpdated>
       )}
-    </PageContainer>
+    </WalletPage>
   );
 };
 
 const InfoBanner = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md);
-  background: var(--color-yellow-100);
-  border: 1px solid var(--color-yellow-300);
-  border-radius: var(--border-radius-md);
-  margin-bottom: var(--spacing-lg);
-  color: var(--color-yellow-800);
-  
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: #FFFBEB;
+  border: 0.5px solid #FDE68A;
+  border-radius: 9px;
+  color: #92400E;
+
   svg {
-    font-size: var(--font-size-lg);
+    font-size: 0.9rem;
     flex-shrink: 0;
   }
 `;
 
 const InfoText = styled.div`
-  font-size: var(--font-size-sm);
-  font-family: var(--font-body);
+  font-size: 0.9rem;
   line-height: 1.5;
-  
+
   strong {
-    font-weight: var(--font-semibold);
+    font-weight: 600;
   }
 `;
 
 const LastUpdated = styled.div`
   text-align: center;
-  font-size: var(--font-size-xs);
-  color: var(--color-grey-500);
-  font-family: var(--font-body);
-  margin-top: var(--spacing-lg);
+  font-size: 0.75rem;
+  color: #9CA3AF;
 `;
 
 export default WalletOverviewPage;

@@ -62,18 +62,18 @@ export default VerificationBanner;
 
 // Styled Components
 const BannerContainer = styled.div`
-  background: linear-gradient(135deg, var(--color-yellow-50), var(--color-yellow-100));
-  border: 2px solid var(--color-yellow-300);
-  border-radius: var(--border-radius-lg);
-  padding: var(--spacing-md);
-  margin-bottom: var(--spacing-lg);
-  box-shadow: var(--shadow-sm);
+  background: linear-gradient(135deg, #854F0B, #854F0B);
+  border: 2px solid #854F0B;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  
 `;
 
 const BannerContent = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: 1rem;
   flex-wrap: wrap;
 
   @media (max-width: 768px) {
@@ -84,7 +84,7 @@ const BannerContent = styled.div`
 
 const IconWrapper = styled.div`
   font-size: 1.5rem;
-  color: var(--color-yellow-700);
+  color: #854F0B;
   flex-shrink: 0;
 `;
 
@@ -94,16 +94,16 @@ const BannerText = styled.div`
 `;
 
 const BannerTitle = styled.h4`
-  margin: 0 0 var(--spacing-xs) 0;
-  font-size: var(--font-size-md);
-  font-weight: var(--font-semibold);
-  color: var(--color-yellow-900);
+  margin: 0 0 1rem 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #854F0B;
 `;
 
 const BannerMessage = styled.p`
   margin: 0;
-  font-size: var(--font-size-sm);
-  color: var(--color-yellow-800);
+  font-size: 0.875rem;
+  color: #854F0B;
   line-height: 1.5;
 `;
 

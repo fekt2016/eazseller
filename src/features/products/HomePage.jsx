@@ -188,7 +188,7 @@
 //   background: linear-gradient(135deg, #f5f7ff 0%, #eef2ff 100%);
 //   color: #212529;
 //   line-height: 1.6;
-//   font-family: var(--font-body);
+
 // `;
 
 // const Header = styled.header`

@@ -103,15 +103,15 @@ describe('ResetPasswordPage', () => {
   });
 
   test('shows error state when no token in URL', async () => {
-    // No token set in searchParams
-    
+    mockNavigate.mockImplementation(() => {}); // Prevent navigation so we can assert error state
+
     renderWithProviders(<ResetPasswordPage />, {
       initialRoute: '/reset-password',
     });
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: /invalid link/i })).toBeInTheDocument();
-      expect(screen.getByText(/this password reset link is invalid or has expired/i)).toBeInTheDocument();
+      expect(screen.getByText(/reset link is invalid or has expired/i)).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /request new reset link/i })).toBeInTheDocument();
     });
   });
@@ -129,9 +129,9 @@ describe('ResetPasswordPage', () => {
   });
 
   test('validates password minimum length', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mockSearchParams.set('token', 'valid-reset-token-123');
-    
+
     renderWithProviders(<ResetPasswordPage />, {
       initialRoute: '/reset-password?token=valid-reset-token-123',
     });
@@ -140,22 +140,19 @@ describe('ResetPasswordPage', () => {
     const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
     const form = newPasswordInput.closest('form');
 
-    await user.type(newPasswordInput, 'short');
-    await user.type(confirmPasswordInput, 'short');
-    
-    // Use fireEvent.submit to bypass HTML5 validation
+    fireEvent.change(newPasswordInput, { target: { value: 'short' } });
+    fireEvent.change(confirmPasswordInput, { target: { value: 'short' } });
     fireEvent.submit(form);
 
     await waitFor(() => {
-      expect(screen.getByText(/password must be at least 8 characters long/i)).toBeInTheDocument();
+      expect(screen.getByText(/your password needs at least 8 characters/i)).toBeInTheDocument();
       expect(mockResetPasswordWithToken.mutateAsync).not.toHaveBeenCalled();
     });
   });
 
   test('validates password match', async () => {
-    const user = userEvent.setup();
     mockSearchParams.set('token', 'valid-reset-token-123');
-    
+
     renderWithProviders(<ResetPasswordPage />, {
       initialRoute: '/reset-password?token=valid-reset-token-123',
     });
@@ -164,9 +161,9 @@ describe('ResetPasswordPage', () => {
     const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
     const form = newPasswordInput.closest('form');
 
-    await user.type(newPasswordInput, 'password123');
-    await user.type(confirmPasswordInput, 'password456');
-    
+    // Use valid passwords (8+ chars, digit, special) that don't match
+    fireEvent.change(newPasswordInput, { target: { value: 'Password123!' } });
+    fireEvent.change(confirmPasswordInput, { target: { value: 'Password456!' } });
     fireEvent.submit(form);
 
     await waitFor(() => {
@@ -187,9 +184,9 @@ describe('ResetPasswordPage', () => {
   });
 
   test('handles successful password reset', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mockSearchParams.set('token', 'valid-reset-token-123');
-    
+
     renderWithProviders(<ResetPasswordPage />, {
       initialRoute: '/reset-password?token=valid-reset-token-123',
     });
@@ -198,28 +195,28 @@ describe('ResetPasswordPage', () => {
     const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
     const submitButton = screen.getByRole('button', { name: /reset password/i });
 
-    await user.type(newPasswordInput, 'newpassword123');
-    await user.type(confirmPasswordInput, 'newpassword123');
+    const validPassword = 'Newpassword123!';
+    fireEvent.change(newPasswordInput, { target: { value: validPassword } });
+    fireEvent.change(confirmPasswordInput, { target: { value: validPassword } });
     await user.click(submitButton);
 
     await waitFor(() => {
       expect(mockResetPasswordWithToken.mutateAsync).toHaveBeenCalledWith({
         token: 'valid-reset-token-123',
-        newPassword: 'newpassword123',
-        confirmPassword: 'newpassword123',
+        newPassword: validPassword,
+        confirmPassword: validPassword,
       });
     });
 
-    // Wait for success state
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: /password reset successful/i })).toBeInTheDocument();
-    }, { timeout: 2000 });
+    }, { timeout: 3000 });
   });
 
   test('shows success state with navigation button', async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     mockSearchParams.set('token', 'valid-reset-token-123');
-    
+
     renderWithProviders(<ResetPasswordPage />, {
       initialRoute: '/reset-password?token=valid-reset-token-123',
     });
@@ -228,19 +225,18 @@ describe('ResetPasswordPage', () => {
     const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
     const submitButton = screen.getByRole('button', { name: /reset password/i });
 
-    await user.type(newPasswordInput, 'newpassword123');
-    await user.type(confirmPasswordInput, 'newpassword123');
+    const validPassword = 'Newpassword123!';
+    fireEvent.change(newPasswordInput, { target: { value: validPassword } });
+    fireEvent.change(confirmPasswordInput, { target: { value: validPassword } });
     await user.click(submitButton);
 
-    // Wait for success state
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: /password reset successful/i })).toBeInTheDocument();
-    }, { timeout: 2000 });
+    }, { timeout: 3000 });
 
-    // Check for navigation button
     const loginButton = screen.getByRole('button', { name: /go to login/i });
     expect(loginButton).toBeInTheDocument();
-    
+
     await user.click(loginButton);
     expect(mockNavigate).toHaveBeenCalledWith('/login');
   });
@@ -295,9 +291,8 @@ describe('ResetPasswordPage', () => {
   });
 
   test('clears password error when user starts typing', async () => {
-    const user = userEvent.setup();
     mockSearchParams.set('token', 'valid-reset-token-123');
-    
+
     renderWithProviders(<ResetPasswordPage />, {
       initialRoute: '/reset-password?token=valid-reset-token-123',
     });
@@ -306,21 +301,18 @@ describe('ResetPasswordPage', () => {
     const confirmPasswordInput = screen.getByLabelText(/confirm password/i);
     const form = newPasswordInput.closest('form');
 
-    // Trigger validation error
-    await user.type(newPasswordInput, 'short');
-    await user.type(confirmPasswordInput, 'short');
+    fireEvent.change(newPasswordInput, { target: { value: 'short' } });
+    fireEvent.change(confirmPasswordInput, { target: { value: 'short' } });
     fireEvent.submit(form);
 
     await waitFor(() => {
-      expect(screen.getByText(/password must be at least 8 characters long/i)).toBeInTheDocument();
+      expect(screen.getByText(/your password needs at least 8 characters/i)).toBeInTheDocument();
     });
 
-    // Start typing in new password field - should clear error
-    await user.clear(newPasswordInput);
-    await user.type(newPasswordInput, 'new');
+    fireEvent.change(newPasswordInput, { target: { value: 'new' } });
 
     await waitFor(() => {
-      expect(screen.queryByText(/password must be at least 8 characters long/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/your password needs at least 8 characters/i)).not.toBeInTheDocument();
     });
   });
 

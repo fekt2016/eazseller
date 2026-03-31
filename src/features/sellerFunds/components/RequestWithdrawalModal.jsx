@@ -247,9 +247,9 @@ const ModalContainer = styled(motion.form)`
   transform: translate(-50%, -50%);
   width: 90%;
   max-width: 500px;
-  background: var(--color-white-0);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-xl);
+  background: #FFFFFF;
+  border-radius: 12px;
+  
   z-index: 1001;
   display: flex;
   flex-direction: column;
@@ -266,46 +266,46 @@ const ModalHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-lg);
-  border-bottom: 1px solid var(--color-grey-200);
-  background: var(--color-grey-50);
+  padding: 1rem;
+  border-bottom: 1px solid #F1EFE8;
+  background: #F9F8F5;
 `;
 
 const ModalTitle = styled.h2`
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
+  gap: 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
   margin: 0;
 
   svg {
-    color: var(--color-primary-500);
+    color: #E8920A;
   }
 `;
 
 const CloseButton = styled.button`
   background: none;
   border: none;
-  font-size: var(--font-size-lg);
-  color: var(--color-grey-600);
+  font-size: 1.1rem;
+  color: #6B7280;
   cursor: pointer;
-  padding: var(--spacing-xs);
+  padding: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--border-radius-md);
-  transition: all var(--transition-base);
+  border-radius: 9px;
+  transition: all 0.12s;
 
   &:hover {
-    background: var(--color-grey-200);
-    color: var(--color-grey-900);
+    background: #F1EFE8;
+    color: #111827;
   }
 `;
 
 const ModalContent = styled.div`
-  padding: var(--spacing-lg);
+  padding: 1rem;
   overflow-y: auto;
   flex: 1;
 `;
@@ -314,71 +314,71 @@ const BalanceInfo = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-md);
-  background: var(--color-primary-50);
-  border-radius: var(--border-radius-md);
-  margin-bottom: var(--spacing-lg);
-  border: 1px solid var(--color-primary-200);
+  padding: 1rem;
+  background: #FFFDF9;
+  border-radius: 9px;
+  margin-bottom: 1rem;
+  border: 1px solid #FDE68A;
 `;
 
 const BalanceLabel = styled.span`
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-semibold);
-  color: var(--color-primary-700);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #D97706;
 `;
 
 const BalanceAmount = styled.span`
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-bold);
-  color: var(--color-primary-700);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #D97706;
 `;
 
 const FormGroup = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
-  margin-bottom: var(--spacing-md);
+  gap: 1rem;
+  margin-bottom: 1rem;
 `;
 
 const FormLabel = styled.label`
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-700);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
 `;
 
 const Required = styled.span`
-  color: var(--color-red-600);
+  color: #A32D2D;
 `;
 
 const ErrorText = styled.span`
-  font-size: var(--font-size-xs);
-  color: var(--color-red-600);
-  margin-top: calc(var(--spacing-xs) * -1);
+  font-size: 0.8rem;
+  color: #A32D2D;
+  margin-top: calc(1rem * -1);
 `;
 
 const HelperText = styled.span`
-  font-size: var(--font-size-xs);
-  color: var(--color-grey-600);
-  margin-top: calc(var(--spacing-xs) * -1);
+  font-size: 0.8rem;
+  color: #6B7280;
+  margin-top: calc(1rem * -1);
 `;
 
 const InfoMessage = styled.div`
-  padding: var(--spacing-md);
-  background: var(--color-blue-50);
-  border: 1px solid var(--color-blue-200);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-sm);
-  color: var(--color-blue-800);
-  margin-bottom: var(--spacing-md);
+  padding: 1rem;
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 9px;
+  font-size: 0.875rem;
+  color: #1E40AF;
+  margin-bottom: 1rem;
 `;
 
 const ModalFooter = styled.div`
   display: flex;
   justify-content: flex-end;
-  gap: var(--spacing-md);
-  padding: var(--spacing-lg);
-  border-top: 1px solid var(--color-grey-200);
-  background: var(--color-grey-50);
+  gap: 1rem;
+  padding: 1rem;
+  border-top: 1px solid #F1EFE8;
+  background: #F9F8F5;
 
   @media (max-width: 768px) {
     flex-direction: column-reverse;
@@ -391,51 +391,51 @@ const ModalFooter = styled.div`
 
 const StyledInput = styled.input`
   width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid ${props => props.$hasError ? 'var(--color-red-500)' : 'var(--color-grey-300)'};
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-md);
-  font-family: var(--font-body);
-  color: var(--color-grey-900);
-  background-color: var(--color-white-0);
-  transition: all var(--transition-base);
+  padding: 1rem 1rem;
+  border: 1px solid ${props => props.$hasError ? '#EF4444' : '#E5E7EB'};
+  border-radius: 9px;
+  font-size: 0.9rem;
+  
+  color: #111827;
+  background-color: #FFFFFF;
+  transition: all 0.12s;
 
   &:focus {
     outline: none;
-    border-color: ${props => props.$hasError ? 'var(--color-red-500)' : 'var(--color-primary-500)'};
-    box-shadow: 0 0 0 3px ${props => props.$hasError ? 'var(--color-red-100)' : 'var(--color-primary-100)'};
+    border-color: ${props => props.$hasError ? '#EF4444' : '#E8920A'};
+    box-shadow: 0 0 0 3px ${props => props.$hasError ? '#FCEBEB' : '#FEF3C7'};
   }
 
   &:disabled {
-    background-color: var(--color-grey-100);
+    background-color: #F9F8F5;
     cursor: not-allowed;
     opacity: 0.6;
   }
 
   &::placeholder {
-    color: var(--color-grey-400);
+    color: #D1D5DB;
   }
 `;
 
 const StyledSelect = styled.select`
   width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid var(--color-grey-300);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-md);
-  font-family: var(--font-body);
-  color: var(--color-grey-900);
-  background-color: var(--color-white-0);
-  transition: all var(--transition-base);
+  padding: 1rem 1rem;
+  border: 1px solid #E5E7EB;
+  border-radius: 9px;
+  font-size: 0.9rem;
+  
+  color: #111827;
+  background-color: #FFFFFF;
+  transition: all 0.12s;
 
   &:focus {
     outline: none;
-    border-color: var(--color-primary-500);
-    box-shadow: 0 0 0 3px var(--color-primary-100);
+    border-color: #E8920A;
+    box-shadow: 0 0 0 3px #FEF3C7;
   }
 
   &:disabled {
-    background-color: var(--color-grey-100);
+    background-color: #F9F8F5;
     cursor: not-allowed;
     opacity: 0.6;
   }

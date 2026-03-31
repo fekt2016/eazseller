@@ -198,21 +198,21 @@ export default SellerReturnAndFundsPage;
 
 // Styled Components
 const FilterSection = styled.div`
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: 1rem;
 `;
 
 const FilterCard = styled.div`
-  background: var(--color-white-0);
-  border-radius: var(--border-radius-lg);
-  padding: var(--spacing-md);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--color-grey-200);
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 1rem;
+  
+  border: 1px solid #F1EFE8;
 `;
 
 const FilterGroup = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: 1rem;
   flex-wrap: wrap;
 
   @media (max-width: 768px) {
@@ -224,36 +224,36 @@ const FilterGroup = styled.div`
 const FilterLabel = styled.label`
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-700);
+  gap: 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
   white-space: nowrap;
 
   svg {
-    color: var(--color-primary-500);
+    color: #E8920A;
   }
 `;
 
 const FilterSelect = styled.select`
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid var(--color-grey-300);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-900);
-  background-color: var(--color-white-0);
+  padding: 1rem 1rem;
+  border: 1px solid #E5E7EB;
+  border-radius: 9px;
+  font-size: 0.875rem;
+  color: #111827;
+  background-color: #FFFFFF;
   min-width: 200px;
-  transition: all var(--transition-base);
+  transition: all 0.12s;
   cursor: pointer;
 
   &:focus {
     outline: none;
-    border-color: var(--color-primary-500);
-    box-shadow: 0 0 0 3px var(--color-primary-100);
+    border-color: #E8920A;
+    box-shadow: 0 0 0 3px #FEF3C7;
   }
 
   &:hover {
-    border-color: var(--color-grey-400);
+    border-color: #D1D5DB;
   }
 
   @media (max-width: 768px) {

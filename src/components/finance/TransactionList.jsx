@@ -8,134 +8,98 @@ import {
   getTransactionIconType,
   isCreditTransaction,
 } from '../../shared/utils/formatTransaction';
-import { FaArrowDown, FaArrowUp } from 'react-icons/fa';
-import { LoadingState, EmptyState } from '../../shared/components/ui/LoadingComponents';
+import { FaArrowDown, FaArrowUp, FaExchangeAlt } from 'react-icons/fa';
+import { SkeletonTableRows, EmptyState } from '../../shared/components/ui/LoadingComponents';
 import { PATHS } from '../../routes/routePaths';
-import { devicesMax } from '../../shared/styles/breakpoint';
 
 const ListContainer = styled.div`
-  background: var(--color-white-0);
-  border-radius: var(--border-radius-lg);
-  padding: var(--spacing-lg);
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--color-grey-200);
-  
-  @media ${devicesMax.sm} {
-    padding: var(--spacing-md);
-  }
+  background: #FFFFFF;
+  border: 0.5px solid #F1EFE8;
+  border-radius: 12px;
+  overflow: hidden;
 `;
 
 const ListHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--spacing-lg);
-  padding-bottom: var(--spacing-md);
-  border-bottom: 1px solid var(--color-grey-200);
+  padding: 0.85rem 1.1rem;
+  border-bottom: 0.5px solid #F1EFE8;
 `;
 
 const Title = styled.h3`
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
-  font-family: var(--font-heading);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
 `;
 
 const ViewAllLink = styled(Link)`
-  font-size: var(--font-size-sm);
-  color: var(--color-primary-500);
+  font-size: 0.775rem;
+  color: #E8920A;
   text-decoration: none;
-  font-weight: var(--font-semibold);
-  font-family: var(--font-body);
-  transition: color var(--transition-base);
-  
-  &:hover {
-    color: var(--color-primary-600);
-    text-decoration: underline;
-  }
+  font-weight: 500;
+
+  &:hover { text-decoration: underline; }
 `;
 
 const TransactionsList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
 `;
 
 const TransactionItem = styled.div`
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-md);
-  border: 1px solid var(--color-grey-200);
-  border-radius: var(--border-radius-md);
-  background: var(--color-grey-50);
-  transition: all var(--transition-base);
-  
-  &:hover {
-    background: var(--color-white-0);
-    box-shadow: var(--shadow-sm);
-  }
-  
-  @media ${devicesMax.sm} {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--spacing-sm);
-  }
+  gap: 0.85rem;
+  padding: 0.8rem 1.1rem;
+  border-bottom: 0.5px solid #F1EFE8;
+  cursor: pointer;
+  transition: background 0.12s;
+
+  &:last-child { border-bottom: none; }
+  &:hover { background: #FFFDF9; }
 `;
 
-const TransactionInfo = styled.div`
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  flex: 1;
-  
-  @media ${devicesMax.sm} {
-    width: 100%;
-  }
-`;
-
-const IconWrapper = styled.div`
-  width: 3.2rem;
-  height: 3.2rem;
-  border-radius: 50%;
+const IconWrap = styled.div`
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: ${({ $type }) => 
-    $type === 'credit' ? 'var(--color-green-100)' : 'var(--color-red-100)'};
-  color: ${({ $type }) => 
-    $type === 'credit' ? 'var(--color-green-700)' : 'var(--color-red-700)'};
+  font-size: 0.75rem;
+  flex-shrink: 0;
+  background: ${({ $type }) => $type === 'credit' ? '#DCFCE7' : '#FEE2E2'};
+  color: ${({ $type }) => $type === 'credit' ? '#15803D' : '#B91C1C'};
 `;
 
-const TransactionDetails = styled.div`
+const TxDetails = styled.div`
   flex: 1;
+  min-width: 0;
 `;
 
-const TransactionDescription = styled.div`
-  font-size: var(--font-size-base);
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
-  margin-bottom: var(--spacing-xs);
-  font-family: var(--font-body);
+const TxDescription = styled.div`
+  font-size: 0.825rem;
+  font-weight: 500;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
-const TransactionDate = styled.div`
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-600);
-  font-family: var(--font-body);
+const TxDate = styled.div`
+  font-size: 0.75rem;
+  color: #9CA3AF;
+  margin-top: 0.1rem;
 `;
 
-const TransactionAmount = styled.div`
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-bold);
-  color: ${({ $type }) => 
-    $type === 'credit' ? 'var(--color-green-700)' : 'var(--color-red-700)'};
-  font-family: var(--font-heading);
-  
-  @media ${devicesMax.sm} {
-    width: 100%;
-    text-align: right;
-  }
+const TxAmount = styled.div`
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: ${({ $type }) => $type === 'credit' ? '#15803D' : '#B91C1C'};
+  white-space: nowrap;
+  flex-shrink: 0;
 `;
 
 const TransactionList = ({ limit = 5 }) => {
@@ -147,32 +111,16 @@ const TransactionList = ({ limit = 5 }) => {
   }, [transactionsData]);
 
   if (isLoading) {
-    return (
-      <ListContainer>
-        <LoadingState message="Loading transactions..." />
-      </ListContainer>
-    );
+    return <SkeletonTableRows count={5} />;
   }
 
-  if (error) {
-    return (
-      <ListContainer>
-        <EmptyState>
-          <p>Failed to load transactions</p>
-        </EmptyState>
-      </ListContainer>
-    );
-  }
-
-  if (!transactions || transactions.length === 0) {
+  if (error || !transactions || transactions.length === 0) {
     return (
       <ListContainer>
         <ListHeader>
           <Title>Recent Transactions</Title>
         </ListHeader>
-        <EmptyState>
-          <p>No transactions yet</p>
-        </EmptyState>
+        <EmptyState message="No transactions yet" />
       </ListContainer>
     );
   }
@@ -181,40 +129,33 @@ const TransactionList = ({ limit = 5 }) => {
     <ListContainer>
       <ListHeader>
         <Title>Recent Transactions</Title>
-        <ViewAllLink to={PATHS.TRANSACTIONS}>View All →</ViewAllLink>
+        <ViewAllLink to={PATHS.TRANSACTIONS}>View all →</ViewAllLink>
       </ListHeader>
       <TransactionsList>
         {transactions.slice(0, limit).map((transaction) => {
           const iconType = getTransactionIconType(transaction);
           const isCredit = isCreditTransaction(transaction);
-          
+          const transactionId = transaction._id || transaction.id;
+
           return (
-            <TransactionItem 
-              key={transaction._id || transaction.id}
-              onClick={() => {
-                const transactionId = transaction._id || transaction.id;
-                if (transactionId) {
-                  navigate(`${PATHS.TRANSACTIONS}/${transactionId}`);
-                }
-              }}
-              style={{ cursor: 'pointer' }}
+            <TransactionItem
+              key={transactionId}
+              onClick={() => transactionId && navigate(`${PATHS.TRANSACTIONS}/${transactionId}`, { state: { transaction } })}
             >
-              <TransactionInfo>
-                <IconWrapper $type={iconType}>
-                  {isCredit ? <FaArrowUp /> : <FaArrowDown />}
-                </IconWrapper>
-                <TransactionDetails>
-                  <TransactionDescription>
-                    {transaction.description || transaction.reason || 'Transaction'}
-                  </TransactionDescription>
-                  <TransactionDate>
-                    {formatTransactionDateShort(transaction.createdAt || transaction.date)}
-                  </TransactionDate>
-                </TransactionDetails>
-              </TransactionInfo>
-              <TransactionAmount $type={iconType}>
+              <IconWrap $type={iconType}>
+                {isCredit ? <FaArrowUp /> : <FaArrowDown />}
+              </IconWrap>
+              <TxDetails>
+                <TxDescription>
+                  {transaction.description || transaction.reason || 'Transaction'}
+                </TxDescription>
+                <TxDate>
+                  {formatTransactionDateShort(transaction.createdAt || transaction.date)}
+                </TxDate>
+              </TxDetails>
+              <TxAmount $type={iconType}>
                 {formatTransactionAmount(transaction)}
-              </TransactionAmount>
+              </TxAmount>
             </TransactionItem>
           );
         })}
@@ -224,4 +165,3 @@ const TransactionList = ({ limit = 5 }) => {
 };
 
 export default TransactionList;
-

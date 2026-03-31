@@ -15,39 +15,39 @@ import { devicesMax } from '../../../shared/styles/breakpoint';
 
 const Row = styled.tr`
   cursor: pointer;
-  transition: all var(--transition-base);
-  border-bottom: 1px solid var(--color-grey-200);
+  transition: all 0.12s;
+  border-bottom: 1px solid #F1EFE8;
   
   &:hover {
-    background: var(--color-grey-50);
+    background: #F9F8F5;
   }
   
   @media ${devicesMax.sm} {
     display: block;
-    margin-bottom: var(--spacing-md);
-    border: 1px solid var(--color-grey-200);
-    border-radius: var(--border-radius-md);
-    padding: var(--spacing-md);
-    background: var(--color-white-0);
+    margin-bottom: 1rem;
+    border: 1px solid #F1EFE8;
+    border-radius: 9px;
+    padding: 1rem;
+    background: #FFFFFF;
   }
 `;
 
 const Cell = styled.td`
-  padding: var(--spacing-md);
-  font-size: var(--font-size-base);
-  font-family: var(--font-body);
-  color: var(--color-grey-700);
+  padding: 1rem;
+  font-size: 1rem;
+  
+  color: #374151;
   
   @media ${devicesMax.sm} {
     display: block;
-    padding: var(--spacing-xs) 0;
+    padding: 1rem 0;
     border: none;
     
     &::before {
       content: attr(data-label) ': ';
-      font-weight: var(--font-semibold);
-      color: var(--color-grey-600);
-      margin-right: var(--spacing-xs);
+      font-weight: 600;
+      color: #6B7280;
+      margin-right: 1rem;
     }
   }
 `;
@@ -59,7 +59,7 @@ const IconCell = styled(Cell)`
     width: 100%;
     display: flex;
     align-items: center;
-    gap: var(--spacing-sm);
+    gap: 1rem;
   }
 `;
 
@@ -70,15 +70,15 @@ const IconWrapper = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  background: ${({ $type }) => 
-    $type === 'credit' ? 'var(--color-green-100)' : 'var(--color-red-100)'};
-  color: ${({ $type }) => 
-    $type === 'credit' ? 'var(--color-green-700)' : 'var(--color-red-700)'};
+  background: ${({ $type }) =>
+    $type === 'credit' ? '#DCFCE7' : '#FEE2E2'};
+  color: ${({ $type }) =>
+    $type === 'credit' ? '#15803D' : '#B91C1C'};
 `;
 
 const DescriptionCell = styled(Cell)`
-  font-weight: var(--font-semibold);
-  color: var(--color-grey-900);
+  font-weight: 600;
+  color: #111827;
   max-width: 300px;
   
   @media ${devicesMax.sm} {
@@ -87,10 +87,10 @@ const DescriptionCell = styled(Cell)`
 `;
 
 const AmountCell = styled(Cell)`
-  font-weight: var(--font-bold);
-  font-family: var(--font-heading);
+  font-weight: 700;
+  
   color: ${({ $type }) => 
-    $type === 'credit' ? 'var(--color-green-700)' : 'var(--color-red-700)'};
+    $type === 'credit' ? '#3B6D11' : '#A32D2D'};
   text-align: right;
   
   @media ${devicesMax.sm} {
@@ -99,8 +99,8 @@ const AmountCell = styled(Cell)`
 `;
 
 const ReferenceCell = styled(Cell)`
-  font-size: var(--font-size-sm);
-  color: var(--color-grey-600);
+  font-size: 0.875rem;
+  color: #6B7280;
 `;
 
 const TransactionRow = ({ transaction, onClick }) => {
@@ -120,7 +120,7 @@ const TransactionRow = ({ transaction, onClick }) => {
     if (onClick) {
       onClick(transaction);
     } else if (transactionId) {
-      navigate(`${PATHS.TRANSACTIONS}/${transactionId}`);
+      navigate(`${PATHS.TRANSACTIONS}/${transactionId}`, { state: { transaction } });
     }
   };
 
@@ -148,7 +148,7 @@ const TransactionRow = ({ transaction, onClick }) => {
           <Link 
             to={`/dashboard/orders/${transaction.sellerOrder?.order?._id || transaction.orderId}`}
             onClick={(e) => e.stopPropagation()}
-            style={{ color: 'var(--color-primary-500)', textDecoration: 'none' }}
+            style={{ color: '#E8920A', textDecoration: 'none' }}
           >
             {orderRef}
           </Link>
@@ -157,7 +157,7 @@ const TransactionRow = ({ transaction, onClick }) => {
           <Link 
             to={`/dashboard/finance/withdrawals`}
             onClick={(e) => e.stopPropagation()}
-            style={{ color: 'var(--color-primary-500)', textDecoration: 'none' }}
+            style={{ color: '#E8920A', textDecoration: 'none' }}
           >
             #{withdrawalRef}
           </Link>

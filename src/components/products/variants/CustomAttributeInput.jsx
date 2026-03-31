@@ -70,65 +70,65 @@ export default function CustomAttributeInput({
 const Container = styled.div`
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: 1rem;
 `;
 
 const InputGroup = styled.div`
   display: flex;
-  gap: var(--spacing-sm);
+  gap: 1rem;
   align-items: stretch;
 `;
 
 const Input = styled.input`
   flex: 1;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border: 1px solid var(--color-grey-300);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-md);
-  font-family: var(--font-body);
-  color: var(--color-grey-900);
-  transition: var(--transition-base);
+  padding: 1rem 1rem;
+  border: 1px solid #E5E7EB;
+  border-radius: 9px;
+  font-size: 0.9rem;
+  
+  color: #111827;
+  transition: 0.12s;
 
   &:focus {
     outline: none;
-    border-color: var(--color-primary-500);
-    box-shadow: 0 0 0 3px var(--color-primary-100);
+    border-color: #E8920A;
+    box-shadow: 0 0 0 3px #E8920A;
   }
 
   &:hover {
-    border-color: var(--color-grey-400);
+    border-color: #D1D5DB;
   }
 `;
 
 const AttributesList = styled.div`
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-xs);
-  margin-top: var(--spacing-xs);
+  gap: 1rem;
+  margin-top: 1rem;
 `;
 
 const AttributeTag = styled.div`
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  background: var(--color-grey-100);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-sm);
-  font-family: var(--font-body);
+  gap: 1rem;
+  padding: 1rem 1rem;
+  background: #F9F8F5;
+  border-radius: 9px;
+  font-size: 0.875rem;
+  
 `;
 
 const AttributeName = styled.span`
-  color: var(--color-grey-700);
-  font-weight: var(--font-medium);
+  color: #374151;
+  font-weight: 500;
 `;
 
 const RemoveButton = styled.button`
   background: none;
   border: none;
-  color: var(--color-red-600);
+  color: #A32D2D;
   cursor: pointer;
-  font-size: var(--font-size-sm);
+  font-size: 0.875rem;
   line-height: 1;
   padding: 0;
   width: 18px;
@@ -136,12 +136,12 @@ const RemoveButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--border-radius-cir);
-  transition: var(--transition-base);
+  border-radius: 50%;
+  transition: 0.12s;
 
   &:hover {
-    background: var(--color-red-100);
-    color: var(--color-red-700);
+    background: #A32D2D;
+    color: #A32D2D;
   }
 `;
 
