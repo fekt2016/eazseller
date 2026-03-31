@@ -462,7 +462,16 @@ const useAuth = () => {
    */
   const requestPasswordReset = useMutation({
     mutationFn: async (email) => {
-      const response = await authApi.requestPasswordReset(email);
+      const requestResetFn =
+        typeof authApi.requestPasswordReset === 'function'
+          ? authApi.requestPasswordReset
+          : authApi.forgotPassword;
+
+      if (typeof requestResetFn !== 'function') {
+        throw new Error('Password reset API is not available');
+      }
+
+      const response = await requestResetFn(email);
       return response;
     },
     onSuccess: (data) => {

@@ -4,6 +4,7 @@ import styled, { keyframes } from "styled-components";
 import { PropagateLoader } from "react-spinners";
 import { toast } from 'react-toastify';
 import useAuth from '../../shared/hooks/useAuth';
+import authApi from './authApi';
 import logger from '../../shared/utils/logger';
 import Logo from '../../shared/components/Logo';
 
@@ -46,7 +47,11 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const { requestPasswordReset } = useAuth();
-  const { mutateAsync: requestReset, isPending, error } = requestPasswordReset;
+  const requestReset =
+    requestPasswordReset?.mutateAsync ||
+    authApi.requestPasswordReset;
+  const isPending = !!requestPasswordReset?.isPending;
+  const error = requestPasswordReset?.error;
 
   const handleSubmit = async (e) => {
     e.preventDefault();

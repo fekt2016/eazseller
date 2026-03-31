@@ -116,7 +116,7 @@ const normalizedBaseURL = baseURL.endsWith('/') ? baseURL.slice(0, -1) : baseURL
 const api = axios.create({
   baseURL: normalizedBaseURL,
   withCredentials: true, // CRITICAL: Required for cookie-based authentication
-  timeout: 15000, // 15 seconds - if backend doesn't respond, increasing timeout won't help
+  timeout: 30000, // 30 seconds default to reduce false timeouts on cold/slow networks
   headers: {
     'Content-Type': 'application/json', // Explicitly set JSON content type
   },
@@ -285,7 +285,7 @@ api.interceptors.request.use((config) => {
   ];
   const isAuthPath = AUTH_PATHS.some((path) => config.url?.includes(path));
   if (isAuthPath) {
-    config.timeout = 30000; // 30s for auth
+    config.timeout = 45000; // Auth can be slower in production (cookie/csrf/session work)
   }
 
   // Category catalog can be large (limit 1000 + populate); cold DB / slow links exceed default 15s
@@ -332,11 +332,14 @@ api.interceptors.response.use(
         code: error.code,
       });
 
-      // Create a more user-friendly error
+      // Create a user-friendly error while preserving original axios context
       const timeoutError = new Error(timeoutMessage);
       timeoutError.code = 'ECONNABORTED';
       timeoutError.isTimeout = true;
       timeoutError.url = error.config?.url;
+      timeoutError.status = error.response?.status;
+      timeoutError.data = error.response?.data;
+      timeoutError.originalError = error;
       return Promise.reject(timeoutError);
     }
 

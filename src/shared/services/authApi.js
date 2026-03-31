@@ -113,9 +113,43 @@ const authApi = {
     });
   },
   
+  // Unified email-only password reset API (used by shared useAuth hook)
+  requestPasswordReset: async (email) => {
+    const response = await api.post("/seller/forgot-password", { email });
+    return response.data;
+  },
+
+  resetPasswordWithToken: async (token, newPassword, confirmPassword) => {
+    const response = await api.post("/seller/reset-password", {
+      token,
+      newPassword,
+      confirmPassword,
+    });
+    return response.data;
+  },
+
+  // Legacy endpoints (kept for backward compatibility)
   forgotPassword: (email) => api.post("/seller/forgot-password", { email }),
   resetPassword: ({ token, password }) =>
     api.post(`/seller/reset-password/${token}`, { password }),
+
+  // Legacy OTP-based password reset methods (used by deprecated hook paths)
+  sendPasswordResetOtp: async (loginId) => {
+    const response = await api.post("/seller/forgot-password", { loginId });
+    return response.data;
+  },
+
+  verifyPasswordResetOtp: async (loginId, otp) => {
+    const response = await api.post("/seller/verify-reset-otp", { loginId, otp });
+    return response.data;
+  },
+
+  resetPasswordWithOtp: async (loginId, newPassword, resetToken = null) => {
+    const payload = { loginId, newPassword };
+    if (resetToken) payload.resetToken = resetToken;
+    const response = await api.post("/seller/reset-password", payload);
+    return response.data;
+  },
 
   /** Seller settings: set own account status to deactive. Only 'deactive' is allowed. */
   updateMyStatus: async (status) => {
