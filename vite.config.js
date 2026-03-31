@@ -35,7 +35,7 @@ export default defineConfig({
           ],
           // Icons — large, loaded everywhere but
           // separating allows better caching
-          'vendor-icons': [
+          'react-icons': [
             'react-icons',
           ],
         },
