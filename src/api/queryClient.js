@@ -26,6 +26,8 @@ const queryClient = new QueryClient({
                 if (error?.response?.status === 401) return false;
                 if (error?.response?.status === 403) return false;
                 if (error?.response?.status === 404) return false;
+                // Never retry rate-limited requests; retries amplify 429 storms.
+                if (error?.response?.status === 429) return false;
                 // Retry network errors up to 2 times
                 return failureCount < 2;
             },
