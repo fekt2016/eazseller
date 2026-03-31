@@ -33,11 +33,8 @@ export default defineConfig({
           'vendor-motion': [
             'framer-motion',
           ],
-          // Icons — large, loaded everywhere but 
+          // Icons — large, loaded everywhere but
           // separating allows better caching
-          'vendor-icons': [
-            'react-icons',
-          ],
           'vendor-icons': [
             'react-icons',
           ],
