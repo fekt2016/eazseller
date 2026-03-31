@@ -340,6 +340,7 @@ const SetupPage = () => {
             </NextStepCard>
           </NextStepsGrid>
         </NextStepsSection>
+      )}
 
 
       {/* Action Buttons */}
