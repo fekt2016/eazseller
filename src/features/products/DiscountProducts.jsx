@@ -73,8 +73,9 @@ export const SellerDiscountPage = () => {
 
   const { seller } = useAuth();
   const { useGetAllProductBySeller } = useProduct();
-  const { data: productData } = useGetAllProductBySeller(seller?.id, {
-    enabled: !!seller?.id,
+  const sellerId = seller?.id || seller?._id;
+  const { data: productData } = useGetAllProductBySeller(sellerId, {
+    enabled: !!sellerId,
   });
 
   const { data: discountData } = useGetsellerDiscount();
@@ -87,15 +88,25 @@ export const SellerDiscountPage = () => {
     [discountData]
   );
 
-  const sellerProducts = useMemo(
-    () => productData?.data?.data || [],
-    [productData]
-  );
+  const sellerProducts = useMemo(() => {
+    const payload = productData?.data || productData;
+    const candidates = [
+      payload?.data,
+      payload?.products,
+      payload?.data?.products,
+      payload?.items,
+    ];
+    for (const value of candidates) {
+      if (Array.isArray(value)) return value;
+    }
+    return [];
+  }, [productData]);
   const sellerCategories = useMemo(() => {
     const categoryMap = {};
     sellerProducts.forEach((product) => {
-      if (product.parentCategory?._id) {
-        const { _id, name } = product.parentCategory;
+      const category = product.parentCategory || product.category;
+      if (category?._id) {
+        const { _id, name } = category;
         if (!categoryMap[_id]) categoryMap[_id] = { _id, name };
       }
     });
@@ -106,7 +117,9 @@ export const SellerDiscountPage = () => {
     () =>
       selectedCategory
         ? sellerProducts.filter(
-          (p) => p.parentCategory?._id === selectedCategory?._id
+          (p) =>
+            (p.parentCategory?._id || p.category?._id) ===
+            selectedCategory?._id
         )
         : [],
     [selectedCategory, sellerProducts]

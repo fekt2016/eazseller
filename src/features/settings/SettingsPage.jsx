@@ -65,8 +65,9 @@ const SettingsPage = () => {
         {/* Sidebar */}
         <Sidebar>
           <SidebarHeader>
-            <BackBtn onClick={() => navigate(PATHS.DASHBOARD)} aria-label="Back">
+            <BackBtn onClick={() => navigate(PATHS.DASHBOARD)} aria-label="Back to Dashboard">
               <FaArrowLeft size={11} />
+              <span>Back</span>
             </BackBtn>
             <div>
               <SidebarTitle>Settings</SidebarTitle>
@@ -147,8 +148,9 @@ const SidebarHeader = styled.div`
 `;
 
 const BackBtn = styled.button`
-  width: 28px;
+  min-width: 28px;
   height: 28px;
+  padding: 0 0.5rem;
   border-radius: 7px;
   border: 0.5px solid #F1EFE8;
   background: #F9F8F5;
@@ -156,9 +158,12 @@ const BackBtn = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 0.35rem;
   cursor: pointer;
   flex-shrink: 0;
   transition: all 0.12s;
+  font-size: 0.75rem;
+  font-weight: 600;
 
   &:hover { border-color: #E8920A; color: #E8920A; background: #FDF3E3; }
 `;

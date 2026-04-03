@@ -759,7 +759,16 @@ export const TestimonialGrid = styled.div`
 `;
 
 export const TestimonialCard = styled(motion.div)`
-  background: #fafbfc;
+  background: ${({ $bgImage, $fallbackBg }) =>
+    $bgImage
+      ? `linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.95) 0%,
+          rgba(255, 255, 255, 0.88) 100%
+        ), url(${$bgImage})`
+      : $fallbackBg || '#fafbfc'};
+  background-size: cover;
+  background-position: center;
   border-radius: 20px;
   padding: 32px;
   border: 1px solid #f1f5f9;

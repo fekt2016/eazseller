@@ -71,9 +71,9 @@ const seoConfig = {
   // Update Product
   // ────────────────────────────────────────────────
   updateProduct: {
-    title: 'Update Product - Seller Dashboard | Saysay',
+    title: 'Update Product - Seller Dashboard | Saiisai',
     description: 'Update your product information',
-    keywords: 'update product, seller, Saysay',
+    keywords: 'update product, seller, Saiisai',
     image: DEFAULT_IMAGE,
     type: 'website',
     canonical: `${BASE_URL}/products/edit`,
@@ -85,9 +85,9 @@ const seoConfig = {
   // Messages
   // ────────────────────────────────────────────────
   messages: {
-    title: 'Messages - Seller Dashboard | Saysay',
+    title: 'Messages - Seller Dashboard | Saiisai',
     description: 'Manage customer messages and inquiries',
-    keywords: 'messages, seller, Saysay',
+    keywords: 'messages, seller, Saiisai',
     image: DEFAULT_IMAGE,
     type: 'website',
     canonical: `${BASE_URL}/messages`,
@@ -99,9 +99,9 @@ const seoConfig = {
   // Finance
   // ────────────────────────────────────────────────
   finance: {
-    title: 'Finance - Seller Dashboard | Saysay',
+    title: 'Finance - Seller Dashboard | Saiisai',
     description: 'View your earnings and financial reports',
-    keywords: 'finance, earnings, seller, Saysay',
+    keywords: 'finance, earnings, seller, Saiisai',
     image: DEFAULT_IMAGE,
     type: 'website',
     canonical: `${BASE_URL}/finance`,
@@ -113,9 +113,9 @@ const seoConfig = {
   // Settings
   // ────────────────────────────────────────────────
   settings: {
-    title: 'Settings - Seller Dashboard | Saysay',
+    title: 'Settings - Seller Dashboard | Saiisai',
     description: 'Manage your seller account settings',
-    keywords: 'settings, seller, Saysay',
+    keywords: 'settings, seller, Saiisai',
     image: DEFAULT_IMAGE,
     type: 'website',
     canonical: `${BASE_URL}/settings`,

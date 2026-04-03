@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import authApi from '../services/authApi';
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 // SECURITY: Cookie-only authentication - no token storage
 // Tokens are in HTTP-only cookies set by backend
@@ -107,18 +108,19 @@ const useAuth = () => {
   // CRITICAL: Verify the user is actually a seller, not a buyer
   // Accept both 'seller' and 'official_store' (platform store) as valid seller roles
   const isSellerRole = seller?.role === 'seller' || seller?.role === 'official_store';
-  let validSeller = seller;
-  if (seller && seller.role && !isSellerRole) {
-    console.error("[useAuth] SECURITY: Non-seller user detected in seller app", {
-      role: seller.role,
-      email: seller.email,
-      phone: seller.phone,
-    });
-    // Clear the invalid auth data
-    queryClient.setQueryData(["sellerAuth"], null);
-    // Set seller to null to trigger ProtectedRoute redirect
-    validSeller = null;
-  }
+  const validSeller = seller && seller.role && !isSellerRole ? null : seller;
+
+  useEffect(() => {
+    if (seller && seller.role && !isSellerRole) {
+      console.error("[useAuth] SECURITY: Non-seller user detected in seller app", {
+        role: seller.role,
+        email: seller.email,
+        phone: seller.phone,
+      });
+      // Avoid render-phase cache updates that can trigger rerender loops.
+      queryClient.setQueryData(["sellerAuth"], null);
+    }
+  }, [queryClient, seller, isSellerRole]);
 
   const isAuthenticated = !!validSeller && !sellerError;
 

@@ -37,6 +37,16 @@ const ProtectedRoutes = ({ children, allowPending = false }) => {
     }
   }, [isLoading, seller, error]);
 
+  const isSellerRole = seller?.role === 'seller' || seller?.role === 'official_store';
+  const hasInvalidRole = !!seller && !isSellerRole;
+
+  useEffect(() => {
+    if (hasInvalidRole) {
+      // Avoid cache mutation during render; clear stale auth after paint.
+      queryClient.setQueryData(["sellerAuth"], null);
+    }
+  }, [hasInvalidRole, queryClient]);
+
   // IMPORTANT: Don't redirect during mutations/API calls
   // Only check auth state when component first mounts or auth state changes
   // This prevents redirects during OTP verification or other mutations
@@ -88,7 +98,6 @@ const ProtectedRoutes = ({ children, allowPending = false }) => {
   }
 
   // Double-check role - reject buyers; allow both 'seller' and 'official_store' (platform store)
-  const isSellerRole = seller.role === 'seller' || seller.role === 'official_store';
   if (!isSellerRole) {
     if (import.meta.env.DEV) {
       console.error("[ProtectedRoute] SECURITY: Buyer detected in seller app - redirecting to login", {
@@ -98,9 +107,6 @@ const ProtectedRoutes = ({ children, allowPending = false }) => {
         phone: seller?.phone,
       });
     }
-
-    // Clear any stale auth data
-    queryClient.setQueryData(["sellerAuth"], null);
 
     return <Navigate to={PATHS.LOGIN} replace />;
   }

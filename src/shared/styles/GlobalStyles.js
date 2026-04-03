@@ -305,12 +305,12 @@ const GlobalStyles = createGlobalStyle`
 
 html {
   width: 100vw;
-  font-size: 62.5%;
+  font-size: 66.5%;
   @media ${devicesMax.md} {
-    font-size: 60%;
+    font-size: 64%;
   }
   @media ${devicesMax.sm} {
-    font-size: 55%;
+    font-size: 60%;
     width: 100vw;
   }
 }

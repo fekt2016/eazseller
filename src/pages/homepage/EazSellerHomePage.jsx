@@ -229,6 +229,20 @@ const EazSellerHomePage = () => {
     },
   ];
 
+  const getFallbackBackground = (name = 'Seller') => {
+    const palettes = [
+      'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)',
+      'linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)',
+      'linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)',
+      'linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 100%)',
+    ];
+    const hash = Array.from(name).reduce(
+      (acc, char) => acc + char.charCodeAt(0),
+      0
+    );
+    return palettes[hash % palettes.length];
+  };
+
   const testimonials = (liveTestimonials && liveTestimonials.length > 0)
     ? liveTestimonials.map((t) => {
         const name = t.seller?.businessName || 'Seller';
@@ -242,9 +256,18 @@ const EazSellerHomePage = () => {
           shop: t.seller?.businessName || 'Saiisai Seller',
           initials,
           rating: t.rating,
+          backgroundImage:
+            t.seller?.backgroundImage ||
+            t.seller?.coverImage ||
+            t.seller?.bannerImage ||
+            null,
+          fallbackBackground: getFallbackBackground(name),
         };
       })
-    : staticTestimonials;
+    : staticTestimonials.map((t) => ({
+        ...t,
+        fallbackBackground: getFallbackBackground(t.name),
+      }));
 
   return (
     <LandingContainer>
@@ -468,6 +491,8 @@ const EazSellerHomePage = () => {
           {testimonials.map((t, index) => (
             <TestimonialCard
               key={index}
+              $bgImage={t.backgroundImage}
+              $fallbackBg={t.fallbackBackground}
               variants={staggerItem}
               whileHover={{ y: -4, transition: { duration: 0.3 } }}
             >
