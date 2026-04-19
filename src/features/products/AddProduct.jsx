@@ -47,7 +47,6 @@ const AddProductPage = () => {
       }
     }
     if (!sellerId) {
-      console.error("AddProduct: No seller loaded. Please log in again.");
       toast.error("Session expired or seller not loaded. Please refresh the page or log in again.");
       return;
     }
@@ -57,13 +56,11 @@ const AddProductPage = () => {
     try {
       // Validate categories first
       if (!data.parentCategory) {
-        console.error("Invalid parent category ID");
         toast.error("Please select a parent category");
         return;
       }
 
       if (!data.subCategory) {
-        console.error("Invalid sub category ID");
         toast.error("Please select a sub category");
         return;
       }
@@ -379,13 +376,11 @@ const AddProductPage = () => {
           navigate(PATHS.PRODUCTS);
         },
         onError: (error) => {
-          console.error("Creation error:", error);
           toast.error(error?.response?.data?.message || error.message || 'Failed to create product');
         },
       });
     } catch (error) {
-      console.error("Form submission error:", error);
-      toast.error("Form submission failed. Please check the console for details.");
+      toast.error("Form submission failed. Please try again.");
     }
   };
 

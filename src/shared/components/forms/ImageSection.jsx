@@ -26,6 +26,7 @@ export default function ImageSection({ isSubmitting }) {
     setValue,
     register,
     trigger,
+    getValues,
     formState: { errors },
   } = useFormContext();
 
@@ -68,6 +69,7 @@ export default function ImageSection({ isSubmitting }) {
         return u;
       }
       if (typeof img === 'string') return img;
+      if (img && typeof img === 'object' && img.url) return img.url;
       return '';
     });
     setGallerySrc(urls);
@@ -94,12 +96,21 @@ export default function ImageSection({ isSubmitting }) {
   const remainingGallerySlots = Math.max(0, MAX_TOTAL_IMAGES - 1 - images.length);
 
   register('imageCover', {
-    required: 'Please upload a cover image for your product',
-    validate: (v) => {
-      if (!v || (typeof v === 'string' && !v.trim())) {
-        return 'Please upload a cover image for your product';
-      }
-      return true;
+    validate: () => {
+      const cover = getValues('imageCover');
+      const gallery = getValues('images') || [];
+      const hasCover =
+        cover instanceof File ||
+        (typeof cover === 'string' && cover.trim()) ||
+        (!!cover && typeof cover === 'object' && String(cover.url || '').trim());
+      const hasGallery = gallery.some(
+        (img) =>
+          img instanceof File ||
+          (typeof img === 'string' && img.trim()) ||
+          (!!img && typeof img === 'object' && String(img.url || '').trim()),
+      );
+      if (hasCover || hasGallery) return true;
+      return 'Please add at least one product image (cover or additional photos).';
     },
   });
 

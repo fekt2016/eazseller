@@ -3,6 +3,7 @@ import { useState, useMemo } from "react";
 import { FaStar, FaReply, FaBoxOpen, FaTimes } from "react-icons/fa";
 import { useGetSellerReviews, useReplyToReview } from "../../shared/hooks/useReview";
 import { ErrorState, SkeletonTableRows, EmptyState } from "../../shared/components/ui/LoadingComponents";
+import { toast } from "react-toastify";
 
 const FILTERS = [
   { key: "all",      label: "All" },
@@ -60,7 +61,7 @@ export default function ProductReviewsPage() {
       });
       closeModal();
     } catch (err) {
-      console.error("Failed to reply:", err);
+      toast.error(err?.response?.data?.message || "Reply failed");
     }
   };
 

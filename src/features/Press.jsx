@@ -176,6 +176,10 @@ const ListItem = styled.li`
 `;
 
 export default function Press() {
+  const handleDownloadMediaKit = () => {
+    toast.info("Media kit download will be available soon.");
+  };
+
   return (
     <PressContainer>
       <Container>
