@@ -1,17 +1,60 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaTimes, FaMoneyBillWave } from 'react-icons/fa';
 import Button from '../../../shared/components/ui/Button';
-// Input and Select are styled components defined below
+import { PATHS } from '../../../routes/routePaths';
+import { formatMobileNetworkLabel } from '../../../shared/constants/banksList';
+
+const maskLast4 = (value) => {
+  if (!value) return '';
+  const s = String(value);
+  return s.length <= 4 ? s : `•••• ${s.slice(-4)}`;
+};
+
+/**
+ * Summary line for the seller's single saved payment method (read-only).
+ */
+const getSingleMethodSummary = (method) => {
+  if (!method) return '';
+  if (method.type === 'bank_transfer') {
+    const bankName = method.bankName || 'Bank';
+    const raw = method.accountNumber || '';
+    const masked = maskLast4(raw.replace(/\s/g, '') || raw);
+    return `${bankName} — ${masked}`;
+  }
+  if (method.type === 'mobile_money') {
+    const networkLabel =
+      formatMobileNetworkLabel(method.provider || method.network || '') ||
+      method.provider ||
+      method.network ||
+      'Network';
+    const num = method.mobileNumber || method.phone || '';
+    return `${networkLabel} — ${maskLast4(num.replace(/\D/g, '') || num)}`;
+  }
+  if (method.type === 'cash_pickup') {
+    const loc = method.cashPickup?.location || method.pickupLocation || 'Pickup';
+    const contact = method.cashPickup?.contactName || method.contactName || '';
+    return contact ? `${loc} — ${contact}` : loc;
+  }
+  return method.name || method.accountName || 'Payment method';
+};
+
 // Helper to format currency with GHS symbol
 const formatGHS = (value) => {
-  return `GH₵${parseFloat(value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return (
+    'GH\u20B5' +
+    parseFloat(value || 0).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
+  );
 };
 
 /**
  * Request Withdrawal Modal Component
- * Allows sellers to request withdrawals
+ * Seller has at most one payment method; shown read-only with link to Settings.
  */
 const RequestWithdrawalModal = ({
   isOpen,
@@ -21,20 +64,23 @@ const RequestWithdrawalModal = ({
   paymentMethods = [],
   isLoading = false,
 }) => {
+  const navigate = useNavigate();
   const [amount, setAmount] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('bank');
-  const [selectedPaymentMethodId, setSelectedPaymentMethodId] = useState('');
   const [errors, setErrors] = useState({});
+
+  const singleMethod = paymentMethods.length > 0 ? paymentMethods[0] : null;
 
   useEffect(() => {
     if (isOpen) {
-      // Reset form when modal opens
       setAmount('');
-      setPaymentMethod('bank');
-      setSelectedPaymentMethodId('');
       setErrors({});
     }
   }, [isOpen]);
+
+  const goToPaymentSettings = () => {
+    onClose();
+    navigate(PATHS.PAYMENT_METHODS);
+  };
 
   const validate = () => {
     const newErrors = {};
@@ -44,19 +90,7 @@ const RequestWithdrawalModal = ({
     } else if (parseFloat(amount) > availableBalance) {
       newErrors.amount = `Amount cannot exceed available balance of ${formatGHS(availableBalance)}`;
     } else if (parseFloat(amount) < 10) {
-      newErrors.amount = 'Minimum withdrawal amount is GH₵10';
-    }
-
-    if (!paymentMethod) {
-      newErrors.paymentMethod = 'Please select a payment method';
-    }
-
-    if (paymentMethod === 'bank' && !selectedPaymentMethodId && paymentMethods.length > 0) {
-      newErrors.selectedPaymentMethodId = 'Please select a bank account';
-    }
-
-    if (paymentMethod === 'mobile' && !selectedPaymentMethodId && paymentMethods.length > 0) {
-      newErrors.selectedPaymentMethodId = 'Please select a mobile money account';
+      newErrors.amount = 'Minimum withdrawal amount is GH\u20B510';
     }
 
     setErrors(newErrors);
@@ -65,18 +99,40 @@ const RequestWithdrawalModal = ({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (validate()) {
-      onSubmit({
-        amount: parseFloat(amount),
-        paymentMethod,
-        paymentMethodId: selectedPaymentMethodId || null,
-      });
+    if (!singleMethod) return;
+    if (!validate()) return;
+
+    // Map PaymentMethod doc → backend paymentRequest enum.
+    // Backend accepts: 'bank' | 'mtn_momo' | 'telecel_cash' | 'at_money'
+    //                  | 'vodafone_cash' | 'airtel_tigo_money' | 'cash'
+    const PROVIDER_TO_METHOD = {
+      MTN: 'mtn_momo',
+      Telecel: 'telecel_cash',
+      AT: 'at_money',
+      Vodafone: 'vodafone_cash',
+      AirtelTigo: 'airtel_tigo_money',
+    };
+
+    let backendPaymentMethod = null;
+    if (singleMethod.type === 'bank_transfer') {
+      backendPaymentMethod = 'bank';
+    } else if (singleMethod.type === 'mobile_money') {
+      backendPaymentMethod = PROVIDER_TO_METHOD[singleMethod.provider] || 'mtn_momo';
+    } else if (singleMethod.type === 'cash_pickup') {
+      backendPaymentMethod = 'cash';
+    } else {
+      backendPaymentMethod = singleMethod.type;
     }
+
+    onSubmit({
+      amount: parseFloat(amount),
+      paymentMethodId: singleMethod._id ?? singleMethod.id,
+      paymentMethod: backendPaymentMethod,
+    });
   };
 
   const handleAmountChange = (e) => {
     const value = e.target.value;
-    // Allow only numbers and decimal point
     if (value === '' || /^\d*\.?\d*$/.test(value)) {
       setAmount(value);
       if (errors.amount) {
@@ -85,11 +141,12 @@ const RequestWithdrawalModal = ({
     }
   };
 
-  const filteredPaymentMethods = paymentMethods.filter(
-    (method) =>
-      (paymentMethod === 'bank' && method.type === 'bank') ||
-      (paymentMethod === 'mobile' && method.type === 'mobileMoney')
-  );
+  const amountNum = amount === '' ? 0 : parseFloat(amount);
+  const canSubmit =
+    Boolean(singleMethod) &&
+    !isLoading &&
+    amountNum >= 10 &&
+    amountNum <= availableBalance;
 
   return (
     <AnimatePresence>
@@ -118,13 +175,11 @@ const RequestWithdrawalModal = ({
             </ModalHeader>
 
             <ModalContent>
-              {/* Available Balance Info */}
               <BalanceInfo>
                 <BalanceLabel>Available Balance:</BalanceLabel>
                 <BalanceAmount>{formatGHS(availableBalance)}</BalanceAmount>
               </BalanceInfo>
 
-              {/* Amount Input */}
               <FormGroup>
                 <FormLabel htmlFor="amount">
                   Withdrawal Amount <Required>*</Required>
@@ -139,65 +194,33 @@ const RequestWithdrawalModal = ({
                   disabled={isLoading}
                 />
                 {errors.amount && <ErrorText>{errors.amount}</ErrorText>}
-                <HelperText>Minimum: GH₵10</HelperText>
+                <HelperText>{`Minimum: GH\u20B510`}</HelperText>
               </FormGroup>
 
-              {/* Payment Method Selection */}
-              <FormGroup>
-                <FormLabel htmlFor="paymentMethod">
-                  Payment Method <Required>*</Required>
-                </FormLabel>
-                <StyledSelect
-                  id="paymentMethod"
-                  value={paymentMethod}
-                  onChange={(e) => {
-                    setPaymentMethod(e.target.value);
-                    setSelectedPaymentMethodId('');
-                    setErrors((prev) => ({ ...prev, paymentMethod: null, selectedPaymentMethodId: null }));
-                  }}
-                  disabled={isLoading}
-                >
-                  <option value="">Select payment method</option>
-                  <option value="bank">Bank Account</option>
-                  <option value="mobile">Mobile Money</option>
-                </StyledSelect>
-                {errors.paymentMethod && <ErrorText>{errors.paymentMethod}</ErrorText>}
-              </FormGroup>
-
-              {/* Payment Method Selection (Bank/Mobile) */}
-              {paymentMethod && filteredPaymentMethods.length > 0 && (
+              {singleMethod ? (
                 <FormGroup>
-                  <FormLabel htmlFor="selectedPaymentMethodId">
-                    Select {paymentMethod === 'bank' ? 'Bank Account' : 'Mobile Money Account'}
-                  </FormLabel>
-                  <StyledSelect
-                    id="selectedPaymentMethodId"
-                    value={selectedPaymentMethodId}
-                    onChange={(e) => {
-                      setSelectedPaymentMethodId(e.target.value);
-                      setErrors((prev) => ({ ...prev, selectedPaymentMethodId: null }));
-                    }}
+                  <FormLabel>Payment method</FormLabel>
+                  <ReadOnlyMethodText>{getSingleMethodSummary(singleMethod)}</ReadOnlyMethodText>
+                  <TextLinkButton
+                    type="button"
+                    onClick={goToPaymentSettings}
                     disabled={isLoading}
                   >
-                    <option value="">Select an account</option>
-                    {filteredPaymentMethods.map((method) => (
-                      <option key={method._id} value={method._id}>
-                        {paymentMethod === 'bank'
-                          ? `${method.bankAccount?.bankName || 'Bank'} - ${method.bankAccount?.accountNumber || ''}`
-                          : `${method.mobileMoney?.network || 'Network'} - ${method.mobileMoney?.phone || ''}`}
-                      </option>
-                    ))}
-                  </StyledSelect>
-                  {errors.selectedPaymentMethodId && (
-                    <ErrorText>{errors.selectedPaymentMethodId}</ErrorText>
-                  )}
+                    Change in Settings
+                  </TextLinkButton>
                 </FormGroup>
-              )}
-
-              {paymentMethod && filteredPaymentMethods.length === 0 && (
+              ) : (
                 <InfoMessage>
-                  No {paymentMethod === 'bank' ? 'bank accounts' : 'mobile money accounts'} found.
-                  Please add a payment method in Settings.
+                  You haven&apos;t added a payment method yet. Go to Settings → Payment Methods
+                  to add one.{' '}
+                  <TextLinkButton
+                    type="button"
+                    onClick={goToPaymentSettings}
+                    disabled={isLoading}
+                    $inline
+                  >
+                    Open Payment Methods
+                  </TextLinkButton>
                 </InfoMessage>
               )}
             </ModalContent>
@@ -211,11 +234,7 @@ const RequestWithdrawalModal = ({
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                disabled={isLoading || !amount || parseFloat(amount) <= 0}
-              >
+              <Button type="submit" variant="primary" disabled={!canSubmit}>
                 {isLoading ? 'Submitting...' : 'Request Withdrawal'}
               </Button>
             </ModalFooter>
@@ -228,7 +247,6 @@ const RequestWithdrawalModal = ({
 
 export default RequestWithdrawalModal;
 
-// Styled Components
 const Overlay = styled(motion.div)`
   position: fixed;
   top: 0;
@@ -249,7 +267,7 @@ const ModalContainer = styled(motion.form)`
   max-width: 500px;
   background: #FFFFFF;
   border-radius: 12px;
-  
+
   z-index: 1001;
   display: flex;
   flex-direction: column;
@@ -362,6 +380,46 @@ const HelperText = styled.span`
   margin-top: calc(1rem * -1);
 `;
 
+const ReadOnlyMethodText = styled.div`
+  padding: 1rem 1rem;
+  border: 1px solid #E5E7EB;
+  border-radius: 9px;
+  font-size: 0.9rem;
+  color: #111827;
+  background-color: #F9FAFB;
+`;
+
+const TextLinkButton = styled.button`
+  align-self: flex-start;
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #E8920A;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+
+  &:hover {
+    color: #D97706;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  ${(p) =>
+    p.$inline &&
+    `
+    display: inline;
+    align-self: unset;
+    margin-left: 0.25rem;
+    vertical-align: baseline;
+  `}
+`;
+
 const InfoMessage = styled.div`
   padding: 1rem;
   background: #EFF6FF;
@@ -392,18 +450,18 @@ const ModalFooter = styled.div`
 const StyledInput = styled.input`
   width: 100%;
   padding: 1rem 1rem;
-  border: 1px solid ${props => props.$hasError ? '#EF4444' : '#E5E7EB'};
+  border: 1px solid ${(props) => (props.$hasError ? '#EF4444' : '#E5E7EB')};
   border-radius: 9px;
   font-size: 0.9rem;
-  
+
   color: #111827;
   background-color: #FFFFFF;
   transition: all 0.12s;
 
   &:focus {
     outline: none;
-    border-color: ${props => props.$hasError ? '#EF4444' : '#E8920A'};
-    box-shadow: 0 0 0 3px ${props => props.$hasError ? '#FCEBEB' : '#FEF3C7'};
+    border-color: ${(props) => (props.$hasError ? '#EF4444' : '#E8920A')};
+    box-shadow: 0 0 0 3px ${(props) => (props.$hasError ? '#FCEBEB' : '#FEF3C7')};
   }
 
   &:disabled {
@@ -416,28 +474,3 @@ const StyledInput = styled.input`
     color: #D1D5DB;
   }
 `;
-
-const StyledSelect = styled.select`
-  width: 100%;
-  padding: 1rem 1rem;
-  border: 1px solid #E5E7EB;
-  border-radius: 9px;
-  font-size: 0.9rem;
-  
-  color: #111827;
-  background-color: #FFFFFF;
-  transition: all 0.12s;
-
-  &:focus {
-    outline: none;
-    border-color: #E8920A;
-    box-shadow: 0 0 0 3px #FEF3C7;
-  }
-
-  &:disabled {
-    background-color: #F9F8F5;
-    cursor: not-allowed;
-    opacity: 0.6;
-  }
-`;
-
