@@ -14,6 +14,7 @@ const Card = styled.section`
   border: 0.5px solid #F1EFE8;
   border-radius: 12px;
   padding: 1rem;
+  min-width: 0;
 `;
 
 const Header = styled.div`
@@ -53,7 +54,10 @@ const Note = styled.span`
 `;
 
 const ChartWrap = styled.div`
+  width: 100%;
+  min-width: 0;
   height: 120px;
+  min-height: 120px;
 `;
 
 const EmptyNote = styled.div`
@@ -109,7 +113,7 @@ export default function RevenueChart({
         <Note>{subtitle}</Note>
       </Sub>
       <ChartWrap>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height={120}>
           <BarChart data={safe}>
             <XAxis dataKey="label" tick={{ fill: '#6B7280', fontSize: 11 }} axisLine={false} tickLine={false} />
             <YAxis

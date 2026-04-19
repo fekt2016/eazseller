@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { 
-  FaCheckCircle, 
-  FaTimesCircle, 
-  FaEnvelope, 
-  FaPhone, 
-  FaBuilding, 
-  FaCreditCard, 
+import {
+  FaCheckCircle,
+  FaTimesCircle,
+  FaEnvelope,
+  FaPhone,
+  FaBuilding,
+  FaCreditCard,
   FaBox,
   FaRocket,
   FaChartLine,
@@ -42,12 +42,12 @@ const SetupPage = () => {
   const setupSteps = [
     {
       id: 'business-documents',
-      label: 'Upload & Verify Business Documents',
-      description: 'Upload and verify your business documents (Business Certificate, ID Proof, Address Proof)',
+      label: 'Upload & Verify front and back of your ID',
+      description: 'Upload and verify your Id proof (Business Certificate, ID Proof, Address Proof)',
       completed: requiredSetup.hasBusinessDocumentsVerified || businessDocumentsStatus?.isVerified, // ✅ From backend
       icon: <FaBuilding />,
       action: (requiredSetup.hasBusinessDocumentsVerified || businessDocumentsStatus?.isVerified)
-        ? 'Documents verified' 
+        ? 'Documents verified'
         : 'Update documents',
       link: `${PATHS.SETTINGS}?tab=profile&scrollTo=verification-documents`,
       color: '#E8920A',
@@ -116,11 +116,11 @@ const SetupPage = () => {
     const completedCount = setupSteps.filter((step) => step.completed).length;
     const totalSteps = setupSteps.length; // Should be 3
     const targetPercentage = totalSteps > 0 ? (completedCount / totalSteps) * 100 : 0;
-    
+
     const timer = setTimeout(() => {
       setAnimatedProgress(targetPercentage);
     }, 300);
-    
+
     return () => clearTimeout(timer);
   }, [setupSteps, requiredSetup, verification]);
 
@@ -149,7 +149,7 @@ const SetupPage = () => {
             <MainTitle>Complete Your Seller Setup</MainTitle>
             <Subtitle>Follow these steps to launch your store and start selling</Subtitle>
           </div>
-          
+
           <ProgressOverview>
             <ProgressStats>
               <ProgressNumber>{completedCount}/{totalSteps}</ProgressNumber>
@@ -200,7 +200,7 @@ const SetupPage = () => {
             </ProgressTrack>
             <ProgressSteps>
               {setupSteps.map((step, index) => (
-                <ProgressDot 
+                <ProgressDot
                   key={step.id}
                   $completed={step.completed}
                   $active={index === completedCount}
@@ -226,7 +226,7 @@ const SetupPage = () => {
                 {onboardingStage === 'verified' ? 'Account Verified! 🎉' : 'Setup Complete! 🎉'}
               </SuccessTitle>
               <SuccessMessage>
-                {onboardingStage === 'verified' 
+                {onboardingStage === 'verified'
                   ? 'Your account has been verified and you can now access all features. You can continue to manage your setup from this page.'
                   : 'Your store is ready for review. We\'ll notify you once your account is approved and you can start selling.'}
               </SuccessMessage>
@@ -246,7 +246,7 @@ const SetupPage = () => {
           <SectionTitle>Setup Checklist</SectionTitle>
           <SectionSubtitle>Complete all steps to launch your store</SectionSubtitle>
         </SetupSectionHeader>
-        
+
         <StepsGrid>
           {setupSteps.map((step) => (
             <StepCard key={step.id} $completed={step.completed}>
@@ -258,11 +258,11 @@ const SetupPage = () => {
                   {step.completed ? 'Completed' : 'Pending'}
                 </StepStatus>
               </StepHeader>
-              
+
               <StepContent>
                 <StepLabel>{step.label}</StepLabel>
                 <StepDescription>{step.description}</StepDescription>
-                
+
                 {/* Show verification status for contact verification step */}
                 {step.id === 'contact-verification' && (
                   <VerificationStatus>
@@ -278,7 +278,7 @@ const SetupPage = () => {
                     )}
                   </VerificationStatus>
                 )}
-                
+
                 {step.link && !step.disabled ? (
                   <Button
                     as={Link}
@@ -297,7 +297,7 @@ const SetupPage = () => {
                   </StepAction>
                 )}
               </StepContent>
-              
+
               {step.completed && (
                 <CompletedBadge>
                   <FaCheckCircle />
@@ -326,7 +326,7 @@ const SetupPage = () => {
                 </NextStepDescription>
               </NextStepContent>
             </NextStepCard>
-            
+
             <NextStepCard>
               <NextStepIcon $color="#15803D">
                 <FaStore />
@@ -366,7 +366,7 @@ const SetupPage = () => {
             `Complete ${totalSteps - completedCount} more steps to continue`
           )}
         </Button>
-        
+
         <Button
           as={Link}
           to={PATHS.DASHBOARD}
@@ -609,12 +609,12 @@ const ProgressDot = styled.div.attrs(props => ({
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: ${props => 
-    props.$completed ? '#E8920A' : 
-    props.$active ? '#FFFFFF' : '#D1D5DB'};
-  border: 3px solid ${props => 
-    props.$completed ? '#E8920A' : 
-    props.$active ? '#E8920A' : '#D1D5DB'};
+  background: ${props =>
+    props.$completed ? '#E8920A' :
+      props.$active ? '#FFFFFF' : '#D1D5DB'};
+  border: 3px solid ${props =>
+    props.$completed ? '#E8920A' :
+      props.$active ? '#E8920A' : '#D1D5DB'};
   transform: translateX(-50%);
   display: flex;
   align-items: center;
@@ -730,7 +730,7 @@ const StepCard = styled.div`
   background: #FFFFFF;
   padding: 1.5rem;
   border-radius: 12px;
-  border: 2px solid ${props => 
+  border: 2px solid ${props =>
     props.$completed ? '#BBF7D0' : '#F1EFE8'};
   box-shadow: none;
   transition: all 0.3s ease;
@@ -740,8 +740,8 @@ const StepCard = styled.div`
   &:hover {
     transform: translateY(-4px);
     box-shadow: none;
-    border-color: ${props => 
-      props.$completed ? '#86EFAC' : '#FDE3BB'};
+    border-color: ${props =>
+    props.$completed ? '#86EFAC' : '#FDE3BB'};
   }
 
   &::before {
@@ -751,8 +751,8 @@ const StepCard = styled.div`
     left: 0;
     right: 0;
     height: 4px;
-    background: ${props => 
-      props.$completed ? 
+    background: ${props =>
+    props.$completed ?
       'linear-gradient(90deg, #22C55E, #16A34A)' :
       'linear-gradient(90deg, #D1D5DB, #9CA3AF)'};
   }
@@ -769,9 +769,9 @@ const StepIcon = styled.div`
   width: 60px;
   height: 60px;
   border-radius: 12px;
-  background: ${props => 
+  background: ${props =>
     props.$completed ? props.$color : '#F3F4F6'};
-  color: ${props => 
+  color: ${props =>
     props.$completed ? '#FFFFFF' : '#6B7280'};
   display: flex;
   align-items: center;
@@ -783,9 +783,9 @@ const StepIcon = styled.div`
 const StepStatus = styled.span`
   font-size: 0.875rem;
   font-weight: 600;
-  color: ${props => 
+  color: ${props =>
     props.$completed ? '#16A34A' : '#6B7280'};
-  background: ${props => 
+  background: ${props =>
     props.$completed ? '#F0FDF4' : '#F3F4F6'};
   padding: 0.3rem 0.5rem;
   border-radius: 9999px;
@@ -814,9 +814,9 @@ const StepDescription = styled.p`
 
 const StepAction = styled.span`
   font-size: 0.875rem;
-  color: ${props => 
-    props.$disabled ? '#9CA3AF' : 
-    props.$completed ? '#16A34A' : '#6B7280'};
+  color: ${props =>
+    props.$disabled ? '#9CA3AF' :
+      props.$completed ? '#16A34A' : '#6B7280'};
   font-style: ${props => (props.$disabled ? 'italic' : 'normal')};
   font-weight: ${props => (props.$completed ? '600' : 'normal')};
   padding: 0.5rem 0;

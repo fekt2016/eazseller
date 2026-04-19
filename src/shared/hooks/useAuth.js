@@ -3,15 +3,24 @@ import authApi from '../services/authApi';
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 
-// SECURITY: Cookie-only authentication - no token storage
-// Tokens are in HTTP-only cookies set by backend
-// No localStorage, sessionStorage, or any client-side token storage
+// SECURITY: Cookie-only authentication - no credential persistence in browser storage.
+// Credentials are in HTTP-only cookies set by backend.
+// No localStorage or sessionStorage auth persistence.
+
+/** Cleared on logout only — do not use localStorage.clear() (theme, language, etc. stay). */
+const AUTH_LOCAL_KEYS = [
+  'seller_token',
+  'sellerRememberMe',
+  'csrf-token',
+  'guestCart',
+  'guestWishlist',
+];
 
 const useAuth = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  // SECURITY: Cookie-only authentication - no token check needed
+  // SECURITY: Cookie-only authentication - no client-side credential check needed
   // Backend reads from HTTP-only cookie automatically
   const {
     data: sellerData,
@@ -112,11 +121,11 @@ const useAuth = () => {
 
   useEffect(() => {
     if (seller && seller.role && !isSellerRole) {
-      console.error("[useAuth] SECURITY: Non-seller user detected in seller app", {
-        role: seller.role,
-        email: seller.email,
-        phone: seller.phone,
-      });
+      if (import.meta.env.DEV) {
+        console.error("[useAuth] SECURITY: Non-seller user detected in seller app", {
+          role: seller.role,
+        });
+      }
       // Avoid render-phase cache updates that can trigger rerender loops.
       queryClient.setQueryData(["sellerAuth"], null);
     }
@@ -198,7 +207,9 @@ const useAuth = () => {
       return { seller, redirectTo };
     },
     onError: (error) => {
-      console.error("[useAuth] OTP verification error:", error);
+      if (import.meta.env.DEV) {
+        console.error("[useAuth] OTP verification error");
+      }
       queryClient.setQueryData(["sellerAuth"], null);
     },
   });
@@ -230,12 +241,6 @@ const useAuth = () => {
       const sellerData = response?.user || response?.data?.user || response?.data?.data;
 
       if (!sellerData || (!sellerData.id && !sellerData._id)) {
-        console.error('❌ [Seller Login] No seller data in response:', {
-          response,
-          hasUser: !!response?.user,
-          hasDataUser: !!response?.data?.user,
-          hasDataData: !!response?.data?.data,
-        });
         throw new Error('Login failed: No seller data received');
       }
 
@@ -338,9 +343,7 @@ const useAuth = () => {
   // Resend OTP
   const resendOtp = useMutation({
     mutationFn: ({ email }) => authApi.resendOtp(email),
-    onError: (error) => {
-      console.error("[useAuth] Error resending OTP:", error);
-    },
+    onError: () => {},
   });
 
   const register = useMutation({
@@ -372,33 +375,42 @@ const useAuth = () => {
         }
       }
     },
-    onError: (error) => {
-      console.error("[useAuth] Register error:", error);
+    onError: () => {
       queryClient.setQueryData(["sellerAuth"], null);
     },
   });
 
+  const cleanupAfterLogout = async () => {
+    try {
+      await queryClient.cancelQueries();
+    } catch {
+      // ignore — still scrub cache and storage
+    }
+    queryClient.clear();
+
+    if (typeof window !== 'undefined') {
+      AUTH_LOCAL_KEYS.forEach((key) => {
+        try {
+          window.localStorage.removeItem(key);
+        } catch {
+          // ignore per-key storage failures
+        }
+      });
+    }
+
+    navigate('/login', { replace: true });
+
+    if (import.meta.env.DEV) {
+      console.debug(
+        '[useAuth] Logout settled — cache cleared, auth-adjacent storage scrubbed',
+      );
+    }
+  };
+
   const logout = useMutation({
     mutationFn: authApi.logout,
-    onSuccess: () => {
-      // Backend clears the cookie, we just clear local state
-      queryClient.removeQueries(["sellerAuth"]);
-      // SECURITY: Clear notification cache and cancel active queries on logout
-      queryClient.removeQueries(["notifications"]);
-      queryClient.cancelQueries({ queryKey: ["notifications"] });
-      // SECURITY: No token storage to clear - cookies are managed by backend
-      if (import.meta.env.DEV) {
-        console.debug("[useAuth] Logged out - cookie cleared by backend, notification cache cleared");
-      }
-      navigate("/login");
-    },
-    onError: (error) => {
-      console.error("[useAuth] Logout error:", error);
-      // Force clear local state even on error
-      queryClient.removeQueries(["sellerAuth"]);
-      queryClient.removeQueries(["notifications"]);
-      queryClient.cancelQueries({ queryKey: ["notifications"] });
-      navigate("/login");
+    onSettled: () => {
+      void cleanupAfterLogout();
     },
   });
 
@@ -423,9 +435,7 @@ const useAuth = () => {
         console.debug("[useAuth] Invalidated sellerStatus after update");
       }
     },
-    onError: (error) => {
-      console.error("[useAuth] Update error:", error);
-    },
+    onError: () => {},
   });
 
   const imageUpdate = useMutation({
@@ -449,9 +459,7 @@ const useAuth = () => {
         }));
       }
     },
-    onError: (error) => {
-      console.error("[useAuth] Image update error:", error.response?.data || error.message);
-    },
+    onError: () => {},
   });
 
   // ==================================================
@@ -481,9 +489,7 @@ const useAuth = () => {
         console.debug("[useAuth] Password reset request sent:", data);
       }
     },
-    onError: (error) => {
-      console.error("[useAuth] Error requesting password reset:", error);
-    },
+    onError: () => {},
   });
 
   /**
@@ -511,9 +517,7 @@ const useAuth = () => {
         },
       });
     },
-    onError: (error) => {
-      console.error("[useAuth] Error resetting password:", error);
-    },
+    onError: () => {},
   });
 
   // Legacy OTP-based password reset mutations (deprecated)
@@ -527,9 +531,7 @@ const useAuth = () => {
         console.debug("[useAuth] Password reset OTP sent:", data);
       }
     },
-    onError: (error) => {
-      console.error("[useAuth] Error sending password reset OTP:", error);
-    },
+    onError: () => {},
   });
 
   const verifyPasswordResetOtp = useMutation({
@@ -542,9 +544,7 @@ const useAuth = () => {
         console.debug("[useAuth] Password reset OTP verified:", data);
       }
     },
-    onError: (error) => {
-      console.error("[useAuth] Error verifying password reset OTP:", error);
-    },
+    onError: () => {},
   });
 
   const resetPassword = useMutation({
@@ -561,9 +561,7 @@ const useAuth = () => {
         console.debug("[useAuth] Password reset successful:", data);
       }
     },
-    onError: (error) => {
-      console.error("[useAuth] Error resetting password:", error);
-    },
+    onError: () => {},
   });
 
   return {

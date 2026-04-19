@@ -45,7 +45,7 @@ const ProductForm = ({
       [];
 
     // Debug logging (only in development)
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       console.log('[ProductForm] Categories data structure:', {
         hasData: !!data,
         dataKeys: data ? Object.keys(data) : [],
@@ -64,7 +64,7 @@ const ProductForm = ({
       parentCategoriesData?.data ||
       [];
 
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       console.log('[ProductForm] Parent categories from endpoint:', {
         hasData: !!parentCategoriesData,
         parentCategoriesCount: Array.isArray(parents) ? parents.length : 0,
@@ -255,6 +255,20 @@ const ProductForm = ({
     },
     [allCategories]
   );
+
+  const hasProductImage = useCallback((values) => {
+    const c = values?.imageCover;
+    if (c instanceof File) return true;
+    if (typeof c === 'string' && c.trim()) return true;
+    if (c && typeof c === 'object' && String(c.url || '').trim()) return true;
+    const imgs = values?.images || [];
+    return imgs.some((img) => {
+      if (img instanceof File) return true;
+      if (typeof img === 'string' && img.trim()) return true;
+      if (img && typeof img === 'object' && String(img.url || '').trim()) return true;
+      return false;
+    });
+  }, []);
 
   // Note: addNewVariant is no longer needed here since VariantSection manages its own useFieldArray
   // The VariantSection component handles adding variants internally
@@ -469,12 +483,14 @@ const ProductForm = ({
                 return;
               }
 
-              // Validate cover image
-              if (!values.imageCover) {
-                // Error message will be shown by ImageSection validation
-                // Just scroll to it
+              // Cover and/or gallery — keep existing URLs/objects on edit without re-upload
+              if (!hasProductImage(values)) {
                 setTimeout(() => {
-                  const imageError = document.querySelector('[name="imageCover"]')?.closest('.error-message') ||
+                  toast.error(
+                    'Add at least one product image (cover or additional photos), or keep the existing images.',
+                  );
+                  const imageError =
+                    document.querySelector('[name="imageCover"]')?.closest('.error-message') ||
                     document.querySelector('.error-message');
                   if (imageError) {
                     imageError.scrollIntoView({ behavior: 'smooth', block: 'center' });

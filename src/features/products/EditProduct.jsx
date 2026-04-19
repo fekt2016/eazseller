@@ -122,13 +122,33 @@ const EditProduct = () => {
       condition: product.condition || "new",
       promotionKey: product.promotionKey || "",
 
-      // Image handling (preserve rich image objects for pipeline contract)
-      imageCover:
-        product.coverImage ||
-        product.imageCover?.url ||
-        product.imageCover ||
-        "",
-      images: Array.isArray(product.images) ? product.images : [],
+      // Image handling — align with ProductForm / AddProduct: cover + gallery slots
+      ...(() => {
+        const rawImages = Array.isArray(product.images) ? [...product.images] : [];
+        const firstUrl = rawImages[0]
+          ? typeof rawImages[0] === "string"
+            ? rawImages[0]
+            : rawImages[0]?.url || ""
+          : "";
+        const coverStr =
+          product.coverImage ||
+          product.imageCover?.url ||
+          (typeof product.imageCover === "string" ? product.imageCover : "") ||
+          "";
+        const resolvedCover =
+          (coverStr && String(coverStr).trim()) ||
+          (firstUrl && String(firstUrl).trim()) ||
+          "";
+        let gallery = rawImages;
+        if (
+          resolvedCover &&
+          firstUrl &&
+          String(firstUrl).trim() === String(resolvedCover).trim()
+        ) {
+          gallery = rawImages.slice(1);
+        }
+        return { imageCover: resolvedCover, images: gallery };
+      })(),
 
       // Categories - extract IDs as strings for form
       parentCategory: product.parentCategory
@@ -214,13 +234,33 @@ const EditProduct = () => {
     }
 
     try {
-      // Route all new files through dedicated seller upload endpoint first
+      // Same ordering as AddProduct: cover first, then gallery (dedupe by URL vs cover)
+      const coverSource = data.imageCover || data.images?.[0] || null;
+      const additionalSources = Array.isArray(data.images) ? data.images : [];
+      const urlKey = (src) => {
+        if (!src) return "";
+        if (typeof src === "string") return src.trim();
+        if (src instanceof File) return "";
+        if (typeof src === "object" && src.url) return String(src.url).trim();
+        return "";
+      };
+      const combinedSources = [
+        ...(coverSource ? [coverSource] : []),
+        ...additionalSources.filter((img) => {
+          if (img === coverSource) return false;
+          if (coverSource instanceof File || img instanceof File) {
+            return img !== coverSource;
+          }
+          const a = urlKey(coverSource);
+          const b = urlKey(img);
+          if (a && b && a === b) return false;
+          return true;
+        }),
+      ].slice(0, 8);
+
       const uploadedImages = [];
-      const uniqueImages = Array.isArray(data.images)
-        ? data.images.slice(0, 8)
-        : [];
-      for (let i = 0; i < uniqueImages.length; i += 1) {
-        const item = uniqueImages[i];
+      for (let i = 0; i < combinedSources.length; i += 1) {
+        const item = combinedSources[i];
         if (item instanceof File) {
           let compressed = item;
           try {
@@ -618,7 +658,7 @@ const EditProduct = () => {
   const moderationStatus = product?.moderationStatus || 'pending';
 
   return (
-    <PageContainer>
+    <EditProductPage>
       {/* Breadcrumbs */}
       <BreadcrumbNav>
         <BreadcrumbLink to={PATHS.DASHBOARD}>Dashboard</BreadcrumbLink>
@@ -789,7 +829,7 @@ const EditProduct = () => {
           />
         </FormWrapper>
       )}
-    </PageContainer>
+    </EditProductPage>
   );
 };
 
