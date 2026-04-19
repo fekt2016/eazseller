@@ -20,7 +20,6 @@ import {
 import styled from "styled-components";
 import { useSellerBalance } from "../../shared/hooks/finance/useSellerBalance";
 import { useGetPaymentRequests, useCreatePaymentRequest, useDeletePaymentRequest, useRequestReversal } from "../../shared/hooks/usePaymentRequest";
-import { useSubmitPinForWithdrawal } from "../../shared/hooks/usePayout";
 import ReversalModal from "./ReversalModal";
 import { useGetPaymentMethods } from "../../shared/hooks/usePaymentMethod";
 import useAuth from "../../shared/hooks/useAuth";
@@ -150,7 +149,6 @@ export default function UnifiedWalletPage() {
   const createPaymentRequest = useCreatePaymentRequest();
   const deletePaymentRequest = useDeletePaymentRequest();
   const requestReversal = useRequestReversal();
-  const submitPin = useSubmitPinForWithdrawal();
 
   // Track which request is being deleted (for individual loading state)
   const [deletingRequestId, setDeletingRequestId] = useState(null);
