@@ -6,4 +6,7 @@ export const analyticsApi = {
   recordProductView: async (productId) => {
     return await api.post(`/analytics/views`, { productId });
   },
+  recordScreenView: async ({ screen, sessionId }) => {
+    return await api.post('/analytics/screen-views', { screen, sessionId });
+  },
 };

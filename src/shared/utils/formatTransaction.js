@@ -54,14 +54,14 @@ export const getTransactionTypeLabel = (transaction) => {
 export const getTransactionStatusColor = (status) => {
   switch (status?.toLowerCase()) {
     case 'completed':
-      return '#15803D';
+      return 'var(--color-green-700)';
     case 'pending':
-      return '#B45309';
+      return 'var(--color-yellow-700)';
     case 'failed':
     case 'cancelled':
-      return '#B91C1C';
+      return 'var(--color-red-700)';
     default:
-      return '#374151';
+      return 'var(--color-grey-700)';
   }
 };
 
