@@ -21,9 +21,9 @@ describe('phoneNetworkDetector', () => {
       expect(result.formatted).toBe('0241234567');
     });
 
-    test('detects Telecel network correctly', () => {
+    test('detects AirtelTigo network correctly for 027 prefix', () => {
       const result = detectGhanaPhoneNetwork('0271234567');
-      expect(result.network).toBe('Telecel');
+      expect(result.network).toBe('AirtelTigo');
       expect(result.isValid).toBe(true);
     });
 

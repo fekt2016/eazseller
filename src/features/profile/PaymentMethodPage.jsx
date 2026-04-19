@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { FaCreditCard, FaMobileAlt, FaSave, FaArrowLeft, FaBuilding, FaPhone, FaCheckCircle, FaTimesCircle, FaEdit, FaTrash, FaStar, FaClock } from 'react-icons/fa';
@@ -12,8 +12,23 @@ import { getUserFriendlyErrorMessage } from '../../shared/utils/helpers';
 import { PageContainer, PageHeader, TitleSection, Section, SectionHeader } from '../../shared/components/ui/SpacingSystem';
 import { detectGhanaPhoneNetwork } from '../../shared/utils/phoneNetworkDetector';
 import { toast } from 'react-toastify';
-import { GHANA_BANKS, MOBILE_NETWORKS } from '../../shared/constants/banksList';
+import {
+  GHANA_BANKS,
+  MOBILE_NETWORKS,
+  MOBILE_NETWORK_LABELS,
+  normalizeMobileNetworkToken,
+  formatMobileNetworkLabel,
+} from '../../shared/constants/banksList';
 import { ConfirmationModal } from '../../shared/components/modal/ConfirmationModal';
+
+/** Map detector output to PaymentMethod provider token (MTN / AT / Telecel). */
+function providerTokenFromDetector(det) {
+  if (!det?.isValid || !det.network) return '';
+  if (det.network === 'AirtelTigo') return 'AT';
+  if (det.network === 'Telecel') return 'Telecel';
+  if (det.network === 'MTN') return 'MTN';
+  return '';
+}
 
 const PaymentMethodPage = ({ embedded = false }) => {
   const { seller, update, isUpdateLoading } = useAuth();
@@ -66,7 +81,6 @@ const PaymentMethodPage = ({ embedded = false }) => {
       await refetchPaymentMethods();
       toast.success('Default payment method updated');
     } catch (error) {
-      console.error('Error setting default payment method:', error);
       const message = getUserFriendlyErrorMessage(
         error,
         'We could not update your default payment method. Please try again.'
@@ -88,6 +102,10 @@ const PaymentMethodPage = ({ embedded = false }) => {
     network: '',
   });
 
+  const detectedMobileNetwork = useMemo(
+    () => detectGhanaPhoneNetwork(mobileMoneyDetails.phone || ''),
+    [mobileMoneyDetails.phone],
+  );
 
   // Load existing seller data (from seller.paymentMethods or verified PaymentMethod records)
   useEffect(() => {
@@ -120,7 +138,7 @@ const PaymentMethodPage = ({ embedded = false }) => {
       setMobileMoneyDetails({
         accountName: mobile.accountName || '',
         phone: mobile.phone || '',
-        network: mobile.network || '',
+        network: normalizeMobileNetworkToken(mobile.network || ''),
       });
     } else {
       // Fallback: verified mobile money from PaymentMethod API
@@ -128,10 +146,9 @@ const PaymentMethodPage = ({ embedded = false }) => {
         (pm) => pm.type === 'mobile_money' && (pm.verificationStatus === 'verified' || pm.status === 'verified')
       );
       if (mobileMethod) {
-        let network = mobileMethod.provider || mobileMethod.network || '';
-        if (network.toLowerCase() === 'vodafone') network = 'Vodafone';
-        else if (network.toLowerCase() === 'airteltigo' || network.toLowerCase() === 'airtel_tigo') network = 'AirtelTigo';
-        else if (network.toLowerCase() === 'mtn') network = 'MTN';
+        let network = normalizeMobileNetworkToken(
+          mobileMethod.provider || mobileMethod.network || '',
+        );
         setMobileMoneyDetails({
           accountName: mobileMethod.accountName || mobileMethod.name || '',
           phone: mobileMethod.mobileNumber || mobileMethod.phone || '',
@@ -160,15 +177,20 @@ const PaymentMethodPage = ({ embedded = false }) => {
         setMobileMoneyDetails((prev) => ({
           ...prev,
           phone: value,
-          network: networkDetection.network === 'Telecel' ? 'vodafone' :
-            networkDetection.network === 'AirtelTigo' ? 'airteltigo' :
-              networkDetection.network.toLowerCase(),
+          network:
+            networkDetection.network === 'Telecel'
+              ? 'Telecel'
+              : networkDetection.network === 'AirtelTigo'
+                ? 'AT'
+                : networkDetection.network === 'MTN'
+                  ? 'MTN'
+                  : normalizeMobileNetworkToken(networkDetection.network || ''),
         }));
       } else {
-        // Clear network if phone is invalid or network can't be detected
         setMobileMoneyDetails((prev) => ({
           ...prev,
           phone: value,
+          network: '',
         }));
       }
     } else {
@@ -182,7 +204,7 @@ const PaymentMethodPage = ({ embedded = false }) => {
   // Validate Ghana phone number
   const validatePhoneNumber = (phone) => {
     const cleaned = phone.replace(/\D/g, '');
-    return /^0(24|54|55|59|20|50|27|57|26|56|23|28)\d{7}$/.test(cleaned);
+    return /^0(20|23|24|25|26|27|50|54|55|56|57|59)\d{7}$/.test(cleaned);
   };
 
   // Handle delete payment method
@@ -199,7 +221,11 @@ const PaymentMethodPage = ({ embedded = false }) => {
       await deletePaymentMethod.mutateAsync(id);
       refetchPaymentMethods();
     } catch (error) {
-      console.error('Error deleting payment method:', error);
+      const message = getUserFriendlyErrorMessage(
+        error,
+        'We could not delete this payment method. Please try again.',
+      );
+      toast.error(message);
     }
   };
 
@@ -209,12 +235,12 @@ const PaymentMethodPage = ({ embedded = false }) => {
       return {
         type: 'Mobile Money',
         primary: method.mobileNumber || method.phone || 'N/A',
-        secondary: method.provider || method.network || 'N/A',
+        secondary: formatMobileNetworkLabel(method.provider || method.network || '') || 'N/A',
         accountName: method.accountName || method.name || 'N/A',
         fullDetails: {
           accountName: method.accountName || method.name || 'N/A',
           phone: method.mobileNumber || method.phone || 'N/A',
-          network: method.provider || method.network || 'N/A',
+          network: formatMobileNetworkLabel(method.provider || method.network || '') || 'N/A',
         },
       };
     } else if (method.type === 'bank_transfer') {
@@ -263,16 +289,9 @@ const PaymentMethodPage = ({ embedded = false }) => {
       setBankDetails(bankData);
     } else if (method.type === 'mobile_money') {
       setActiveTab('mobile');
-      // Map provider to network format (MTN, Vodafone, AirtelTigo)
-      let network = method.provider || method.network || '';
-      // Normalize network names
-      if (network.toLowerCase() === 'vodafone') {
-        network = 'Vodafone';
-      } else if (network.toLowerCase() === 'airteltigo' || network.toLowerCase() === 'airtel_tigo') {
-        network = 'AirtelTigo';
-      } else if (network.toLowerCase() === 'mtn') {
-        network = 'MTN';
-      }
+      let network = normalizeMobileNetworkToken(
+        method.provider || method.network || '',
+      );
 
       const mobileData = {
         accountName: method.accountName || method.name || '',
@@ -332,7 +351,10 @@ const PaymentMethodPage = ({ embedded = false }) => {
         if (!validatePhoneNumber(mobileMoneyDetails.phone)) {
           throw new Error('Please enter a valid Ghana phone number');
         }
-        if (!mobileMoneyDetails.network) {
+        const resolvedMobileNetwork =
+          mobileMoneyDetails.network ||
+          providerTokenFromDetector(detectGhanaPhoneNetwork(mobileMoneyDetails.phone));
+        if (!resolvedMobileNetwork) {
           throw new Error('Please select a mobile network');
         }
 
@@ -342,7 +364,7 @@ const PaymentMethodPage = ({ embedded = false }) => {
           name: mobileMoneyDetails.accountName.trim(),
           accountName: mobileMoneyDetails.accountName.trim(),
           mobileNumber: mobileMoneyDetails.phone.replace(/\D/g, ''), // Remove non-digits
-          provider: mobileMoneyDetails.network,
+          provider: resolvedMobileNetwork,
         };
       }
 
@@ -374,7 +396,9 @@ const PaymentMethodPage = ({ embedded = false }) => {
                   mobileMoney: {
                     accountName: mobileMoneyDetails.accountName.trim(),
                     phone: mobileMoneyDetails.phone.replace(/\D/g, ''),
-                    network: mobileMoneyDetails.network,
+                    network:
+                      mobileMoneyDetails.network ||
+                      providerTokenFromDetector(detectGhanaPhoneNetwork(mobileMoneyDetails.phone)),
                   }
                 }
               };
@@ -382,7 +406,6 @@ const PaymentMethodPage = ({ embedded = false }) => {
             await update(paymentMethodsUpdate);
             toast.success('Payment method updated and reactivation requested! Your payment status will be reviewed by admin.');
           } catch (reactivationError) {
-            console.error('Error requesting reactivation:', reactivationError);
             toast.warning('Payment method updated, but reactivation request failed. Please contact support.');
           }
         } else {
@@ -433,7 +456,6 @@ const PaymentMethodPage = ({ embedded = false }) => {
       const errorMessage = err.response?.data?.message || err.message || 'Failed to save payment method';
       setError(errorMessage);
       toast.error(errorMessage);
-      console.error('Error saving payment method:', err);
     } finally {
       setIsSubmitting(false);
     }
@@ -514,7 +536,12 @@ const PaymentMethodPage = ({ embedded = false }) => {
             <EmptyMessage>You haven't saved any payment methods yet. Add one below to get started.</EmptyMessage>
           </EmptyState>
         ) : (
-          <TableContainer>
+          <>
+            <SingleMethodPolicyBanner role="status">
+              You can only have one payment method at a time. Delete this one to switch to a
+              different type.
+            </SingleMethodPolicyBanner>
+            <TableContainer>
             <Table>
               <thead>
                 <tr>
@@ -668,6 +695,7 @@ const PaymentMethodPage = ({ embedded = false }) => {
               </tbody>
             </Table>
           </TableContainer>
+          </>
         )}
       </Section>
 
@@ -873,31 +901,33 @@ const PaymentMethodPage = ({ embedded = false }) => {
                     required
                   />
                   <HelperText>
-                    {mobileMoneyDetails.phone && detectGhanaPhoneNetwork(mobileMoneyDetails.phone).isValid
-                      ? `Detected network: ${detectGhanaPhoneNetwork(mobileMoneyDetails.phone).network || 'Unknown'}`
-                      : 'Enter your mobile money number (10 digits)'}
+                    {mobileMoneyDetails.phone && detectedMobileNetwork.isValid
+                      ? `Network detected: ${formatMobileNetworkLabel(providerTokenFromDetector(detectedMobileNetwork))} — no need to pick manually.`
+                      : 'Enter your mobile money number (10 digits); we will detect your network automatically.'}
                   </HelperText>
                 </FormGroup>
 
-                <FormGroup>
-                  <Label htmlFor="network">
-                    <FaMobileAlt /> Mobile Network <Required>*</Required>
-                  </Label>
-                  <Select
-                    id="network"
-                    name="network"
-                    value={mobileMoneyDetails.network}
-                    onChange={handleMobileMoneyChange}
-                    required
-                  >
-                    <option value="">Select network</option>
-                    {MOBILE_NETWORKS.map((network) => (
-                      <option key={network} value={network}>
-                        {network}
-                      </option>
-                    ))}
-                  </Select>
-                </FormGroup>
+                {!detectedMobileNetwork.isValid && (
+                  <FormGroup>
+                    <Label htmlFor="network">
+                      <FaMobileAlt /> Mobile Network <Required>*</Required>
+                    </Label>
+                    <Select
+                      id="network"
+                      name="network"
+                      value={mobileMoneyDetails.network}
+                      onChange={handleMobileMoneyChange}
+                      required
+                    >
+                      <option value="">Select network</option>
+                      {MOBILE_NETWORKS.map((network) => (
+                        <option key={network} value={network}>
+                          {MOBILE_NETWORK_LABELS[network]}
+                        </option>
+                      ))}
+                    </Select>
+                  </FormGroup>
+                )}
 
                 {/* Reactivation Field - Show when editing and (payout is rejected OR payment method is rejected) */}
                 {editingMethodId && (() => {
@@ -1192,6 +1222,18 @@ const InfoBanner = styled.div`
   margin-bottom: 0.75rem;
 
   svg { flex-shrink: 0; color: #3B82F6; }
+`;
+
+const SingleMethodPolicyBanner = styled.div`
+  padding: 0.65rem 0.9rem;
+  margin-bottom: 0.75rem;
+  background: #FFF8F0;
+  border: 0.5px solid #FDE68A;
+  border-left: 3px solid #E8920A;
+  border-radius: 9px;
+  color: #92400E;
+  font-size: 0.8rem;
+  line-height: 1.45;
 `;
 
 const TableContainer = styled.div`

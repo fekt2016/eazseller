@@ -127,9 +127,14 @@ vi.mock('../../shared/hooks/usePaymentMethod', () => ({
 // Mock phoneNetworkDetector
 vi.mock('../../shared/utils/phoneNetworkDetector', () => ({
   detectGhanaPhoneNetwork: vi.fn((phone) => {
-    if (phone.startsWith('024') || phone.startsWith('054')) return 'MTN';
-    if (phone.startsWith('020') || phone.startsWith('050')) return 'Vodafone';
-    return 'AirtelTigo';
+    const p = String(phone || '');
+    if (p.startsWith('024') || p.startsWith('054')) {
+      return { network: 'MTN', isValid: true, formatted: p };
+    }
+    if (p.startsWith('020') || p.startsWith('050')) {
+      return { network: 'Telecel', isValid: true, formatted: p };
+    }
+    return { network: 'AirtelTigo', isValid: true, formatted: p };
   }),
 }));
 
