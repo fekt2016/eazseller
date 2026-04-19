@@ -56,7 +56,6 @@ const PickupLocationCreatePage = lazy(() => import("../pages/store/pickup/Pickup
 const PickupLocationEditPage = lazy(() => import("../pages/store/pickup/PickupLocationEditPage"));
 const SellerReturnAndFundsPage = lazy(() => import("../features/sellerReturns/pages/SellerReturnAndFundsPage"));
 const TestimonialsPage = lazy(() => import("../features/testimonials/TestimonialsPage"));
-const SellerFundsPage = lazy(() => import("../features/sellerFunds/pages/SellerFundsPage"));
 const SellerNotificationsPage = lazy(() => import("../pages/notifications/SellerNotificationsPage"));
 const ForgotPasswordPage = lazy(() => import("../features/auth/ForgotPasswordPage"));
 const ResetPasswordPage = lazy(() => import("../features/auth/ResetPasswordPage"));
@@ -701,19 +700,8 @@ export default function SellerRoutes() {
             </ProtectedRoute>
           }
         />
-        {/* Funds Management Route */}
-        <Route
-          path="funds"
-          element={
-            <ProtectedRoute>
-              <SellerProtectedRoute allowedStage="verified">
-                <Suspense fallback={<LoadingSpinner fullScreen />}>
-                  <SellerFundsPage />
-                </Suspense>
-              </SellerProtectedRoute>
-            </ProtectedRoute>
-          }
-        />
+        {/* Funds redirect — legacy /dashboard/funds → unified wallet */}
+        <Route path="funds" element={<Navigate to={PATHS.FINANCE} replace />} />
         <Route
           path="finance/payment-methods"
           element={

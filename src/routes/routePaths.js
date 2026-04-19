@@ -135,7 +135,6 @@ export const PATHS = {
 
   // Returns & Funds
   RETURNS: "/dashboard/returns",
-  FUNDS: "/dashboard/funds",
 };
 
 // ---------- ROUTE CONFIG (SEO META) ----------
