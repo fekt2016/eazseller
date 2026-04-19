@@ -18,9 +18,9 @@
     "@react-oauth/google": "^0.13.4",
     "@tanstack/react-query": "^5.83.0",
     "@tanstack/react-query-devtools": "^5.83.0",
+    "@testing-library/dom": "^10.4.1",
     "axios": "^1.13.5",
     "framer-motion": "^12.23.25",
-    "jwt-decode": "^4.0.0",
     "libphonenumber-js": "^1.12.41",
     "qrcode.react": "^4.2.0",
     "react": "^19.1.0",
@@ -31,6 +31,7 @@
     "react-spinners": "^0.17.0",
     "react-toastify": "^11.0.5",
     "recharts": "^3.8.1",
+    "socket.io-client": "^4.8.3",
     "styled-components": "^6.1.19"
   },
   "devDependencies": {
