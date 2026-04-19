@@ -7,6 +7,7 @@ import PublicHeader from "./PublicHeader";
 import Sidebar from "./Sidebar";
 import useAuth from '../hooks/useAuth';
 import { LoadingSpinner, LoadingContainer } from '../components/LoadingSpinner';
+import SellerChatWidget from '../../features/chat/SellerChatWidget';
 
 // Theme constants
 const SIDEBAR_WIDTH = "240px";
@@ -125,6 +126,7 @@ export default function DashboardLayout({ showSidebar = true, showHeader = true,
           <Outlet />
         </main>
       </div>
+      <SellerChatWidget />
     </DashboardWrapper>
   );
 }
