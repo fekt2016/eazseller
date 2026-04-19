@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Outlet } from "react-router-dom";
 import styled from "styled-components";
 import { devicesMax } from "../styles/breakpoint";
@@ -6,6 +6,7 @@ import Header from "./Header";
 import PublicHeader from "./PublicHeader";
 import Sidebar from "./Sidebar";
 import useAuth from '../hooks/useAuth';
+import api from '../services/api';
 import { LoadingSpinner, LoadingContainer } from '../components/LoadingSpinner';
 import SellerChatWidget from '../../features/chat/SellerChatWidget';
 
@@ -82,6 +83,7 @@ const DashboardWrapper = styled.div`
 export default function DashboardLayout({ showSidebar = true, showHeader = true, fullPage = false }) {
   const { seller, isLoading: isSellerLoading, error: sellerError } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const trackedRef = useRef(false);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(prev => !prev);
@@ -96,6 +98,38 @@ export default function DashboardLayout({ showSidebar = true, showHeader = true,
   // 1. showSidebar prop is false (for public pages)
   // 2. User is not authenticated (public pages)
   const shouldShowSidebar = showSidebar && !!seller;
+
+  useEffect(() => {
+    const shouldTrackHomepageSession = Boolean(seller || fullPage);
+    if (!shouldTrackHomepageSession || trackedRef.current) return;
+
+    trackedRef.current = true;
+    const sessionKey = 'saiisai_seller_analytics_session_id';
+    const existingSessionId =
+      typeof window !== 'undefined'
+        ? window.sessionStorage.getItem(sessionKey)
+        : null;
+    const homepageVariant = seller ? 'SELLER_DASH' : 'SELLER_GUEST';
+    const sessionId =
+      existingSessionId ||
+      `seller-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    if (typeof window !== 'undefined' && !existingSessionId) {
+      window.sessionStorage.setItem(sessionKey, sessionId);
+    }
+
+    api
+      .post('/analytics/screen-views', {
+        screen: `home:variant_seen:${homepageVariant}`,
+        sessionId,
+      })
+      .catch(() => {});
+    api
+      .post('/analytics/screen-views', {
+        screen: `home:dashboard_open:${homepageVariant}`,
+        sessionId,
+      })
+      .catch(() => {});
+  }, [fullPage, seller]);
 
   // Allow layout to render even if auth is loading or has errors (for public pages)
   // ProtectedRoute will handle authentication requirements for protected routes
