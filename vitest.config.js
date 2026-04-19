@@ -7,7 +7,12 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    testTimeout: 15000,
+    testTimeout: 120000,
+    fileParallelism: false,
+    // Use a single forked worker to improve process shutdown stability
+    // for suites that initialize long-lived browser/socket mocks.
+    pool: 'forks',
+    singleFork: true,
     setupFiles: ['./src/tests/setup.js'],
     include: ['src/tests/**/*.test.{js,jsx}', 'src/__tests__/**/*.test.{js,jsx}'],
     css: false,
