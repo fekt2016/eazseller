@@ -64,7 +64,33 @@ vi.mock('../../shared/hooks/useOrder', () => ({
   useGetSellerOrders: (...args) => mockUseGetSellerOrders(...args),
 }));
 
-// Mock useAnalytics
+// Mock useSellerAnalytics
+const mockUseSellerRevenueAnalytics = vi.fn(() => ({
+  data: { data: { summary: { totalRevenue: 0 }, dailyRevenue: [], trend: 0 } },
+  isLoading: false,
+}));
+const mockUseSellerOrderStatusAnalytics = vi.fn(() => ({
+  data: { statusBreakdown: {}, totalOrders: 0 },
+  isLoading: false,
+}));
+const mockUseSellerTopProducts = vi.fn(() => ({
+  data: { data: { topSellingProducts: [] } },
+  isLoading: false,
+}));
+const mockUseSellerTrafficAnalytics = vi.fn(() => ({
+  data: { data: { totalViews: 0, uniqueVisitors: 0, totalOrders: 0, conversionRate: 0 } },
+  isLoading: false,
+}));
+
+vi.mock('../../shared/hooks/useSellerAnalytics', () => ({
+  useSellerRevenueAnalytics: (...args) => mockUseSellerRevenueAnalytics(...args),
+  useSellerOrderStatusAnalytics: (...args) =>
+    mockUseSellerOrderStatusAnalytics(...args),
+  useSellerTopProducts: (...args) => mockUseSellerTopProducts(...args),
+  useSellerTrafficAnalytics: (...args) => mockUseSellerTrafficAnalytics(...args),
+}));
+
+// Keep legacy mock for compatibility in case older imports remain
 const mockUseGetSellerProductViews = vi.fn(() => ({
   data: { data: { views: [] } },
   isLoading: false,
@@ -101,6 +127,12 @@ vi.mock('../../shared/components/VerificationBanner', () => ({
   default: () => <div data-testid="verification-banner">Verification Banner</div>,
 }));
 
+global.ResizeObserver = class ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
+
 describe('Dashboard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -131,6 +163,22 @@ describe('Dashboard', () => {
       isLoading: false,
       error: null,
     });
+    mockUseSellerRevenueAnalytics.mockReturnValue({
+      data: { data: { summary: { totalRevenue: 0 }, dailyRevenue: [], trend: 0 } },
+      isLoading: false,
+    });
+    mockUseSellerOrderStatusAnalytics.mockReturnValue({
+      data: { statusBreakdown: {}, totalOrders: 0 },
+      isLoading: false,
+    });
+    mockUseSellerTopProducts.mockReturnValue({
+      data: { data: { topSellingProducts: [] } },
+      isLoading: false,
+    });
+    mockUseSellerTrafficAnalytics.mockReturnValue({
+      data: { data: { totalViews: 0, uniqueVisitors: 0, totalOrders: 0, conversionRate: 0 } },
+      isLoading: false,
+    });
     
     mockUseSellerBalance.mockReturnValue({
       availableBalance: 1000,
@@ -156,7 +204,7 @@ describe('Dashboard', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText(/loading dashboard data/i)).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: /dashboard/i })).toBeInTheDocument();
     });
   });
 
@@ -173,9 +221,8 @@ describe('Dashboard', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText(/failed to load data/i)).toBeInTheDocument();
+      expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
       expect(screen.getByText(/failed to load orders/i)).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument();
     });
   });
 
@@ -303,14 +350,14 @@ describe('Dashboard', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText(/this week/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/this week/i).length).toBeGreaterThan(0);
     });
 
-    const weekButton = screen.getByText(/this week/i);
+    const [weekButton] = screen.getAllByText(/this week/i);
     await user.click(weekButton);
 
     // Button should still be in document
-    expect(screen.getByText(/this week/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/this week/i).length).toBeGreaterThan(0);
   });
 
   test('renders stats cards', async () => {

@@ -80,6 +80,19 @@ vi.mock('../../shared/utils/imageCompressor', () => ({
   compressImage: vi.fn((file) => Promise.resolve(file)),
 }));
 
+vi.mock('../../shared/services/productApi', () => ({
+  productService: {
+    uploadProductImage: vi.fn(async () => ({
+      url: 'https://example.com/test.jpg',
+      thumbnail: 'https://example.com/test-thumb.jpg',
+      medium: 'https://example.com/test-medium.jpg',
+      large: 'https://example.com/test-large.jpg',
+      publicId: 'test-public-id',
+      blurhash: null,
+    })),
+  },
+}));
+
 // Mock react-router-dom
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async (importOriginal) => {

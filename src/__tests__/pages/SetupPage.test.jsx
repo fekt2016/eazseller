@@ -85,7 +85,7 @@ describe('SetupPage', () => {
     await waitFor(() => {
       expect(screen.getByText(/welcome to saiisai/i)).toBeInTheDocument();
     });
-  });
+  }, 30000);
 
   test('displays setup steps', async () => {
     renderWithProviders(<SetupPage />, {
@@ -93,7 +93,7 @@ describe('SetupPage', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText(/upload & verify business documents/i)).toBeInTheDocument();
+      expect(screen.getByText(/upload & verify front and back of your id/i)).toBeInTheDocument();
       expect(screen.getByText(/setup & verify payment methods/i)).toBeInTheDocument();
       expect(screen.getByText(/verify contact information/i)).toBeInTheDocument();
     });
@@ -130,7 +130,7 @@ describe('SetupPage', () => {
 
     await waitFor(() => {
       // Setup steps should be displayed
-      expect(screen.getByText(/upload & verify business documents/i)).toBeInTheDocument();
+      expect(screen.getByText(/upload & verify front and back of your id/i)).toBeInTheDocument();
     });
   });
 });

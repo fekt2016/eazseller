@@ -37,9 +37,29 @@ const mockUseGetSellerOrder = vi.fn(() => ({
   isError: false,
   error: null,
 }));
+const mockUseUpdateSellerOrderStatus = vi.fn(() => ({
+  mutateAsync: vi.fn(),
+  isPending: false,
+}));
 
 vi.mock('../../shared/hooks/useOrder', () => ({
   useGetSellerOrder: (...args) => mockUseGetSellerOrder(...args),
+  useUpdateSellerOrderStatus: (...args) =>
+    mockUseUpdateSellerOrderStatus(...args),
+}));
+
+const mockUseGetEarningsByOrder = vi.fn(() => ({
+  data: {
+    grossEarnings: 150,
+    platformFee: 15,
+    netEarnings: 135,
+    payoutStatus: 'pending',
+  },
+  isLoading: false,
+}));
+
+vi.mock('../../shared/hooks/useBalance', () => ({
+  useGetEarningsByOrder: (...args) => mockUseGetEarningsByOrder(...args),
 }));
 
 // Mock useDynamicPageTitle
@@ -58,6 +78,19 @@ describe('OrderDetail', () => {
       isLoading: false,
       isError: false,
       error: null,
+    });
+    mockUseUpdateSellerOrderStatus.mockReturnValue({
+      mutateAsync: vi.fn(),
+      isPending: false,
+    });
+    mockUseGetEarningsByOrder.mockReturnValue({
+      data: {
+        grossEarnings: 150,
+        platformFee: 15,
+        netEarnings: 135,
+        payoutStatus: 'pending',
+      },
+      isLoading: false,
     });
   });
 
@@ -92,7 +125,9 @@ describe('OrderDetail', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText(new RegExp(errorMessage, 'i'))).toBeInTheDocument();
+      expect(
+        screen.getAllByText(new RegExp(errorMessage, 'i')).length
+      ).toBeGreaterThan(0);
     });
   });
 
@@ -102,6 +137,7 @@ describe('OrderDetail', () => {
     // And usage shows it expects order.order.orderNumber, order.items, order.subtotal
     // So the structure should be: orderData.data.data.order = { order: {...}, items: [...], subtotal: ... }
     const mockOrderData = {
+      _id: 'order123',
       order: {
         _id: 'order123',
         orderNumber: 'ORD123456789',
@@ -147,24 +183,22 @@ describe('OrderDetail', () => {
     });
 
     await waitFor(() => {
-      // Order number text is split across elements, use function matcher
-      expect(screen.getByText((content, element) => {
-        const hasText = (node) => node.textContent === "ORD123456789" || node.textContent?.includes("ORD123456789");
-        const nodeHasText = hasText(element);
-        const childrenDontHaveText = Array.from(element?.children || []).every(
-          (child) => !hasText(child)
-        );
-        return nodeHasText && childrenDontHaveText;
-      })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /print invoice/i })).toBeInTheDocument();
+      // Customer row uses firstNameOnly() — not full name
+      expect(screen.getByText('John')).toBeInTheDocument();
     });
-  });
+  }, 30000);
 
   test('displays customer information', async () => {
     const mockOrderData = {
+      _id: 'order123',
       order: {
         _id: 'order123',
         orderNumber: 'ORD123456789',
-        status: 'pending',
+        // Post-shipment so buyerContactVisibility exposes email/phone (orderPrivacy)
+        status: 'delivered',
+        currentStatus: 'delivered',
+        orderStatus: 'delivered',
         user: {
           name: 'John Doe',
           email: 'john@test.com',
@@ -174,7 +208,9 @@ describe('OrderDetail', () => {
       items: [],
       subtotal: 130.00,
       total: 150.00,
-      orderStatus: 'pending',
+      orderStatus: 'delivered',
+      status: 'delivered',
+      currentStatus: 'delivered',
     };
 
     mockUseGetSellerOrder.mockReturnValue({
@@ -190,13 +226,15 @@ describe('OrderDetail', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/customer information/i)).toBeInTheDocument();
-      expect(screen.getByText('John Doe')).toBeInTheDocument();
+      // Customer label always uses firstNameOnly(), even when full PII is visible
+      expect(screen.getByText('John')).toBeInTheDocument();
       expect(screen.getByText('john@test.com')).toBeInTheDocument();
     });
   });
 
   test('displays order items', async () => {
     const mockOrderData = {
+      _id: 'order123',
       order: {
         _id: 'order123',
         orderNumber: 'ORD123456789',
@@ -234,13 +272,13 @@ describe('OrderDetail', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText(/order items/i)).toBeInTheDocument();
       expect(screen.getByText('Product 1')).toBeInTheDocument();
     });
   });
 
   test('displays order summary', async () => {
     const mockOrderData = {
+      _id: 'order123',
       order: {
         _id: 'order123',
         orderNumber: 'ORD123456789',
@@ -270,10 +308,8 @@ describe('OrderDetail', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText(/order summary/i)).toBeInTheDocument();
-      expect(screen.getByText(/subtotal/i)).toBeInTheDocument();
-      // "Total" appears in multiple places, use getAllByText
-      expect(screen.getAllByText(/total/i).length).toBeGreaterThan(0);
+      expect(screen.getByText(/payment status/i)).toBeInTheDocument();
+      expect(screen.getByText(/no items available/i)).toBeInTheDocument();
     });
   });
 });

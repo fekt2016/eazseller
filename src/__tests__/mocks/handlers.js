@@ -5,7 +5,7 @@
  * These handlers simulate realistic backend responses.
  * 
  * CRITICAL: These handlers simulate cookie-based authentication.
- * - No localStorage tokens
+ * - No localStorage auth credentials
  * - Cookies are simulated via response headers
  * - 401 responses indicate unauthenticated state
  */
@@ -51,6 +51,33 @@ const mockSellerStatus = {
     hasAdded: true,
   },
 };
+
+const mockCategories = [
+  {
+    _id: 'cat-parent-1',
+    name: 'Electronics',
+    slug: 'electronics',
+    parentCategory: null,
+  },
+  {
+    _id: 'cat-parent-2',
+    name: 'Fashion',
+    slug: 'fashion',
+    parentCategory: null,
+  },
+  {
+    _id: 'cat-sub-1',
+    name: 'Phones',
+    slug: 'phones',
+    parentCategory: 'cat-parent-1',
+  },
+  {
+    _id: 'cat-sub-2',
+    name: 'Laptops',
+    slug: 'laptops',
+    parentCategory: 'cat-parent-1',
+  },
+];
 
 // Track authentication state (simulates cookie)
 let isAuthenticated = false;
@@ -224,6 +251,42 @@ export const handlers = [
   /**
    * Product Endpoints
    */
+
+  // GET /categories - Category listing with pagination
+  http.get(new RegExp(`${API_BASE.replace(/\//g, '\\/')}/categories(?:/)?(?:\\?.*)?$`), ({ request }) => {
+    const url = new URL(request.url);
+    const page = Number(url.searchParams.get('page') || 1);
+    const limit = Number(url.searchParams.get('limit') || 100);
+    const start = (page - 1) * limit;
+    const end = start + limit;
+    const results = mockCategories.slice(start, end);
+    const total = mockCategories.length;
+    const totalPages = Math.max(1, Math.ceil(total / limit));
+
+    return HttpResponse.json({
+      status: 'success',
+      results,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages,
+      },
+    });
+  }),
+
+  // GET /categories/parents - Parent categories only
+  http.get(new RegExp(`${API_BASE.replace(/\//g, '\\/')}/categories/parents(?:/)?(?:\\?.*)?$`), () => {
+    const parentCategories = mockCategories.filter(
+      (category) => !category.parentCategory
+    );
+
+    return HttpResponse.json({
+      status: 'success',
+      data: parentCategories,
+      results: parentCategories,
+    });
+  }),
   
   // GET /seller/product - Get seller products
   http.get(`${API_BASE}/seller/product`, ({ request }) => {
@@ -309,6 +372,37 @@ export const handlers = [
       { status: 201 }
     );
   }),
+
+  // GET /seller/me/earnings/order/:orderId - Earnings by order detail
+  http.get(
+    new RegExp(
+      `${API_BASE.replace(/\//g, '\\/')}/seller/me/earnings/order/([^/?]+)(?:/)?(?:\\?.*)?$`
+    ),
+    ({ request }) => {
+    if (!checkAuth(request)) {
+      return HttpResponse.json(
+        { status: 'fail', message: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const orderId = new URL(request.url).pathname.split('/').pop() || 'order123';
+
+    return HttpResponse.json({
+      status: 'success',
+      data: {
+        orderId,
+        grossEarnings: 150,
+        platformFee: 15,
+        shippingFee: 0,
+        taxDeduction: 0,
+        netEarnings: 135,
+        payoutStatus: 'pending',
+        currency: 'GHS',
+      },
+    });
+    }
+  ),
 ];
 
 

@@ -101,10 +101,11 @@ vi.mock('../../shared/hooks/usePaymentRequest', () => ({
 }));
 
 // Mock useGetPaymentMethods
-const mockUseGetPaymentMethods = vi.fn(() => ({
+const stablePaymentMethodsResponse = {
   data: [],
   isLoading: false,
-}));
+};
+const mockUseGetPaymentMethods = vi.fn(() => stablePaymentMethodsResponse);
 
 vi.mock('../../shared/hooks/usePaymentMethod', () => ({
   useGetPaymentMethods: (...args) => mockUseGetPaymentMethods(...args),
@@ -147,6 +148,8 @@ describe('WithdrawalsPage', () => {
       data: { paymentRequests: mockPaymentRequests },
       isLoading: false,
     });
+
+    mockUseGetPaymentMethods.mockReturnValue(stablePaymentMethodsResponse);
   });
 
   test('renders withdrawals page', async () => {

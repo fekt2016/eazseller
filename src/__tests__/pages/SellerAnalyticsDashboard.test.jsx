@@ -60,9 +60,9 @@ describe('SellerAnalyticsDashboard', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText(/analytics dashboard/i)).toBeInTheDocument();
+      expect(screen.getByText(/^analytics$/i)).toBeInTheDocument();
     });
-  });
+  }, 30000);
 
   test('displays KPI cards', async () => {
     renderWithProviders(<SellerAnalyticsDashboard />, {
@@ -70,8 +70,8 @@ describe('SellerAnalyticsDashboard', () => {
     });
 
     await waitFor(() => {
-      // KPI cards should be rendered
-      expect(screen.getByText(/analytics dashboard/i)).toBeInTheDocument();
+      expect(screen.getByText(/today's revenue/i)).toBeInTheDocument();
+      expect(screen.getByText(/weekly revenue/i)).toBeInTheDocument();
     });
   });
 

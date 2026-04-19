@@ -125,8 +125,8 @@ describe('AuthPage', () => {
 
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: /welcome back/i })).toBeInTheDocument();
-      expect(screen.getByPlaceholderText(/your\.email@example\.com/i)).toBeInTheDocument();
-      expect(screen.getByPlaceholderText(/enter your password/i)).toBeInTheDocument();
+      expect(screen.getByPlaceholderText(/email address/i)).toBeInTheDocument();
+      expect(screen.getByPlaceholderText(/account password/i)).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
     }, { timeout: 10000 });
   }, 20000);
@@ -144,7 +144,7 @@ describe('AuthPage', () => {
     await waitFor(() => {
       expect(screen.getByRole('heading', { name: /create your seller account/i })).toBeInTheDocument();
       expect(screen.getByPlaceholderText(/enter your full name/i)).toBeInTheDocument();
-      expect(screen.getByPlaceholderText(/enter your email/i)).toBeInTheDocument();
+      expect(screen.getByPlaceholderText(/business email address/i)).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /create account/i })).toBeInTheDocument();
     });
   });
@@ -178,8 +178,8 @@ describe('AuthPage', () => {
       initialRoute: '/login',
     });
 
-    const emailInput = screen.getByPlaceholderText(/your\.email@example\.com/i);
-    const passwordInput = screen.getByPlaceholderText(/enter your password/i);
+    const emailInput = screen.getByPlaceholderText(/email address/i);
+    const passwordInput = screen.getByPlaceholderText(/account password/i);
     const submitButton = screen.getByRole('button', { name: /sign in/i });
 
     await user.type(emailInput, 'seller@test.com');
@@ -211,8 +211,8 @@ describe('AuthPage', () => {
       initialRoute: '/login',
     });
 
-    const emailInput = screen.getByPlaceholderText(/your\.email@example\.com/i);
-    const passwordInput = screen.getByPlaceholderText(/enter your password/i);
+    const emailInput = screen.getByPlaceholderText(/email address/i);
+    const passwordInput = screen.getByPlaceholderText(/account password/i);
     const form = emailInput.closest('form');
 
     // Type invalid email
@@ -249,11 +249,11 @@ describe('AuthPage', () => {
 
     await waitFor(() => {
       expect(screen.getByPlaceholderText(/enter your full name/i)).toBeInTheDocument();
-      expect(screen.getByPlaceholderText(/enter your email/i)).toBeInTheDocument();
-      expect(screen.getByPlaceholderText(/enter your password/i)).toBeInTheDocument();
-      expect(screen.getByPlaceholderText(/confirm your password/i)).toBeInTheDocument();
+      expect(screen.getByPlaceholderText(/business email address/i)).toBeInTheDocument();
+      expect(screen.getByPlaceholderText(/strong password/i)).toBeInTheDocument();
+      expect(screen.getByPlaceholderText(/re-enter your password/i)).toBeInTheDocument();
       expect(screen.getByPlaceholderText(/enter your shop name/i)).toBeInTheDocument();
-      expect(screen.getByPlaceholderText(/024\s*123\s*4567/i)).toBeInTheDocument();
+      expect(screen.getByPlaceholderText(/phone number/i)).toBeInTheDocument();
     });
   });
 
@@ -272,12 +272,12 @@ describe('AuthPage', () => {
 
     // Fill form using fireEvent for speed (user.type is slow with many fields)
     const nameInput = screen.getByPlaceholderText(/enter your full name/i);
-    const phoneInput = screen.getByPlaceholderText(/024\s*123\s*4567/i);
+    const phoneInput = screen.getByPlaceholderText(/phone number/i);
     const shopInput = screen.getByPlaceholderText(/enter your shop name/i);
-    const locationInput = screen.getByPlaceholderText(/e\.g\. Nima/i);
-    const emailInput = screen.getByPlaceholderText(/enter your email/i);
-    const passwordInputs = screen.getAllByPlaceholderText(/enter your password/i);
-    const confirmInput = screen.getByPlaceholderText(/confirm your password/i);
+    const locationInput = screen.getByPlaceholderText(/shop location/i);
+    const emailInput = screen.getByPlaceholderText(/business email address/i);
+    const passwordInputs = screen.getAllByPlaceholderText(/strong password/i);
+    const confirmInput = screen.getByPlaceholderText(/re-enter your password/i);
 
     fireEvent.change(nameInput, { target: { name: 'name', value: 'Test Seller' } });
     fireEvent.change(phoneInput, { target: { name: 'contactNumber', value: '0241234567' } });
@@ -308,12 +308,12 @@ describe('AuthPage', () => {
     await user.click(signupTab);
 
     await waitFor(() => {
-      expect(screen.getByPlaceholderText(/enter your password/i)).toBeInTheDocument();
+      expect(screen.getByPlaceholderText(/strong password/i)).toBeInTheDocument();
     });
 
-    const passwordInputs = screen.getAllByPlaceholderText(/enter your password/i);
+    const passwordInputs = screen.getAllByPlaceholderText(/strong password/i);
     const passwordInput = passwordInputs[0];
-    const confirmPasswordInput = screen.getByPlaceholderText(/confirm your password/i);
+    const confirmPasswordInput = screen.getByPlaceholderText(/re-enter your password/i);
     const form = passwordInput.closest('form');
 
     // Type mismatched passwords (meet complexity: 8+ chars, digit, special)

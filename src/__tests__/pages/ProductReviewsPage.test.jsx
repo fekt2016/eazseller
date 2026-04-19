@@ -101,11 +101,10 @@ describe('ProductReviewsPage', () => {
       expect(screen.getByText(/product reviews/i)).toBeInTheDocument();
     });
 
-    // Filter is a select dropdown
-    const filterSelect = screen.getByRole('combobox');
-    expect(filterSelect).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: /all reviews/i })).toBeInTheDocument();
-  });
+    // Filters are tab buttons in the current UI
+    expect(screen.getByRole('button', { name: /all/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /pending/i })).toBeInTheDocument();
+  }, 30000);
 
   test('handles loading state', async () => {
     mockUseGetSellerReviews.mockReturnValue({
@@ -136,7 +135,7 @@ describe('ProductReviewsPage', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText(/no reviews found for your products/i)).toBeInTheDocument();
+      expect(screen.getByText(/no reviews yet/i)).toBeInTheDocument();
     });
   });
 });

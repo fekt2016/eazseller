@@ -15,6 +15,7 @@
 import '@testing-library/jest-dom';
 import { cleanup } from '@testing-library/react';
 import { afterEach, beforeAll, afterAll, vi } from 'vitest';
+import { server } from './mocks/server.js';
 
 // Set up environment variables for tests
 process.env.VITE_API_URL = 'http://localhost:4000/api/v1';
@@ -26,6 +27,9 @@ Object.defineProperty(window, 'location', {
     hostname: 'localhost',
     origin: 'http://localhost:5173',
     href: 'http://localhost:5173',
+    pathname: '/',
+    search: '',
+    hash: '',
   },
   writable: true,
 });
@@ -59,26 +63,8 @@ global.clearInterval = (timer) => {
   originalClearInterval(timer);
 };
 
-// Set up MSW server
-let server;
-
-beforeAll(async () => {
-  // Use queueMicrotask to ensure MSW setup runs after all module initializations
-  await new Promise((resolve) => {
-    queueMicrotask(async () => {
-      try {
-        const serverModule = await import('./mocks/server.js');
-        server = serverModule.server;
-        if (server) {
-          server.listen({ onUnhandledRequest: 'warn' });
-        }
-      } catch (error) {
-        console.warn('MSW server setup failed:', error.message);
-      } finally {
-        resolve();
-      }
-    });
-  });
+beforeAll(() => {
+  server.listen({ onUnhandledRequest: 'warn' });
 });
 
 // Reset handlers and clean up after each test

@@ -107,11 +107,13 @@ vi.mock('../../shared/hooks/usePaymentRequest', () => ({
   }),
 }));
 
-// Mock useGetPaymentMethods
-const mockUseGetPaymentMethods = vi.fn(() => ({
-  data: [],
+// Mock useGetPaymentMethods (stable reference to avoid effect loops)
+const MOCK_PAYMENT_METHODS = [];
+const PAYMENT_METHODS_QUERY = {
+  data: MOCK_PAYMENT_METHODS,
   isLoading: false,
-}));
+};
+const mockUseGetPaymentMethods = vi.fn(() => PAYMENT_METHODS_QUERY);
 
 vi.mock('../../shared/hooks/usePaymentMethod', () => ({
   useGetPaymentMethods: (...args) => mockUseGetPaymentMethods(...args),
@@ -162,6 +164,8 @@ describe('UnifiedWalletPage', () => {
       data: { paymentRequests: mockPaymentRequests },
       isLoading: false,
     });
+
+    mockUseGetPaymentMethods.mockReturnValue(PAYMENT_METHODS_QUERY);
   });
 
   test('renders wallet page', async () => {
