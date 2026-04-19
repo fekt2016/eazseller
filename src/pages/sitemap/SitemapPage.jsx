@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { FaHeadset, FaBook, FaComments } from 'react-icons/fa';
 import useDynamicPageTitle from '../../shared/hooks/useDynamicPageTitle';
 import { PATHS } from '../../routes/routePaths';
+import { PROMO_SYSTEM_ENABLED } from '../../shared/config/featureFlags';
 import {
   SitemapContainer,
   HeroSection,
@@ -59,7 +60,9 @@ const SitemapPage = () => {
       links: [
         { label: 'All Products', path: PATHS.PRODUCTS },
         { label: 'Add Product', path: PATHS.ADD_PRODUCT },
-        { label: 'Discount Products', path: PATHS.DISCOUNT_PRODUCTS },
+        ...(PROMO_SYSTEM_ENABLED
+          ? [{ label: 'Promos', path: PATHS.PROMOS }]
+          : []),
         { label: 'Product Reviews', path: PATHS.REVIEWS },
       ],
     },

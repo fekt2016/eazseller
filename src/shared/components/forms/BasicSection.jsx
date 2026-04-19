@@ -1,10 +1,8 @@
 import { useFormContext } from "react-hook-form";
 import styled from "styled-components";
-import useActivePromotions from "../../hooks/useActivePromotions";
 
 const BasicSection = () => {
   const { register, watch, setValue, formState: { errors } } = useFormContext();
-  const { data: activePromotions = [], isLoading: promotionsLoading } = useActivePromotions();
   
   const name = watch("name") || "";
   const description = watch("description") || "";
@@ -204,31 +202,18 @@ const BasicSection = () => {
         )}
       </PreOrderSection>
 
-      {/* Admin promotion – add this product to a platform promotion */}
+      {/* promotionKey — optional; platform campaigns use unified Promos */}
       <FieldGroup>
         <Label>
-          Admin promotion
+          Promotion key
           <Optional>(Optional)</Optional>
         </Label>
-        <Select
-          {...register("promotionKey")}
-          disabled={promotionsLoading}
-          $hasError={!!errors.promotionKey}
-        >
+        <Select {...register("promotionKey")} $hasError={!!errors.promotionKey}>
           <option value="">None</option>
-          {(activePromotions || []).map((p) => (
-            <option key={p.key} value={p.key}>
-              {p.title}
-              {p.discountType === "fixed" && p.discountFixed > 0
-                ? ` (GH₵${Number(p.discountFixed).toFixed(2)} off)`
-                : p.discountPercent > 0
-                  ? ` (${p.discountPercent}% off)`
-                  : ""}
-            </option>
-          ))}
         </Select>
         <HelperText>
-          Add this product to a platform promotion. Discount is set by admin.
+          For platform-wide sales, use Promos in the dashboard. Leave as None unless instructed to set a
+          specific key.
         </HelperText>
       </FieldGroup>
     </div>

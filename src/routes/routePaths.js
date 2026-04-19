@@ -17,8 +17,11 @@ export const PATHS = {
   EDIT_PRODUCT: "/dashboard/products/:id/edit",
   EDITPRODUCT: "/dashboard/products/:id/edit", // Alias for backward compatibility
   PRODUCT_DETAIL: "/dashboard/products/:id",
-  DISCOUNT_PRODUCTS: "/dashboard/products/discount",
-  DISCOUNTPRODUCT: "/dashboard/products/discount", // Alias for backward compatibility
+  FLASH_DEALS: "/dashboard/flash-deals",
+  PROMOS: "/dashboard/promos",
+  PROMO_DETAIL: "/dashboard/promos/:id",
+  PROMO_SUBMIT: "/dashboard/promos/:id/submit",
+  MY_PROMO_SUBMISSIONS: "/dashboard/my-submissions",
   PRODUCT_VARIANTS: "/dashboard/products/:productId/variants",
   PRODUCT_VARIANT_CREATE: "/dashboard/products/:productId/variants/create",
   PRODUCT_VARIANT_EDIT: "/dashboard/products/:productId/variants/:variantId/edit",

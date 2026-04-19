@@ -14,17 +14,21 @@ import {
   FaFileAlt,
   FaMapMarkerAlt,
   FaUndo,
+  FaTag,
 } from "react-icons/fa";
 import useAuth from '../hooks/useAuth';
 import { PATHS } from '../../routes/routePaths';
 import { devicesMax } from '../styles/breakpoint';
 import { useSellerBalance } from '../hooks/finance/useSellerBalance';
 import useMediaQuery from '../hooks/useMediaQuery';
+import { usePendingSubmissionsCount } from '../hooks/useSellerPromos';
+import { PROMO_SYSTEM_ENABLED } from '../config/featureFlags';
 
 export default function Sidebar({ isOpen, onClose }) {
   const { logout, seller } = useAuth();
   const isMobile = useMediaQuery(devicesMax.md);
   const { availableBalance, isLoading: isBalanceLoading } = useSellerBalance();
+  const { pendingCount } = usePendingSubmissionsCount();
 
   const publicMenuItems = [
     { path: PATHS.SHIPPING_INFO, label: "Shipping Info", icon: <FaTruck /> },
@@ -37,9 +41,23 @@ export default function Sidebar({ isOpen, onClose }) {
     { path: PATHS.DASHBOARD, label: "Dashboard", icon: <FaStore /> },
     { path: PATHS.ADD_PRODUCT, label: "Add Product", icon: <FaBoxes /> },
     { path: PATHS.PRODUCTS, label: "My Products", icon: <FaBoxes /> },
+    ...(PROMO_SYSTEM_ENABLED
+      ? [
+          { path: PATHS.PROMOS, label: "Promos", icon: <FaTag /> },
+          {
+            path: PATHS.MY_PROMO_SUBMISSIONS,
+            label: "My Submissions",
+            icon: <FaTag />,
+            isSubItem: true,
+            badge: pendingCount > 0 ? pendingCount : null,
+          },
+        ]
+      : []),
     { path: PATHS.ORDERS, label: "Orders", icon: <FaShoppingCart /> },
     { path: PATHS.REVIEWS, label: "Reviews", icon: <FaStar /> },
-    { path: PATHS.DISCOUNT_PRODUCTS, label: "Discounts", icon: <FaBoxes /> },
+    ...(!PROMO_SYSTEM_ENABLED
+      ? [{ path: PATHS.FLASH_DEALS, label: "Flash Deals", icon: <FaTag /> }]
+      : []),
     { path: PATHS.FINANCE, label: "Wallet", icon: <FaWallet /> },
     { path: PATHS.TRANSACTIONS, label: "Transactions", icon: <FaReceipt /> },
     { path: PATHS.RETURNS, label: "Returns", icon: <FaUndo /> },
@@ -85,9 +103,11 @@ export default function Sidebar({ isOpen, onClose }) {
               end
               className={({ isActive }) => (isActive ? "active" : undefined)}
               onClick={handleNavClick}
+              $isSubItem={item.isSubItem}
             >
               <MenuIcon>{item.icon}</MenuIcon>
               <span>{item.label}</span>
+              {item.badge ? <Badge>{item.badge}</Badge> : null}
             </NavLink>
           </MenuItem>
         ))}
@@ -194,6 +214,7 @@ const NavLink = styled(RouterNavLink)`
   gap: 0.8rem;
   border-radius: 10px;
   padding: 0.72rem 0.95rem;
+  padding-left: ${({ $isSubItem }) => ($isSubItem ? '1.8rem' : '0.95rem')};
   transition: 0.2s ease;
 
   &:hover {
@@ -212,6 +233,21 @@ const NavLink = styled(RouterNavLink)`
 const MenuIcon = styled.span`
   font-size: 1.2rem;
   display: inline-flex;
+`;
+
+const Badge = styled.span`
+  margin-left: auto;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.35rem;
 `;
 
 const LogoutButton = styled.button`

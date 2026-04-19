@@ -4,6 +4,7 @@ import { PATHS } from "./routePaths";
 import ProtectedRoute from "../routes/ProtectedRoute";
 import SellerProtectedRoute from "../routes/SellerProtectedRoute";
 import { LoadingSpinner } from '../shared/components/LoadingSpinner';
+import { PROMO_SYSTEM_ENABLED } from '../shared/config/featureFlags';
 
 const AuthPage = lazy(() => import("../features/auth/AuthPage"));
 const HomePage = lazy(() => import("../features/products/HomePage"));
@@ -13,8 +14,11 @@ const AddProduct = lazy(() => import("../features/products/AddProduct"));
 const Orders = lazy(() => import("../features/orders/Orders"));
 const OrderDetail = lazy(() => import("../features/orders/OrderDetail"));
 const Products = lazy(() => import("../features/products/Products"));
-// PaymentRequest removed - using withdrawal system instead
-const DiscountProducts = lazy(() => import("../features/products/DiscountProducts"));
+const FlashDealsPage = lazy(() => import("../features/flashDeals/FlashDealsPage"));
+const SellerPromosPage = lazy(() => import("../features/promos/SellerPromosPage"));
+const SellerPromoDetailPage = lazy(() => import("../features/promos/SellerPromoDetailPage"));
+const PromoSubmitPage = lazy(() => import("../features/promos/PromoSubmitPage"));
+const MySubmissionsPage = lazy(() => import("../features/promos/MySubmissionsPage"));
 const EditProduct = lazy(() => import("../features/products/EditProduct"));
 const VariantsListPage = lazy(() => import("../pages/products/variants/VariantsListPage"));
 const VariantCreatePage = lazy(() => import("../pages/products/variants/VariantCreatePage"));
@@ -368,11 +372,9 @@ export default function SellerRoutes() {
           path="products/add"
           element={
             <ProtectedRoute>
-              <SellerProtectedRoute allowedStage="verified">
-                <Suspense fallback={<LoadingSpinner fullScreen />}>
-                  <AddProduct />
-                </Suspense>
-              </SellerProtectedRoute>
+              <Suspense fallback={<LoadingSpinner fullScreen />}>
+                <AddProduct />
+              </Suspense>
             </ProtectedRoute>
           }
         />
@@ -391,10 +393,75 @@ export default function SellerRoutes() {
         <Route
           path="products/discount"
           element={
+            <Navigate
+              to={PROMO_SYSTEM_ENABLED ? PATHS.PROMOS : PATHS.PRODUCTS}
+              replace
+            />
+          }
+        />
+        {PROMO_SYSTEM_ENABLED ? (
+          <>
+            <Route
+              path="promos"
+              element={
+                <ProtectedRoute>
+                  <SellerProtectedRoute allowedStage="verified">
+                    <Suspense fallback={<LoadingSpinner fullScreen />}>
+                      <SellerPromosPage />
+                    </Suspense>
+                  </SellerProtectedRoute>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="promos/:id"
+              element={
+                <ProtectedRoute>
+                  <SellerProtectedRoute allowedStage="verified">
+                    <Suspense fallback={<LoadingSpinner fullScreen />}>
+                      <SellerPromoDetailPage />
+                    </Suspense>
+                  </SellerProtectedRoute>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="promos/:id/submit"
+              element={
+                <ProtectedRoute>
+                  <SellerProtectedRoute allowedStage="verified">
+                    <Suspense fallback={<LoadingSpinner fullScreen />}>
+                      <PromoSubmitPage />
+                    </Suspense>
+                  </SellerProtectedRoute>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="my-submissions"
+              element={
+                <ProtectedRoute>
+                  <SellerProtectedRoute allowedStage="verified">
+                    <Suspense fallback={<LoadingSpinner fullScreen />}>
+                      <MySubmissionsPage />
+                    </Suspense>
+                  </SellerProtectedRoute>
+                </ProtectedRoute>
+              }
+            />
+          </>
+        ) : null}
+        <Route
+          path="flash-deals"
+          element={
             <ProtectedRoute>
               <SellerProtectedRoute allowedStage="verified">
                 <Suspense fallback={<LoadingSpinner fullScreen />}>
-                  <DiscountProducts />
+                  {PROMO_SYSTEM_ENABLED ? (
+                    <Navigate to={PATHS.PROMOS} replace />
+                  ) : (
+                    <FlashDealsPage />
+                  )}
                 </Suspense>
               </SellerProtectedRoute>
             </ProtectedRoute>
@@ -628,11 +695,9 @@ export default function SellerRoutes() {
           path="returns"
           element={
             <ProtectedRoute>
-              <SellerProtectedRoute allowedStage="verified">
-                <Suspense fallback={<LoadingSpinner fullScreen />}>
-                  <SellerReturnAndFundsPage />
-                </Suspense>
-              </SellerProtectedRoute>
+              <Suspense fallback={<LoadingSpinner fullScreen />}>
+                <SellerReturnAndFundsPage />
+              </Suspense>
             </ProtectedRoute>
           }
         />
