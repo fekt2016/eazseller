@@ -19,6 +19,7 @@ import {
   FaFilter,
 } from "react-icons/fa";
 import { PATHS } from '../../routes/routePaths';
+import { firstNameOnly } from '../../shared/utils/orderPrivacy';
 
 export default function OrdersPage() {
   const navigate = useNavigate();
@@ -93,8 +94,7 @@ export default function OrdersPage() {
     if (searchTerm) {
       filtered = filtered.filter(order =>
         order.orderNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.user?.email?.toLowerCase().includes(searchTerm.toLowerCase())
+        order.user?.name?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -252,8 +252,9 @@ export default function OrdersPage() {
                       <OrderNum>{order.orderNumber || `#${order._id?.slice(-8)}`}</OrderNum>
                     </Td>
                     <Td>
-                      <CustomerName>{order.user?.name || 'Unknown Customer'}</CustomerName>
-                      {order.user?.email && <CustomerEmail>{order.user.email}</CustomerEmail>}
+                      <CustomerName>
+                        {firstNameOnly(order.user?.name) || 'Unknown Customer'}
+                      </CustomerName>
                     </Td>
                     <Td>
                       <DateText>{formatDate(order.createdAt)}</DateText>
@@ -559,12 +560,6 @@ const CustomerName = styled.div`
   font-size: 0.875rem;
   font-weight: 500;
   color: #111827;
-`;
-
-const CustomerEmail = styled.div`
-  font-size: 0.75rem;
-  color: #9CA3AF;
-  margin-top: 0.1rem;
 `;
 
 const DateText = styled.span`

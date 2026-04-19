@@ -11,6 +11,7 @@ import OrderItemsList from '../../components/shared/OrderItemsList';
 import OrderTimeline from '../../components/shared/OrderTimeline';
 import StatusBadge from '../../components/shared/StatusBadge';
 import { formatOrderDate, formatOrderNumber } from '../../shared/utils/dashboardFormatters';
+import { buyerContactVisibility, firstNameOnly } from '../../shared/utils/orderPrivacy';
 import { PATHS } from '../../routes/routePaths';
 import { useGetSellerOrder, useUpdateSellerOrderStatus } from '../../shared/hooks/useOrder';
 import { useGetEarningsByOrder } from '../../shared/hooks/useBalance';
@@ -58,11 +59,21 @@ const formatDateTime = (value) => {
   }).format(date);
 };
 
-const addressToText = (address) => {
+const fullAddressToText = (address) => {
   if (!address) return 'Not provided';
   const parts = [
     address.streetAddress || address.street,
     address.area || address.landmark,
+    address.city,
+    address.region || address.state,
+  ].filter(Boolean);
+  return parts.length ? parts.join(', ') : 'Not provided';
+};
+
+const areaRegionToText = (address) => {
+  if (!address) return 'Not provided';
+  const parts = [
+    address.area,
     address.city,
     address.region || address.state,
   ].filter(Boolean);
@@ -89,6 +100,13 @@ export default function OrderDetailPage() {
   const orderStatus = normalizeStatus(
     parentOrder?.currentStatus || sellerOrder?.status || parentOrder?.status
   );
+  const privacyOrder = {
+    status: parentOrder?.status,
+    currentStatus: parentOrder?.currentStatus,
+    orderStatus: parentOrder?.orderStatus || sellerOrder?.status,
+    fulfillmentStatus: parentOrder?.FulfillmentStatus ?? parentOrder?.fulfillmentStatus,
+  };
+  const visibility = buyerContactVisibility(privacyOrder);
   const paymentStatus = normalizeStatus(parentOrder?.paymentStatus);
   const payoutStatus = normalizeStatus(
     sellerOrder?.payoutStatus || parentOrder?.sellerPayoutStatus
@@ -194,11 +212,43 @@ export default function OrderDetailPage() {
 
       <Grid>
         <InfoCard icon={<FaUser size={12} />} title="Customer information">
-          <InfoRow label="Customer" value={buyer?.name || 'Not provided'} />
-          <InfoRow label="Email" value={buyer?.email || 'Not provided'} />
-          <InfoRow label="Phone" value={buyer?.phone || 'Not provided'} />
-          <InfoRow label="Shipping address" value={addressToText(parentOrder?.shippingAddress)} />
-          <InfoRow label="Billing address" value={addressToText(parentOrder?.billingAddress)} last />
+          <InfoRow
+            label="Customer"
+            value={firstNameOnly(buyer?.name) || 'Not provided'}
+          />
+          <InfoRow
+            label="Email"
+            value={
+              visibility.showEmail
+                ? (buyer?.email || 'Not provided')
+                : 'Available after shipment'
+            }
+          />
+          <InfoRow
+            label="Phone"
+            value={
+              visibility.showPhone
+                ? (buyer?.phone || 'Not provided')
+                : 'Available after shipment'
+            }
+          />
+          <InfoRow
+            label="Shipping address"
+            value={
+              visibility.showExactAddress
+                ? fullAddressToText(parentOrder?.shippingAddress)
+                : areaRegionToText(parentOrder?.shippingAddress)
+            }
+          />
+          <InfoRow
+            label="Billing address"
+            value={
+              visibility.showExactAddress
+                ? fullAddressToText(parentOrder?.billingAddress)
+                : 'Available after shipment'
+            }
+            last
+          />
                   </InfoCard>
 
         <InfoCard icon={<FaCalendarAlt size={12} />} title="Order information">

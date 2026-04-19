@@ -20,6 +20,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { orderService } from "../../shared/services/orderApi";
 import { LoadingSpinner } from "../../shared/components/LoadingSpinner";
 import { toast } from "react-toastify";
+import { buyerContactVisibility, firstNameOnly } from "../../shared/utils/orderPrivacy";
 
 const TrackingPage = () => {
   const { trackingNumber } = useParams();
@@ -46,12 +47,8 @@ const TrackingPage = () => {
 
         const response = await orderService.getOrderByTrackingNumber(trackingNumber);
         const order = response.data?.order;
-        console.log('Tracking Page - Order Data:', order);
-        console.log('Tracking Page - Shipping Address:', order?.shippingAddress);
         setOrderData(order);
       } catch (err) {
-        console.error('Tracking Page Error:', err);
-
         // Better error handling for connection issues
         if (err.code === 'ERR_NETWORK' || err.message?.includes('Network Error') || err.message?.includes('CONNECTION_REFUSED')) {
           setError("Unable to connect to the server. Please ensure the backend server is running on port 4000.");
@@ -161,10 +158,22 @@ const TrackingPage = () => {
       .join(" ");
   };
 
+  const formatLocationValue = (value) => {
+    if (!value) return '';
+    if (typeof value !== 'string') return String(value);
+    return value
+      .split(' ')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
   const trackingHistory = orderData.trackingHistory || [];
   const currentStatus = orderData.currentStatus || "pending_payment";
   const orderItems = orderData.orderItems || [];
   const paymentStatus = orderData.paymentStatus || "pending";
+  const visibility = buyerContactVisibility(orderData);
+  const shippingAddress = orderData.shippingAddress || {};
+  const sensitiveFieldPlaceholder = 'Available after you mark the order as shipped';
 
   // Define all possible tracking steps in order
   const ALL_TRACKING_STEPS = [
@@ -360,78 +369,80 @@ const TrackingPage = () => {
               <FaMapMarkerAlt style={{ marginRight: '0.5rem' }} />
               Shipping Address
             </InfoTitle>
-            {orderData.shippingAddress && Object.keys(orderData.shippingAddress).length > 0 ? (
+            {shippingAddress && Object.keys(shippingAddress).length > 0 ? (
               <AddressGrid>
-                {orderData.shippingAddress.fullName && (
+                <AddressItem>
+                  <AddressLabel>Customer</AddressLabel>
+                  <AddressValue>
+                    {visibility.showFullName
+                      ? (shippingAddress.fullName || 'Not provided')
+                      : (firstNameOnly(shippingAddress.fullName) || 'Customer')}
+                  </AddressValue>
+                </AddressItem>
+                <AddressItem>
+                  <AddressLabel>Contact Phone</AddressLabel>
+                  <AddressValue $muted={!visibility.showPhone}>
+                    {visibility.showPhone
+                      ? (shippingAddress.contactPhone || 'Not provided')
+                      : sensitiveFieldPlaceholder}
+                  </AddressValue>
+                </AddressItem>
+                <AddressItem>
+                  <AddressLabel>Area/Neighborhood</AddressLabel>
+                  <AddressValue>
+                    {formatLocationValue(shippingAddress.area) || 'Not provided'}
+                  </AddressValue>
+                </AddressItem>
+                <AddressItem>
+                  <AddressLabel>Region</AddressLabel>
+                  <AddressValue>
+                    {formatLocationValue(shippingAddress.region || shippingAddress.state) || 'Not provided'}
+                  </AddressValue>
+                </AddressItem>
+                {shippingAddress.city ? (
                   <AddressItem>
-                    <AddressLabel>Full Name</AddressLabel>
-                    <AddressValue>{orderData.shippingAddress.fullName}</AddressValue>
+                    <AddressLabel>City</AddressLabel>
+                    <AddressValue>{formatLocationValue(shippingAddress.city)}</AddressValue>
                   </AddressItem>
-                )}
-                {orderData.shippingAddress.streetAddress && (
-                  <AddressItem>
-                    <AddressLabel>Street Address</AddressLabel>
-                    <AddressValue>{orderData.shippingAddress.streetAddress}</AddressValue>
-                  </AddressItem>
-                )}
-                {orderData.shippingAddress.area && (
-                  <AddressItem>
-                    <AddressLabel>Area/Neighborhood</AddressLabel>
-                    <AddressValue>{orderData.shippingAddress.area}</AddressValue>
-                  </AddressItem>
-                )}
-                {orderData.shippingAddress.landmark && (
-                  <AddressItem>
-                    <AddressLabel>Landmark</AddressLabel>
-                    <AddressValue>{orderData.shippingAddress.landmark}</AddressValue>
-                  </AddressItem>
-                )}
-                {(orderData.shippingAddress.city || orderData.shippingAddress.state) && (
-                  <AddressItem>
-                    <AddressLabel>City/State</AddressLabel>
-                    <AddressValue>
-                      {orderData.shippingAddress.city && typeof orderData.shippingAddress.city === 'string' && orderData.shippingAddress.city.charAt(0).toUpperCase() + orderData.shippingAddress.city.slice(1)}
-                      {orderData.shippingAddress.city && orderData.shippingAddress.state && ', '}
-                      {orderData.shippingAddress.state && typeof orderData.shippingAddress.state === 'string' && orderData.shippingAddress.state.charAt(0).toUpperCase() + orderData.shippingAddress.state.slice(1)}
-                    </AddressValue>
-                  </AddressItem>
-                )}
-                {orderData.shippingAddress.region && (
-                  <AddressItem>
-                    <AddressLabel>Region</AddressLabel>
-                    <AddressValue>
-                      {typeof orderData.shippingAddress.region === 'string'
-                        ? orderData.shippingAddress.region.split(' ').map(word =>
-                          word.charAt(0).toUpperCase() + word.slice(1)
-                        ).join(' ')
-                        : orderData.shippingAddress.region}
-                    </AddressValue>
-                  </AddressItem>
-                )}
-                {(orderData.shippingAddress.digitalAddress || orderData.shippingAddress.digitalAdress) && (
-                  <AddressItem>
-                    <AddressLabel>Digital Address</AddressLabel>
-                    <AddressValue>{orderData.shippingAddress.digitalAddress || orderData.shippingAddress.digitalAdress}</AddressValue>
-                  </AddressItem>
-                )}
-                {orderData.shippingAddress.contactPhone && (
-                  <AddressItem>
-                    <AddressLabel>Contact Phone</AddressLabel>
-                    <AddressValue>{orderData.shippingAddress.contactPhone}</AddressValue>
-                  </AddressItem>
-                )}
-                {orderData.shippingAddress.country && (
+                ) : null}
+                {shippingAddress.country ? (
                   <AddressItem>
                     <AddressLabel>Country</AddressLabel>
-                    <AddressValue>{orderData.shippingAddress.country}</AddressValue>
+                    <AddressValue>{shippingAddress.country}</AddressValue>
                   </AddressItem>
-                )}
-                {orderData.shippingAddress.additionalInformation && (
-                  <AddressItem $fullWidth>
-                    <AddressLabel>Additional Information</AddressLabel>
-                    <AddressValue>{orderData.shippingAddress.additionalInformation}</AddressValue>
-                  </AddressItem>
-                )}
+                ) : null}
+                <AddressItem>
+                  <AddressLabel>Street Address</AddressLabel>
+                  <AddressValue $muted={!visibility.showExactAddress}>
+                    {visibility.showExactAddress
+                      ? (shippingAddress.streetAddress || 'Not provided')
+                      : sensitiveFieldPlaceholder}
+                  </AddressValue>
+                </AddressItem>
+                <AddressItem>
+                  <AddressLabel>Landmark</AddressLabel>
+                  <AddressValue $muted={!visibility.showExactAddress}>
+                    {visibility.showExactAddress
+                      ? (shippingAddress.landmark || 'Not provided')
+                      : sensitiveFieldPlaceholder}
+                  </AddressValue>
+                </AddressItem>
+                <AddressItem>
+                  <AddressLabel>Digital Address</AddressLabel>
+                  <AddressValue $muted={!visibility.showExactAddress}>
+                    {visibility.showExactAddress
+                      ? (shippingAddress.digitalAddress || shippingAddress.digitalAdress || 'Not provided')
+                      : sensitiveFieldPlaceholder}
+                  </AddressValue>
+                </AddressItem>
+                <AddressItem $fullWidth>
+                  <AddressLabel>Additional Information</AddressLabel>
+                  <AddressValue $muted={!visibility.showExactAddress}>
+                    {visibility.showExactAddress
+                      ? (shippingAddress.additionalInformation || 'Not provided')
+                      : sensitiveFieldPlaceholder}
+                  </AddressValue>
+                </AddressItem>
               </AddressGrid>
             ) : (
               <EmptyAddress>
@@ -654,7 +665,7 @@ const TrackingPage = () => {
                 const response = await orderService.getOrderByTrackingNumber(trackingNumber);
                 setOrderData(response.data?.order);
               } catch (err) {
-                console.error('Error refetching tracking data:', err);
+                toast.error('Unable to refresh tracking details.');
               }
             };
             fetchTrackingData();
@@ -1009,7 +1020,7 @@ const AddressLabel = styled.div`
 
 const AddressValue = styled.div`
   font-size: 0.9rem;
-  color: #111827;
+  color: ${(props) => (props.$muted ? '#9CA3AF' : '#111827')};
   font-weight: 500;
 `;
 
