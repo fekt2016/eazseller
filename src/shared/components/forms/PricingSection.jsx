@@ -2,6 +2,7 @@ import { useEffect, useMemo } from "react";
 import { useFormContext } from "react-hook-form";
 import styled from "styled-components";
 import usePlatformTaxRates from "../../hooks/usePlatformTaxRates";
+import { LEGACY_DISCOUNT_COUPON_UI_ENABLED } from '../../config/featureFlags';
 
 export default function PricingSection({ isSubmitting }) {
   const {
@@ -16,7 +17,7 @@ export default function PricingSection({ isSubmitting }) {
   const totalWithTax = useMemo(() => addTaxToBase(price), [price, addTaxToBase]);
 
   useEffect(() => {
-    if (price !== undefined) {
+    if (LEGACY_DISCOUNT_COUPON_UI_ENABLED && price !== undefined) {
       trigger("discountPrice");
     }
   }, [price, trigger]);
@@ -47,28 +48,30 @@ export default function PricingSection({ isSubmitting }) {
         {errors.price && <ErrorMessage>{errors.price.message}</ErrorMessage>}
       </FormGroup>
 
-      <FormGroup>
-        <Label htmlFor="discount">Discount Price</Label>
-        <Input
-          type="number"
-          step="0.01"
-          {...register("discountPrice", {
-            validate: (value) => {
-              const price = parseFloat(watch("price"));
-              return (
-                !value ||
-                value < price ||
-                "Discount must be less than regular price"
-              );
-            },
-          })}
-          disabled={isSubmitting}
-          placeholder="Optional"
-        />
-        {errors.discountPrice && (
-          <ErrorMessage>{errors.discountPrice.message}</ErrorMessage>
-        )}
-      </FormGroup>
+      {LEGACY_DISCOUNT_COUPON_UI_ENABLED ? (
+        <FormGroup>
+          <Label htmlFor="discount">Discount Price</Label>
+          <Input
+            type="number"
+            step="0.01"
+            {...register("discountPrice", {
+              validate: (value) => {
+                const price = parseFloat(watch("price"));
+                return (
+                  !value ||
+                  value < price ||
+                  "Discount must be less than regular price"
+                );
+              },
+            })}
+            disabled={isSubmitting}
+            placeholder="Optional"
+          />
+          {errors.discountPrice && (
+            <ErrorMessage>{errors.discountPrice.message}</ErrorMessage>
+          )}
+        </FormGroup>
+      ) : null}
     </FormGrid>
   );
 }
