@@ -3,7 +3,6 @@ import { orderService } from '../services/orderApi'; // Adjust the import path a
 // import { useNavigate } from "react-router-dom";
 
 export const getOrderStructure = (orderData) => {
-  console.log("orderData structure", orderData);
   if (!orderData) return [];
 
   if (orderData?.data?.data?.orders) {
@@ -14,14 +13,12 @@ export const getOrderStructure = (orderData) => {
   }
 };
 export const useGetSellerOrder = (orderId) => {
-  console.log("useGetSellerOrder called with orderId:", orderId);
   return useQuery({
     queryKey: ["sellerOrder", orderId],
     queryFn: async () => {
       if (!orderId) throw new Error("Order ID is required");
 
       const response = await orderService.getSellerOrderById(orderId);
-      console.log("Order fetch response:", response);
       return response;
     },
     enabled: !!orderId,
@@ -48,7 +45,6 @@ export const useGetSellerOrders = (options = {}) => {
       // Fixed property name (queryFn instead of queryfn)
       try {
         const response = await orderService.getSellersOrders();
-        console.log("Order fetch response:", response);
 
         // Check for valid response structure
         if (!response || !response.data) {
@@ -57,13 +53,6 @@ export const useGetSellerOrders = (options = {}) => {
 
         return response;
       } catch (error) {
-        // Log detailed error information
-        console.error("Order fetch error:", {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status,
-        });
-
         // Throw meaningful error message
         throw new Error(
           error.response?.data?.message || "Failed to load orders"
@@ -71,7 +60,6 @@ export const useGetSellerOrders = (options = {}) => {
       }
     },
     onsuccess: (data) => {
-      console.log(data);
       queryClient.invalidateQueries({ queryKey: ["seller-orders"] });
     },
     retry: (failureCount, error) => {
@@ -82,35 +70,9 @@ export const useGetSellerOrders = (options = {}) => {
       return failureCount < 2;
     },
     staleTime: 1000 * 60 * 5, // 5 minutes cache
-    onError: (error) => {
-      console.error("Order fetch failed:", error.message);
-    },
+    onError: () => {},
     enabled: options.enabled !== false, // Allow disabling the query
     ...options, // Allow other options to be passed
-  });
-};
-export const useCreateOrder = () => {
-  const queryClient = useQueryClient();
-  // const navigate = useNavigate();
-  return useMutation({
-    mutationFn: async (data) => {
-      try {
-        const response = await orderService.createOrder(data);
-        console.log("Order fetch response:", response);
-        return response;
-      } catch (error) {
-        console.error("Order fetch error:", error);
-        throw error;
-      }
-    },
-    onSuccess: (data) => {
-      console.log("order created successfully!!!", data);
-      queryClient.invalidateQueries({ queryKey: ["orders"] });
-      queryClient.invalidateQueries({ queryKey: ["seller-orders"] });
-    },
-    onError: (error) => {
-      console.error("Order fetch failed:", error.message);
-    },
   });
 };
 
