@@ -78,6 +78,74 @@ export default function UnifiedWalletPage() {
     isLoading: isLoadingPaymentMethods,
   } = useGetPaymentMethods();
 
+  // ── Payout verification banner + gate ─────────────────────────────
+  const verificationStatus = seller?.verificationStatus || 'pending';
+  const isSellerVerified = verificationStatus === 'verified';
+  const isPayoutVerified = payoutStatus === 'verified';
+  const hasPaymentMethod = paymentMethods.length > 0;
+  const canWithdraw =
+    isSellerVerified &&
+    isPayoutVerified &&
+    hasPaymentMethod &&
+    withdrawableBalance > 0;
+
+  const payoutBanner = useMemo(() => {
+    if (!isSellerVerified) {
+      return {
+        variant: 'pending',
+        message:
+          "Your seller account is still being verified. You'll be able to request withdrawals once an admin approves your account.",
+        secondary: null,
+        linkLabel: 'View settings',
+        linkPath: PATHS.PROFILE,
+      };
+    }
+    if (!isPayoutVerified) {
+      if (payoutStatus === 'rejected') {
+        return {
+          variant: 'rejected',
+          message:
+            'Your payout was rejected. Please update your payment details and resubmit for verification.',
+          secondary: payoutRejectionReason || null,
+          linkLabel: 'Update payment methods',
+          linkPath: PATHS.PAYMENT_METHODS,
+        };
+      }
+      return {
+        variant: 'pending',
+        message:
+          "Your payout is awaiting verification. You'll be able to request withdrawals once an admin approves your payment details.",
+        secondary: null,
+        linkLabel: 'View payment methods',
+        linkPath: PATHS.PAYMENT_METHODS,
+      };
+    }
+    if (!hasPaymentMethod) {
+      return {
+        variant: 'addMethod',
+        message: 'Add a payment method to start receiving withdrawals.',
+        secondary: null,
+        linkLabel: 'Add payment method',
+        linkPath: PATHS.PAYMENT_METHODS,
+      };
+    }
+    return null;
+  }, [
+    isSellerVerified,
+    isPayoutVerified,
+    hasPaymentMethod,
+    payoutStatus,
+    payoutRejectionReason,
+  ]);
+
+  const withdrawDisabledReason =
+    isSellerVerified &&
+    isPayoutVerified &&
+    hasPaymentMethod &&
+    withdrawableBalance <= 0
+      ? 'Insufficient balance for withdrawal.'
+      : null;
+
   // Create payment request mutation
   const createPaymentRequest = useCreatePaymentRequest();
   const deletePaymentRequest = useDeletePaymentRequest();
@@ -152,17 +220,6 @@ export default function UnifiedWalletPage() {
     }
   }, [seller, paymentMethods]);
 
-  // Check if withdrawal is allowed
-  const canWithdraw = payoutStatus === 'verified' && withdrawableBalance > 0;
-  const withdrawDisabledReason =
-    payoutStatus === 'rejected'
-      ? payoutRejectionReason || 'Payout details were rejected. Please update your payment details and resubmit for verification.'
-      : payoutStatus === 'pending'
-        ? 'Your payout details must be verified by an admin before you can withdraw funds.'
-        : withdrawableBalance <= 0
-          ? 'Insufficient balance for withdrawal.'
-          : null;
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -190,12 +247,16 @@ export default function UnifiedWalletPage() {
       const paymentMethodToType = {
         'bank': 'bank_transfer',
         'mtn_momo': 'mobile_money',
+        'telecel_cash': 'mobile_money',
+        'at_money': 'mobile_money',
         'vodafone_cash': 'mobile_money',
         'airtel_tigo_money': 'mobile_money',
       };
 
       const paymentMethodToProvider = {
         'mtn_momo': 'MTN',
+        'telecel_cash': 'Telecel',
+        'at_money': 'AT',
         'vodafone_cash': 'Vodafone',
         'airtel_tigo_money': 'AirtelTigo',
       };
@@ -214,7 +275,7 @@ export default function UnifiedWalletPage() {
             branch: bankMethod.branch || "",
           };
         }
-      } else if (["mtn_momo", "vodafone_cash", "airtel_tigo_money"].includes(paymentMethod)) {
+      } else if (["mtn_momo", "telecel_cash", "at_money", "vodafone_cash", "airtel_tigo_money"].includes(paymentMethod)) {
         const provider = paymentMethodToProvider[paymentMethod];
         const mobileMethod = paymentMethods.find(pm =>
           pm.type === 'mobile_money' &&
@@ -244,7 +305,7 @@ export default function UnifiedWalletPage() {
             bankName: bank.bankName || "",
             branch: bank.branch || "",
           };
-        } else if (["mtn_momo", "vodafone_cash", "airtel_tigo_money"].includes(paymentMethod) && seller?.paymentMethods?.mobileMoney) {
+        } else if (["mtn_momo", "telecel_cash", "at_money", "vodafone_cash", "airtel_tigo_money"].includes(paymentMethod) && seller?.paymentMethods?.mobileMoney) {
           const mobile = seller.paymentMethods.mobileMoney;
           paymentDetailsToSend = {
             phone: mobile.phone || "",
@@ -266,7 +327,7 @@ export default function UnifiedWalletPage() {
           bankName: paymentDetails.bank.bankName || "",
           branch: paymentDetails.bank.branch || "",
         };
-      } else if (["mtn_momo", "vodafone_cash", "airtel_tigo_money"].includes(paymentMethod)) {
+      } else if (["mtn_momo", "telecel_cash", "at_money", "vodafone_cash", "airtel_tigo_money"].includes(paymentMethod)) {
         paymentDetailsToSend = {
           phone: paymentDetails.mobile.phone || "",
           network: paymentDetails.mobile.network || "",
@@ -281,7 +342,7 @@ export default function UnifiedWalletPage() {
         setError("Please provide all bank details: account name, account number, and bank name");
         return;
       }
-    } else if (["mtn_momo", "vodafone_cash", "airtel_tigo_money"].includes(paymentMethod)) {
+    } else if (["mtn_momo", "telecel_cash", "at_money", "vodafone_cash", "airtel_tigo_money"].includes(paymentMethod)) {
       if (!paymentDetailsToSend.phone || !paymentDetailsToSend.network) {
         setError("Please provide phone number and network for mobile money");
         return;
@@ -416,6 +477,32 @@ export default function UnifiedWalletPage() {
         </div>
       </WalletHeader>
 
+      {payoutBanner && (
+        <PayoutNoticeBanner $variant={payoutBanner.variant} role="status">
+          <PayoutNoticeBody>
+            <PayoutNoticeText>{payoutBanner.message}</PayoutNoticeText>
+            {payoutBanner.secondary ? (
+              <PayoutNoticeSecondary>{payoutBanner.secondary}</PayoutNoticeSecondary>
+            ) : null}
+            <PayoutNoticeLink
+              type="button"
+              onClick={() => navigate(payoutBanner.linkPath)}
+            >
+              {payoutBanner.linkLabel}
+            </PayoutNoticeLink>
+            {payoutStatus === 'pending' && isSellerVerified && (
+              <RefreshButton
+                type="button"
+                onClick={() => refetchBalance()}
+                disabled={isBalanceLoading}
+              >
+                <FaSync className={isBalanceLoading ? 'spin' : ''} /> Refresh status
+              </RefreshButton>
+            )}
+          </PayoutNoticeBody>
+        </PayoutNoticeBanner>
+      )}
+
       {/* 1️⃣ WALLET SUMMARY */}
       <BalanceCards>
         <BalanceCard $highlight $accent="#E8920A">
@@ -478,15 +565,6 @@ export default function UnifiedWalletPage() {
             {!canWithdraw && withdrawDisabledReason && (
               <ErrorMessage>
                 <span><FaLock /> {withdrawDisabledReason}</span>
-                {payoutStatus === "pending" && (
-                  <RefreshButton
-                    type="button"
-                    onClick={() => refetchBalance()}
-                    disabled={isBalanceLoading}
-                  >
-                    <FaSync className={isBalanceLoading ? "spin" : ""} /> Refresh status
-                  </RefreshButton>
-                )}
               </ErrorMessage>
             )}
 
@@ -524,6 +602,8 @@ export default function UnifiedWalletPage() {
                 >
                   <option value="bank">Bank Transfer</option>
                   <option value="mtn_momo">MTN Mobile Money</option>
+                  <option value="telecel_cash">Telecel Cash</option>
+                  <option value="at_money">AT Money</option>
                   <option value="vodafone_cash">Vodafone Cash</option>
                   <option value="airtel_tigo_money">AirtelTigo Money</option>
                 </Select>
@@ -587,7 +667,7 @@ export default function UnifiedWalletPage() {
                     </>
                   )}
 
-                  {["mtn_momo", "vodafone_cash", "airtel_tigo_money"].includes(paymentMethod) && (
+                  {["mtn_momo", "telecel_cash", "at_money", "vodafone_cash", "airtel_tigo_money"].includes(paymentMethod) && (
                     <>
                       <FormGroup>
                         <Label htmlFor="phone">Phone Number</Label>
@@ -615,6 +695,8 @@ export default function UnifiedWalletPage() {
                         >
                           <option value="">Select network</option>
                           <option value="MTN">MTN</option>
+                          <option value="Telecel">Telecel</option>
+                          <option value="AT">AT</option>
                           <option value="Vodafone">Vodafone</option>
                           <option value="AirtelTigo">AirtelTigo</option>
                         </Select>
@@ -635,6 +717,17 @@ export default function UnifiedWalletPage() {
                   amount.trim() === "" ||
                   isNaN(parseFloat(amount)) ||
                   parseFloat(amount) <= 0
+                }
+                title={
+                  !isSellerVerified
+                    ? 'Your seller account is awaiting verification.'
+                    : !isPayoutVerified
+                      ? 'Complete payout verification in Settings before requesting a withdrawal.'
+                      : !hasPaymentMethod
+                        ? 'Add a payment method in Settings before requesting a withdrawal.'
+                        : withdrawableBalance <= 0
+                          ? 'No available balance to withdraw.'
+                          : ''
                 }
               >
                 {createPaymentRequest.isPending ? (
@@ -775,7 +868,7 @@ export default function UnifiedWalletPage() {
                               )}
                             </>
                           )}
-                          {["mtn_momo", "vodafone_cash", "airtel_tigo_money"].includes(request.paymentMethod) && request.paymentDetails.phone && (
+                          {["mtn_momo", "telecel_cash", "at_money", "vodafone_cash", "airtel_tigo_money"].includes(request.paymentMethod) && request.paymentDetails.phone && (
                             <>
                               <DetailItem>
                                 <DetailLabel>Phone Number:</DetailLabel>
@@ -902,6 +995,52 @@ export default function UnifiedWalletPage() {
 }
 
 // Styled Components
+const PayoutNoticeBanner = styled.div`
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  border: 1px solid;
+  background: ${({ $variant }) =>
+    $variant === 'rejected' ? '#fef2f2' :
+    $variant === 'addMethod' ? '#eff6ff' : '#fffbeb'};
+  border-color: ${({ $variant }) =>
+    $variant === 'rejected' ? '#fecaca' :
+    $variant === 'addMethod' ? '#bfdbfe' : '#fde68a'};
+  color: ${({ $variant }) =>
+    $variant === 'rejected' ? '#991b1b' :
+    $variant === 'addMethod' ? '#1e40af' : '#92400e'};
+`;
+
+const PayoutNoticeBody = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+`;
+
+const PayoutNoticeText = styled.div`
+  font-size: 14px;
+  line-height: 1.4;
+`;
+
+const PayoutNoticeSecondary = styled.div`
+  font-size: 13px;
+  opacity: 0.8;
+`;
+
+const PayoutNoticeLink = styled.button`
+  background: none;
+  border: none;
+  padding: 0;
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+  color: inherit;
+  align-self: flex-start;
+  &:hover { opacity: 0.85; }
+`;
+
 const WalletPage = styled.div`
   display: flex;
   flex-direction: column;
