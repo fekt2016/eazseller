@@ -21,7 +21,6 @@ export const useSellerStatus = () => {
         const response = await onboardingApi.getStatus();
         return response?.data?.data || response?.data || response;
       } catch (error) {
-        console.error('[useSellerStatus] Error fetching status:', error);
         throw error;
       }
     },
@@ -69,18 +68,15 @@ export const useSellerStatus = () => {
       queryClient.invalidateQueries({ queryKey: ['sellerAuth'] });
       // Invalidate seller status to force refetch
       queryClient.invalidateQueries({ queryKey: ['sellerStatus'] });
-      console.log('[useSellerStatus] Onboarding status updated:', data);
     },
-    onError: (error) => {
-      console.error('[useSellerStatus] Error updating onboarding:', error);
-    },
+    onError: () => {},
   });
 
   // Check if seller is verified (onboardingStage === 'verified')
   const isVerified = onboardingStage === 'verified';
 
   // Debug logging in development
-  if (process.env.NODE_ENV === 'development' && !isLoading && statusData) {
+  if (import.meta.env.DEV && !isLoading && statusData) {
     console.debug('[useSellerStatus] Setup status (backend-driven):', {
       isSetupComplete, // ✅ From backend
       onboardingStage,

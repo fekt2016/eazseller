@@ -4,20 +4,9 @@ const authApi = {
   // OTP-based authentication
   sendOtp: async (loginId) => {
     try {
-      console.log('[Seller AuthAPI] Sending OTP request:', { loginId, endpoint: '/seller/send-otp' });
       const response = await api.post("/seller/send-otp", { loginId });
-      console.log('[Seller AuthAPI] OTP send success:', response.data);
       return response;
     } catch (error) {
-      console.error('[Seller AuthAPI] OTP send error:', {
-        message: error.message,
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data,
-        url: error.config?.url,
-        baseURL: error.config?.baseURL,
-        fullURL: `${error.config?.baseURL}${error.config?.url}`,
-      });
       throw error;
     }
   },
@@ -36,23 +25,19 @@ const authApi = {
   login: async (email, password) => {
     // Normalize email to lowercase to match database storage
     const normalizedEmail = email?.toLowerCase().trim();
-    console.log('🔐 [Seller Login] Attempting login with email:', normalizedEmail);
     // Increase timeout for login requests (30 seconds) to handle slow device session creation
     const response = await api.post('/seller/login', { email: normalizedEmail, password }, {
       timeout: 30000, // 30 seconds for login
     });
-    console.log('🔐 [Seller Login] Response status:', response.data?.status);
     return response.data;
   },
 
   // Verify 2FA code for login (matches buyer/saysayseller)
   verify2FALogin: async (loginSessionId, twoFactorCode) => {
-    console.log('🔐 [Seller 2FA Login] Verifying 2FA code');
     const response = await api.post('/seller/verify-2fa-login', {
       loginSessionId,
       twoFactorCode,
     });
-    console.log('🔐 [Seller 2FA Login] Response status:', response.data?.status);
     return response.data;
   },
   

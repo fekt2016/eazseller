@@ -120,9 +120,11 @@ const ProtectedRoutes = ({ children, allowPending = false }) => {
       return <Suspense fallback={<LoadingState message="Loading..." />}>{children}</Suspense>;
     }
 
-    console.warn("[ProtectedRoute] Seller status is not active - redirecting", {
-      status: seller.status,
-    });
+    if (import.meta.env.DEV) {
+      console.warn("[ProtectedRoute] Seller status is not active - redirecting", {
+        status: seller.status,
+      });
+    }
     return handleStatusRedirect(seller.status);
   }
 

@@ -4,10 +4,8 @@ const balanceApi = {
   getBalance: async () => {
     try {
       const response = await api.get("/seller/me/balance");
-      console.log('[balanceApi] Balance response:', response);
       return response;
     } catch (error) {
-      console.error('[balanceApi] Error fetching balance:', error);
       throw error;
     }
   },
@@ -17,7 +15,6 @@ const balanceApi = {
       const response = await api.get("/seller/me/transactions", { params });
       return response;
     } catch (error) {
-      console.error('[balanceApi] Error fetching transactions:', error);
       throw error;
     }
   },
@@ -27,7 +24,6 @@ const balanceApi = {
       const response = await api.get("/seller/me/earnings", { params });
       return response;
     } catch (error) {
-      console.error('[balanceApi] Error fetching earnings:', error);
       throw error;
     }
   },
@@ -37,7 +33,6 @@ const balanceApi = {
       const response = await api.get(`/seller/me/earnings/order/${orderId}`);
       return response;
     } catch (error) {
-      console.error('[balanceApi] Error fetching earnings by order:', error);
       throw error;
     }
   },
@@ -47,7 +42,6 @@ const balanceApi = {
       const response = await api.get('/seller/me/balance-history', { params });
       return response;
     } catch (error) {
-      console.error('[balanceApi] Error fetching balance history:', error);
       throw error;
     }
   },
@@ -64,7 +58,6 @@ const balanceApi = {
       if (error.response?.status === 404) {
         return null;
       }
-      console.error('[balanceApi] Error fetching transaction by ID:', error);
       throw error;
     }
   },

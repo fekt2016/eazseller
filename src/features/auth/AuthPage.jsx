@@ -295,24 +295,12 @@ const AuthPage = () => {
         password: loginState.password
       };
 
-      if (import.meta.env.DEV) {
-        console.log('[AuthPage] Sending login request with data:', {
-          email: loginData.email,
-          hasPassword: !!loginData.password,
-          dataType: typeof loginData,
-          isObject: typeof loginData === 'object' && !Array.isArray(loginData),
-        });
-      }
-
       loginMutation(
         loginData,
         {
           onSuccess: async (result) => {
             // Result from mutationFn is { success: true, seller: sellerData } or { requires2FA: true, ... }
             if (result?.requires2FA) {
-              if (import.meta.env.DEV) {
-                console.log("[AuthPage] 2FA required");
-              }
               setLoginSessionId(result.loginSessionId);
               setLoginStep("2fa");
             } else if (result?.success) {
@@ -320,17 +308,8 @@ const AuthPage = () => {
               const seller = result.seller;
 
               if (!seller || (!seller.id && !seller._id)) {
-                console.error("❌ [AuthPage] Login successful but no seller data received:", result);
+                toast.error('Login failed. Please try again.');
                 return;
-              }
-
-              if (import.meta.env.DEV) {
-                console.log('👤 [AuthPage] Seller logged in:', {
-                  id: seller.id || seller._id,
-                  email: seller.email,
-                  name: seller.name || seller.shopName,
-                  role: seller.role,
-                });
               }
 
               // Remember-me: store or clear saved email
@@ -360,22 +339,8 @@ const AuthPage = () => {
             const statusCode = err.response?.status;
             const isTimeout = err?.code === 'ECONNABORTED' || err?.isTimeout || err?.message?.includes('timeout');
 
-            console.error("[AuthPage] Login failed:", {
-              message: errorMessage,
-              response: err.response?.data,
-              status: statusCode,
-              isTimeout,
-              code: err.code,
-            });
-
             // Handle timeout errors
             if (isTimeout) {
-              console.error("❌ [Seller Login] Login error: ", {
-                message: err.message || 'Request timed out',
-                status: statusCode,
-                error: err.error,
-                code: err.code,
-              });
               // Error will be displayed via loginError from the mutation
               return;
             }
@@ -388,9 +353,6 @@ const AuthPage = () => {
                 messageLower.includes('verification') ||
                 messageLower.includes('unverified')) {
                 // Redirect to verification page with email as query parameter
-                if (import.meta.env.DEV) {
-                  console.log("[AuthPage] Account not verified - redirecting to verification page");
-                }
                 navigate(`${PATHS.VERIFY_ACCOUNT}?email=${encodeURIComponent(loginState.email)}`);
                 return;
               }
@@ -423,16 +385,9 @@ const AuthPage = () => {
               const seller = result.seller;
 
               if (!seller || (!seller.id && !seller._id)) {
-                console.error("❌ [AuthPage] 2FA verified but no seller data received:", result);
+                toast.error('2FA verification failed. Please login again.');
                 return;
               }
-
-              console.log('👤 [AuthPage] Seller logged in via 2FA:', {
-                id: seller.id || seller._id,
-                email: seller.email,
-                name: seller.name || seller.shopName,
-                role: seller.role,
-              });
 
               // Remember-me after successful 2FA
               if (typeof window !== "undefined") {
@@ -452,13 +407,7 @@ const AuthPage = () => {
               setLoginSessionId(null);
             }
           },
-          onError: (err) => {
-            console.error("[AuthPage] 2FA verification failed:", {
-              message: err.message,
-              response: err.response?.data,
-              status: err.response?.status,
-            });
-          },
+          onError: () => {},
         }
       );
     }
@@ -566,17 +515,13 @@ const AuthPage = () => {
       const requiresVerification = apiResponse?.requiresVerification || apiResponse?.data?.requiresVerification;
 
       if (requiresVerification) {
-        console.log("[AuthPage] Registration successful - email verification required");
         toast.success('Registration successful! Please check your email for the verification code we sent to your email.');
         // Redirect seller to dedicated verification page with email pre-filled
         navigate(`${PATHS.VERIFY_ACCOUNT}?email=${encodeURIComponent(formData.email)}`);
       } else {
-        console.log("[AuthPage] Registration successful - cookie set by backend");
         navigate(PATHS.DASHBOARD);
       }
     } catch (error) {
-      console.error("[AuthPage] Registration error:", error);
-
       // Extract field-level errors from backend response
       const backendFieldErrors = normalizeFieldErrors(error);
 

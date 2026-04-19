@@ -1,4 +1,5 @@
 import api from '../../shared/services/api';
+import logger from '../../shared/utils/logger';
 
 const authApi = {
   // Login with email + password (new flow - matches EazMain/Saysay)
@@ -25,18 +26,6 @@ const authApi = {
       throw new Error('Login data must be a plain object');
     }
     
-    if (import.meta.env.DEV) {
-      console.log('[Seller AuthAPI] Login request:', { 
-        email: normalizedEmail, 
-        endpoint: '/seller/login',
-        dataType: typeof loginData,
-        isObject: typeof loginData === 'object' && !Array.isArray(loginData),
-        hasEmail: 'email' in loginData,
-        hasPassword: 'password' in loginData,
-        keys: Object.keys(loginData),
-      });
-    }
-    
     try {
       // SECURITY: Explicitly ensure data is sent as JSON object
       // Do NOT stringify - axios will handle JSON serialization
@@ -46,24 +35,13 @@ const authApi = {
         },
       });
       
-      if (import.meta.env.DEV) {
-        console.log('[Seller AuthAPI] Login response:', response.data?.status || 'success');
-      }
       return response;
     } catch (error) {
       if (import.meta.env.DEV) {
-        console.error('[Seller AuthAPI] Login error details:', {
-          message: error.message,
-          dataType: typeof loginData,
-          isObject: typeof loginData === 'object',
-          config: error.config ? {
-            url: error.config.url,
-            method: error.config.method,
-            dataType: typeof error.config.data,
-            dataPreview: typeof error.config.data === 'string' 
-              ? error.config.data.substring(0, 100) 
-              : error.config.data,
-          } : null,
+        logger.debug('[Seller AuthAPI] Login error', {
+          status: error.response?.status,
+          code: error.code,
+          url: error.config?.url,
         });
       }
       throw error;
@@ -73,14 +51,14 @@ const authApi = {
   // Verify 2FA code for login (matches EazMain/Saysay)
   verify2FALogin: async (loginSessionId, twoFactorCode) => {
     if (import.meta.env.DEV) {
-      console.debug('[Seller AuthAPI] Verify 2FA request');
+      logger.debug('[Seller AuthAPI] Verify 2FA request');
     }
     const response = await api.post("/seller/verify-2fa-login", {
       loginSessionId,
       twoFactorCode,
     });
     if (import.meta.env.DEV) {
-      console.debug('[Seller AuthAPI] Verify 2FA response received');
+      logger.debug('[Seller AuthAPI] Verify 2FA response received');
     }
     return response;
   },
@@ -89,18 +67,18 @@ const authApi = {
   sendOtp: async (loginId) => {
     try {
       if (import.meta.env.DEV) {
-        console.debug('[Seller AuthAPI] Sending OTP request to /seller/send-otp');
+        logger.debug('[Seller AuthAPI] Sending OTP request to /seller/send-otp');
       }
       const response = await api.post("/seller/send-otp", { loginId });
       if (import.meta.env.DEV) {
-        console.debug('[Seller AuthAPI] OTP send success');
+        logger.debug('[Seller AuthAPI] OTP send success');
       }
       return response;
     } catch (error) {
       if (import.meta.env.DEV) {
-        console.error('[Seller AuthAPI] OTP send error:', {
-          message: error.message,
+        logger.debug('[Seller AuthAPI] OTP send error:', {
           status: error.response?.status,
+          code: error.code,
         });
       }
       throw error;

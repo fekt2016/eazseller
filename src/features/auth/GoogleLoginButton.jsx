@@ -3,6 +3,8 @@ import { FcGoogle } from "react-icons/fc";
 import api from "../../shared/services/api";
 import { PATHS } from "../../routes/routePaths";
 import styled from "styled-components";
+import { toast } from "react-toastify";
+import logger from "../../shared/utils/logger";
 
 /**
  * Google OAuth login/signup button for the seller app.
@@ -17,10 +19,7 @@ export default function GoogleLoginButton({ appType = "seller", onComplete, clas
       const credential = credentialResponse?.credential;
 
       if (!credential) {
-        console.error("[Seller GoogleLogin] Missing credential from Google response", {
-          appType,
-          credentialResponse,
-        });
+        toast.error("Google login failed. Please try again.");
         return;
       }
 
@@ -29,10 +28,12 @@ export default function GoogleLoginButton({ appType = "seller", onComplete, clas
         appType,
       });
 
-      console.log("[Seller GoogleLogin] Google auth success", {
-        appType,
-        status: response?.data?.status || "ok",
-      });
+      if (import.meta.env.DEV) {
+        logger.debug("[Seller GoogleLogin] Google auth success", {
+          appType,
+          status: response?.status,
+        });
+      }
 
       if (onComplete) {
         onComplete(response.data);
@@ -41,12 +42,7 @@ export default function GoogleLoginButton({ appType = "seller", onComplete, clas
         window.location.href = PATHS.DASHBOARD;
       }
     } catch (error) {
-      console.error("[Seller GoogleLogin] Google login failed", {
-        appType,
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-      });
+      toast.error(error?.response?.data?.message || "Google login failed.");
     }
   };
 
@@ -68,9 +64,7 @@ export default function GoogleLoginButton({ appType = "seller", onComplete, clas
     <GoogleButtonWrap className={className}>
       <GoogleLogin
         onSuccess={handleLoginSuccess}
-        onError={() =>
-          console.error("[Seller GoogleLogin] Google login failed (onError callback)", { appType })
-        }
+        onError={() => toast.error("Google login failed. Please try again.")}
         useOneTap={false}
         size="large"
       />

@@ -13,9 +13,7 @@ export const useGetSellerProfile = (sellerId) => {
     enabled: !!sellerId, // Only run when sellerId exists
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
-    onError: (error) => {
-      console.error("Seller error:", error.message);
-    },
+    onError: () => {},
   });
 };
 export const useGetSellerById = (sellerId) => {
@@ -30,7 +28,6 @@ export const useGetSellerById = (sellerId) => {
         const data = await sellerApi.getSellerById(sellerId);
         return data;
       } catch (error) {
-        console.error("Error fetching seller:", error);
         throw new Error("Failed to fetch seller data");
       }
     },
@@ -38,16 +35,6 @@ export const useGetSellerById = (sellerId) => {
     staleTime: 5 * 60 * 1000, // 5 minutes cache
     retry: 2, // Retry twice on failure
     refetchOnWindowFocus: false,
-    onError: (error) => {
-      console.error("Seller fetch error:", error.message);
-    },
-    onSettled: (data, error) => {
-      if (error) {
-        console.warn(`Error fetching seller ${sellerId}:`, error);
-      } else {
-        console.log(`Successfully fetched seller ${sellerId}`, data);
-      }
-    },
   });
 };
 // Create a new hook
@@ -62,8 +49,6 @@ export const useGetFeaturedSellers = (options = {}) => {
     },
     staleTime: 5 * 60 * 1000, // 5 minutes cache
     refetchOnWindowFocus: false,
-    onError: (error) => {
-      console.error("Featured sellers error:", error.message);
-    },
+    onError: () => {},
   });
 };

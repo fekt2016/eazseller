@@ -1,4 +1,5 @@
 import axios from "axios";
+import logger from '../utils/logger';
 
 // getBaseURL() priority:
 // 1. localhost/127.0.0.1 → dev server (http://localhost:4000/api/v1)
@@ -82,7 +83,7 @@ const getRelativePath = (url) => {
     }
     return url.split("?")[0];
   } catch (e) {
-    console.error("Error parsing URL:", e);
+    logger.error("Error parsing URL");
     return url;
   }
 };
@@ -151,8 +152,7 @@ api.interceptors.request.use((config) => {
     if (typeof config.data === 'string' && config.data.trim().length > 0) {
       // Check if it's a simple string value (not JSON) - this is an error
       if (!config.data.trim().startsWith('{') && !config.data.trim().startsWith('[')) {
-        console.error('[API] ❌ Request data is a plain string, not JSON:', config.data.substring(0, 100));
-        console.error('[API] Expected an object like: {"email":"...","password":"..."}');
+        logger.error('[API] Invalid request payload format');
         throw new Error('Invalid request format: data must be a JSON object, not a plain string. Please check your request payload.');
       }
 
@@ -161,19 +161,19 @@ api.interceptors.request.use((config) => {
         const parsed = JSON.parse(config.data);
         config.data = parsed;
         if (import.meta.env.DEV) {
-          console.warn('[API] ⚠️ Data was stringified - parsed back to object');
+          logger.warn('[API] Data was stringified - parsed back to object');
         }
       } catch (e) {
-        console.error('[API] ❌ Failed to parse JSON string:', config.data.substring(0, 100));
+        logger.error('[API] Failed to parse JSON string');
         throw new Error('Invalid JSON format in request data. Please ensure your request body is valid JSON.');
       }
     }
 
     // Log data type for debugging
     if (import.meta.env.DEV && config.data !== undefined && config.data !== null) {
-      console.debug('[API] Request data type:', typeof config.data, Array.isArray(config.data) ? '(array)' : '');
+      logger.debug('[API] Request data type:', typeof config.data, Array.isArray(config.data) ? '(array)' : '');
       if (typeof config.data === 'object' && !Array.isArray(config.data) && !(config.data instanceof FormData)) {
-        console.debug('[API] Request data keys:', Object.keys(config.data));
+        logger.debug('[API] Request data keys:', Object.keys(config.data));
       }
     }
   }
@@ -210,27 +210,14 @@ api.interceptors.request.use((config) => {
   });
 
   if (isAdminRoute && method === 'get') {
-    console.error(`[API] ⚠️ SECURITY WARNING: Possible admin-only route: ${method.toUpperCase()} ${normalizedPath}`);
-    console.error(`[API] ⚠️ If you see 403 errors here, confirm this route is intended for sellers.`);
+    logger.warn(`[API] Possible admin-only route: ${method.toUpperCase()} ${normalizedPath}`);
   }
 
   // Log full URL for debugging
   if (import.meta.env.DEV) {
     const fullURL = `${config.baseURL}${config.url}`;
-    console.debug(`[API] ${method.toUpperCase()} ${normalizedPath} (Full URL: ${fullURL})`);
-    console.debug(`[API] Content-Type: ${config.headers['Content-Type'] || 'not set'}`);
-    console.debug(`[API] Request data:`, config.data);
-
-    // Special logging for send-otp requests
-    if (normalizedPath.includes('send-otp')) {
-      console.log('[API] 🔍 Send OTP Request Details:', {
-        baseURL: config.baseURL,
-        url: config.url,
-        fullURL: fullURL,
-        method: method,
-        normalizedPath: normalizedPath,
-      });
-    }
+    logger.debug(`[API] ${method.toUpperCase()} ${normalizedPath} (Full URL: ${fullURL})`);
+    logger.debug(`[API] Content-Type: ${config.headers['Content-Type'] || 'not set'}`);
   }
 
   // Skip authentication for public routes
@@ -258,18 +245,17 @@ api.interceptors.request.use((config) => {
     if (csrfToken) {
       config.headers['X-CSRF-Token'] = csrfToken;
       if (import.meta.env.DEV) {
-        console.debug(`[API] CSRF token added to ${method.toUpperCase()} ${normalizedPath}`);
+        logger.debug(`[API] CSRF token added to ${method.toUpperCase()} ${normalizedPath}`);
       }
     } else {
       if (import.meta.env.DEV) {
-        console.warn(`[API] ⚠️ CSRF token not found in cookie for ${method.toUpperCase()} ${normalizedPath}`);
-        console.warn(`[API] ⚠️ This may cause a 403 error. User may need to refresh the page or log in again.`);
+        logger.warn(`[API] CSRF token not found in cookie for ${method.toUpperCase()} ${normalizedPath}`);
       }
     }
   }
 
   if (import.meta.env.DEV) {
-    console.debug(`[API] Cookie will be sent automatically for ${method.toUpperCase()} ${normalizedPath}`);
+    logger.debug(`[API] Cookie will be sent automatically for ${method.toUpperCase()} ${normalizedPath}`);
   }
 
   // Longer timeout for auth endpoints (login, /seller/me, verify-otp, etc.)
@@ -298,16 +284,6 @@ api.interceptors.request.use((config) => {
     config.timeout = 60000;
   }
 
-  // Enhanced logging for verify-otp requests
-  if (import.meta.env.DEV && normalizedPath.includes('verify-otp')) {
-    console.log(`[API] 🔍 Verify OTP request details:`, {
-      withCredentials: config.withCredentials,
-      baseURL: config.baseURL,
-      url: config.url,
-      method: config.method
-    });
-  }
-
   return config;
 });
 
@@ -326,7 +302,7 @@ api.interceptors.response.use(
         ? 'The server is taking too long to respond. Please check your internet connection and try again.'
         : 'Request timed out. Please try again.';
 
-      console.error(`[API] ⏱️ Timeout error: ${timeoutMessage}`, {
+      logger.error(`[API] Timeout error: ${timeoutMessage}`, {
         url: error.config?.url,
         timeout: error.config?.timeout,
         code: error.code,
@@ -343,27 +319,13 @@ api.interceptors.response.use(
       return Promise.reject(timeoutError);
     }
 
-    // Enhanced logging for verify-otp errors
     const isVerifyOtpError = error.config?.url?.includes('verify-otp');
-
     if (isVerifyOtpError && import.meta.env.DEV) {
-      console.error('═══════════════════════════════════════════════════════════');
-      console.error('[API Interceptor] ❌ FULL ERROR DETAILS FOR verify-otp');
-      console.error('═══════════════════════════════════════════════════════════');
-      console.error('[API Interceptor] Error Response:', {
+      logger.debug('[API Interceptor] verify-otp error', {
         status: error.response?.status,
-        statusText: error.response?.statusText,
-        headers: error.response?.headers,
-        data: error.response?.data
-      });
-      console.error('[API Interceptor] Error Config:', {
         url: error.config?.url,
         method: error.config?.method,
-        baseURL: error.config?.baseURL,
-        withCredentials: error.config?.withCredentials
       });
-      console.error('[API Interceptor] Full Error Object:', error);
-      console.error('═══════════════════════════════════════════════════════════');
     }
 
     // Handle CSRF token errors (403) — fetch new token and retry
@@ -373,7 +335,8 @@ api.interceptors.response.use(
         String(errorCode).includes('CSRF') ||
         errorCode === 'CSRF_TOKEN_MISSING' ||
         errorCode === 'CSRF_TOKEN_MISMATCH' ||
-        errorCode === 'INVALID_CSRF_TOKEN';
+        errorCode === 'INVALID_CSRF_TOKEN' ||
+        errorCode === 'SESSION_EXPIRED';
 
       if (isCsrfError && !error.config._csrfRetried) {
         try {
@@ -390,14 +353,14 @@ api.interceptors.response.use(
               error.config.headers = error.config.headers || {};
               error.config.headers['X-CSRF-Token'] = tokenData.csrfToken;
               if (import.meta.env.DEV) {
-                console.warn('[API] CSRF token refreshed, retrying request');
+                logger.warn('[API] CSRF token refreshed, retrying request');
               }
               return api(error.config);
             }
           }
         } catch (csrfErr) {
           if (import.meta.env.DEV) {
-            console.warn('[API] CSRF refresh failed:', csrfErr?.message);
+            logger.warn('[API] CSRF refresh failed:', csrfErr?.message);
           }
         }
       }
@@ -417,13 +380,14 @@ api.interceptors.response.use(
 
       if (!isLoginEndpoint && !isAuthCheckEndpoint && !isAlreadyOnLogin && !error.config?._authRetried) {
         error.config._authRetried = true;
-        if (typeof sessionStorage !== 'undefined') {
-          sessionStorage.setItem(
-            'eazseller_login_message',
-            'Your session has expired. Please log in again.'
-          );
-        }
+        
         if (typeof window !== 'undefined') {
+          if (typeof sessionStorage !== 'undefined') {
+            sessionStorage.setItem(
+              'eazseller_login_message',
+              'Your session has expired. Please log in again.'
+            );
+          }
           window.location.href = '/login';
         }
         return Promise.reject(error);
@@ -434,16 +398,16 @@ api.interceptors.response.use(
 
       if (isAuthEndpoint) {
         if (import.meta.env.DEV) {
-          console.debug("[API] Seller unauthenticated (401) on auth endpoint - cookie may be expired or missing");
+          logger.debug("[API] Seller unauthenticated (401) on auth endpoint - cookie may be expired or missing");
         }
       } else {
         if (import.meta.env.DEV) {
-          console.debug("[API] 401 on non-auth endpoint - seller may need to re-authenticate");
+          logger.debug("[API] 401 on non-auth endpoint - seller may need to re-authenticate");
         }
       }
 
       if (import.meta.env.DEV) {
-        console.debug("[API] 401 response - cookie-based auth, no local storage to clear");
+        logger.debug("[API] 401 response - cookie-based auth, no local storage to clear");
       }
     }
 
@@ -478,27 +442,18 @@ api.interceptors.response.use(
       error.response?.data?.message || error.message || "Request failed";
 
     if (isVerifyOtpError && import.meta.env.DEV) {
-      console.error(`[API Interceptor] Error Message: ${errorMessage}`);
+      logger.debug(`[API Interceptor] verify-otp error message: ${errorMessage}`);
     } else if (isNetworkError) {
-      if (import.meta.env.DEV) {
-        console.error('[API] 🚨 Network Error Details:', {
-          message: error.message,
-          code: error.code,
-          url: error.config?.url,
-          method: error.config?.method,
-          fullError: error,
-        });
-      } else {
-        console.error('[API] 🚨 Network Error:', {
-          message: error.message,
-          code: error.code,
-        });
-      }
+      logger.error('[API] Network error', {
+        code: error.code,
+        url: error.config?.url,
+        method: error.config?.method,
+      });
     } else {
-      console.error(`[API] Error: ${errorMessage}`, {
+      logger.error(`[API] Error: ${errorMessage}`, {
         url: fullUrl || error.config?.url,
         status: error.response?.status,
-        details: error.response?.data
+        code: error.code,
       });
     }
 

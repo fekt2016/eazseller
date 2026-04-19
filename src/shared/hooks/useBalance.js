@@ -7,15 +7,10 @@ export const useGetSellerBalance = () => {
     queryFn: async () => {
       try {
         const response = await balanceApi.getBalance();
-        console.log('[useGetSellerBalance] Raw response:', response);
-        
         // Handle different response structures
         const balanceData = response?.data?.data || response?.data || response;
-        console.log('[useGetSellerBalance] Parsed balance data:', balanceData);
-        
         return balanceData;
       } catch (error) {
-        console.error('[useGetSellerBalance] Error:', error);
         throw error;
       }
     },

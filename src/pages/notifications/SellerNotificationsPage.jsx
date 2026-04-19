@@ -75,7 +75,6 @@ const SellerNotificationsPage = () => {
       if (notification.type === 'order' && notification.metadata?.orderId) {
         const orderId = notification.metadata.orderId;
         targetPath = `/dashboard/orders/${orderId}`;
-        console.log('[SellerNotificationsPage] Order notification - navigating to:', targetPath);
       }
       // Priority 2: Use actionUrl if available
       else if (notification.actionUrl) {
@@ -107,14 +106,11 @@ const SellerNotificationsPage = () => {
       }
 
       if (targetPath) {
-        console.log('[SellerNotificationsPage] ✅ Navigating to:', targetPath);
         navigate(targetPath);
       } else {
-        console.warn('[SellerNotificationsPage] ⚠️ No valid navigation path for notification:', notification);
         navigate('/dashboard/notifications');
       }
     } catch (error) {
-      console.error('[SellerNotificationsPage] ❌ Error navigating:', error, 'notification:', notification);
       navigate('/dashboard/notifications');
     }
   };

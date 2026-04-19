@@ -8,7 +8,6 @@ export const productService = {
 
       return response;
     } catch (err) {
-      console.error("Error fetching product by ID:", err);
       throw err; // Re-throw to allow calling code to handle
     }
   },
@@ -24,23 +23,6 @@ export const productService = {
     return response.data;
   },
   createProduct: async (formData) => {
-    // Log FormData entries for production debugging
-    try {
-      let totalSizeBytes = 0;
-      const entries = [];
-      for (const [key, value] of formData.entries()) {
-        const size = value instanceof File ? value.size : (value?.length || 0);
-        totalSizeBytes += size;
-        entries.push({ key, type: value instanceof File ? 'File' : 'text', size });
-      }
-      const totalSizeMB = (totalSizeBytes / 1024 / 1024).toFixed(2);
-      console.log(`[ProductAPI] 📦 Upload payload: ${totalSizeMB} MB | ${entries.length} fields`);
-      console.log(`[ProductAPI] Fields:`, entries);
-      if (totalSizeBytes > 900 * 1024) {
-        console.warn(`[ProductAPI] ⚠️ Payload (${totalSizeMB}MB) likely exceeds nginx 1MB limit → may cause 413/CORS error`);
-      }
-    } catch (_) { /* ignore size logging errors */ }
-
     try {
       const response = await api.post("product", formData, {
         timeout: 60000,
@@ -60,17 +42,6 @@ export const productService = {
 
       return response.data;
     } catch (err) {
-      const isNetworkError = err.code === 'ERR_NETWORK' || !err.response;
-      console.error("[ProductAPI] ❌ Product creation failed:", {
-        code: err.code,
-        message: err.message,
-        status: err.response?.status,
-        data: err.response?.data,
-        hint: isNetworkError
-          ? "ERR_NETWORK on POST with images usually means nginx is rejecting the upload (client_max_body_size too low). Check nginx config on the server."
-          : null,
-      });
-
       const apiError = new Error(err.response?.data?.message || err.message);
       apiError.status = err.response?.status || 500;
       apiError.details = err.response?.data?.errors;
@@ -89,7 +60,6 @@ export const productService = {
       // Axios response data is in response.data
       return response.data;
     } catch (err) {
-      console.error("Error updating product:", err);
       throw err; // Re-throw for error boundary handling
     }
   },
@@ -100,7 +70,6 @@ export const productService = {
 
       return response;
     } catch (err) {
-      console.error("Error deleting product:", err);
       throw err;
     }
   },
@@ -110,7 +79,6 @@ export const productService = {
       const response = await api.get(`/product/search?q=${encodeURIComponent(query)}`);
       return response.data;
     } catch (err) {
-      console.error("Error searching products:", err);
       throw err;
     }
   },
