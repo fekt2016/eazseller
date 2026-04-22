@@ -40,7 +40,7 @@ const EditProduct = () => {
     error,
   } = useGetProductById(productId);
 
-  const product = productResponse?.data?.product || {};
+  const product = productResponse?.data?.product;
 
   // Fetch variants from API
   const { getVariants } = useVariants();
@@ -91,7 +91,7 @@ const EditProduct = () => {
   });
 
   const initialFormData = useMemo(() => {
-    if (!product || Object.keys(product).length === 0) return {};
+    if (!product) return {};
 
     // Parse variants if stored as string
     const parsedVariants =
@@ -227,7 +227,7 @@ const EditProduct = () => {
               ? `${parsed.duration} ${parsed.type}`.trim()
               : "");
         }
-      } catch (e) {
+      } catch {
         // If parsing fails, use as-is but ensure it's a string
         data.warranty = String(data.warranty).trim();
       }
@@ -555,10 +555,12 @@ const EditProduct = () => {
               autoClose: 3000,
             });
             setIsSubmitting(false);
-            // Navigate back after a short delay
-            setTimeout(() => {
-              navigate(PATHS.PRODUCTS);
-            }, 1500);
+            // Match mobile flow: return to previous context when available.
+            if (typeof window !== 'undefined' && window.history.length > 1) {
+              navigate(-1);
+              return;
+            }
+            navigate(PATHS.PRODUCTS);
           },
           onError: (error) => {
             // Log full error details for debugging

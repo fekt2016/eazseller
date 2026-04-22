@@ -17,12 +17,8 @@ export const useSellerStatus = () => {
   } = useQuery({
     queryKey: ['sellerStatus'],
     queryFn: async () => {
-      try {
-        const response = await onboardingApi.getStatus();
-        return response?.data?.data || response?.data || response;
-      } catch (error) {
-        throw error;
-      }
+      const response = await onboardingApi.getStatus();
+      return response?.data?.data || response?.data || response;
     },
     // This status powers the onboarding steps; we want it to reflect
     // admin approvals (documents, payouts) as soon as possible.

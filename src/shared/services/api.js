@@ -82,7 +82,7 @@ const getRelativePath = (url) => {
       return path;
     }
     return url.split("?")[0];
-  } catch (e) {
+  } catch {
     logger.error("Error parsing URL");
     return url;
   }
@@ -163,7 +163,7 @@ api.interceptors.request.use((config) => {
         if (import.meta.env.DEV) {
           logger.warn('[API] Data was stringified - parsed back to object');
         }
-      } catch (e) {
+      } catch {
         logger.error('[API] Failed to parse JSON string');
         throw new Error('Invalid JSON format in request data. Please ensure your request body is valid JSON.');
       }

@@ -1,5 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { PATHS } from "../../routes/routePaths";
 import {
   FaMoneyBillWave,
@@ -17,7 +16,6 @@ import {
 import styled from "styled-components";
 import { useSellerBalance } from "../../shared/hooks/finance/useSellerBalance";
 import { useGetPaymentRequests, useCreatePaymentRequest, useDeletePaymentRequest, useRequestReversal } from "../../shared/hooks/usePaymentRequest";
-import { useSubmitPinForWithdrawal } from "../../shared/hooks/usePayout";
 import ReversalModal from "./ReversalModal";
 import { useGetPaymentMethods } from "../../shared/hooks/usePaymentMethod";
 import useAuth from "../../shared/hooks/useAuth";
@@ -26,7 +24,6 @@ import Button from "../../shared/components/ui/Button";
 
 export default function WithdrawalsPage() {
   const { seller } = useAuth();
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("request");
   const [amount, setAmount] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("bank");
@@ -44,8 +41,6 @@ export default function WithdrawalsPage() {
     totalEarnings: totalRevenue,
     withdrawnAmount: totalWithdrawn,
     lockedBalance,
-    isLoading: isBalanceLoading,
-    error: balanceError,
   } = useSellerBalance();
 
   // Get payment requests (all for history tab)
@@ -62,17 +57,12 @@ export default function WithdrawalsPage() {
   // Get payment methods from PaymentMethod model
   const {
     data: paymentMethods = [],
-    isLoading: isLoadingPaymentMethods,
   } = useGetPaymentMethods();
 
   // Create payment request mutation
   const createPaymentRequest = useCreatePaymentRequest();
   const deletePaymentRequest = useDeletePaymentRequest();
   const requestReversal = useRequestReversal();
-  const submitPin = useSubmitPinForWithdrawal();
-
-  // State for PIN submission
-  const [pinInputs, setPinInputs] = useState({});
 
   // Track which request is being deleted (for individual loading state)
   const [deletingRequestId, setDeletingRequestId] = useState(null);
@@ -162,14 +152,6 @@ export default function WithdrawalsPage() {
     let paymentDetailsToSend = {};
 
     if (useSavedPaymentMethod) {
-      // Map payment method to PaymentMethod model type and provider
-      const paymentMethodToType = {
-        'bank': 'bank_transfer',
-        'mtn_momo': 'mobile_money',
-        'vodafone_cash': 'mobile_money',
-        'airtel_tigo_money': 'mobile_money',
-      };
-
       const paymentMethodToProvider = {
         'mtn_momo': 'MTN',
         'vodafone_cash': 'Vodafone',
@@ -327,15 +309,6 @@ export default function WithdrawalsPage() {
       return 'Reversed';
     }
     return status.charAt(0).toUpperCase() + status.slice(1).replace(/_/g, ' ');
-  };
-
-  const canReverse = (request) => {
-    // Can reverse if status is pending, processing, or awaiting_paystack_otp
-    // Cannot reverse if already reversed or if it's completed/paid (admin only)
-    const reversibleStatuses = ['pending', 'processing', 'awaiting_paystack_otp'];
-    const canReverseResult = reversibleStatuses.includes(request.status) && !request.reversed;
-
-    return canReverseResult;
   };
 
   const handleReversalConfirm = (reason) => {

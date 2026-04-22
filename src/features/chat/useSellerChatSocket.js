@@ -135,7 +135,7 @@ export const useSellerChatSocket = (enabled, guestCreds = null) => {
       if (import.meta.env.DEV) {
         const code =
           err && typeof err === 'object' && 'code' in err ? String(err.code) : '';
-        // eslint-disable-next-line no-console
+         
         console.warn(
           '[SellerChat] connect_error:',
           err?.message || err,
@@ -200,7 +200,7 @@ export const useSellerChatSocket = (enabled, guestCreds = null) => {
 
     socket.on('chat:error', ({ message: msg }) => {
       if (import.meta.env.DEV) {
-        // eslint-disable-next-line no-console
+         
         console.warn('[SellerChat]', msg);
       }
       if (msg) setSocketError(String(msg));
@@ -255,7 +255,7 @@ export const useSellerChatSocket = (enabled, guestCreds = null) => {
     const n = note != null ? String(note).trim().slice(0, 500) : '';
 
     if (import.meta.env.DEV) {
-      // eslint-disable-next-line no-console
+       
       console.info('[SellerChat] submitSupportRequest', {
         socketConnected: Boolean(s?.connected),
         serverChatReady: serverChatReadyRef.current,
@@ -278,7 +278,7 @@ export const useSellerChatSocket = (enabled, guestCreds = null) => {
     setSocketError(null);
     s.emit('chat:submit_support_request', { note: n });
     if (import.meta.env.DEV) {
-      // eslint-disable-next-line no-console
+       
       console.info('[SellerChat] emitted chat:submit_support_request');
     }
   }, []);

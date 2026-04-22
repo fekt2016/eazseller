@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
-import { formatGHS } from './CurrencyDisplay';
+import { formatGHS } from './currencyUtils';
 
 const Card = styled.section`
   background: #FFFFFF;

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import {
   FaGraduationCap,
   FaRocket,
@@ -246,10 +245,17 @@ const SellerEducationCenterPage = () => {
 
     // Filter articles and categories based on search query
     const query = searchQuery.toLowerCase().trim();
-    const filteredArticles = articles.filter(article =>
+    const searchableGuides = starterGuides.map((guide) => ({
+      ...guide,
+      description: Array.isArray(guide.content)
+        ? guide.content.join(' ')
+        : String(guide.content || ''),
+      category: 'guide',
+    }));
+    const filteredArticles = searchableGuides.filter((article) =>
       article.title.toLowerCase().includes(query) ||
-      article.description?.toLowerCase().includes(query) ||
-      article.category?.toLowerCase().includes(query)
+      article.description.toLowerCase().includes(query) ||
+      article.category.toLowerCase().includes(query)
     );
 
     const filteredCategories = categories.filter(category =>

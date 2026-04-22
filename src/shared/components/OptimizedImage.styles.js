@@ -1,5 +1,4 @@
 import styled, { css, keyframes } from "styled-components";
-import { devicesMax } from "../styles/breakpoint";
 
 const imageFadeIn = keyframes`
   from { opacity: 0; }

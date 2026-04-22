@@ -86,31 +86,6 @@ export default function AttributeSelector({
     }
   };
 
-  // Get current attribute value
-  const getAttributeValue = (attrName) => {
-    const attr = selectedAttributes.find((a) => a.key === attrName);
-    return attr?.value || "";
-  };
-
-  // Handle attribute value change
-  const handleAttributeValueChange = (attrName, value) => {
-    const currentAttrs = getValues(name) || [];
-    const attrIndex = currentAttrs.findIndex((a) => a.key === attrName);
-
-    if (attrIndex === -1) {
-      // Add new attribute
-      const newAttrs = [...currentAttrs, { key: attrName, value }];
-      setValue(name, newAttrs, { shouldDirty: true });
-      onChange(newAttrs);
-    } else {
-      // Update existing attribute
-      const updatedAttrs = [...currentAttrs];
-      updatedAttrs[attrIndex] = { ...updatedAttrs[attrIndex], value };
-      setValue(name, updatedAttrs, { shouldDirty: true });
-      onChange(updatedAttrs);
-    }
-  };
-
   return (
     <AttributeSelectorContainer>
       <SectionTitle>Variant Attributes</SectionTitle>

@@ -19,7 +19,6 @@ export {
   DesktopView,
   MobileView,
   SpacingProps,
-  spacing,
 } from './SpacingSystem';
 
 // Loading Components Exports

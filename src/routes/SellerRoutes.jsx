@@ -56,14 +56,21 @@ const PickupLocationCreatePage = lazy(() => import("../pages/store/pickup/Pickup
 const PickupLocationEditPage = lazy(() => import("../pages/store/pickup/PickupLocationEditPage"));
 const SellerReturnAndFundsPage = lazy(() => import("../features/sellerReturns/pages/SellerReturnAndFundsPage"));
 const TestimonialsPage = lazy(() => import("../features/testimonials/TestimonialsPage"));
+const StatusMediaPage = lazy(() => import("../features/status/StatusMediaPage"));
 const SellerNotificationsPage = lazy(() => import("../pages/notifications/SellerNotificationsPage"));
 const ForgotPasswordPage = lazy(() => import("../features/auth/ForgotPasswordPage"));
 const ResetPasswordPage = lazy(() => import("../features/auth/ResetPasswordPage"));
 const VerifyAccountPage = lazy(() => import("../features/auth/VerifyAccountPage"));
-// Redirect component for /dashboard/tracking/* to /tracking/*
+// Redirect component for legacy /tracking/* URLs
 const TrackingRedirect = () => {
   const { trackingNumber } = useParams();
-  return <Navigate to={`/tracking/${trackingNumber}`} replace />;
+  return <Navigate to={`${PATHS.DASHBOARD}/tracking/${trackingNumber}`} replace />;
+};
+
+const ResetPasswordTokenRedirect = () => {
+  const { token } = useParams();
+  const search = token ? `?token=${encodeURIComponent(token)}` : '';
+  return <Navigate to={`${PATHS.RESET_PASSWORD}${search}`} replace />;
 };
 
 export default function SellerRoutes() {
@@ -179,6 +186,7 @@ export default function SellerRoutes() {
           }
         />
       </Route>
+      <Route path="/reset-password/:token" element={<ResetPasswordTokenRedirect />} />
 
       {/* Public Education Page - Public with Header, No Sidebar */}
       <Route
@@ -220,7 +228,7 @@ export default function SellerRoutes() {
 
       {/* Public Shipping Info Page - Public with Header, No Sidebar */}
       <Route
-        path={PATHS.SHIPPING_INFO}
+        path={PATHS.SHIPPING_PUBLIC}
         element={
           <Suspense fallback={<LoadingSpinner />}>
             <DashboardLayout showSidebar={false} />
@@ -334,6 +342,10 @@ export default function SellerRoutes() {
 
       {/* Redirect /auth/login to /login for backward compatibility */}
       <Route path="/auth/login" element={<Navigate to={PATHS.LOGIN} replace />} />
+      <Route path="/account-pending" element={<Navigate to={PATHS.SETUP} replace />} />
+      <Route path="/account-inactive" element={<Navigate to={PATHS.LOGIN} replace />} />
+      <Route path="/unauthorized" element={<Navigate to={PATHS.LOGIN} replace />} />
+      <Route path={PATHS.TRACKING_PUBLIC} element={<TrackingRedirect />} />
       {/* Dashboard Routes - All under /dashboard */}
       <Route
         path={PATHS.DASHBOARD}
@@ -626,6 +638,8 @@ export default function SellerRoutes() {
             </ProtectedRoute>
           }
         />
+        <Route path="support-hub" element={<Navigate to={PATHS.SUPPORT} replace />} />
+        <Route path="support/chat" element={<Navigate to={PATHS.CHAT_SUPPORT} replace />} />
         {/* Notifications Route */}
         <Route
           path="notifications"
@@ -637,11 +651,15 @@ export default function SellerRoutes() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="notifications/inbox"
+          element={<Navigate to={PATHS.NOTIFICATIONS} replace />}
+        />
         {/* Setup & Settings Routes */}
         <Route
           path="setup"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowPending={true}>
               <Suspense fallback={<LoadingSpinner fullScreen />}>
                 <SetupPage />
               </Suspense>
@@ -658,6 +676,17 @@ export default function SellerRoutes() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="store/shipping"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<LoadingSpinner fullScreen />}>
+                <ShippingInfoPage />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route path="store/shipping-settings" element={<Navigate to={PATHS.SHIPPING_SETTINGS} replace />} />
         {/* Pickup Locations Routes */}
         <Route
           path="store/pickup-locations"
@@ -689,6 +718,36 @@ export default function SellerRoutes() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="pickup-locations"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<LoadingSpinner fullScreen />}>
+                <PickupLocationsListPage />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="pickup-locations/create"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<LoadingSpinner fullScreen />}>
+                <PickupLocationCreatePage />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="pickup-locations/:id/edit"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<LoadingSpinner fullScreen />}>
+                <PickupLocationEditPage />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
         {/* Returns Management Route */}
         <Route
           path="returns"
@@ -700,6 +759,17 @@ export default function SellerRoutes() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="returns/:returnId"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<LoadingSpinner fullScreen />}>
+                <SellerReturnAndFundsPage />
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+        <Route path="refunds" element={<Navigate to={PATHS.RETURNS} replace />} />
         {/* Funds redirect — legacy /dashboard/funds → unified wallet */}
         <Route path="funds" element={<Navigate to={PATHS.FINANCE} replace />} />
         <Route
@@ -738,10 +808,22 @@ export default function SellerRoutes() {
         <Route
           path="testimonials"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowPending={true}>
               <SellerProtectedRoute allowedStage="verified">
                 <Suspense fallback={<LoadingSpinner fullScreen />}>
                   <TestimonialsPage />
+                </Suspense>
+              </SellerProtectedRoute>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="status-media"
+          element={
+            <ProtectedRoute allowPending={true}>
+              <SellerProtectedRoute allowedStage="verified">
+                <Suspense fallback={<LoadingSpinner fullScreen />}>
+                  <StatusMediaPage />
                 </Suspense>
               </SellerProtectedRoute>
             </ProtectedRoute>
@@ -771,6 +853,21 @@ export default function SellerRoutes() {
             </ProtectedRoute>
           }
         />
+        <Route path="analytics/sales" element={<Navigate to={PATHS.ANALYTICS} replace />} />
+        <Route path="analytics/products" element={<Navigate to={PATHS.ANALYTICS} replace />} />
+        <Route path="analytics/customers" element={<Navigate to={PATHS.ANALYTICS} replace />} />
+        <Route path="finance/earnings" element={<Navigate to={PATHS.FINANCE} replace />} />
+        <Route path="finance/payouts" element={<Navigate to={PATHS.FINANCE} replace />} />
+        <Route
+          path="finance/payment-requests"
+          element={<Navigate to={PATHS.WITHDRAWALS} replace />}
+        />
+        <Route path="store/profile" element={<Navigate to={PATHS.STORE_SETTINGS} replace />} />
+        <Route
+          path="store/return-policy"
+          element={<Navigate to={PATHS.RETURN_REFUND} replace />}
+        />
+        <Route path="faq" element={<Navigate to={PATHS.HELP} replace />} />
         <Route
           path="press"
           element={

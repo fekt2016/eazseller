@@ -9,61 +9,57 @@ const useCategory = () => {
   const getCategories = useQuery({
     queryKey: ["categories"],
     queryFn: async () => {
-      try {
-        let allCategories = [];
-        let page = 1;
-        let hasMore = true;
-        const limit = 1000; // Fetch 1000 per page
+      let allCategories = [];
+      let page = 1;
+      let hasMore = true;
+      const limit = 1000; // Fetch 1000 per page
 
-        // Fetch all pages until we get everything
-        while (hasMore) {
-          const response = await categoryService.getAllCategories({
-            limit,
-            page,
-          });
+      // Fetch all pages until we get everything
+      while (hasMore) {
+        const response = await categoryService.getAllCategories({
+          limit,
+          page,
+        });
 
-          // Handle different response structures from handleFactory.getAll
-          // Backend returns: { status: 'success', results: [...], meta: {...} }
-          const categories = response?.data?.results ||
-            response?.data?.data?.results ||
-            response?.data?.data ||
-            response?.results ||
-            response?.data ||
-            [];
+        // Handle different response structures from handleFactory.getAll
+        // Backend returns: { status: 'success', results: [...], meta: {...} }
+        const categories = response?.data?.results ||
+          response?.data?.data?.results ||
+          response?.data?.data ||
+          response?.results ||
+          response?.data ||
+          [];
 
-          // Get pagination info from meta
-          const meta = response?.data?.meta || response?.meta || {};
-          const total = meta.total || categories.length;
-          const totalPages = meta.totalPages || Math.ceil(total / limit) || 1;
+        // Get pagination info from meta
+        const meta = response?.data?.meta || response?.meta || {};
+        const total = meta.total || categories.length;
+        const totalPages = meta.totalPages || Math.ceil(total / limit) || 1;
 
-          if (Array.isArray(categories) && categories.length > 0) {
-            allCategories = [...allCategories, ...categories];
+        if (Array.isArray(categories) && categories.length > 0) {
+          allCategories = [...allCategories, ...categories];
 
-            // Check if there are more pages
-            hasMore = page < totalPages && categories.length === limit;
-            page++;
+          // Check if there are more pages
+          hasMore = page < totalPages && categories.length === limit;
+          page++;
 
 
-          } else {
-            hasMore = false;
-          }
-
-          // Safety limit to prevent infinite loops
-          if (page > 100) {
-            hasMore = false;
-          }
+        } else {
+          hasMore = false;
         }
 
-        // Return in the expected format
-        return {
-          data: {
-            results: allCategories,
-            total: allCategories.length,
-          }
-        };
-      } catch (error) {
-        throw error;
+        // Safety limit to prevent infinite loops
+        if (page > 100) {
+          hasMore = false;
+        }
       }
+
+      // Return in the expected format
+      return {
+        data: {
+          results: allCategories,
+          total: allCategories.length,
+        }
+      };
     },
     staleTime: Infinity,
     retry: 2,
@@ -136,14 +132,8 @@ const useCategory = () => {
   const getParentCategories = useQuery({
     queryKey: ["parentCategories"],
     queryFn: async () => {
-      try {
-        const response = await categoryService.getParentCategories();
-
-
-        return response;
-      } catch (error) {
-        throw error;
-      }
+      const response = await categoryService.getParentCategories();
+      return response;
     },
     staleTime: Infinity,
     retry: 2,

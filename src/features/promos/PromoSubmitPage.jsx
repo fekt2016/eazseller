@@ -143,15 +143,6 @@ export default function PromoSubmitPage() {
     });
   }, [filteredRows, highlightedProductId, step]);
 
-  const selectedRows = useMemo(
-    () =>
-      filteredRows.filter((row) => {
-        const productId = toProductId(row);
-        return selectedIds.includes(productId);
-      }),
-    [filteredRows, selectedIds]
-  );
-
   const reviewRows = useMemo(() => {
     const rowMap = new Map(eligibleRows.map((row) => [toProductId(row), row]));
     return selectedIds.map((productId) => rowMap.get(productId)).filter(Boolean);

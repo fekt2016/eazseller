@@ -42,7 +42,7 @@ const AddProductPage = () => {
         const refetched = result?.data;
         currentSeller = refetched ?? seller;
         sellerId = currentSeller?.id || currentSeller?._id;
-      } catch (_) {
+      } catch {
         /* ignore */
       }
     }
@@ -329,7 +329,7 @@ const AddProductPage = () => {
           else {
             warrantyValue = String(data.warranty).trim();
           }
-        } catch (e) {
+        } catch {
           // If anything fails, just convert to string
           warrantyValue = String(data.warranty).trim();
         }
@@ -366,7 +366,7 @@ const AddProductPage = () => {
       formData.append("seller", sellerId);
 
       if (import.meta.env.DEV) {
-        // eslint-disable-next-line no-console
+         
         console.log('[AddProduct] submitting keys:', [...formData.keys()]);
       }
 
@@ -379,7 +379,7 @@ const AddProductPage = () => {
           toast.error(error?.response?.data?.message || error.message || 'Failed to create product');
         },
       });
-    } catch (error) {
+    } catch {
       toast.error("Form submission failed. Please try again.");
     }
   };

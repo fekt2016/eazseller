@@ -11,7 +11,6 @@ import Button from './ui/Button';
  */
 const VerificationBanner = () => {
   const { 
-    onboardingStage, 
     isVerified, 
     isLoading,
     isSetupComplete,

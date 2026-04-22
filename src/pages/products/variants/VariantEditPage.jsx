@@ -13,6 +13,7 @@ import useVariants from '../../../shared/hooks/variants/useVariants';
 import { compressImage } from '../../../shared/utils/imageCompressor';
 import Button from '../../../shared/components/ui/Button';
 import { toast } from 'react-toastify';
+import { PATHS } from '../../../routes/routePaths';
 
 // Normalize variant images to URL strings for form and comparison
 function variantImageUrls(images) {
@@ -140,6 +141,14 @@ export default function VariantEditPage() {
     mode: 'onChange',
   });
 
+  const goBackToVariants = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+    navigate(PATHS.PRODUCT_VARIANTS.replace(':productId', productId));
+  };
+
   useEffect(() => {
     if (!variantData) return;
     methods.reset(defaultValues);
@@ -198,7 +207,7 @@ export default function VariantEditPage() {
         body: variantUpdateData,
       });
 
-      navigate(`/dashboard/products/${productId}/variants`);
+      goBackToVariants();
     } catch (error) {
       console.error('Failed to update variant:', error);
       toast.error(
@@ -222,7 +231,7 @@ export default function VariantEditPage() {
     return (
       <VariantFormPage>
         <div>Variant not found</div>
-        <button type="button" onClick={() => navigate(-1)}>Go back</button>
+        <button type="button" onClick={goBackToVariants}>Go back</button>
       </VariantFormPage>
     );
   }
@@ -233,7 +242,7 @@ export default function VariantEditPage() {
     <VariantFormPage>
       <VarHeader>
         <VarTitleSection>
-          <BackButton type="button" onClick={() => navigate(-1)}>
+          <BackButton type="button" onClick={goBackToVariants}>
             <FaArrowLeft /> Back
           </BackButton>
           <h1>Edit Variant</h1>

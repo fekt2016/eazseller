@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { FaPlus, FaMapMarkerAlt, FaInfoCircle } from 'react-icons/fa';
 import {
@@ -23,7 +23,6 @@ import useDynamicPageTitle from '../../../shared/hooks/useDynamicPageTitle';
  * Allows creating, editing, and deleting locations
  */
 const PickupLocationsListPage = () => {
-  const navigate = useNavigate();
   const { getLocations, deleteLocation } = usePickupLocations();
   const { data: locations = [], isLoading, error } = getLocations();
   const deleteMutation = deleteLocation();

@@ -12,7 +12,6 @@
 
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { describe, test, beforeEach, vi } from 'vitest';
 import { renderWithProviders } from '../utils/testUtils';
 import EditProduct from '../../features/products/EditProduct';
@@ -69,7 +68,7 @@ const mockUseGetProductById = vi.fn(() => ({
 }));
 
 const mockUpdateProduct = {
-  mutate: vi.fn(({ id, data }, options) => {
+  mutate: vi.fn(({ id: _id, data: _data }, options) => {
     // Simulate successful mutation
     if (options?.onSuccess) {
       options.onSuccess({ data: { product: { ...mockProduct, name: 'Updated Product' } } });

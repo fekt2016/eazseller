@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 
-export const STATUS_CONFIG = {
+const STATUS_CONFIG = {
   pending: { label: 'Pending', bg: '#FAEEDA', color: '#854F0B' },
   pending_payment: { label: 'Pending payment', bg: '#FAEEDA', color: '#854F0B' },
   confirmed: { label: 'Confirmed', bg: '#E6F1FB', color: '#185FA5' },

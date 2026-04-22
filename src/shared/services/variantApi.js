@@ -49,7 +49,7 @@ export const variantService = {
       
       // Append images (use 'newImages' to match multer configuration)
       if (variantData.images && Array.isArray(variantData.images)) {
-        variantData.images.forEach((image, index) => {
+        variantData.images.forEach((image) => {
           if (image instanceof File) {
             formData.append(`newImages`, image);
           }

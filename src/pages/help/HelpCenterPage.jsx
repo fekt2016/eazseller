@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import {
   FaQuestionCircle,
   FaShoppingBag,
@@ -70,7 +69,6 @@ import {
  * Provides help resources, FAQs, and support information for sellers
  */
 const HelpCenterPage = () => {
-  const navigate = useNavigate();
   const [openVatFaqIndex, setOpenVatFaqIndex] = useState(null);
 
   // SEO

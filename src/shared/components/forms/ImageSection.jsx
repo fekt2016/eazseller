@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { useFormContext } from 'react-hook-form';
 import { FiUploadCloud, FiVideo, FiX, FiMove } from 'react-icons/fi';
@@ -38,7 +38,11 @@ export default function ImageSection({ isSubmitting }) {
   const [videoChecking, setVideoChecking] = useState(false);
 
   const imageCover = watch('imageCover');
-  const images = watch('images') || [];
+  const images = watch('images');
+  const imagesList = useMemo(
+    () => (Array.isArray(images) ? images : []),
+    [images],
+  );
   const video = watch('video');
 
   const [coverPreview, setCoverPreview] = useState('');
@@ -62,7 +66,7 @@ export default function ImageSection({ isSubmitting }) {
 
   useEffect(() => {
     const blobUrls = [];
-    const urls = images.map((img) => {
+    const urls = imagesList.map((img) => {
       if (img instanceof File) {
         const u = URL.createObjectURL(img);
         blobUrls.push(u);
@@ -76,7 +80,7 @@ export default function ImageSection({ isSubmitting }) {
     return () => {
       blobUrls.forEach((u) => URL.revokeObjectURL(u));
     };
-  }, [images]);
+  }, [imagesList]);
 
   useEffect(() => {
     let blobUrl = '';
@@ -93,7 +97,7 @@ export default function ImageSection({ isSubmitting }) {
     };
   }, [video]);
 
-  const remainingGallerySlots = Math.max(0, MAX_TOTAL_IMAGES - 1 - images.length);
+  const remainingGallerySlots = Math.max(0, MAX_TOTAL_IMAGES - 1 - imagesList.length);
 
   register('imageCover', {
     validate: () => {

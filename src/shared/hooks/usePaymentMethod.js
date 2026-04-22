@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import paymentMethodApi from '../services/paymentMethodApi';
 import { toast } from 'react-toastify';
-import { getUserFriendlyErrorMessage } from '../utils/helpers';
 import normalizeError from '../utils/normalizeError';
 import useAuth from './useAuth';
 

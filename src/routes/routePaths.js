@@ -56,21 +56,30 @@ export const PATHS = {
   STORE_PROFILE: "/dashboard/store/profile",
   SHIPPING_SETTINGS: "/dashboard/store/shipping",
   SHIPPING_INFO: "/dashboard/store/shipping",
+  SHIPPING_PUBLIC: "/shipping-info",
+  SHIPPING_SETTINGS_ALIAS: "/dashboard/store/shipping-settings",
   RETURN_POLICY: "/dashboard/store/return-policy",
+  PICKUP_LOCATIONS_ALIAS: "/dashboard/pickup-locations",
+  PICKUP_LOCATION_CREATE_ALIAS: "/dashboard/pickup-locations/create",
+  PICKUP_LOCATION_EDIT_ALIAS: "/dashboard/pickup-locations/:id/edit",
 
   // Account
   PROFILE: "/dashboard/profile",
   SETTINGS: "/dashboard/settings",
   SECURITY: "/dashboard/settings/security",
   NOTIFICATIONS: "/dashboard/notifications",
+  NOTIFICATIONS_INBOX: "/dashboard/notifications/inbox",
   
   // Settings (for seller settings page)
   SELLER_SETTINGS: "/dashboard/settings",
 
   // Support
   SUPPORT: "/dashboard/support",
+  SUPPORT_HUB: "/dashboard/support-hub",
+  SUPPORT_CHAT: "/dashboard/support/chat",
   SUPPORT_TICKETS: "/dashboard/support/tickets",
   SUPPORT_TICKET_DETAIL: "/dashboard/support/tickets/:id",
+  CHAT_SUPPORT: "/dashboard/support/tickets",
   HELP: "/dashboard/help",
   FAQ: "/dashboard/faq",
   
@@ -109,7 +118,8 @@ export const PATHS = {
   LOGIN: "/login",
   SIGNUP: "/signup",
   FORGOT_PASSWORD: "/forgot-password",
-  RESET_PASSWORD: "/reset-password/:token",
+  RESET_PASSWORD: "/reset-password",
+  RESET_PASSWORD_TOKEN: "/reset-password/:token", // Alias for backward compatibility
   VERIFY_ACCOUNT: "/verify-account",
   // Onboarding & Setup
   SETUP: "/dashboard/setup",
@@ -120,9 +130,11 @@ export const PATHS = {
 
   // Testimonials
   TESTIMONIALS: "/dashboard/testimonials",
+  STATUS_MEDIA: "/dashboard/status-media",
   
   // Tracking
   TRACKING: "/dashboard/tracking/:trackingNumber",
+  TRACKING_PUBLIC: "/tracking/:trackingNumber", // Alias for backward compatibility
   
   // Withdrawals
   WITHDRAWALS: "/dashboard/finance/withdrawals",
@@ -135,6 +147,8 @@ export const PATHS = {
 
   // Returns & Funds
   RETURNS: "/dashboard/returns",
+  REFUNDS: "/dashboard/refunds", // Alias for backward compatibility
+  RETURN_DETAIL: "/dashboard/returns/:returnId",
 };
 
 // ---------- ROUTE CONFIG (SEO META) ----------

@@ -27,7 +27,7 @@ export const useGetSellerById = (sellerId) => {
       try {
         const data = await sellerApi.getSellerById(sellerId);
         return data;
-      } catch (error) {
+      } catch {
         throw new Error("Failed to fetch seller data");
       }
     },

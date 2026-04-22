@@ -15,7 +15,7 @@ const generateFileSignature = (file) => {
 
 export default function VariantSection({ variantAttributes = [], seller, singleVariantMode = false, categoryNameForSku }) {
   const { control, register, setValue, getValues } = useFormContext();
-  const { fields, append, remove, replace } = useFieldArray({
+  const { fields, append, remove } = useFieldArray({
     control,
     name: "variants",
   });
@@ -240,7 +240,7 @@ function VariantRow({
         shouldValidate: false,
       });
     }
-  }, [watchedAttrs, setValue, getValues, variantIndex, seller, subCategory]);
+  }, [watchedAttrs, setValue, getValues, variantIndex, seller, categoryForSku]);
 
   //  Auto-add missing attributes and set default values (moved from render )
   useEffect(() => {

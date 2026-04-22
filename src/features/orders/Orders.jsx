@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import { useGetSellerOrders } from '../../shared/hooks/useOrder';
 import { Link, useNavigate } from "react-router-dom";
-import { formatGHS, formatOrderDate, formatOrderNumber } from '../../shared/utils/dashboardFormatters';
+import { formatGHS } from '../../shared/utils/dashboardFormatters';
 import StatusBadge from '../../components/shared/StatusBadge';
 import { useState, useEffect, useMemo } from "react";
 import {
@@ -21,6 +21,8 @@ import {
 import { PATHS } from '../../routes/routePaths';
 import { firstNameOnly } from '../../shared/utils/orderPrivacy';
 
+const MOBILE_TABLE_BREAKPOINT = 900;
+
 export default function OrdersPage() {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
@@ -28,6 +30,9 @@ export default function OrdersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
+  const [isMobileView, setIsMobileView] = useState(
+    typeof window !== 'undefined' ? window.innerWidth <= MOBILE_TABLE_BREAKPOINT : false
+  );
 
   const {
     data: ordersData,
@@ -40,7 +45,15 @@ export default function OrdersPage() {
     refetch();
   }, [currentPage, pageSize, searchTerm, statusFilter, dateFilter, refetch]);
 
-  const orders = ordersData?.data?.data?.orders || [];
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileView(window.innerWidth <= MOBILE_TABLE_BREAKPOINT);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const orders = useMemo(() => ordersData?.data?.data?.orders || [], [ordersData]);
 
   const getOrderStatus = (order) => {
     const paymentStatus = (order?.paymentStatus || '').toString().toLowerCase();
@@ -169,6 +182,10 @@ export default function OrdersPage() {
     { label: 'Cancelled', value: stats.cancelled, icon: <FaTimesCircle />, accent: '#EF4444' },
   ];
 
+  const getTrackingReference = (order) => {
+    return order?.trackingNumber || order?.orderNumber || '';
+  };
+
   return (
     <Page>
       {/* Page Header */}
@@ -230,91 +247,196 @@ export default function OrdersPage() {
 
       {/* Table */}
       <TableCard>
-        <TableScroll>
-          <Table>
-            <THead>
-              <tr>
-                <Th>Order ID</Th>
-                <Th>Customer</Th>
-                <Th>Date</Th>
-                <Th>Tracking</Th>
-                <Th align="center">Items</Th>
-                <Th align="right">Amount</Th>
-                <Th>Status</Th>
-                <Th align="center">Actions</Th>
-              </tr>
-            </THead>
-            <tbody>
-              {paginatedOrders.length > 0 ? (
-                paginatedOrders.map((order) => (
-                  <TRow key={order._id}>
-                    <Td>
+        {paginatedOrders.length > 0 ? (
+          <>
+            {!isMobileView ? (
+              <TableScroll>
+                <Table>
+                  <THead>
+                    <tr>
+                      <Th>Order ID</Th>
+                      <Th>Customer</Th>
+                      <Th>Date</Th>
+                      <Th>Tracking</Th>
+                      <Th align="center">Items</Th>
+                      <Th align="right">Amount</Th>
+                      <Th>Status</Th>
+                      <Th align="center">Actions</Th>
+                    </tr>
+                  </THead>
+                  <tbody>
+                    {paginatedOrders.map((order) => (
+                      <TRow key={order._id}>
+                        <Td>
+                          <OrderNum>{order.orderNumber || `#${order._id?.slice(-8)}`}</OrderNum>
+                        </Td>
+                        <Td>
+                          <CustomerName>
+                            {firstNameOnly(order.user?.name) || 'Unknown Customer'}
+                          </CustomerName>
+                        </Td>
+                        <Td>
+                          <DateText>{formatDate(order.createdAt)}</DateText>
+                        </Td>
+                        <Td>
+                          {getTrackingReference(order) ? (
+                            <TrackingLink
+                              onClick={() =>
+                                navigate(
+                                  PATHS.TRACKING.replace(
+                                    ':trackingNumber',
+                                    encodeURIComponent(getTrackingReference(order)),
+                                  ),
+                                )
+                              }
+                            >
+                              {order.trackingNumber || 'Track order'}
+                            </TrackingLink>
+                          ) : (
+                            <PendingText>Pending…</PendingText>
+                          )}
+                        </Td>
+                        <Td align="center">
+                          <ItemCount>{calculateTotalQuantity(order)}</ItemCount>
+                        </Td>
+                        <Td align="right">
+                          <AmountText>{formatGHS(order.total || order.subtotal || 0)}</AmountText>
+                        </Td>
+                        <Td>
+                          <StatusBadge status={tableOrderStatus(order)} />
+                        </Td>
+                        <Td align="center">
+                          <ActionGroup>
+                            <ActionBtn
+                              as={Link}
+                              to={PATHS.ORDER_DETAIL.replace(':id', order._id)}
+                              title="View order details"
+                              $variant="view"
+                            >
+                              <FaEye size={13} />
+                            </ActionBtn>
+                            {getTrackingReference(order) ? (
+                              <ActionBtn
+                                as={Link}
+                                to={PATHS.TRACKING.replace(
+                                  ':trackingNumber',
+                                  encodeURIComponent(getTrackingReference(order)),
+                                )}
+                                title="Track order"
+                                $variant="view"
+                              >
+                                <FaTruck size={13} />
+                              </ActionBtn>
+                            ) : null}
+                            <ActionBtn
+                              as={Link}
+                              to={`${PATHS.RETURNS}?orderId=${encodeURIComponent(order.parentOrderId || order.orderId || order._id)}`}
+                              title="View refund details"
+                              $variant="refund"
+                            >
+                              <FaUndo size={13} />
+                            </ActionBtn>
+                          </ActionGroup>
+                        </Td>
+                      </TRow>
+                    ))}
+                  </tbody>
+                </Table>
+              </TableScroll>
+            ) : null}
+
+            {isMobileView ? (
+              <MobileOrderList>
+              {paginatedOrders.map((order) => {
+                const trackingReference = getTrackingReference(order);
+                return (
+                  <MobileOrderCard key={`mobile-${order._id}`}>
+                    <MobileCardTop>
                       <OrderNum>{order.orderNumber || `#${order._id?.slice(-8)}`}</OrderNum>
-                    </Td>
-                    <Td>
-                      <CustomerName>
-                        {firstNameOnly(order.user?.name) || 'Unknown Customer'}
-                      </CustomerName>
-                    </Td>
-                    <Td>
-                      <DateText>{formatDate(order.createdAt)}</DateText>
-                    </Td>
-                    <Td>
-                      {order.trackingNumber ? (
-                        <TrackingLink
-                          onClick={() => navigate(PATHS.TRACKING.replace(':trackingNumber', order.trackingNumber))}
-                        >
-                          {order.trackingNumber}
-                        </TrackingLink>
-                      ) : (
-                        <PendingText>Pending…</PendingText>
-                      )}
-                    </Td>
-                    <Td align="center">
-                      <ItemCount>{calculateTotalQuantity(order)}</ItemCount>
-                    </Td>
-                    <Td align="right">
-                      <AmountText>{formatGHS(order.total || order.subtotal || 0)}</AmountText>
-                    </Td>
-                    <Td>
                       <StatusBadge status={tableOrderStatus(order)} />
-                    </Td>
-                    <Td align="center">
-                      <ActionGroup>
-                        <ActionBtn
+                    </MobileCardTop>
+                    <MobileMetaGrid>
+                      <MobileMetaItem>
+                        <MobileMetaLabel>Customer</MobileMetaLabel>
+                        <CustomerName>{firstNameOnly(order.user?.name) || 'Unknown Customer'}</CustomerName>
+                      </MobileMetaItem>
+                      <MobileMetaItem>
+                        <MobileMetaLabel>Date</MobileMetaLabel>
+                        <DateText>{formatDate(order.createdAt)}</DateText>
+                      </MobileMetaItem>
+                      <MobileMetaItem>
+                        <MobileMetaLabel>Items</MobileMetaLabel>
+                        <ItemCount>{calculateTotalQuantity(order)}</ItemCount>
+                      </MobileMetaItem>
+                      <MobileMetaItem>
+                        <MobileMetaLabel>Amount</MobileMetaLabel>
+                        <AmountText>{formatGHS(order.total || order.subtotal || 0)}</AmountText>
+                      </MobileMetaItem>
+                      <MobileMetaItem>
+                        <MobileMetaLabel>Tracking</MobileMetaLabel>
+                        {trackingReference ? (
+                          <TrackingLink
+                            onClick={() =>
+                              navigate(
+                                PATHS.TRACKING.replace(
+                                  ':trackingNumber',
+                                  encodeURIComponent(trackingReference),
+                                ),
+                              )
+                            }
+                          >
+                            {order.trackingNumber || 'Track order'}
+                          </TrackingLink>
+                        ) : (
+                          <PendingText>Pending…</PendingText>
+                        )}
+                      </MobileMetaItem>
+                    </MobileMetaGrid>
+
+                    <MobileActionRow>
+                      <MobileActionBtn
+                        as={Link}
+                        to={PATHS.ORDER_DETAIL.replace(':id', order._id)}
+                        $variant="view"
+                      >
+                        <FaEye size={12} />
+                        <span>Details</span>
+                      </MobileActionBtn>
+                      {trackingReference ? (
+                        <MobileActionBtn
                           as={Link}
-                          to={PATHS.ORDER_DETAIL.replace(':id', order._id)}
-                          title="View order details"
+                          to={PATHS.TRACKING.replace(
+                            ':trackingNumber',
+                            encodeURIComponent(trackingReference),
+                          )}
                           $variant="view"
                         >
-                          <FaEye size={13} />
-                        </ActionBtn>
-                        <ActionBtn
-                          as={Link}
-                          to={`${PATHS.RETURNS}?orderId=${encodeURIComponent(order.parentOrderId || order.orderId || order._id)}`}
-                          title="View refund details"
-                          $variant="refund"
-                        >
-                          <FaUndo size={13} />
-                        </ActionBtn>
-                      </ActionGroup>
-                    </Td>
-                  </TRow>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="8">
-                    <EmptyState>
-                      <FaShoppingBag size={36} color="#D1D5DB" />
-                      <EmptyTitle>No orders found</EmptyTitle>
-                      <EmptyMsg>Try adjusting your filters or search criteria</EmptyMsg>
-                    </EmptyState>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </Table>
-        </TableScroll>
+                          <FaTruck size={12} />
+                          <span>Track</span>
+                        </MobileActionBtn>
+                      ) : null}
+                      <MobileActionBtn
+                        as={Link}
+                        to={`${PATHS.RETURNS}?orderId=${encodeURIComponent(order.parentOrderId || order.orderId || order._id)}`}
+                        $variant="refund"
+                      >
+                        <FaUndo size={12} />
+                        <span>Refund</span>
+                      </MobileActionBtn>
+                    </MobileActionRow>
+                  </MobileOrderCard>
+                );
+              })}
+              </MobileOrderList>
+            ) : null}
+          </>
+        ) : (
+          <EmptyState>
+            <FaShoppingBag size={36} color="#D1D5DB" />
+            <EmptyTitle>No orders found</EmptyTitle>
+            <EmptyMsg>Try adjusting your filters or search criteria</EmptyMsg>
+          </EmptyState>
+        )}
       </TableCard>
 
       {/* Pagination */}
@@ -364,6 +486,10 @@ const Page = styled.div`
   padding: 1.5rem;
   background: #F9F8F5;
   min-height: 100vh;
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+  }
 `;
 
 const PageHeader = styled.div`
@@ -374,6 +500,10 @@ const PageHeader = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+  }
 `;
 
 const PageTitle = styled.h1`
@@ -381,6 +511,10 @@ const PageTitle = styled.h1`
   font-weight: 600;
   color: #111827;
   margin: 0 0 0.2rem;
+
+  @media (max-width: 768px) {
+    font-size: 1.25rem;
+  }
 `;
 
 const PageSub = styled.p`
@@ -451,6 +585,10 @@ const FiltersCard = styled.div`
   flex-wrap: wrap;
   gap: 0.75rem;
   align-items: center;
+
+  @media (max-width: 768px) {
+    padding: 0.85rem;
+  }
 `;
 
 const SearchWrap = styled.div`
@@ -463,6 +601,11 @@ const SearchWrap = styled.div`
   border: 0.5px solid #F1EFE8;
   border-radius: 9px;
   padding: 0.6rem 0.9rem;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    min-width: 100%;
+  }
 `;
 
 const SearchInput = styled.input`
@@ -481,6 +624,10 @@ const FilterRow = styled.div`
   align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
 `;
 
 const FilterIcon = styled.div`
@@ -500,6 +647,11 @@ const FilterSelect = styled.select`
   outline: none;
 
   &:focus { border-color: #E8920A; }
+
+  @media (max-width: 768px) {
+    flex: 1 1 48%;
+    min-width: 140px;
+  }
 `;
 
 /* Table */
@@ -512,6 +664,75 @@ const TableCard = styled.div`
 
 const TableScroll = styled.div`
   overflow-x: auto;
+`;
+
+const MobileOrderList = styled.div`
+  display: grid;
+  padding: 0.85rem;
+  gap: 0.75rem;
+`;
+
+const MobileOrderCard = styled.article`
+  border: 1px solid #F1EFE8;
+  border-radius: 10px;
+  padding: 0.75rem;
+  background: #FFFFFF;
+  display: grid;
+  gap: 0.7rem;
+`;
+
+const MobileCardTop = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+`;
+
+const MobileMetaGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+`;
+
+const MobileMetaItem = styled.div`
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+`;
+
+const MobileMetaLabel = styled.span`
+  color: #9CA3AF;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+`;
+
+const MobileActionRow = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+`;
+
+const MobileActionBtn = styled.a`
+  min-height: 2.75rem;
+  width: auto;
+  padding: 0 0.75rem;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s;
+  background: ${(p) => VARIANT_STYLES[p.$variant]?.bg || '#F3F4F6'};
+  color: ${(p) => VARIANT_STYLES[p.$variant]?.color || '#374151'};
+
+  &:hover {
+    background: ${(p) => VARIANT_STYLES[p.$variant]?.hover || '#E5E7EB'};
+  }
 `;
 
 const Table = styled.table`
@@ -660,6 +881,10 @@ const PaginationBar = styled.div`
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 0.75rem;
+
+  @media (max-width: 768px) {
+    padding: 0.75rem 0.85rem;
+  }
 `;
 
 const PerPageWrap = styled.div`

@@ -189,7 +189,7 @@ export const handlers = [
   // POST /seller/send-otp - Send OTP
   http.post(`${API_BASE}/seller/send-otp`, async ({ request }) => {
     const body = await request.json();
-    const { loginId } = body;
+    void body;
     
     // Always succeed for testing
     return HttpResponse.json({
@@ -202,7 +202,7 @@ export const handlers = [
   // POST /seller/verify-otp - Verify OTP
   http.post(`${API_BASE}/seller/verify-otp`, async ({ request }) => {
     const body = await request.json();
-    const { sessionId, otp, password } = body;
+    const { otp } = body;
     
     // Simulate OTP verification
     if (otp === '123456') {
@@ -358,7 +358,7 @@ export const handlers = [
     }
     
     const body = await request.json();
-    const { amount, paymentMethod } = body;
+    const { amount } = body;
     
     if (amount > 500) {
       return HttpResponse.json(

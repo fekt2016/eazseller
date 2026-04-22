@@ -117,7 +117,7 @@ export const useRequestReversal = () => {
     mutationFn: async ({ requestId, reason }) => {
       return await paymentRequestApi.requestReversal(requestId, reason);
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       toast.success('Withdrawal reversal requested successfully. Amount refunded to your balance.');
       // Invalidate and refetch to update UI immediately
       queryClient.invalidateQueries({ queryKey: ['paymentRequests'] });

@@ -32,7 +32,7 @@ vi.mock('react-router-dom', async (importOriginal) => {
 
 // Mock useAuth
 const mockRequestPasswordReset = {
-  mutateAsync: vi.fn(async (email) => {
+  mutateAsync: vi.fn(async (_email) => {
     // Simulate async behavior - return a promise that resolves
     return new Promise((resolve) => {
       queueMicrotask(() => {

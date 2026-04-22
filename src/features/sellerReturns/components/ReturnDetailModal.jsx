@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaTimes, FaImage, FaShoppingCart, FaUser, FaCalendarAlt, FaDollarSign } from 'react-icons/fa';

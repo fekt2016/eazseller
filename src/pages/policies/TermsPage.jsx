@@ -1,6 +1,5 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { FaHeadset } from 'react-icons/fa';
 import useDynamicPageTitle from '../../shared/hooks/useDynamicPageTitle';
 import { PATHS } from '../../routes/routePaths';
@@ -50,11 +49,6 @@ const TermsPage = () => {
   });
 
   // Animation variants
-  const fadeUp = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-  };
-
   const staggerContainer = {
     hidden: { opacity: 0 },
     visible: {

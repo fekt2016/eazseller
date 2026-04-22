@@ -1,5 +1,5 @@
 import { createGlobalStyle } from "styled-components";
-import { devicesMax, devicesMin, devices } from "./breakpoint";
+import { devicesMax } from "./breakpoint";
 
 // Re-export breakpoints for convenience
 export { devicesMax, devicesMin, devices } from "./breakpoint";

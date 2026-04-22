@@ -25,7 +25,7 @@ export const PolicyContent = styled(motion.article)`
 `;
 
 // Header Section
-export const PolicyHeader = styled.header`
+export const PolicyHeader = styled(motion.header)`
   margin-bottom: var(--spacing-3xl);
   padding-bottom: var(--spacing-xl);
   border-bottom: 2px solid var(--color-grey-200);

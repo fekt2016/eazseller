@@ -8,7 +8,7 @@ import {
   FaList,
   FaChartLine,
   FaPlus,
-  FaBoxOpen,
+  FaCog,
 } from 'react-icons/fa';
 import useAuth from '../../shared/hooks/useAuth';
 import useProduct from '../../shared/hooks/useProduct';
@@ -348,10 +348,10 @@ const Dashboard = () => {
   }
 
   const actions = [
-    { label: 'Add product', to: PATHS.ADD_PRODUCT, icon: <FaPlus size={13} />, toneBg: '#FDF3E3', toneColor: '#E8920A' },
-    { label: 'View orders', to: PATHS.ORDERS, icon: <FaShoppingCart size={13} />, toneBg: '#E6F1FB', toneColor: '#185FA5' },
+    { label: 'Add Product', to: PATHS.ADD_PRODUCT, icon: <FaPlus size={13} />, toneBg: '#FDF3E3', toneColor: '#E8920A' },
+    { label: 'View Orders', to: PATHS.ORDERS, icon: <FaShoppingCart size={13} />, toneBg: '#E6F1FB', toneColor: '#185FA5' },
     { label: 'Withdraw', to: PATHS.WITHDRAWALS, icon: <FaWallet size={13} />, toneBg: '#EAF3DE', toneColor: '#3B6D11' },
-    { label: 'Manage listings', to: PATHS.PRODUCTS, icon: <FaBoxOpen size={13} />, toneBg: '#F1EFE8', toneColor: '#6B7280' },
+    { label: 'Settings', to: PATHS.SETTINGS, icon: <FaCog size={13} />, toneBg: '#F1EFE8', toneColor: '#6B7280' },
   ];
 
     return (
@@ -371,9 +371,11 @@ const Dashboard = () => {
           </WelcomeText>
           <WelcomeSub>{`Here's what's happening with your store ${periodLabelMap[period]}`}</WelcomeSub>
         </div>
-        <AddProductButton as={Link} to={PATHS.ADD_PRODUCT}>
-          + Add product
-        </AddProductButton>
+        <WelcomeActions>
+          <AddProductButton as={Link} to={PATHS.ADD_PRODUCT}>
+            + Add product
+          </AddProductButton>
+        </WelcomeActions>
       </WelcomeRow>
 
       {isLoading ? (
@@ -570,6 +572,12 @@ const AddProductButton = styled.button`
   font-weight: 600;
   cursor: pointer;
   text-decoration: none;
+`;
+
+const WelcomeActions = styled.div`
+  display: flex;
+  gap: 0.65rem;
+  align-items: center;
 `;
 
 const KpiGrid = styled.div`

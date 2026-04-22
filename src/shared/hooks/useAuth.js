@@ -206,7 +206,7 @@ const useAuth = () => {
       // Return redirectTo for navigation
       return { seller, redirectTo };
     },
-    onError: (error) => {
+    onError: () => {
       if (import.meta.env.DEV) {
         console.error("[useAuth] OTP verification error");
       }

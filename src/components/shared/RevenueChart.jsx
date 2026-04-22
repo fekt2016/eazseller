@@ -7,7 +7,8 @@ import {
   YAxis,
   Tooltip,
 } from 'recharts';
-import CurrencyDisplay, { formatGHS } from './CurrencyDisplay';
+import CurrencyDisplay from './CurrencyDisplay';
+import { formatGHS } from './currencyUtils';
 
 const Card = styled.section`
   background: #FFFFFF;

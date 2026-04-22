@@ -25,12 +25,11 @@ import { buyerContactVisibility, firstNameOnly } from "../../shared/utils/orderP
 const TrackingPage = () => {
   const { trackingNumber } = useParams();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [orderData, setOrderData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
-  const [updateForm, setUpdateForm] = useState({
+  const [, setUpdateForm] = useState({
     status: '',
     message: '',
     location: '',
@@ -664,7 +663,7 @@ const TrackingPage = () => {
               try {
                 const response = await orderService.getOrderByTrackingNumber(trackingNumber);
                 setOrderData(response.data?.order);
-              } catch (err) {
+              } catch {
                 toast.error('Unable to refresh tracking details.');
               }
             };

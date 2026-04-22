@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { toast } from 'react-toastify';
-import { motion } from 'framer-motion';
 import {
   FaHeadset,
   FaWallet,
@@ -13,7 +12,7 @@ import {
   FaComments,
   FaTicketAlt,
 } from 'react-icons/fa';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { PATHS } from '../../routes/routePaths';
 import {
   SupportContainer,
@@ -122,26 +121,17 @@ const SellerSupportPage = () => {
   };
 
   const handleChatSupport = () => {
-    // Trigger existing chat widget
+    // Prefer embedded chat widget when available.
     if (window.chatWidget) {
       window.chatWidget.open();
     } else {
-      // Fallback: show alert or redirect
-      toast.info('Chat support will be available soon. Please use the contact form.');
+      // Flow parity fallback: open ticket list directly.
+      toast.info('Live chat is unavailable. Opening support tickets.');
+      navigate(PATHS.CHAT_SUPPORT);
     }
   };
 
   // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
@@ -176,11 +166,7 @@ const SellerSupportPage = () => {
       </HeroSection>
 
       {/* Support Categories Grid */}
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
+      <div>
         <SectionTitle>How Can We Help You?</SectionTitle>
         <GridContainer>
           {supportCategories.map((category) => (
@@ -210,7 +196,7 @@ const SellerSupportPage = () => {
             </SupportCard>
           ))}
         </GridContainer>
-      </motion.div>
+      </div>
 
       {/* Quick Help Links */}
       <QuickLinksSection>
@@ -239,12 +225,7 @@ const SellerSupportPage = () => {
       </QuickLinksSection>
 
       {/* My Tickets Section */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        style={{ marginBottom: '1rem' }}
-      >
+      <section style={{ marginBottom: '1rem' }}>
         <SectionTitle>My Support Tickets</SectionTitle>
         <div style={{ textAlign: 'center', marginTop: '1rem' }}>
           <p style={{ color: '#6B7280', marginBottom: '1rem' }}>
@@ -271,15 +252,11 @@ const SellerSupportPage = () => {
             </ChatButton>
           </div>
         </div>
-      </motion.section>
+      </section>
 
       {/* Live Chat CTA */}
       <ChatSection>
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.3 }}
-        >
+        <div>
           <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>
             Need Immediate Assistance?
           </h3>
@@ -294,7 +271,7 @@ const SellerSupportPage = () => {
             <FaComments />
             Chat With Support Agent
           </ChatButton>
-        </motion.div>
+        </div>
       </ChatSection>
 
       {/* Contact Form Modal */}

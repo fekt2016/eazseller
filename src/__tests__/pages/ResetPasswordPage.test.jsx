@@ -20,7 +20,6 @@ import userEvent from '@testing-library/user-event';
 import { describe, test, beforeEach, vi } from 'vitest';
 import { renderWithProviders } from '../utils/testUtils';
 import ResetPasswordPage from '../../features/auth/ResetPasswordPage';
-import { toast } from 'react-toastify';
 
 // Mock react-router-dom
 const mockNavigate = vi.fn();
@@ -39,7 +38,7 @@ vi.mock('react-router-dom', async (importOriginal) => {
 
 // Mock useAuth
 const mockResetPasswordWithToken = {
-  mutateAsync: vi.fn(async ({ token, newPassword, confirmPassword }) => {
+  mutateAsync: vi.fn(async ({ token: _token, newPassword: _newPassword, confirmPassword: _confirmPassword }) => {
     // Simulate async behavior - return a promise that resolves
     return new Promise((resolve) => {
       queueMicrotask(() => {
@@ -129,7 +128,6 @@ describe('ResetPasswordPage', () => {
   });
 
   test('validates password minimum length', async () => {
-    const user = userEvent.setup({ delay: null });
     mockSearchParams.set('token', 'valid-reset-token-123');
 
     renderWithProviders(<ResetPasswordPage />, {

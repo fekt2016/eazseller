@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
-import { memo, Suspense, useEffect, useMemo, useState } from "react";
+import { memo, Suspense, useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import useAuth from '../shared/hooks/useAuth';
 import { LoadingState } from '../shared/components/ui/LoadingComponents';
@@ -132,9 +132,10 @@ const ProtectedRoutes = ({ children, allowPending = false }) => {
 };
 
 const statusRedirectMap = {
-  pending: "/account-pending",
-  inactive: "/account-inactive",
-  default: "/unauthorized",
+  pending: PATHS.SETUP,
+  inactive: PATHS.LOGIN,
+  suspended: PATHS.LOGIN,
+  default: PATHS.LOGIN,
 };
 
 const handleStatusRedirect = (status) => {

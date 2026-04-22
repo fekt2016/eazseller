@@ -72,7 +72,6 @@ export const detectGhanaNetwork = (phoneNumber) => {
   }
 
   // Prefix not recognized (3+ digits)
-  const fullNumberValid = /^0\d{9}$/.test(cleaned);
   return {
     network: null,
     displayName: 'Unknown',

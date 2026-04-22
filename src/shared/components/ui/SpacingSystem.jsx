@@ -189,6 +189,4 @@ export const MobileView = styled.div`
   }
 `;
 
-// Export spacing object for direct use
-export { spacing };
 

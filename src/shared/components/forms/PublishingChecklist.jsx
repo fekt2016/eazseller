@@ -13,7 +13,11 @@ export default function PublishingChecklist({ step = 1 }) {
   const subCategory = watch('subCategory');
   const imageCover = watch('imageCover');
   const images = watch('images');
-  const variants = watch('variants') || [];
+  const variantsRaw = watch('variants');
+  const variants = useMemo(
+    () => (Array.isArray(variantsRaw) ? variantsRaw : []),
+    [variantsRaw],
+  );
 
   const hasPrice = useMemo(() => {
     return variants.some((v) => parseFloat(v?.price) > 0);

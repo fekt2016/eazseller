@@ -188,9 +188,6 @@ const CategorySection = ({ categories, parentCategories: parentCategoriesProp, r
         }
       }
       
-      // Also check if the category's _id matches (in case parentCategory is stored as _id reference)
-      const catIdStr = cat._id ? (typeof cat._id === 'object' && cat._id.toString ? cat._id.toString() : String(cat._id)) : null;
-      
       // Match if parent IDs match, or if this is a direct reference
       const matches = catParentIdStr === selectedParentIdStr;
       

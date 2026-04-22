@@ -1,5 +1,4 @@
 import styled from "styled-components";
-import { devicesMax } from "../../styles/breakpoint";
 import { DesktopView, MobileView, SpacingProps } from "./SpacingSystem";
 import Button from "./Button";
 import { FaEye, FaEdit, FaTrash } from "react-icons/fa";

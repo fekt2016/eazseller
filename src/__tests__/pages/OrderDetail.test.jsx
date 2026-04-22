@@ -14,7 +14,6 @@
 
 import React from 'react';
 import { screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { describe, test, beforeEach, vi } from 'vitest';
 import { renderWithProviders } from '../utils/testUtils';
 import OrderDetail from '../../features/orders/OrderDetail';

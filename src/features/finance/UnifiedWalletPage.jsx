@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { PATHS } from "../../routes/routePaths";
 import {
   FaMoneyBillWave,
@@ -30,7 +30,16 @@ import TransactionList from "../../components/finance/TransactionList";
 export default function UnifiedWalletPage() {
   const { seller } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("overview");
+  const location = useLocation();
+  const resolveInitialTabFromPath = (pathname) => {
+    if (pathname.includes('/finance/withdrawals')) {
+      return 'withdraw';
+    }
+    return 'overview';
+  };
+  const [activeTab, setActiveTab] = useState(
+    resolveInitialTabFromPath(location.pathname)
+  );
   const [amount, setAmount] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("bank");
   const [useSavedPaymentMethod, setUseSavedPaymentMethod] = useState(true);
@@ -54,7 +63,6 @@ export default function UnifiedWalletPage() {
     withdrawnAmount: totalWithdrawn,
     lockedBalance,
     isLoading: isBalanceLoading,
-    error: balanceError,
     payoutStatus,
     payoutRejectionReason,
     refetch: refetchBalance,
@@ -74,7 +82,6 @@ export default function UnifiedWalletPage() {
   // Get payment methods from PaymentMethod model
   const {
     data: paymentMethods = [],
-    isLoading: isLoadingPaymentMethods,
   } = useGetPaymentMethods();
 
   // ── Payout verification banner + gate ─────────────────────────────
@@ -160,6 +167,10 @@ export default function UnifiedWalletPage() {
     request: null,
   });
 
+  useEffect(() => {
+    setActiveTab(resolveInitialTabFromPath(location.pathname));
+  }, [location.pathname]);
+
   // Load seller's saved payment methods (from seller.paymentMethods or verified PaymentMethod records)
   useEffect(() => {
     // Priority 1: seller.paymentMethods (embedded)
@@ -241,16 +252,6 @@ export default function UnifiedWalletPage() {
     let paymentDetailsToSend = {};
 
     if (useSavedPaymentMethod) {
-      // Map payment method to PaymentMethod model type and provider
-      const paymentMethodToType = {
-        'bank': 'bank_transfer',
-        'mtn_momo': 'mobile_money',
-        'telecel_cash': 'mobile_money',
-        'at_money': 'mobile_money',
-        'vodafone_cash': 'mobile_money',
-        'airtel_tigo_money': 'mobile_money',
-      };
-
       const paymentMethodToProvider = {
         'mtn_momo': 'MTN',
         'telecel_cash': 'Telecel',

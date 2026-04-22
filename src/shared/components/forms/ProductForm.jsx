@@ -23,7 +23,7 @@ const ProductForm = ({
   hidePageHeader = false,
 }) => {
   if (import.meta.env.DEV && initialData) {
-    // eslint-disable-next-line no-console
+     
     console.log("ProductForm initialData keys:", Object.keys(initialData));
   }
   const { seller } = useAuth();
@@ -204,7 +204,7 @@ const ProductForm = ({
     defaultValues: initialFormValues,
     mode: 'onChange' // Validate on change for better UX
   });
-  const { handleSubmit, control, watch, reset, trigger, setValue, formState: { errors } } = methods;
+  const { handleSubmit, watch, reset, trigger, setValue } = methods;
   const parentCategory = watch("parentCategory");
   const subCategory = watch("subCategory");
   const productName = watch("name");

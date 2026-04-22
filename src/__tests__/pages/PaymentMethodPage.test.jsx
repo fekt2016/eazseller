@@ -109,17 +109,17 @@ const mockUpdatePaymentMethod = {
 };
 
 vi.mock('../../shared/hooks/usePaymentMethod', () => ({
-  useGetPaymentMethods: (...args) => mockUseGetPaymentMethods(...args),
-  useDeletePaymentMethod: (...args) => ({
+  useGetPaymentMethods: (..._args) => mockUseGetPaymentMethods(..._args),
+  useDeletePaymentMethod: (..._args) => ({
     deletePaymentMethod: mockDeletePaymentMethod,
   }),
-  useSetDefaultPaymentMethod: (...args) => ({
+  useSetDefaultPaymentMethod: (..._args) => ({
     setDefaultPaymentMethod: mockSetDefaultPaymentMethod,
   }),
-  useCreatePaymentMethod: (...args) => ({
+  useCreatePaymentMethod: (..._args) => ({
     createPaymentMethod: mockCreatePaymentMethod,
   }),
-  useUpdatePaymentMethod: (...args) => ({
+  useUpdatePaymentMethod: (..._args) => ({
     updatePaymentMethod: mockUpdatePaymentMethod,
   }),
 }));

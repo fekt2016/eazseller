@@ -42,20 +42,12 @@ export const orderService = {
     }
   },
   getOrderByTrackingNumber: async (trackingNumber) => {
-    try {
-      const response = await api.get(`/order/track/${trackingNumber}`);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.get(`/order/track/${trackingNumber}`);
+    return response.data;
   },
   addTrackingUpdate: async (orderId, trackingData) => {
-    try {
-      const response = await api.post(`/order/${orderId}/tracking`, trackingData);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.post(`/order/${orderId}/tracking`, trackingData);
+    return response.data;
   },
   updateSellerOrderStatus: async (orderId, status) => {
     const response = await api.post(`/order/${orderId}/status`, { status });

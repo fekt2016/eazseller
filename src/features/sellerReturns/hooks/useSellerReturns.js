@@ -14,7 +14,7 @@ export const useSellerReturns = () => {
    * @param {Object} params - Query parameters (status, page, limit)
    * @returns {Object} React Query result with returns data
    */
-  const getAllSellerReturns = (params = {}) => {
+  const useGetAllSellerReturns = (params = {}) => {
     return useQuery({
       queryKey: ['sellerReturns', params],
       queryFn: async () => {
@@ -86,7 +86,7 @@ export const useSellerReturns = () => {
    * @param {string} returnId - Return ID
    * @returns {Object} React Query result with return data
    */
-  const getReturnById = (returnId) => {
+  const useGetReturnById = (returnId) => {
     return useQuery({
       queryKey: ['sellerReturn', returnId],
       queryFn: async () => {
@@ -102,7 +102,7 @@ export const useSellerReturns = () => {
    * Approve a return request
    * @returns {Object} React Query mutation object
    */
-  const approveReturn = () => {
+  const useApproveReturn = () => {
     return useMutation({
       mutationFn: async ({ returnId, data = {} }) => {
         const response = await returnApi.approveReturn(returnId, data);
@@ -158,7 +158,7 @@ export const useSellerReturns = () => {
    * Reject a return request
    * @returns {Object} React Query mutation object
    */
-  const rejectReturn = () => {
+  const useRejectReturn = () => {
     return useMutation({
       mutationFn: async ({ returnId, data = {} }) => {
         const response = await returnApi.rejectReturn(returnId, data);
@@ -211,10 +211,10 @@ export const useSellerReturns = () => {
   };
 
   return {
-    getAllSellerReturns,
-    getReturnById,
-    approveReturn,
-    rejectReturn,
+    getAllSellerReturns: useGetAllSellerReturns,
+    getReturnById: useGetReturnById,
+    approveReturn: useApproveReturn,
+    rejectReturn: useRejectReturn,
   };
 };
 

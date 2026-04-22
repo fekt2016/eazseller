@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import {
@@ -29,7 +29,6 @@ const SetupPage = () => {
     updateOnboarding,
     isUpdating,
     isSetupComplete, // ✅ Backend-driven boolean
-    isVerified,
     businessDocumentsStatus, // For display only
     paymentMethodStatus, // For display only
   } = useSellerStatus();
@@ -39,46 +38,54 @@ const SetupPage = () => {
 
   // ✅ BACKEND-DRIVEN: Use backend status data for display (not for logic)
   // Setup steps use backend status fields for completion display
-  const setupSteps = [
-    {
-      id: 'business-documents',
-      label: 'Upload & Verify front and back of your ID',
-      description: 'Upload and verify your Id proof (Business Certificate, ID Proof, Address Proof)',
-      completed: requiredSetup.hasBusinessDocumentsVerified || businessDocumentsStatus?.isVerified, // ✅ From backend
-      icon: <FaBuilding />,
-      action: (requiredSetup.hasBusinessDocumentsVerified || businessDocumentsStatus?.isVerified)
-        ? 'Documents verified'
-        : 'Update documents',
-      link: `${PATHS.SETTINGS}?tab=profile&scrollTo=verification-documents`,
-      color: '#E8920A',
-    },
-    {
-      id: 'bank-details',
-      label: 'Setup & Verify Payment Methods',
-      description: 'Add and verify your payment method for receiving payments',
-      completed: requiredSetup.hasPaymentMethodVerified || paymentMethodStatus?.isVerified,
-      icon: <FaCreditCard />,
-      action: (requiredSetup.hasPaymentMethodVerified || paymentMethodStatus?.isVerified)
-        ? 'Payment method verified'
-        : 'Add payment method',
-      link: PATHS.PAYMENT_METHODS,
-      color: '#15803D',
-    },
-    {
-      id: 'contact-verification',
-      label: 'Verify Contact Information',
-      description: 'Verify your email address or phone number',
-      completed: verification.contactVerified || verification.emailVerified,
-      emailVerified: verification.emailVerified,
-      phoneVerified: verification.phoneVerified,
-      icon: <FaShieldAlt />,
-      action: (verification.contactVerified || verification.emailVerified)
-        ? 'Contact verified'
-        : 'Verify email or phone',
-      link: `${PATHS.SETTINGS}#verification`,
-      color: '#1D4ED8',
-    },
-  ];
+  const setupSteps = useMemo(
+    () => [
+      {
+        id: 'business-documents',
+        label: 'Upload & Verify front and back of your ID',
+        description: 'Upload and verify your Id proof (Business Certificate, ID Proof, Address Proof)',
+        completed: requiredSetup.hasBusinessDocumentsVerified || businessDocumentsStatus?.isVerified, // ✅ From backend
+        icon: <FaBuilding />,
+        action: (requiredSetup.hasBusinessDocumentsVerified || businessDocumentsStatus?.isVerified)
+          ? 'Documents verified'
+          : 'Update documents',
+        link: `${PATHS.SETTINGS}?tab=profile&scrollTo=verification-documents`,
+        color: '#E8920A',
+      },
+      {
+        id: 'bank-details',
+        label: 'Setup & Verify Payment Methods',
+        description: 'Add and verify your payment method for receiving payments',
+        completed: requiredSetup.hasPaymentMethodVerified || paymentMethodStatus?.isVerified,
+        icon: <FaCreditCard />,
+        action: (requiredSetup.hasPaymentMethodVerified || paymentMethodStatus?.isVerified)
+          ? 'Payment method verified'
+          : 'Add payment method',
+        link: PATHS.PAYMENT_METHODS,
+        color: '#15803D',
+      },
+      {
+        id: 'contact-verification',
+        label: 'Verify Contact Information',
+        description: 'Verify your email address or phone number',
+        completed: verification.contactVerified || verification.emailVerified,
+        emailVerified: verification.emailVerified,
+        phoneVerified: verification.phoneVerified,
+        icon: <FaShieldAlt />,
+        action: (verification.contactVerified || verification.emailVerified)
+          ? 'Contact verified'
+          : 'Verify email or phone',
+        link: `${PATHS.SETTINGS}#verification`,
+        color: '#1D4ED8',
+      },
+    ],
+    [
+      requiredSetup,
+      verification,
+      businessDocumentsStatus?.isVerified,
+      paymentMethodStatus?.isVerified,
+    ],
+  );
 
   // Auto-update onboarding when component mounts or setup changes
   useEffect(() => {
@@ -122,7 +129,7 @@ const SetupPage = () => {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [setupSteps, requiredSetup, verification]);
+  }, [setupSteps]);
 
   if (isLoading) {
     return (

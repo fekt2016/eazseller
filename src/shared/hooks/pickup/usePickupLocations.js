@@ -13,7 +13,7 @@ export const usePickupLocations = () => {
    * Get all pickup locations
    * @returns {Object} React Query result with locations data
    */
-  const getLocations = () => {
+  const useLocations = () => {
     return useQuery({
       queryKey: ['pickupLocations'],
       queryFn: async () => {
@@ -31,7 +31,7 @@ export const usePickupLocations = () => {
    * @param {string} id - Location ID
    * @returns {Object} React Query result with location data
    */
-  const getLocationById = (id) => {
+  const useLocationById = (id) => {
     return useQuery({
       queryKey: ['pickupLocation', id],
       queryFn: async () => {
@@ -47,13 +47,13 @@ export const usePickupLocations = () => {
    * Create a new pickup location
    * @returns {Object} React Query mutation object
    */
-  const createLocation = () => {
+  const useCreateLocation = () => {
     return useMutation({
       mutationFn: async (locationData) => {
         const response = await pickupLocationApi.createLocation(locationData);
         return response?.data?.data?.location || response?.data?.location;
       },
-      onSuccess: (data) => {
+      onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['pickupLocations'] });
         toast.success('Pickup location created successfully');
       },
@@ -68,7 +68,7 @@ export const usePickupLocations = () => {
    * Update an existing pickup location
    * @returns {Object} React Query mutation object
    */
-  const updateLocation = () => {
+  const useUpdateLocation = () => {
     return useMutation({
       mutationFn: async ({ id, data }) => {
         const response = await pickupLocationApi.updateLocation(id, data);
@@ -90,7 +90,7 @@ export const usePickupLocations = () => {
    * Delete a pickup location
    * @returns {Object} React Query mutation object
    */
-  const deleteLocation = () => {
+  const useDeleteLocation = () => {
     return useMutation({
       mutationFn: async (id) => {
         await pickupLocationApi.deleteLocation(id);
@@ -111,7 +111,7 @@ export const usePickupLocations = () => {
    * Set a location as the default pickup location
    * @returns {Object} React Query mutation object
    */
-  const setDefaultLocation = () => {
+  const useSetDefaultLocation = () => {
     return useMutation({
       mutationFn: async (id) => {
         const response = await pickupLocationApi.setDefaultLocation(id);
@@ -130,12 +130,12 @@ export const usePickupLocations = () => {
   };
 
   return {
-    getLocations,
-    getLocationById,
-    createLocation,
-    updateLocation,
-    deleteLocation,
-    setDefaultLocation,
+    getLocations: useLocations,
+    getLocationById: useLocationById,
+    createLocation: useCreateLocation,
+    updateLocation: useUpdateLocation,
+    deleteLocation: useDeleteLocation,
+    setDefaultLocation: useSetDefaultLocation,
   };
 };
 

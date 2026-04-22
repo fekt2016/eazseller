@@ -66,7 +66,13 @@ const AuthPage = () => {
   // Field-level validation errors: { [fieldName]: errorMessage }
   const [fieldErrors, setFieldErrors] = useState({});
 
-  const { login, verify2FALogin, register, verifyAccount, resendOtp } = useAuth();
+  const {
+    login,
+    verify2FALogin,
+    register,
+    seller,
+    isLoading: isAuthLoading,
+  } = useAuth();
   const { mutate: loginMutation, isPending: isLoggingIn, error: loginError } = login;
   const { mutate: verify2FALoginMutation, isPending: isVerifying2FA, error: verify2FAError } = verify2FALogin;
   const { mutateAsync: registerMutation, isPending: isRegistering, error: registerError } = register;
@@ -102,6 +108,17 @@ const AuthPage = () => {
       // ignore malformed data
     }
   }, []);
+
+  // Keep auth flow terminal states consistent:
+  // authenticated sellers should not stay on auth screens.
+  useEffect(() => {
+    if (isAuthLoading || !seller) {
+      return;
+    }
+
+    const nextPath = seller.status === 'active' ? PATHS.DASHBOARD : PATHS.SETUP;
+    navigate(nextPath, { replace: true });
+  }, [isAuthLoading, seller, navigate]);
 
   // Normalize backend validation errors to field-level errors
   const normalizeFieldErrors = (error) => {
@@ -468,7 +485,7 @@ const AuthPage = () => {
       clientErrors.password = 'Password must be at least 8 characters';
     } else if (!/\d/.test(formData.password)) {
       clientErrors.password = 'Almost there! Add at least one number (e.g. 1, 2, 3) to make your password stronger.';
-    } else if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(formData.password)) {
+    } else if (!/[^A-Za-z0-9]/.test(formData.password)) {
       clientErrors.password = 'Almost there! Add a special character (e.g. ! @ # $ %) to make your password more secure.';
     }
 

@@ -703,11 +703,28 @@ const closedBannerCopy = (reason) => {
   return 'This conversation has been closed.';
 };
 
-const genUUID = () =>
-  'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+const genUUID = () => {
+  // Prefer cryptographically-secure randomness for identifiers.
+  // This is not an auth token, but it can be used for guest chat correlation.
+  const cryptoObj = globalThis?.crypto;
+  if (cryptoObj?.getRandomValues) {
+    const bytes = new Uint8Array(16);
+    cryptoObj.getRandomValues(bytes);
+    // RFC 4122 v4
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0'));
+    return `${hex.slice(0, 4).join('')}-${hex.slice(4, 6).join('')}-${hex
+      .slice(6, 8)
+      .join('')}-${hex.slice(8, 10).join('')}-${hex.slice(10, 16).join('')}`;
+  }
+
+  // Fallback (older browsers / test env)
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
     return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
   });
+};
 
 const getOrCreateGuestToken = () => {
   const key = 'eazseller_guest_chat_token';
@@ -849,7 +866,7 @@ const SellerChatWidget = () => {
 
   const handleSupportRequest = useCallback(() => {
     if (import.meta.env.DEV) {
-      // eslint-disable-next-line no-console
+       
       console.info('[SellerChatWidget] Request chat clicked', {
         connected,
         needsSupportRequest,

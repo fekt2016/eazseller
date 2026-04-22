@@ -3,12 +3,8 @@ import api from './api';
 const authApi = {
   // OTP-based authentication
   sendOtp: async (loginId) => {
-    try {
-      const response = await api.post("/seller/send-otp", { loginId });
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.post("/seller/send-otp", { loginId });
+    return response;
   },
 
   verifyOtp: async (loginId, otp, password, redirectTo = '/') => {

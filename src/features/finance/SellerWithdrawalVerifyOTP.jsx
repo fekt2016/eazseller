@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -337,11 +337,38 @@ const extractAuthorizationUrl = (data) => {
     null;
 };
 
+const isAllowedPaystackRedirectUrl = (authorizationUrl) => {
+  try {
+    const parsed = new URL(authorizationUrl);
+    if (parsed.protocol !== 'https:') {
+      return false;
+    }
+
+    const host = parsed.hostname.toLowerCase();
+    // Paystack commonly uses checkout/pay endpoints on paystack.com.
+    // Be strict: only allow HTTPS and Paystack-owned domains.
+    return host === 'paystack.com' ||
+      host.endsWith('.paystack.com') ||
+      host === 'paystack.co' ||
+      host.endsWith('.paystack.co');
+  } catch {
+    return false;
+  }
+};
+
 const handlePaystackRedirect = (authorizationUrl) => {
   if (!authorizationUrl) {
     if (import.meta.env.DEV) {
       console.warn('[VERIFY OTP] No authorization URL found');
     }
+    return false;
+  }
+
+  if (!isAllowedPaystackRedirectUrl(authorizationUrl)) {
+    if (import.meta.env.DEV) {
+      console.warn('[VERIFY OTP] Blocked unexpected redirect URL:', authorizationUrl);
+    }
+    toast.error('Unable to redirect to Paystack. Please try again or contact support.');
     return false;
   }
 
@@ -490,7 +517,7 @@ export default function SellerWithdrawalVerifyOTP() {
   const resendMutation = useMutation({
     mutationFn: () => resendOTP(withdrawalId),
 
-    onSuccess: (data) => {
+    onSuccess: () => {
       if (import.meta.env.DEV) {
         console.debug('[RESEND OTP] Success');
       }

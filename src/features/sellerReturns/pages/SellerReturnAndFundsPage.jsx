@@ -1,7 +1,7 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useCallback, useMemo, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { FaUndo, FaFilter } from 'react-icons/fa';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   PageContainer,
   PageHeader,
@@ -11,6 +11,7 @@ import {
 } from '../../../shared/components/ui/SpacingSystem';
 import Button from '../../../shared/components/ui/Button';
 import { LoadingState, ErrorState, EmptyState } from '../../../shared/components/ui/LoadingComponents';
+import { PATHS } from '../../../routes/routePaths';
 import { useSellerReturns } from '../hooks/useSellerReturns';
 import ReturnListTable from '../components/ReturnListTable';
 import ReturnDetailModal from '../components/ReturnDetailModal';
@@ -25,13 +26,12 @@ const SellerReturnAndFundsPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState('');
   const [lastAutoOpenOrderId, setLastAutoOpenOrderId] = useState(null);
+  const navigate = useNavigate();
+  const { returnId } = useParams();
   const [searchParams] = useSearchParams();
 
   const { getAllSellerReturns, approveReturn, rejectReturn } = useSellerReturns();
   const { data: returnsData, isLoading, error } = getAllSellerReturns({ status: statusFilter });
-  
-  // Extract returns array from response - handle both direct array and nested structure
-  const returns = Array.isArray(returnsData) ? returnsData : (returnsData?.refunds || returnsData?.returns || []);
   const approveMutation = approveReturn();
   const rejectMutation = rejectReturn();
 
@@ -43,9 +43,66 @@ const SellerReturnAndFundsPage = () => {
 
   // Filter returns by status
   const filteredReturns = useMemo(() => {
-    if (!statusFilter) return returns;
-    return returns.filter((ret) => ret.status?.toUpperCase() === statusFilter.toUpperCase());
-  }, [returns, statusFilter]);
+    const baseReturns = Array.isArray(returnsData)
+      ? returnsData
+      : (returnsData?.refunds || returnsData?.returns || []);
+    if (!statusFilter) return baseReturns;
+    return baseReturns.filter(
+      (ret) => ret.status?.toUpperCase() === statusFilter.toUpperCase()
+    );
+  }, [returnsData, statusFilter]);
+
+  const resolveReturnId = useCallback(
+    (returnItem) => returnItem?.returnId || returnItem?._id,
+    [],
+  );
+
+  const openReturnModal = useCallback(
+    (returnItem, shouldSyncRoute = true) => {
+      if (!returnItem) {
+        return;
+      }
+      setSelectedReturn(returnItem);
+      setIsModalOpen(true);
+      if (!shouldSyncRoute) {
+        return;
+      }
+      const resolvedReturnId = resolveReturnId(returnItem);
+      if (!resolvedReturnId) {
+        return;
+      }
+      navigate(
+        PATHS.RETURN_DETAIL.replace(
+          ':returnId',
+          encodeURIComponent(resolvedReturnId),
+        ),
+        { replace: true },
+      );
+    },
+    [navigate, resolveReturnId],
+  );
+
+  const closeReturnModal = useCallback(() => {
+    setIsModalOpen(false);
+    setSelectedReturn(null);
+    if (returnId) {
+      navigate(PATHS.RETURNS, { replace: true });
+    }
+  }, [navigate, returnId]);
+
+  // Deep-link parity with mobile RefundDetail route.
+  useEffect(() => {
+    if (!returnId || !Array.isArray(filteredReturns) || filteredReturns.length === 0) {
+      return;
+    }
+    const match = filteredReturns.find((ret) => {
+      const resolvedReturnId = resolveReturnId(ret);
+      return resolvedReturnId && String(resolvedReturnId) === String(returnId);
+    });
+    if (match) {
+      openReturnModal(match, false);
+    }
+  }, [returnId, filteredReturns, openReturnModal, resolveReturnId]);
 
   // When navigated from Orders page with ?orderId=..., auto-open the first matching return detail
   useEffect(() => {
@@ -65,15 +122,20 @@ const SellerReturnAndFundsPage = () => {
     });
 
     if (match) {
-      setSelectedReturn(match);
-      setIsModalOpen(true);
+      openReturnModal(match);
       setLastAutoOpenOrderId(orderIdFromQuery);
     }
-  }, [searchParams, filteredReturns, isModalOpen, selectedReturn, lastAutoOpenOrderId]);
+  }, [
+    searchParams,
+    filteredReturns,
+    isModalOpen,
+    selectedReturn,
+    lastAutoOpenOrderId,
+    openReturnModal,
+  ]);
 
   const handleViewReturn = (returnItem) => {
-    setSelectedReturn(returnItem);
-    setIsModalOpen(true);
+    openReturnModal(returnItem);
   };
 
   const handleApproveReturn = async (returnItem, approvalData = {}) => {
@@ -88,8 +150,7 @@ const SellerReturnAndFundsPage = () => {
           ...(resolutionNote && { resolutionNote }),
         },
       });
-      setIsModalOpen(false);
-      setSelectedReturn(null);
+      closeReturnModal();
     } catch (error) {
       console.error('Error approving return:', error);
       // Error is handled by the mutation
@@ -103,17 +164,11 @@ const SellerReturnAndFundsPage = () => {
         returnId: refundRequestId,
         data,
       });
-      setIsModalOpen(false);
-      setSelectedReturn(null);
+      closeReturnModal();
     } catch (error) {
       console.error('Error rejecting return:', error);
       // Error is handled by the mutation
     }
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedReturn(null);
   };
 
   const handleFilterChange = (e) => {
@@ -184,7 +239,7 @@ const SellerReturnAndFundsPage = () => {
       <ReturnDetailModal
         returnItem={selectedReturn}
         isOpen={isModalOpen}
-        onClose={handleCloseModal}
+        onClose={closeReturnModal}
         onApprove={handleApproveReturn}
         onReject={handleRejectReturn}
         isApproving={approveMutation.isPending}

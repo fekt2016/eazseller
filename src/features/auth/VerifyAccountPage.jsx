@@ -152,7 +152,7 @@ function VerifyAccountPage() {
     verifyAccountMutation(
       { email: trimmedEmail, otp: trimmedOtp },
       {
-        onSuccess: (response) => {
+        onSuccess: () => {
           // Show success toast notification
           toast.success("Email verified successfully! Redirecting to login...", {
             position: "top-center",

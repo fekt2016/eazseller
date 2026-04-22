@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { FaHeadset, FaBook, FaComments } from 'react-icons/fa';
 import useDynamicPageTitle from '../../shared/hooks/useDynamicPageTitle';
 import { PATHS } from '../../routes/routePaths';
@@ -71,7 +70,7 @@ const SitemapPage = () => {
       title: 'Orders & Fulfillment',
       links: [
         { label: 'All Orders', path: PATHS.ORDERS },
-        { label: 'Order Tracking', path: PATHS.TRACKING },
+        { label: 'Order Tracking', path: PATHS.ORDERS },
       ],
     },
     {

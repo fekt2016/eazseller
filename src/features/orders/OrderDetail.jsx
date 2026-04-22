@@ -113,6 +113,8 @@ export default function OrderDetailPage() {
   );
   const deliveryMethod = parentOrder?.deliveryMethod || sellerOrder?.deliveryMethod;
   const trackingNumber = parentOrder?.trackingNumber || sellerOrder?.tracking?.number || '';
+  const trackingReference =
+    trackingNumber || parentOrder?.orderNumber || sellerOrder?.orderNumber || '';
   const nextAction = NEXT_STATUS_MAP[orderStatus] || null;
 
   const earningsPayload =
@@ -137,9 +139,9 @@ export default function OrderDetailPage() {
   };
 
   const handleCopyTracking = async () => {
-    if (!trackingNumber) return;
+    if (!trackingReference) return;
     try {
-      await navigator.clipboard.writeText(trackingNumber);
+      await navigator.clipboard.writeText(trackingReference);
       setCopied(true);
       setTimeout(() => setCopied(false), 1200);
     } catch {
@@ -194,6 +196,22 @@ export default function OrderDetailPage() {
             <FaPrint size={12} />
             <span>Print Invoice</span>
           </GhostBtn>
+          {trackingReference ? (
+            <GhostBtn
+              type="button"
+              onClick={() =>
+                navigate(
+                  PATHS.TRACKING.replace(
+                    ':trackingNumber',
+                    encodeURIComponent(trackingReference),
+                  ),
+                )
+              }
+            >
+              <FaTruck size={12} />
+              <span>View Tracking</span>
+            </GhostBtn>
+          ) : null}
           {nextAction ? (
             <ActionBtn
               type="button"
@@ -272,13 +290,31 @@ export default function OrderDetailPage() {
           <InfoRow
             label="Tracking number"
             valueAs={
-              trackingNumber ? (
+              trackingReference ? (
                 <TrackWrap>
-                  <TrackCode>{trackingNumber}</TrackCode>
-                  <CopyBtn type="button" onClick={handleCopyTracking} aria-label="Copy tracking number">
+                  <TrackCode>{trackingReference}</TrackCode>
+                  <CopyBtn
+                    type="button"
+                    onClick={handleCopyTracking}
+                    aria-label="Copy tracking number"
+                  >
                     <FaClipboard size={11} />
                     <span>{copied ? 'Copied' : 'Copy'}</span>
                   </CopyBtn>
+                  <TrackActionBtn
+                    type="button"
+                    onClick={() =>
+                      navigate(
+                        PATHS.TRACKING.replace(
+                          ':trackingNumber',
+                          encodeURIComponent(trackingReference),
+                        ),
+                      )
+                    }
+                  >
+                    <FaTruck size={11} />
+                    <span>View tracking</span>
+                  </TrackActionBtn>
                 </TrackWrap>
               ) : (
                 'Not provided'
@@ -473,6 +509,19 @@ const CopyBtn = styled.button`
   height: 28px;
   padding: 0 0.5rem;
   color: #374151;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  cursor: pointer;
+`;
+
+const TrackActionBtn = styled.button`
+  border: 0.5px solid #F1EFE8;
+  background: #FFFFFF;
+  border-radius: 9px;
+  height: 28px;
+  padding: 0 0.5rem;
+  color: #185FA5;
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;

@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { FaCreditCard, FaMobileAlt, FaSave, FaArrowLeft, FaBuilding, FaPhone, FaCheckCircle, FaTimesCircle, FaEdit, FaTrash, FaStar, FaClock } from 'react-icons/fa';
 import useAuth from '../../shared/hooks/useAuth';
-import useSellerStatus from '../../shared/hooks/useSellerStatus';
 import { useGetPaymentMethods, useDeletePaymentMethod, useSetDefaultPaymentMethod, useCreatePaymentMethod, useUpdatePaymentMethod } from '../../shared/hooks/usePaymentMethod';
 import { PATHS } from '../../routes/routePaths';
 import Button from '../../shared/components/ui/Button';
@@ -32,7 +31,6 @@ function providerTokenFromDetector(det) {
 
 const PaymentMethodPage = ({ embedded = false }) => {
   const { seller, update, isUpdateLoading } = useAuth();
-  const { updateOnboardingAsync } = useSellerStatus();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -43,7 +41,6 @@ const PaymentMethodPage = ({ embedded = false }) => {
   const {
     data: paymentMethods = [],
     isLoading: isLoadingPaymentMethods,
-    error: paymentMethodsError,
     refetch: refetchPaymentMethods
   } = useGetPaymentMethods();
 
@@ -63,16 +60,6 @@ const PaymentMethodPage = ({ embedded = false }) => {
   const payoutStatus = seller?.payoutStatus || 'pending';
   const payoutRejectionReason = seller?.payoutRejectionReason || null;
   const isPayoutRejected = payoutStatus === 'rejected';
-  const isPayoutPending = payoutStatus === 'pending';
-
-  // Check if any payment method needs activation/reactivation
-  const hasPaymentMethodNeedingActivation = paymentMethods.some(method => {
-    const methodStatus = method.verificationStatus || 'pending';
-    return methodStatus === 'rejected' || (methodStatus === 'pending' && isPayoutPending);
-  });
-
-  // Check if there's a default payment method (used only when rendering default indicators)
-  const hasDefaultPaymentMethod = paymentMethods.some(method => method.isDefault);
 
   // Handle set default payment method - invoked explicitly by user action.
   const handleSetDefault = async (id) => {
@@ -405,7 +392,7 @@ const PaymentMethodPage = ({ embedded = false }) => {
 
             await update(paymentMethodsUpdate);
             toast.success('Payment method updated and reactivation requested! Your payment status will be reviewed by admin.');
-          } catch (reactivationError) {
+          } catch {
             toast.warning('Payment method updated, but reactivation request failed. Please contact support.');
           }
         } else {

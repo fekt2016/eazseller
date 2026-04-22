@@ -66,7 +66,6 @@ const TransactionDetailPage = () => {
   const orderRef = getOrderReference(transaction);
   const withdrawalRef = getWithdrawalReference(transaction);
   const orderId = transaction.sellerOrder?.order?._id || transaction.orderId;
-  const withdrawalId = transaction.payoutRequest?._id || transaction.payoutRequestId;
 
   return (
     <Page>

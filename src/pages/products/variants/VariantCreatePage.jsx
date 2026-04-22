@@ -12,6 +12,7 @@ import useVariants from '../../../shared/hooks/variants/useVariants';
 import { compressImage } from '../../../shared/utils/imageCompressor';
 import Button from '../../../shared/components/ui/Button';
 import { toast } from 'react-toastify';
+import { PATHS } from '../../../routes/routePaths';
 
 export default function VariantCreatePage() {
   const { productId } = useParams();
@@ -89,19 +90,6 @@ export default function VariantCreatePage() {
     categoryForVariant?.parentCategory?._id ??
     categoryForVariant?.parentCategory
   );
-  const parentCategoryObj = useMemo(() => {
-    if (!parentCategoryId || !allCategories.length) return null;
-    return allCategories.find((c) => toId(c?._id) === parentCategoryId) ?? null;
-  }, [parentCategoryId, allCategories]);
-  const parentCategoryName =
-    parentCategoryObj?.name ||
-    product?.parentCategory?.name ||
-    (parentCategoryId ? '…' : '—');
-  const subCategoryName =
-    categoryForVariant?.name ||
-    product?.subCategory?.name ||
-    (subCategoryId ? '…' : '—');
-
   // Same shape as Add Product: form has parentCategory + subCategory so variant fields come from that category (or inferred from existing variants when no category)
   const defaultValues = useMemo(() => {
     const categoryAttrs = categoryForVariant?.attributes || product?.subCategory?.attributes || [];
@@ -138,6 +126,14 @@ export default function VariantCreatePage() {
     defaultValues,
     mode: 'onChange',
   });
+
+  const goBackToVariants = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+    navigate(PATHS.PRODUCT_VARIANTS.replace(':productId', productId));
+  };
 
   // When product category is available, reset form so parent + sub are selected (same as Add Product) and variant fields come from that category
   useEffect(() => {
@@ -193,7 +189,7 @@ export default function VariantCreatePage() {
         body: variantData,
       });
 
-      navigate(`/dashboard/products/${productId}/variants`);
+      goBackToVariants();
     } catch (error) {
       console.error('Failed to create variant:', error);
       toast.error(
@@ -217,7 +213,7 @@ export default function VariantCreatePage() {
     return (
       <VariantFormPage>
         <p>Product not found.</p>
-        <button type="button" onClick={() => navigate(-1)}>
+        <button type="button" onClick={goBackToVariants}>
           Go back
         </button>
       </VariantFormPage>
@@ -230,7 +226,7 @@ export default function VariantCreatePage() {
     <VariantFormPage>
       <VarHeader>
         <VarTitleSection>
-          <BackButton type="button" onClick={() => navigate(-1)}>
+          <BackButton type="button" onClick={goBackToVariants}>
             <FaArrowLeft /> Back
           </BackButton>
           <h1>Create New Variant</h1>

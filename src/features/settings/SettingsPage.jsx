@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import {
   FaStore,
@@ -9,6 +9,10 @@ import {
   FaLock,
   FaBell,
   FaUser,
+  FaMapMarkerAlt,
+  FaTruck,
+  FaHeadset,
+  FaTicketAlt,
 } from 'react-icons/fa';
 import { PATHS } from '../../routes/routePaths';
 import BusinessProfilePage from '../profile/BusinessProfilePage';
@@ -96,7 +100,41 @@ const SettingsPage = () => {
         {/* Main Content */}
         <ContentCard>
           <TabContent>
-            {activeTab === 'profile' && <BusinessProfilePage embedded />}
+            {activeTab === 'profile' && (
+              <>
+                <BusinessProfilePage embedded />
+                <BusinessLinksCard>
+                  <BusinessLinksTitle>Business shortcuts</BusinessLinksTitle>
+                  <BusinessLinksGrid>
+                    <BusinessLinkButton as={Link} to={PATHS.PICKUP_LOCATIONS}>
+                      <FaMapMarkerAlt />
+                      <span>Pickup Locations</span>
+                    </BusinessLinkButton>
+                    <BusinessLinkButton as={Link} to={PATHS.SHIPPING_SETTINGS}>
+                      <FaTruck />
+                      <span>Shipping Settings</span>
+                    </BusinessLinkButton>
+                  </BusinessLinksGrid>
+                </BusinessLinksCard>
+                <BusinessLinksCard>
+                  <BusinessLinksTitle>Communication shortcuts</BusinessLinksTitle>
+                  <BusinessLinksGrid>
+                    <BusinessLinkButton as={Link} to={PATHS.SUPPORT}>
+                      <FaHeadset />
+                      <span>Support Hub</span>
+                    </BusinessLinkButton>
+                    <BusinessLinkButton as={Link} to={PATHS.SUPPORT_TICKETS}>
+                      <FaTicketAlt />
+                      <span>My Tickets</span>
+                    </BusinessLinkButton>
+                    <BusinessLinkButton as={Link} to={PATHS.NOTIFICATIONS}>
+                      <FaBell />
+                      <span>Notifications Inbox</span>
+                    </BusinessLinkButton>
+                  </BusinessLinksGrid>
+                </BusinessLinksCard>
+              </>
+            )}
             {activeTab === 'payment' && <PaymentMethodPage embedded />}
             {activeTab === 'verification' && <VerificationPage embedded />}
             {activeTab === 'security' && <SecurityTab />}
@@ -279,4 +317,50 @@ const TabContent = styled.div`
   min-height: 400px;
 
   > div { padding: 0; }
+`;
+
+const BusinessLinksCard = styled.section`
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 0.5px solid #F1EFE8;
+`;
+
+const BusinessLinksTitle = styled.h3`
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 0.75rem 0;
+`;
+
+const BusinessLinksGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const BusinessLinkButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  width: 100%;
+  min-height: 40px;
+  border-radius: 8px;
+  border: 0.5px solid #F1EFE8;
+  background: #F9F8F5;
+  color: #374151;
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: all 0.12s;
+
+  &:hover {
+    border-color: #E8920A;
+    color: #E8920A;
+    background: #FDF3E3;
+  }
 `;

@@ -72,7 +72,6 @@ const TransactionHistoryPage = () => {
     data,
     isLoading,
     error,
-    refetch,
   } = useSellerTransactions(queryParams);
 
   const transactions = useMemo(() => {

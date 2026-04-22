@@ -44,24 +44,6 @@ const SellerNotificationsPage = () => {
     }
   };
 
-  const getNotificationColor = (type) => {
-    switch (type) {
-      case 'order':
-        return '#E8920A';
-      case 'delivery':
-        return '#185FA5';
-      case 'payout':
-      case 'finance':
-        return '#3B6D11';
-      case 'support':
-        return '#E8920A';
-      case 'product':
-        return '#5B21B6';
-      default:
-        return '#9CA3AF';
-    }
-  };
-
   const handleNotificationClick = (notification) => {
     if (!(notification.read ?? notification.isRead)) {
       markAsRead.mutate(notification._id);
@@ -110,7 +92,7 @@ const SellerNotificationsPage = () => {
       } else {
         navigate('/dashboard/notifications');
       }
-    } catch (error) {
+    } catch {
       navigate('/dashboard/notifications');
     }
   };

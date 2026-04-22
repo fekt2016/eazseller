@@ -1,6 +1,5 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { FaHeadset } from 'react-icons/fa';
 import usePageTitle from '../../shared/hooks/usePageTitle';
 import { PATHS } from '../../routes/routePaths';

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import {
   FaStore,
   FaChartLine,
@@ -98,8 +98,6 @@ const EazSellerHomePage = () => {
     keywords: 'Saiisai Seller, sell online Ghana, seller portal, marketplace, e-commerce',
   });
 
-  const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
-
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId);
     if (element) {
@@ -112,16 +110,6 @@ const EazSellerHomePage = () => {
   const fadeUp = {
     hidden: { opacity: 0, y: 40 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] } },
-  };
-
-  const fadeUpDelay = (delay = 0) => ({
-    hidden: { opacity: 0, y: 40 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.7, delay, ease: [0.25, 0.46, 0.45, 0.94] } },
-  });
-
-  const fadeInScale = {
-    hidden: { opacity: 0, scale: 0.92 },
-    visible: { opacity: 1, scale: 1, transition: { duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] } },
   };
 
   const staggerContainer = {
@@ -142,16 +130,6 @@ const EazSellerHomePage = () => {
       y: 0,
       transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] },
     },
-  };
-
-  const slideInLeft = {
-    hidden: { opacity: 0, x: -50 },
-    visible: { opacity: 1, x: 0, transition: { duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] } },
-  };
-
-  const slideInRight = {
-    hidden: { opacity: 0, x: 50 },
-    visible: { opacity: 1, x: 0, transition: { duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] } },
   };
 
   // ── Data ────────────────────────────────────────────────────────
@@ -329,7 +307,7 @@ const EazSellerHomePage = () => {
           </HeroLeft>
 
           <HeroRight>
-            <motion.div style={{ position: 'relative' }} variants={slideInRight}>
+            <div style={{ position: 'relative' }}>
               <HeroIllustration
                 initial={{ opacity: 0, scale: 0.9, rotateY: 8 }}
                 animate={{ opacity: 1, scale: 1, rotateY: 0 }}
@@ -368,7 +346,7 @@ const EazSellerHomePage = () => {
                   <div className="label">Payouts</div>
                 </FloatingCardText>
               </FloatingCard>
-            </motion.div>
+            </div>
           </HeroRight>
         </HeroContent>
       </HeroSection>
@@ -561,7 +539,7 @@ const EazSellerHomePage = () => {
             <FooterLink as={Link} to={PATHS.COOKIE_POLICY}>Cookie Policy</FooterLink>
             <FooterLink as={Link} to={PATHS.EDUCATION}>Education</FooterLink>
             <FooterLink as={Link} to={PATHS.HELP}>Help Center</FooterLink>
-            <FooterLink as={Link} to={PATHS.SHIPPING_INFO}>Shipping Info</FooterLink>
+            <FooterLink as={Link} to={PATHS.SHIPPING_PUBLIC}>Shipping Info</FooterLink>
           </FooterLinks>
           <FooterCopyright>
             &copy; {new Date().getFullYear()} Saiisai. All rights reserved.

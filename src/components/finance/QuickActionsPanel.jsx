@@ -66,7 +66,7 @@ const ChevronIcon = styled(FaChevronRight)`
 
 const ACTIONS = [
   { label: 'Request Withdrawal', icon: <FaMoneyBillWave />, to: PATHS.WITHDRAWALS, primary: true, requiresBalance: true },
-  { label: 'View History', icon: <FaHistory />, to: PATHS.WITHDRAWALS },
+  { label: 'Transaction History', icon: <FaHistory />, to: PATHS.TRANSACTIONS },
   { label: 'Payment Methods', icon: <FaCreditCard />, to: PATHS.PAYMENT_METHODS },
   { label: 'All Transactions', icon: <FaReceipt />, to: PATHS.TRANSACTIONS },
 ];

@@ -81,7 +81,7 @@ const DashboardWrapper = styled.div`
 `;
 
 export default function DashboardLayout({ showSidebar = true, showHeader = true, fullPage = false }) {
-  const { seller, isLoading: isSellerLoading, error: sellerError } = useAuth();
+  const { seller } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const trackedRef = useRef(false);
 

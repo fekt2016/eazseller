@@ -2,48 +2,28 @@ import api from './api';
 
 const balanceApi = {
   getBalance: async () => {
-    try {
-      const response = await api.get("/seller/me/balance");
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.get("/seller/me/balance");
+    return response;
   },
   
   getTransactions: async (params = {}) => {
-    try {
-      const response = await api.get("/seller/me/transactions", { params });
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.get("/seller/me/transactions", { params });
+    return response;
   },
   
   getEarnings: async (params = {}) => {
-    try {
-      const response = await api.get("/seller/me/earnings", { params });
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.get("/seller/me/earnings", { params });
+    return response;
   },
   
   getEarningsByOrder: async (orderId) => {
-    try {
-      const response = await api.get(`/seller/me/earnings/order/${orderId}`);
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.get(`/seller/me/earnings/order/${orderId}`);
+    return response;
   },
 
   getBalanceHistory: async (params = {}) => {
-    try {
-      const response = await api.get('/seller/me/balance-history', { params });
-      return response;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.get('/seller/me/balance-history', { params });
+    return response;
   },
 
   getTransactionById: async (transactionId) => {

@@ -14,6 +14,7 @@ import {
 import { formatCurrency, formatDate } from '../../shared/utils/helpers';
 
 const STATUS_OPTIONS = ['all', 'pending', 'approved', 'rejected', 'withdrawn'];
+const MOBILE_SUBMISSIONS_BREAKPOINT = 900;
 
 const getStatusTone = (status) => {
   if (status === 'approved') return { bg: '#EAFAF1', color: '#27AE60' };
@@ -57,6 +58,11 @@ export default function MySubmissionsPage() {
     stockForPromo: '',
   });
   const [editServerError, setEditServerError] = useState('');
+  const [isMobileView, setIsMobileView] = useState(
+    typeof window !== 'undefined'
+      ? window.innerWidth <= MOBILE_SUBMISSIONS_BREAKPOINT
+      : false
+  );
 
   const submissionsQuery = useMyPromoSubmissions({
     status: status === 'all' ? undefined : status,
@@ -136,6 +142,137 @@ export default function MySubmissionsPage() {
     setSearchParams(query);
   };
 
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileView(window.innerWidth <= MOBILE_SUBMISSIONS_BREAKPOINT);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const renderSubmissionActions = (row) => {
+    const statusValue = String(row?.status || '').toLowerCase();
+    const promoIdValue = row?.promo?._id || row?.promo?.id;
+    const productIdValue = row?.product?._id || row?.product?.id;
+
+    if (statusValue === 'pending') {
+      return (
+        <ActionGroup>
+          <ActionBtn
+            type='button'
+            $toneBg='#EEF2FF'
+            $toneColor='#4338CA'
+            aria-label={`Edit submission for ${
+              row?.product?.name || row?.productName || 'product'
+            }`}
+            onClick={() => openEditDialog(row)}
+          >
+            Edit
+          </ActionBtn>
+          <ActionBtn
+            type='button'
+            $variant='ghost'
+            aria-label={`Withdraw submission for ${
+              row?.product?.name || row?.productName || 'product'
+            }`}
+            onClick={() =>
+              setActiveDialog({
+                type: 'withdraw',
+                row,
+              })
+            }
+          >
+            Withdraw
+          </ActionBtn>
+        </ActionGroup>
+      );
+    }
+
+    if (statusValue === 'approved') {
+      const canEditApproved = isPromoScheduledNotStarted(row?.promo);
+      const promoLiveOrScheduled = !isPromoEnded(row?.promo);
+      if (!promoLiveOrScheduled) {
+        return <MutedDash>—</MutedDash>;
+      }
+      return (
+        <ActionGroup>
+          {canEditApproved ? (
+            <ActionBtn
+              type='button'
+              $toneBg='#EEF2FF'
+              $toneColor='#4338CA'
+              aria-label={`Edit approved submission for ${
+                row?.product?.name || row?.productName || 'product'
+              }`}
+              onClick={() => openEditDialog(row)}
+            >
+              Edit
+            </ActionBtn>
+          ) : null}
+          <ActionBtn
+            type='button'
+            $variant='ghost'
+            aria-label={`Remove product ${
+              row?.product?.name || row?.productName || 'product'
+            } from promo`}
+            onClick={() =>
+              setActiveDialog({
+                type: 'withdraw',
+                row,
+              })
+            }
+          >
+            Remove from promo
+          </ActionBtn>
+        </ActionGroup>
+      );
+    }
+
+    if (statusValue === 'rejected') {
+      return (
+        <ActionGroup>
+          <ActionBtn
+            type='button'
+            $variant='ghost'
+            aria-label={`View rejection reason for ${
+              row?.product?.name || row?.productName || 'product'
+            }`}
+            onClick={() =>
+              setActiveDialog({
+                type: 'rejected',
+                row,
+              })
+            }
+          >
+            View reason
+          </ActionBtn>
+          <ActionBtn
+            type='button'
+            $variant='outlinePrimary'
+            aria-label={`Resubmit ${
+              row?.product?.name || row?.productName || 'product'
+            }`}
+            onClick={() => {
+              const path = PATHS.PROMO_SUBMIT.replace(':id', promoIdValue);
+              const query = productIdValue
+                ? `?resubmitProductId=${encodeURIComponent(productIdValue)}`
+                : '';
+              navigate(`${path}${query}`);
+            }}
+          >
+            Resubmit
+          </ActionBtn>
+        </ActionGroup>
+      );
+    }
+
+    if (statusValue === 'withdrawn') {
+      return <MutedDash>—</MutedDash>;
+    }
+
+    return <MutedDash>—</MutedDash>;
+  };
+
   return (
     <Page>
       <Header>
@@ -194,44 +331,82 @@ export default function MySubmissionsPage() {
       ) : submissions.length === 0 ? (
         <StateCard>No submissions found for this filter.</StateCard>
       ) : (
-        <TableWrap>
-          <table>
-            <thead>
-              <tr>
-                <th>Promo</th>
-                <th>Product</th>
-                <th>Discount</th>
-                <th>Status</th>
-                <th>Submitted</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+        <>
+          {!isMobileView ? (
+            <DesktopTableWrap>
+              <TableWrap>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Promo</th>
+                      <th>Product</th>
+                      <th>Discount</th>
+                      <th>Status</th>
+                      <th>Submitted</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {submissions.map((row) => {
+                      const statusValue = row?.status || 'pending';
+                      const tone = getStatusTone(statusValue);
+                      const promoIdValue = row?.promo?._id || row?.promo?.id;
+                      const discountValue = Number(row?.discountValue || 0);
+                      const liveNow = statusValue === 'approved' && isPromoActiveNow(row?.promo);
+                      return (
+                        <tr key={row?._id || row?.id}>
+                          <td>
+                            {promoIdValue ? (
+                              <InlineLink to={PATHS.PROMO_DETAIL.replace(':id', promoIdValue)}>
+                                {row?.promo?.name || 'Promo'}
+                              </InlineLink>
+                            ) : (
+                              row?.promo?.name || 'Promo'
+                            )}
+                          </td>
+                          <td>{row?.product?.name || row?.productName || 'Product'}</td>
+                          <td>
+                            {row?.discountType === 'fixed'
+                              ? formatCurrency(discountValue)
+                              : `${discountValue}%`}
+                          </td>
+                          <td>
+                            <StatusWrap>
+                              <StatusBadge
+                                $bg={tone.bg}
+                                $color={tone.color}
+                                aria-label={`Status ${statusValue}`}
+                              >
+                                {statusValue}
+                              </StatusBadge>
+                              {liveNow ? <LiveBadge aria-label='Live promo'>Live</LiveBadge> : null}
+                              {statusValue === 'approved' ? (
+                                <StatusMeta>Sold: {Number(row?.unitsSold || 0)}</StatusMeta>
+                              ) : null}
+                            </StatusWrap>
+                          </td>
+                          <td>{formatDate(row?.submittedAt || row?.createdAt)}</td>
+                          <td>{renderSubmissionActions(row)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </TableWrap>
+            </DesktopTableWrap>
+          ) : (
+            <MobileSubmissionList>
               {submissions.map((row) => {
                 const statusValue = row?.status || 'pending';
                 const tone = getStatusTone(statusValue);
                 const promoIdValue = row?.promo?._id || row?.promo?.id;
-                const productIdValue = row?.product?._id || row?.product?.id;
                 const discountValue = Number(row?.discountValue || 0);
                 const liveNow = statusValue === 'approved' && isPromoActiveNow(row?.promo);
+
                 return (
-                  <tr key={row?._id || row?.id}>
-                    <td>
-                      {promoIdValue ? (
-                        <InlineLink to={PATHS.PROMO_DETAIL.replace(':id', promoIdValue)}>
-                          {row?.promo?.name || 'Promo'}
-                        </InlineLink>
-                      ) : (
-                        row?.promo?.name || 'Promo'
-                      )}
-                    </td>
-                    <td>{row?.product?.name || row?.productName || 'Product'}</td>
-                    <td>
-                      {row?.discountType === 'fixed'
-                        ? formatCurrency(discountValue)
-                        : `${discountValue}%`}
-                    </td>
-                    <td>
+                  <MobileSubmissionCard key={`mobile-${row?._id || row?.id}`}>
+                    <MobileTopRow>
+                      <MobileLabel>Status</MobileLabel>
                       <StatusWrap>
                         <StatusBadge
                           $bg={tone.bg}
@@ -241,134 +416,51 @@ export default function MySubmissionsPage() {
                           {statusValue}
                         </StatusBadge>
                         {liveNow ? <LiveBadge aria-label='Live promo'>Live</LiveBadge> : null}
-                        {statusValue === 'approved' ? (
-                          <StatusMeta>Sold: {Number(row?.unitsSold || 0)}</StatusMeta>
-                        ) : null}
                       </StatusWrap>
-                    </td>
-                    <td>{formatDate(row?.submittedAt || row?.createdAt)}</td>
-                    <td>
-                      {statusValue === 'pending' ? (
-                        <ActionGroup>
-                          <ActionBtn
-                            type='button'
-                            $toneBg='#EEF2FF'
-                            $toneColor='#4338CA'
-                            aria-label={`Edit submission for ${
-                              row?.product?.name || row?.productName || 'product'
-                            }`}
-                            onClick={() => openEditDialog(row)}
-                          >
-                            Edit
-                          </ActionBtn>
-                          <ActionBtn
-                            type='button'
-                            $variant='ghost'
-                            aria-label={`Withdraw submission for ${
-                              row?.product?.name || row?.productName || 'product'
-                            }`}
-                            onClick={() =>
-                              setActiveDialog({
-                                type: 'withdraw',
-                                row,
-                              })
-                            }
-                          >
-                            Withdraw
-                          </ActionBtn>
-                        </ActionGroup>
-                      ) : null}
+                    </MobileTopRow>
 
-                      {statusValue === 'approved' ? (() => {
-                        const canEditApproved = isPromoScheduledNotStarted(row?.promo);
-                        const promoLiveOrScheduled = !isPromoEnded(row?.promo);
-                        if (!promoLiveOrScheduled) {
-                          return <MutedDash>—</MutedDash>;
-                        }
-                        return (
-                          <ActionGroup>
-                            {canEditApproved ? (
-                              <ActionBtn
-                                type='button'
-                                $toneBg='#EEF2FF'
-                                $toneColor='#4338CA'
-                                aria-label={`Edit approved submission for ${
-                                  row?.product?.name || row?.productName || 'product'
-                                }`}
-                                onClick={() => openEditDialog(row)}
-                              >
-                                Edit
-                              </ActionBtn>
-                            ) : null}
-                            <ActionBtn
-                              type='button'
-                              $variant='ghost'
-                              aria-label={`Remove product ${
-                                row?.product?.name || row?.productName || 'product'
-                              } from promo`}
-                              onClick={() =>
-                                setActiveDialog({
-                                  type: 'withdraw',
-                                  row,
-                                })
-                              }
-                            >
-                              Remove from promo
-                            </ActionBtn>
-                          </ActionGroup>
-                        );
-                      })() : null}
-
-                      {statusValue === 'rejected' ? (
-                        <ActionGroup>
-                          <ActionBtn
-                            type='button'
-                            $variant='ghost'
-                            aria-label={`View rejection reason for ${
-                              row?.product?.name || row?.productName || 'product'
-                            }`}
-                            onClick={() =>
-                              setActiveDialog({
-                                type: 'rejected',
-                                row,
-                              })
-                            }
-                          >
-                            View reason
-                          </ActionBtn>
-                          <ActionBtn
-                            type='button'
-                            $variant='outlinePrimary'
-                            aria-label={`Resubmit ${
-                              row?.product?.name || row?.productName || 'product'
-                            }`}
-                            onClick={() => {
-                              const path = PATHS.PROMO_SUBMIT.replace(':id', promoIdValue);
-                              const query = productIdValue
-                                ? `?resubmitProductId=${encodeURIComponent(productIdValue)}`
-                                : '';
-                              navigate(`${path}${query}`);
-                            }}
-                          >
-                            Resubmit
-                          </ActionBtn>
-                        </ActionGroup>
+                    <MobileMetaGrid>
+                      <MobileMetaItem>
+                        <MobileLabel>Promo</MobileLabel>
+                        {promoIdValue ? (
+                          <InlineLink to={PATHS.PROMO_DETAIL.replace(':id', promoIdValue)}>
+                            {row?.promo?.name || 'Promo'}
+                          </InlineLink>
+                        ) : (
+                          <span>{row?.promo?.name || 'Promo'}</span>
+                        )}
+                      </MobileMetaItem>
+                      <MobileMetaItem>
+                        <MobileLabel>Product</MobileLabel>
+                        <span>{row?.product?.name || row?.productName || 'Product'}</span>
+                      </MobileMetaItem>
+                      <MobileMetaItem>
+                        <MobileLabel>Discount</MobileLabel>
+                        <span>
+                          {row?.discountType === 'fixed'
+                            ? formatCurrency(discountValue)
+                            : `${discountValue}%`}
+                        </span>
+                      </MobileMetaItem>
+                      <MobileMetaItem>
+                        <MobileLabel>Submitted</MobileLabel>
+                        <span>{formatDate(row?.submittedAt || row?.createdAt)}</span>
+                      </MobileMetaItem>
+                      {statusValue === 'approved' ? (
+                        <MobileMetaItem>
+                          <MobileLabel>Sold</MobileLabel>
+                          <span>{Number(row?.unitsSold || 0)}</span>
+                        </MobileMetaItem>
                       ) : null}
+                    </MobileMetaGrid>
 
-                      {statusValue === 'withdrawn' ? (
-                        <MutedDash>—</MutedDash>
-                      ) : null}
-
-                      {!['pending', 'rejected', 'approved', 'withdrawn'].includes(statusValue) ? (
-                        <MutedDash>—</MutedDash>
-                      ) : null}
-                    </td>
-                  </tr>
+                    <MobileActions>{renderSubmissionActions(row)}</MobileActions>
+                  </MobileSubmissionCard>
                 );
               })}
-            </tbody>
-          </table>
-        </TableWrap>
+            </MobileSubmissionList>
+          )}
+        </>
       )}
 
       <Pagination>
@@ -861,6 +953,62 @@ const TableWrap = styled.div`
   }
 `;
 
+const DesktopTableWrap = styled.div`
+  display: block;
+`;
+
+const MobileSubmissionList = styled.div`
+  display: grid;
+  gap: 0.75rem;
+`;
+
+const MobileSubmissionCard = styled.article`
+  border: 1px solid #ece8df;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 0.75rem;
+  display: grid;
+  gap: 0.65rem;
+`;
+
+const MobileTopRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+`;
+
+const MobileMetaGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
+`;
+
+const MobileMetaItem = styled.div`
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+
+  span {
+    font-size: 0.82rem;
+    color: #1f2937;
+    word-break: break-word;
+  }
+`;
+
+const MobileLabel = styled.span`
+  font-size: 0.68rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #6b7280;
+`;
+
+const MobileActions = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+`;
+
 const InlineLink = styled(Link)`
   color: #b45309;
   text-decoration: none;
@@ -913,6 +1061,10 @@ const Pagination = styled.div`
   span {
     font-size: 0.82rem;
     color: #4b5563;
+  }
+
+  @media (max-width: 48rem) {
+    justify-content: center;
   }
 `;
 

@@ -12,7 +12,8 @@ export default function SpecificationSection() {
     name: 'specifications.material',
   });
 
-  const tags = watch('tags') || [];
+  const tagsRaw = watch('tags');
+  const tags = useMemo(() => (Array.isArray(tagsRaw) ? tagsRaw : []), [tagsRaw]);
   const metaTitle = watch('metaTitle') || '';
   const metaDescription = watch('metaDescription') || '';
   const [tagInput, setTagInput] = useState('');

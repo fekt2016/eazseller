@@ -59,7 +59,7 @@ export const useGetSellerOrders = (options = {}) => {
         );
       }
     },
-    onsuccess: (data) => {
+    onsuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["seller-orders"] });
     },
     retry: (failureCount, error) => {

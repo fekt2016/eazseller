@@ -5,7 +5,7 @@ const useVariants = () => {
   const queryClient = useQueryClient();
 
   // Get all variants for a product
-  const getVariants = (productId) => {
+  const useGetVariants = (productId) => {
     return useQuery({
       queryKey: ["variants", productId],
       queryFn: async () => {
@@ -25,7 +25,7 @@ const useVariants = () => {
   };
 
   // Get single variant by ID
-  const getVariant = (productId, variantId) => {
+  const useGetVariant = (productId, variantId) => {
     return useQuery({
       queryKey: ["variants", productId, variantId],
       queryFn: async () => {
@@ -100,8 +100,8 @@ const useVariants = () => {
   });
 
   return {
-    getVariants,
-    getVariant,
+    getVariants: useGetVariants,
+    getVariant: useGetVariant,
     createVariant: {
       mutate: createVariant.mutate,
       mutateAsync: createVariant.mutateAsync,

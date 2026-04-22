@@ -13,14 +13,9 @@ export const productService = {
   },
 
   getProductById: async (id) => {
-    try {
-      // Example implementation - replace with your actual API call
-      const response = await api.get(`/product/${id}`);
-
-      return response;
-    } catch (err) {
-      throw err; // Re-throw to allow calling code to handle
-    }
+    // Example implementation - replace with your actual API call
+    const response = await api.get(`/product/${id}`);
+    return response;
   },
 
   // Additional common product service methods
@@ -61,52 +56,39 @@ export const productService = {
     }
   },
   updateProduct: async (id, productData) => {
-    try {
-      // Check if productData is FormData (for image uploads)
-      const isFormData = productData instanceof FormData;
+    // Check if productData is FormData (for image uploads)
+    const isFormData = productData instanceof FormData;
 
-      const response = await api.patch(`/product/${id}`, productData, {
-        timeout: isFormData ? 120000 : 30000, // 2 minutes for FormData (images), 30s for regular updates
-        headers: isFormData ? {
-          "Content-Type": "multipart/form-data",
-        } : undefined,
-      });
+    const response = await api.patch(`/product/${id}`, productData, {
+      timeout: isFormData ? 120000 : 30000, // 2 minutes for FormData (images), 30s for regular updates
+      headers: isFormData ? {
+        "Content-Type": "multipart/form-data",
+      } : undefined,
+    });
 
-      // Axios handles status codes differently than Fetch API
-      if (response.status < 200 || response.status >= 300) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      // Axios response data is in response.data
-      return response.data;
-    } catch (err) {
-      throw err; // Re-throw for error boundary handling
+    // Axios handles status codes differently than Fetch API
+    if (response.status < 200 || response.status >= 300) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    // Axios response data is in response.data
+    return response.data;
   },
 
   deleteProduct: async (id) => {
-    try {
-      const response = await api.delete(`/seller/me/products/${id}`);
-
-      return response;
-    } catch (err) {
-      throw err;
-    }
+    const response = await api.delete(`/seller/me/products/${id}`);
+    return response;
   },
 
   searchProducts: async (query) => {
-    try {
-      const response = await api.get(`/product/search?q=${encodeURIComponent(query)}`, {
-        headers: {
-          "Cache-Control": "no-cache",
-          "Pragma": "no-cache",
-          "Expires": "0",
-        },
-      });
-      return response.data;
-    } catch (err) {
-      throw err;
-    }
+    const response = await api.get(`/product/search?q=${encodeURIComponent(query)}`, {
+      headers: {
+        "Cache-Control": "no-cache",
+        "Pragma": "no-cache",
+        "Expires": "0",
+      },
+    });
+    return response.data;
   },
   getProductCountByCategory: async () => {
     const response = await api.get("/product/category-counts");

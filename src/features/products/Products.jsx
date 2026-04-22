@@ -13,7 +13,6 @@ import { PATHS } from '../../routes/routePaths';
 import Button from '../../shared/components/ui/Button';
 import { SkeletonTableRows } from '../../shared/components/ui/LoadingComponents';
 import { toast } from 'react-toastify';
-import { getOptimizedImageUrl, IMAGE_SLOTS } from '../../shared/utils/cloudinaryConfig';
 import { formatGHS } from '../../shared/utils/dashboardFormatters';
 import ConfirmDeleteModal from '../../components/products/ConfirmDeleteModal';
 

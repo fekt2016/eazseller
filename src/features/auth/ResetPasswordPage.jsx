@@ -71,7 +71,7 @@ export default function ResetPasswordPage() {
       setPasswordError("Almost there! Add at least one number (e.g. 1, 2, 3) to make your password stronger.");
       return false;
     }
-    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]/.test(state.newPassword)) {
+    if (!/[^A-Za-z0-9]/.test(state.newPassword)) {
       setPasswordError("Almost there! Add a special character (e.g. ! @ # $ %) to make your password more secure.");
       return false;
     }

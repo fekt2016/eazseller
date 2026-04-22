@@ -2,14 +2,9 @@ import api from '../../shared/services/api';
 
 export const productService = {
   getProductById: async (id) => {
-    try {
-      // Example implementation - replace with your actual API call
-      const response = await api.get(`/product/${id}`);
-
-      return response;
-    } catch (err) {
-      throw err; // Re-throw to allow calling code to handle
-    }
+    // Example implementation - replace with your actual API call
+    const response = await api.get(`/product/${id}`);
+    return response;
   },
 
   // Additional common product service methods
@@ -49,38 +44,25 @@ export const productService = {
     }
   },
   updateProduct: async (id, productData) => {
-    try {
-      const response = await api.patch(`/product/${id}`, productData);
+    const response = await api.patch(`/product/${id}`, productData);
 
-      // Axios handles status codes differently than Fetch API
-      if (response.status < 200 || response.status >= 300) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      // Axios response data is in response.data
-      return response.data;
-    } catch (err) {
-      throw err; // Re-throw for error boundary handling
+    // Axios handles status codes differently than Fetch API
+    if (response.status < 200 || response.status >= 300) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
+
+    // Axios response data is in response.data
+    return response.data;
   },
 
   deleteProduct: async (id) => {
-    try {
-      const response = await api.delete(`/product/${id}`);
-
-      return response;
-    } catch (err) {
-      throw err;
-    }
+    const response = await api.delete(`/product/${id}`);
+    return response;
   },
 
   searchProducts: async (query) => {
-    try {
-      const response = await api.get(`/product/search?q=${encodeURIComponent(query)}`);
-      return response.data;
-    } catch (err) {
-      throw err;
-    }
+    const response = await api.get(`/product/search?q=${encodeURIComponent(query)}`);
+    return response.data;
   },
   getProductCountByCategory: async () => {
     const response = await api.get("/product/category-counts");

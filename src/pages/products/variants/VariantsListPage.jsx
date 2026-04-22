@@ -10,6 +10,7 @@ import VariantTable from '../../../components/products/variants/VariantTable';
 import useVariants from '../../../shared/hooks/variants/useVariants';
 import useProduct from '../../../shared/hooks/useProduct';
 import { toast } from 'react-toastify';
+import { PATHS } from '../../../routes/routePaths';
 
 export default function VariantsListPage() {
   const { productId } = useParams();
@@ -72,6 +73,19 @@ export default function VariantsListPage() {
     }
   };
 
+  const goBackFromVariants = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+    navigate(PATHS.EDIT_PRODUCT.replace(':id', productId));
+  };
+
+  const variantCreatePath = PATHS.PRODUCT_VARIANT_CREATE.replace(
+    ':productId',
+    productId,
+  );
+
   if (variantsLoading || productLoading) {
     return (
       <VariantListPage>
@@ -89,7 +103,7 @@ export default function VariantsListPage() {
   return (
     <VariantListPage>
       <VarHeader>
-        <BackButton onClick={() => navigate(-1)}>
+        <BackButton onClick={goBackFromVariants}>
           <FaArrowLeft /> Back
         </BackButton>
         <VarTitleSection>
@@ -99,7 +113,7 @@ export default function VariantsListPage() {
         <VarActions>
           <Button
             as={Link}
-            to={`/dashboard/products/${productId}/variants/create`}
+            to={variantCreatePath}
             variant="primary"
             size="md"
             gradient
@@ -117,7 +131,7 @@ export default function VariantsListPage() {
           action={
             <Button
               as={Link}
-              to={`/dashboard/products/${productId}/variants/create`}
+              to={variantCreatePath}
               variant="primary"
               size="lg"
               gradient

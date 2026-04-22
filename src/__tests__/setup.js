@@ -72,7 +72,7 @@ afterEach(async () => {
   if (server) {
     try {
       server.resetHandlers();
-    } catch (error) {
+    } catch {
       // Ignore reset errors
     }
   }
@@ -90,7 +90,7 @@ afterAll(() => {
   if (server) {
     try {
       server.close();
-    } catch (error) {
+    } catch {
       // Ignore close errors
     }
   }

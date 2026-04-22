@@ -15,6 +15,7 @@ import {
   FaMapMarkerAlt,
   FaUndo,
   FaTag,
+  FaVideo,
 } from "react-icons/fa";
 import useAuth from '../hooks/useAuth';
 import { PATHS } from '../../routes/routePaths';
@@ -31,7 +32,7 @@ export default function Sidebar({ isOpen, onClose }) {
   const { pendingCount } = usePendingSubmissionsCount();
 
   const publicMenuItems = [
-    { path: PATHS.SHIPPING_INFO, label: "Shipping Info", icon: <FaTruck /> },
+    { path: PATHS.SHIPPING_PUBLIC, label: "Shipping Info", icon: <FaTruck /> },
     { path: PATHS.TERMS, label: "Terms of Service", icon: <FaFileAlt /> },
     { path: PATHS.VAT_TAX_POLICY, label: "VAT & Tax Policy", icon: <FaFileAlt /> },
     { path: PATHS.HELP, label: "Help Center", icon: <FaHeadset /> },
@@ -55,6 +56,8 @@ export default function Sidebar({ isOpen, onClose }) {
       : []),
     { path: PATHS.ORDERS, label: "Orders", icon: <FaShoppingCart /> },
     { path: PATHS.REVIEWS, label: "Reviews", icon: <FaStar /> },
+    { path: PATHS.STATUS_MEDIA, label: "Status & Media", icon: <FaVideo /> },
+    { path: PATHS.TESTIMONIALS, label: "Testimonials", icon: <FaStar /> },
     ...(!PROMO_SYSTEM_ENABLED
       ? [{ path: PATHS.FLASH_DEALS, label: "Flash Deals", icon: <FaTag /> }]
       : []),
@@ -63,6 +66,7 @@ export default function Sidebar({ isOpen, onClose }) {
     { path: PATHS.RETURNS, label: "Returns", icon: <FaUndo /> },
     { path: PATHS.SUPPORT, label: "Support", icon: <FaHeadset /> },
     { path: PATHS.PICKUP_LOCATIONS, label: "Pickup Locations", icon: <FaMapMarkerAlt /> },
+    { path: PATHS.SHIPPING_SETTINGS, label: "Shipping Settings", icon: <FaTruck /> },
     { path: PATHS.SETTINGS, label: "Settings", icon: <FaCog /> },
   ];
 

@@ -39,7 +39,7 @@ const stripViteDevServerPortFromOrigin = (origin) => {
   const loopback = u.hostname === 'localhost' || u.hostname === '127.0.0.1';
   if (loopback && VITE_UI_PORTS.has(port)) {
     if (isDev) {
-      // eslint-disable-next-line no-console
+       
       console.warn(
         `[eazseller/chat] ${trimmed} is a Vite UI port, not the API. Using ${u.protocol}//${u.hostname}:4000.`
       );
@@ -74,7 +74,7 @@ const loopbackKey = (hostname) => {
   return h;
 };
 
-const useViteDevProxyOrigin = (apiOriginStr, pageOriginStr) => {
+const shouldUseViteDevProxyOrigin = (apiOriginStr, pageOriginStr) => {
   if (!isDev || typeof window === 'undefined') return false;
   try {
     const api = new URL(apiOriginStr);
@@ -141,7 +141,7 @@ export const getEazsellerChatOrigin = () => {
   if (rawExplicit && isViteDevUiOriginString(rawExplicit)) {
     if (isDev && !didWarnViteSocketUrl) {
       didWarnViteSocketUrl = true;
-      // eslint-disable-next-line no-console
+       
       console.warn(
         `[eazseller/chat] VITE_SOCKET_URL="${rawExplicit}" is a Vite dev UI port, not the API. Remove it from .env or set VITE_SOCKET_URL=http://localhost:4000`
       );
@@ -153,7 +153,7 @@ export const getEazsellerChatOrigin = () => {
     const base = resolveExplicitSocketUrl(explicitSocket);
     if (
       typeof window !== 'undefined' &&
-      useViteDevProxyOrigin(base, window.location.origin)
+      shouldUseViteDevProxyOrigin(base, window.location.origin)
     ) {
       return window.location.origin;
     }
@@ -168,7 +168,7 @@ export const getEazsellerChatOrigin = () => {
 
   if (
     typeof window !== 'undefined' &&
-    useViteDevProxyOrigin(resolvedOrigin, window.location.origin)
+    shouldUseViteDevProxyOrigin(resolvedOrigin, window.location.origin)
   ) {
     return window.location.origin;
   }

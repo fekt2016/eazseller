@@ -1,7 +1,6 @@
 import { useState } from "react";
-import styled, { css, keyframes } from "styled-components";
+import styled, { css } from "styled-components";
 import { FaStar, FaEdit, FaTrash, FaQuoteLeft, FaClock, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   useGetMyTestimonial,
   useCreateTestimonial,
@@ -10,11 +9,6 @@ import {
 } from "../../shared/hooks/useTestimonial";
 import { LoadingSpinner } from "../../shared/components/LoadingSpinner";
 import usePageTitle from "../../shared/hooks/usePageTitle";
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-};
 
 const STATUS_CONFIG = {
   pending: { label: "Pending Review", icon: <FaClock />, color: "#B45309", bg: "#FEF3C7" },
@@ -34,9 +28,9 @@ export default function TestimonialsPage() {
   const deleteMutation = useDeleteTestimonial();
 
   usePageTitle({
-    title: "Testimonials - Seller Dashboard | Saiisai",
-    description: "Share your experience selling on Saiisai",
-    keywords: "testimonials, seller, Saiisai",
+    title: "Status & Media - Seller Dashboard | Saiisai",
+    description: "Manage your seller status and media presence on Saiisai",
+    keywords: "status, media, testimonials, seller, Saiisai",
   });
 
   const handleSubmit = async (e) => {
@@ -87,24 +81,18 @@ export default function TestimonialsPage() {
 
   return (
     <Page>
-      <motion.div initial="hidden" animate="visible" variants={fadeUp}>
+      <div>
         <PageHeader>
           <HeaderLeft>
             <PageTitle>My Testimonial</PageTitle>
-            <PageSub>Share your experience selling on Saiisai</PageSub>
+            <PageSub>Status & media (web) uses your seller story card</PageSub>
           </HeaderLeft>
         </PageHeader>
-      </motion.div>
+      </div>
 
-      <AnimatePresence mode="wait">
+      <>
         {showForm ? (
-          <motion.div
-            key="form"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-          >
+          <div key="form">
             <FormCard onSubmit={handleSubmit}>
               <FormTitle>
                 {isEditing ? "Edit Your Testimonial" : "Write Your Testimonial"}
@@ -165,15 +153,9 @@ export default function TestimonialsPage() {
                 </SubmitButton>
               </ButtonGroup>
             </FormCard>
-          </motion.div>
+          </div>
         ) : (
-          <motion.div
-            key="testimonial"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-          >
+          <div key="testimonial">
             <TestimonialCard>
               <CardTop>
                 <QuoteIcon>
@@ -231,19 +213,14 @@ export default function TestimonialsPage() {
                 </InfoBanner>
               )}
             </TestimonialCard>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </>
     </Page>
   );
 }
 
 // Styled Components
-const shimmer = keyframes`
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-`;
-
 const Page = styled.div`
   display: flex;
   flex-direction: column;

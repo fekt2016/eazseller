@@ -5,14 +5,10 @@ export const useGetSellerBalance = () => {
   return useQuery({
     queryKey: ["sellerBalance"],
     queryFn: async () => {
-      try {
-        const response = await balanceApi.getBalance();
-        // Handle different response structures
-        const balanceData = response?.data?.data || response?.data || response;
-        return balanceData;
-      } catch (error) {
-        throw error;
-      }
+      const response = await balanceApi.getBalance();
+      // Handle different response structures
+      const balanceData = response?.data?.data || response?.data || response;
+      return balanceData;
     },
     staleTime: 1000 * 30, // 30 seconds - balance and payoutStatus should update soon after admin verification
     refetchOnWindowFocus: true,
